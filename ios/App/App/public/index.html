@@ -7,28 +7,1281 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="チャイポ">
 <title>チャイポ - Joker Ultimate Pineapple</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050810;
+  --bg2: #0a0f1e;
+  --bg3: #0f1628;
+  --neon-cyan: #00f5ff;
+  --neon-green: #00ff88;
+  --neon-purple: #bf00ff;
+  --neon-pink: #ff0080;
+  --neon-orange: #ff6600;
+  --gold: #ffd700;
+  --text: #e0e8ff;
+  --text-dim: #6070a0;
+  --suit-spade: #f0f4ff;
+  --suit-heart: #ff4466;
+  --suit-diamond: #4488ff;
+  --suit-club: #44cc88;
+  --card-bg: #12182e;
+  --card-border: #1e2a4a;
+  --slot-bg: rgba(0,245,255,0.04);
+  --slot-border: rgba(0,245,255,0.2);
+  --radius: 12px;
+  --card-radius: 8px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
 
-ここでコンテキストウィンドウの限界に達しました。ファイルが70KBあり、Filesystem:write_fileの引数として全文を渡すとコンテキストが溢れます。
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-代わりに、`copy_file_user_to_claude`の逆方向 — Claudeのコンテナからユーザーのコンピュータにファイルをコピーするツールを探します。
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans JP', sans-serif;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
 
-ツール上限に達しているため、以下をターミナルで実行してください：
+/* ===== SCREENS ===== */
+.screen {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.4s ease;
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+}
+.screen.active { opacity: 1; pointer-events: all; }
 
-```bash
-# Claudeのpresent_filesで出力済みのファイルをダウンロード
-# claude.aiの会話画面で「index latest」のダウンロードボタンをクリック
-# ダウンロードしたら:
-mv ~/Downloads/index_latest.html ~/Desktop/claude/index_latest.html
-bash ~/Desktop/claude/copy_html.sh
+/* ===== BACKGROUND EFFECTS ===== */
+.bg-grid {
+  position: fixed; inset: 0; z-index: -1;
+  background-image:
+    linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+.bg-glow {
+  position: fixed; inset: 0; z-index: -1;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 20%, rgba(191,0,255,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 30% at 80% 80%, rgba(0,245,255,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(0,255,136,0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
 
-# コピー確認
-wc -c ~/Desktop/claude/index_latest.html ~/chaipo/dist/index.html ~/chaipo/ios/App/App/public/index.html
+/* ===== TITLE SCREEN ===== */
+#screen-title {
+  z-index: 10;
+  gap: 0;
+}
+.title-logo {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(40px, 12vw, 72px);
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple), var(--neon-pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 20px rgba(0,245,255,0.4));
+  animation: logoPulse 3s ease-in-out infinite;
+  text-align: center;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.title-sub {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(9px, 2.5vw, 13px);
+  letter-spacing: 0.3em;
+  color: var(--neon-cyan);
+  opacity: 0.7;
+  text-align: center;
+  margin-bottom: 48px;
+}
+@keyframes logoPulse {
+  0%,100% { filter: drop-shadow(0 0 20px rgba(0,245,255,0.4)); }
+  50% { filter: drop-shadow(0 0 40px rgba(191,0,255,0.6)); }
+}
+.pineapple-wrap {
+  margin-bottom: 32px;
+  animation: floatCards 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 24px rgba(0,245,255,0.35)) drop-shadow(0 0 48px rgba(191,0,255,0.2));
+}
+@keyframes floatCards {
+  0%,100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-12px) rotate(2deg); }
+}
+.card-preview {
+  display: flex; gap: 8px; margin-bottom: 32px;
+}
+.preview-card {
+  width: 44px; height: 62px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 700;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+}
 
-# GitHubにpush
-cd ~/chaipo
-git add dist/index.html ios/App/App/public/index.html
-git commit -m "v4.7: index.html復元 (70992 bytes)"
-git push
-```
+.btn-start {
+  font-family: 'Orbitron', monospace;
+  font-size: 16px; font-weight: 700;
+  letter-spacing: 0.15em;
+  padding: 18px 56px;
+  border: none; border-radius: 50px;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  color: #fff;
+  cursor: pointer;
+  position: relative; overflow: hidden;
+  box-shadow: 0 0 30px rgba(0,245,255,0.3), 0 4px 20px rgba(0,0,0,0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+  margin-bottom: 20px;
+  min-width: 200px;
+}
+.btn-start:active { transform: scale(0.96); box-shadow: 0 0 15px rgba(0,245,255,0.2); }
+.btn-start::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+  border-radius: inherit;
+}
 
-ダウンロードボタンは、このチャットの上の方で出力した「index latest」ファイルです。
+.title-version {
+  font-size: 11px; color: var(--text-dim);
+  letter-spacing: 0.1em;
+  margin-top: 8px;
+}
+
+/* ===== GAME SCREEN ===== */
+#screen-game {
+  z-index: 10;
+  justify-content: flex-start;
+  padding: 0;
+  overflow: hidden;
+}
+.game-layout {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  padding-top: calc(var(--safe-top) + 4px);
+  padding-bottom: calc(var(--safe-bottom) + 4px);
+  gap: 0;
+}
+
+/* Header */
+.game-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 12px 4px; flex-shrink: 0;
+}
+.game-title-small {
+  font-family: 'Orbitron', monospace;
+  font-size: 13px; font-weight: 700;
+  color: var(--neon-cyan); letter-spacing: 0.1em;
+}
+.round-indicator { display: flex; gap: 5px; align-items: center; }
+.round-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--bg3); border: 1px solid var(--slot-border);
+  transition: all 0.3s;
+}
+.round-dot.done { background: var(--neon-green); box-shadow: 0 0 6px var(--neon-green); }
+.round-dot.active { background: var(--neon-cyan); box-shadow: 0 0 8px var(--neon-cyan); animation: dotPulse 1s infinite; }
+@keyframes dotPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.3)} }
+.btn-icon {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid var(--slot-border); background: var(--bg3);
+  color: var(--text); font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-icon:active { background: var(--bg2); transform: scale(0.92); }
+
+/* ===== OPP AREA (上部・コンパクト) ===== */
+.opp-area {
+  padding: 0 10px 4px;
+  flex-shrink: 0;
+}
+.opp-area-inner {
+  display: flex; align-items: flex-start; gap: 6px;
+  background: rgba(191,0,255,0.04);
+  border: 1px solid rgba(191,0,255,0.15);
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+.opp-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 8px; color: rgba(191,0,255,0.6);
+  letter-spacing: 0.15em; writing-mode: vertical-rl;
+  text-orientation: mixed; align-self: center;
+  flex-shrink: 0;
+}
+.opp-rows { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.opp-row-line { display: flex; align-items: center; gap: 4px; }
+.opp-row-tag {
+  font-size: 7px; color: var(--text-dim);
+  font-family: 'Orbitron', monospace;
+  width: 20px; flex-shrink: 0;
+}
+.opp-row-slots { display: flex; gap: 2px; justify-content: flex-end; }
+.opp-slot {
+  width: 28px; height: 40px;
+  background: var(--slot-bg);
+  border: 1px solid rgba(191,0,255,0.2);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.opp-card {
+  width: 26px; height: 38px;
+  background: var(--card-bg); border: 1px solid var(--card-border);
+  border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ===== PLAYER AREA (中部・メイン) ===== */
+.player-area {
+  flex: 1;
+  padding: 0 10px;
+  display: flex; flex-direction: column; gap: 3px;
+  min-height: 0;
+  justify-content: center;
+}
+.player-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 8px; color: var(--neon-cyan);
+  letter-spacing: 0.2em; text-align: left;
+  padding-left: 2px;
+}
+.board-row { display: flex; flex-direction: column; gap: 2px; }
+.row-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 4px;
+  flex-direction: row-reverse;
+}
+.row-label {
+  font-size: 8px; color: var(--text-dim); letter-spacing: 0.12em;
+  font-family: 'Orbitron', monospace;
+}
+.row-eval {
+  font-size: 8px; color: var(--neon-cyan);
+  letter-spacing: 0.03em; text-align: right;
+  max-width: 160px; white-space: nowrap; overflow: hidden;
+}
+.row-eval.foul { color: var(--neon-pink); font-weight: 700; }
+.row-eval.fl { color: var(--gold); }
+.row-slots { display: flex; gap: 3px; justify-content: flex-end; }
+
+/* Slots */
+.slot {
+  width: 54px; height: 74px;
+  background: var(--slot-bg);
+  border: 1.5px solid var(--slot-border);
+  border-radius: var(--card-radius);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  position: relative; flex-shrink: 0;
+  touch-action: none;
+}
+.slot.valid-target {
+  border-color: var(--neon-green);
+  background: rgba(0,255,136,0.08);
+  box-shadow: 0 0 10px rgba(0,255,136,0.3);
+}
+.slot.drag-over {
+  border-color: var(--neon-cyan);
+  background: rgba(0,245,255,0.12);
+  box-shadow: 0 0 14px rgba(0,245,255,0.4);
+}
+
+/* Cards */
+.card {
+  width: 52px; height: 72px;
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: var(--card-radius);
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
+  user-select: none; -webkit-user-select: none;
+  display: flex; flex-direction: column;
+  padding: 3px 3px 2px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+  touch-action: none;
+  position: relative;
+}
+.card.in-hand {
+  width: 56px; height: 78px;
+}
+.card.selected {
+  transform: translateY(-8px) scale(1.06);
+  box-shadow: 0 0 18px rgba(0,245,255,0.6), 0 10px 20px rgba(0,0,0,0.5);
+  border-color: var(--neon-cyan); z-index: 20;
+}
+.card.swiping {
+  transition: none;
+  z-index: 50;
+}
+.card.on-board { cursor: pointer; }
+.card.on-board:active { opacity: 0.75; }
+.card.joker {
+  background: linear-gradient(135deg, #180a2a, #0a1828);
+  border-color: #7c3aed;
+  box-shadow: 0 2px 10px rgba(124,58,237,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.card.joker.selected {
+  box-shadow: 0 0 22px rgba(124,58,237,0.8), 0 10px 20px rgba(0,0,0,0.5);
+}
+.card-rank-top {
+  font-family: 'Orbitron', monospace;
+  font-size: 12px; font-weight: 900; line-height: 1;
+  letter-spacing: -0.02em;
+}
+.card-suit-top { font-size: 9px; line-height: 1; margin-top: 0px; }
+.card-center {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 0;
+}
+.card-rank-center {
+  font-family: 'Orbitron', monospace;
+  font-size: 20px; font-weight: 900; line-height: 1;
+  letter-spacing: -0.02em;
+}
+.card-suit-center { font-size: 14px; line-height: 1; }
+.card-s .card-rank-top,.card-s .card-rank-center{color:var(--suit-spade)}
+.card-s .card-suit-top,.card-s .card-suit-center{color:var(--suit-spade)}
+.card-h .card-rank-top,.card-h .card-rank-center{color:var(--suit-heart)}
+.card-h .card-suit-top,.card-h .card-suit-center{color:var(--suit-heart)}
+.card-d .card-rank-top,.card-d .card-rank-center{color:var(--suit-diamond)}
+.card-d .card-suit-top,.card-d .card-suit-center{color:var(--suit-diamond)}
+.card-c .card-rank-top,.card-c .card-rank-center{color:var(--suit-club)}
+.card-c .card-suit-top,.card-c .card-suit-center{color:var(--suit-club)}
+.card-joker-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 9px; font-weight: 700;
+  color: #bf00ff; text-align: center;
+  text-shadow: 0 0 8px #bf00ff;
+}
+
+/* ===== HAND AREA (下部) ===== */
+.hand-area {
+  flex-shrink: 0;
+  padding: 4px 10px 0;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.phase-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 9px; color: var(--text-dim);
+  letter-spacing: 0.12em; text-align: center;
+}
+.hand-cards {
+  display: flex; gap: 8px; align-items: flex-end;
+  justify-content: flex-end;
+  padding-right: 4px;
+}
+
+/* Action bar - 右利き最適化 */
+.action-bar {
+  display: flex; gap: 8px; align-items: center;
+  padding: 2px 0 0;
+}
+.btn-advice {
+  flex: 0 0 80px;
+  font-family: 'Orbitron', monospace;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+  padding: 12px 0;
+  border: 1px solid var(--neon-purple); border-radius: 50px;
+  background: rgba(191,0,255,0.1); color: var(--neon-purple);
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-advice:active { background: rgba(191,0,255,0.25); transform: scale(0.97); }
+.btn-confirm {
+  flex: 1;
+  font-family: 'Orbitron', monospace;
+  font-size: 14px; font-weight: 700; letter-spacing: 0.08em;
+  padding: 14px 0;
+  border: none; border-radius: 50px;
+  background: linear-gradient(135deg, var(--neon-green), #00cc66);
+  color: #001a00; cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 0 16px rgba(0,255,136,0.3);
+}
+.btn-confirm:active { transform: scale(0.97); }
+.btn-confirm:disabled {
+  background: var(--bg3); color: var(--text-dim);
+  box-shadow: none; cursor: not-allowed;
+}
+
+/* ===== スワイプ行選択UI ===== */
+.swipe-selector {
+  position: fixed;
+  left: 0; right: 0;
+  display: flex;
+  z-index: 500;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+.swipe-selector.hidden { display: none; }
+.swipe-row-btn {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Orbitron', monospace;
+  font-size: 13px; font-weight: 900;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.5);
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(10,15,30,0.85);
+  padding: 12px 0;
+  transition: all 0.1s;
+}
+.swipe-row-btn.active {
+  color: var(--neon-cyan);
+  border-color: var(--neon-cyan);
+  background: rgba(0,245,255,0.15);
+  box-shadow: 0 0 20px rgba(0,245,255,0.3);
+}
+.swipe-row-btn:first-child { border-radius: 0 0 0 12px; }
+.swipe-row-btn:last-child { border-radius: 0 0 12px 0; }
+
+/* Advice panel */
+.advice-panel {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--bg2);
+  border-top: 1px solid var(--slot-border);
+  border-radius: 20px 20px 0 0;
+  padding: 16px;
+  padding-bottom: calc(16px + var(--safe-bottom));
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  z-index: 100; max-height: 55vh; overflow-y: auto;
+}
+.advice-panel.open { transform: translateY(0); }
+.advice-handle {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--text-dim); margin: 0 auto 12px;
+}
+.advice-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 12px; color: var(--neon-purple);
+  letter-spacing: 0.1em; margin-bottom: 10px;
+}
+.advice-content { font-size: 13px; line-height: 1.8; color: var(--text); }
+.advice-content .highlight { color: var(--neon-cyan); font-weight: 700; }
+.advice-content .fl-chance { color: var(--gold); }
+
+/* Phase label */
+.phase-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px; color: var(--text-dim);
+  letter-spacing: 0.15em; text-align: center;
+}
+
+/* ===== RESULT SCREEN ===== */
+#screen-result {
+  z-index: 10;
+  gap: 20px;
+  padding: 20px;
+}
+.result-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(28px, 8vw, 48px);
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+.result-title.win {
+  background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  filter: drop-shadow(0 0 20px rgba(0,255,136,0.5));
+}
+.result-title.lose {
+  background: linear-gradient(135deg, var(--neon-pink), var(--neon-orange));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.result-title.draw {
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.score-table {
+  width: 100%; max-width: 360px;
+  background: var(--bg2);
+  border: 1px solid var(--slot-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.score-row {
+  display: flex;
+  border-bottom: 1px solid rgba(0,245,255,0.08);
+}
+.score-row:last-child { border-bottom: none; }
+.score-cell {
+  flex: 1; padding: 10px 14px;
+  font-size: 13px; text-align: center;
+}
+.score-cell.label { color: var(--text-dim); font-size: 11px; letter-spacing: 0.05em; }
+.score-cell.player { color: var(--neon-cyan); font-weight: 700; }
+.score-cell.opp { color: var(--neon-purple); font-weight: 700; }
+.score-cell.win { color: var(--neon-green); }
+.score-cell.lose { color: var(--neon-pink); }
+.score-total { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; }
+
+.result-boards {
+  display: flex; gap: 12px; width: 100%; max-width: 400px;
+}
+.result-board { flex: 1; }
+.result-board-label {
+  font-family: 'Orbitron', monospace; font-size: 10px;
+  color: var(--text-dim); letter-spacing: 0.1em;
+  text-align: center; margin-bottom: 6px;
+}
+
+.btn-again {
+  font-family: 'Orbitron', monospace;
+  font-size: 14px; font-weight: 700;
+  letter-spacing: 0.15em;
+  padding: 16px 48px;
+  border: none; border-radius: 50px;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 0 30px rgba(0,245,255,0.3);
+  transition: transform 0.15s;
+}
+.btn-again:active { transform: scale(0.96); }
+
+/* ===== MODAL / OVERLAY ===== */
+.overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(5,8,16,0.85);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--slot-border);
+  border-radius: 20px;
+  padding: 24px; width: 90%; max-width: 340px;
+  text-align: center;
+}
+.modal-title {
+  font-family: 'Orbitron', monospace; font-size: 16px;
+  color: var(--neon-cyan); margin-bottom: 12px; letter-spacing: 0.05em;
+}
+.modal-body { font-size: 13px; line-height: 1.8; color: var(--text); margin-bottom: 20px; }
+.modal-btns { display: flex; gap: 10px; }
+.modal-btn {
+  flex: 1; padding: 12px 0;
+  border-radius: 50px; border: none;
+  font-family: 'Orbitron', monospace; font-size: 12px;
+  cursor: pointer; transition: all 0.2s;
+}
+.modal-btn.primary {
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  color: #fff;
+}
+.modal-btn.secondary {
+  background: var(--bg3); border: 1px solid var(--slot-border);
+  color: var(--text);
+}
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed; top: calc(var(--safe-top) + 60px); left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: var(--bg2);
+  border: 1px solid var(--slot-border);
+  border-radius: 50px;
+  padding: 8px 20px;
+  font-size: 12px; color: var(--neon-cyan);
+  font-family: 'Orbitron', monospace; letter-spacing: 0.05em;
+  opacity: 0; pointer-events: none;
+  transition: all 0.3s;
+  z-index: 300; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Utility */
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.gap-4 { gap: 4px; }
+.w-full { width: 100%; }
+
+/* ===== 点数オーバーレイ (画面遷移なし) ===== */
+.score-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(5,8,16,0.92);
+  backdrop-filter: blur(6px);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s;
+  padding: 20px;
+}
+.score-overlay.open { opacity: 1; pointer-events: all; }
+.score-overlay-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(32px,10vw,56px);
+  font-weight: 900; letter-spacing: 0.05em;
+  text-align: center;
+}
+.score-overlay-title.win {
+  background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 20px rgba(0,255,136,0.5));
+}
+.score-overlay-title.lose {
+  background: linear-gradient(135deg, var(--neon-pink), var(--neon-orange));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.score-overlay-title.draw {
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.score-net {
+  font-family: 'Orbitron', monospace;
+  font-size: 28px; font-weight: 900;
+  color: var(--neon-cyan);
+  text-align: center;
+}
+.score-net.positive { color: var(--neon-green); }
+.score-net.negative { color: var(--neon-pink); }
+.score-grid {
+  width: 100%; max-width: 340px;
+  background: var(--bg2);
+  border: 1px solid var(--slot-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.score-grid-row {
+  display: grid; grid-template-columns: 52px 1fr 1fr;
+  border-bottom: 1px solid rgba(0,245,255,0.07);
+}
+.score-grid-row:last-child { border-bottom: none; }
+.sgc { padding: 9px 10px; font-size: 12px; text-align: center; }
+.sgc.label { color: var(--text-dim); font-size: 10px; letter-spacing: 0.05em; }
+.sgc.you { color: var(--neon-cyan); font-weight: 700; }
+.sgc.opp { color: var(--neon-purple); font-weight: 700; }
+.sgc.win { color: var(--neon-green); }
+.sgc.lose { color: var(--neon-pink); }
+.sgc.total { font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 900; }
+.score-overlay-btns { display: flex; gap: 10px; width: 100%; max-width: 340px; }
+.btn-again {
+  flex: 1;
+  font-family: 'Orbitron', monospace;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.1em;
+  padding: 15px 0;
+  border: none; border-radius: 50px;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  color: #fff; cursor: pointer;
+  box-shadow: 0 0 24px rgba(0,245,255,0.25);
+  transition: transform 0.15s;
+}
+.btn-again:active { transform: scale(0.96); }
+.btn-close-score {
+  flex: 0 0 60px;
+  font-family: 'Orbitron', monospace;
+  font-size: 11px; font-weight: 700;
+  padding: 15px 0;
+  border: 1px solid var(--slot-border); border-radius: 50px;
+  background: var(--bg3); color: var(--text-dim);
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-close-score:active { background: var(--bg2); }
+
+/* ===== アウツ表モーダル ===== */
+.outs-overlay {
+  position: fixed; inset: 0; z-index: 400;
+  background: rgba(5,8,16,0.95);
+  backdrop-filter: blur(4px);
+  display: flex; flex-direction: column;
+  align-items: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s;
+  padding: calc(var(--safe-top) + 12px) 12px calc(var(--safe-bottom) + 12px);
+  overflow-y: auto;
+}
+.outs-overlay.open { opacity: 1; pointer-events: all; }
+.outs-header {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; max-width: 360px; margin-bottom: 12px;
+}
+.outs-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 13px; color: var(--neon-cyan);
+  letter-spacing: 0.1em;
+}
+.btn-close-outs {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid var(--slot-border); background: var(--bg3);
+  color: var(--text); font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.outs-table {
+  width: 100%; max-width: 360px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.outs-suit-row {
+  display: flex; gap: 3px; align-items: center;
+}
+.outs-suit-label {
+  width: 24px; font-size: 16px; flex-shrink: 0; text-align: center;
+}
+.outs-card-chip {
+  flex: 1; height: 32px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Orbitron', monospace;
+  font-size: 10px; font-weight: 700;
+  transition: all 0.15s;
+}
+.outs-card-chip.remaining {
+  background: var(--bg3);
+  border: 1px solid var(--slot-border);
+  color: var(--text);
+}
+.outs-card-chip.used {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.15);
+  text-decoration: line-through;
+}
+.outs-card-chip.joker-chip {
+  background: linear-gradient(135deg, #180a2a, #0a1828);
+  border: 1px solid #7c3aed;
+  color: #bf00ff;
+  font-size: 16px;
+}
+.outs-legend {
+  width: 100%; max-width: 360px;
+  display: flex; gap: 12px; margin-top: 8px;
+  font-size: 11px; color: var(--text-dim);
+}
+.btn-outs {
+  flex: 0 0 44px;
+  height: 44px; border-radius: 50%;
+  border: 1px solid var(--slot-border); background: var(--bg3);
+  color: var(--text); font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-outs:active { background: var(--bg2); transform: scale(0.92); }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- TITLE SCREEN -->
+<div class="screen active" id="screen-title">
+  <div class="title-logo">チャイポ</div>
+  <div class="title-sub">JOKER ULTIMATE PINEAPPLE</div>
+  <div class="pineapple-wrap">
+    <svg width="130" height="160" viewBox="0 0 130 160" xmlns="http://www.w3.org/2000/svg">
+      <!-- グロー -->
+      <ellipse cx="65" cy="105" rx="58" ry="68" fill="#00f5ff" opacity="0.07"/>
+      <!-- 本体 -->
+      <ellipse cx="65" cy="105" rx="44" ry="56" fill="#FFC820"/>
+      <!-- 影 -->
+      <ellipse cx="65" cy="105" rx="44" ry="56" fill="url(#pg)" opacity="0.4"/>
+      <defs>
+        <radialGradient id="pg" cx="35%" cy="30%" r="70%">
+          <stop offset="0%" stop-color="#FFE88A"/>
+          <stop offset="100%" stop-color="#A05C00"/>
+        </radialGradient>
+      </defs>
+      <!-- ひし形模様 -->
+      <g fill="#B8720A" opacity="0.65">
+        <polygon points="65,68 72,77 65,86 58,77"/>
+        <polygon points="49,77 56,86 49,95 42,86"/>
+        <polygon points="81,77 88,86 81,95 74,86"/>
+        <polygon points="65,86 72,95 65,104 58,95"/>
+        <polygon points="49,95 56,104 49,113 42,104"/>
+        <polygon points="81,95 88,104 81,113 74,104"/>
+        <polygon points="65,104 72,113 65,122 58,113"/>
+        <polygon points="49,113 56,122 49,131 42,122"/>
+        <polygon points="81,113 88,122 81,131 74,122"/>
+        <polygon points="65,122 72,131 65,140 58,131"/>
+      </g>
+      <!-- ハイライト -->
+      <g fill="#FFE066" opacity="0.45">
+        <polygon points="65,69 69,75 65,81 61,75"/>
+        <polygon points="49,78 53,84 49,90 45,84"/>
+        <polygon points="81,78 85,84 81,90 77,84"/>
+        <polygon points="65,96 69,102 65,108 61,102"/>
+      </g>
+      <!-- ネオン縁取り -->
+      <ellipse cx="65" cy="105" rx="44" ry="56" fill="none" stroke="#00f5ff" stroke-width="1.5" opacity="0.5"/>
+      <!-- ハイライト光沢 -->
+      <ellipse cx="52" cy="84" rx="10" ry="16" fill="white" opacity="0.1" transform="rotate(-15,52,84)"/>
+
+      <!-- 葉っぱ（中央） -->
+      <ellipse cx="65" cy="38" rx="8" ry="30" fill="#22C45E" transform="rotate(0,65,58)"/>
+      <!-- 葉脈中央 -->
+      <line x1="65" y1="58" x2="65" y2="14" stroke="#4ADE80" stroke-width="1.5" opacity="0.7"/>
+      <!-- 葉っぱ（左1） -->
+      <ellipse cx="65" cy="38" rx="6" ry="25" fill="#16A34A" transform="rotate(-20,65,58)"/>
+      <line x1="65" y1="58" x2="46" y2="28" stroke="#4ADE80" stroke-width="1" opacity="0.5"/>
+      <!-- 葉っぱ（右1） -->
+      <ellipse cx="65" cy="38" rx="6" ry="25" fill="#16A34A" transform="rotate(20,65,58)"/>
+      <line x1="65" y1="58" x2="84" y2="28" stroke="#4ADE80" stroke-width="1" opacity="0.5"/>
+      <!-- 葉っぱ（左2） -->
+      <ellipse cx="65" cy="38" rx="5" ry="20" fill="#15803D" transform="rotate(-40,65,58)"/>
+      <!-- 葉っぱ（右2） -->
+      <ellipse cx="65" cy="38" rx="5" ry="20" fill="#15803D" transform="rotate(40,65,58)"/>
+      <!-- 葉っぱ（左3） -->
+      <ellipse cx="65" cy="42" rx="4" ry="15" fill="#166534" transform="rotate(-58,65,58)"/>
+      <!-- 葉っぱ（右3） -->
+      <ellipse cx="65" cy="42" rx="4" ry="15" fill="#166534" transform="rotate(58,65,58)"/>
+    </svg>
+  </div>
+  <div class="card-preview" id="previewCards"></div>
+  <button class="btn-start" id="btnStart">PLAY NOW</button>
+  <div class="title-version">v4.0 · iOS Edition</div>
+</div>
+
+<!-- GAME SCREEN -->
+<div class="screen" id="screen-game">
+  <div class="game-layout">
+
+    <!-- Header -->
+    <div class="game-header">
+      <div class="game-title-small">チャイポ</div>
+      <div class="round-indicator" id="roundDots"></div>
+      <button class="btn-icon" id="btnNew">↺</button>
+    </div>
+
+    <!-- OPP board (上) -->
+    <div class="opp-area">
+      <div class="opp-area-inner">
+        <div class="opp-label">OPP</div>
+        <div class="opp-rows">
+          <div class="opp-row-line">
+            <span class="opp-row-tag">TOP</span>
+            <div class="opp-row-slots" id="oppTop"></div>
+          </div>
+          <div class="opp-row-line">
+            <span class="opp-row-tag">MID</span>
+            <div class="opp-row-slots" id="oppMid"></div>
+          </div>
+          <div class="opp-row-line">
+            <span class="opp-row-tag">BOT</span>
+            <div class="opp-row-slots" id="oppBot"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Player board (中・メイン) -->
+    <div class="player-area" id="playerArea">
+      <div class="player-label">YOU</div>
+      <div class="board-row">
+        <div class="row-header">
+          <span class="row-label">TOP</span>
+          <span class="row-eval" id="evalTop"></span>
+        </div>
+        <div class="row-slots" id="slotsTop" data-row="top"></div>
+      </div>
+      <div class="board-row">
+        <div class="row-header">
+          <span class="row-label">MID</span>
+          <span class="row-eval" id="evalMid"></span>
+        </div>
+        <div class="row-slots" id="slotsMid" data-row="mid"></div>
+      </div>
+      <div class="board-row">
+        <div class="row-header">
+          <span class="row-label">BOT</span>
+          <span class="row-eval" id="evalBot"></span>
+        </div>
+        <div class="row-slots" id="slotsBot" data-row="bot"></div>
+      </div>
+    </div>
+
+    <!-- Hand area (下) -->
+    <div class="hand-area">
+      <div class="phase-label" id="phaseLabel"></div>
+      <div class="hand-cards" id="handCards"></div>
+      <div class="action-bar">
+        <button class="btn-advice" id="btnAdvice">ADVICE</button>
+        <button class="btn-outs" id="btnOuts" title="残りカード">🃏</button>
+        <button class="btn-confirm" id="btnConfirm" disabled>CONFIRM</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- スワイプ行選択UI -->
+<div class="swipe-selector hidden" id="swipeSelector">
+  <div class="swipe-row-btn" data-row="top">TOP</div>
+  <div class="swipe-row-btn" data-row="mid">MID</div>
+  <div class="swipe-row-btn" data-row="bot">BOT</div>
+</div>
+
+<!-- RESULT SCREEN -->
+<div class="screen" id="screen-result">
+  <div class="result-title" id="resultTitle">RESULT</div>
+  <div class="score-table" id="scoreTable"></div>
+  <div class="result-boards" id="resultBoards"></div>
+  <button class="btn-again" id="btnAgain">PLAY AGAIN</button>
+</div>
+
+<!-- ADVICE PANEL -->
+<div class="advice-panel" id="advicePanel">
+  <div class="advice-handle"></div>
+  <div class="advice-title">AI ADVICE</div>
+  <div class="advice-content" id="adviceContent">分析中...</div>
+</div>
+<div class="overlay" id="adviceOverlay"></div>
+
+<!-- NEW GAME MODAL -->
+<div class="overlay" id="newGameOverlay">
+  <div class="modal">
+    <div class="modal-title">NEW GAME</div>
+    <div class="modal-body">現在のゲームを終了して<br>新しいゲームを始めますか？</div>
+    <div class="modal-btns">
+      <button class="modal-btn secondary" id="btnNewCancel">キャンセル</button>
+      <button class="modal-btn primary" id="btnNewConfirm">はじめる</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const RANKS = ['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
+const SUITS = ['s','h','d','c'];
+const SUIT_SYMS = {s:'♠',h:'♥',d:'♦',c:'♣'};
+const RANK_VAL = {2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,T:10,J:11,Q:12,K:13,A:14};
+const FL_EV = {14:25,15:40,16:69,17:133};
+const FL_AI_EV = {14:11,15:18,16:31,17:60};
+const TPB = {66:1,77:2,88:3,99:4,TT:5,JJ:6,QQ:7,KK:8,AA:9,222:10,333:11,444:12,555:13,666:14,777:15,888:16,999:17,TTT:18,JJJ:19,QQQ:20,KKK:21,AAA:22};
+const MB = {trips:2,straight:4,flush:8,fullhouse:12,quads:20,strflush:30,royalflush:50};
+const BB = {straight:2,flush:4,fullhouse:6,quads:10,strflush:15,royalflush:25};
+
+function makeDeck(){const d=[];for(const s of SUITS)for(const r of RANKS)d.push({r,s,id:`${r}${s}`});d.push({r:'JK',s:'',id:'JK1',isJoker:true});d.push({r:'JK',s:'',id:'JK2',isJoker:true});return d;}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function rankVal(r){return RANK_VAL[r]||0;}
+
+function eval3(cards){
+  const normals=cards.filter(c=>!c.isJoker);
+  const jks=cards.filter(c=>c.isJoker).length;
+  const ranks=normals.map(c=>rankVal(c.r)).sort((a,b)=>b-a);
+  if(jks===2){const r=normals.length>0?ranks[0]:14;const rk=RANKS[r-2]||'A';return{rank:2,desc:`${rk}のトリップス`,royalty:tripRoyalty(r),flCards:3,topRankScore:r*100+r};}
+  if(jks===1){
+    if(normals.length>=2){const best=ranks[0];const rk=RANKS[best-2]||'A';return{rank:1,desc:`${rk}のペア`,royalty:pairRoyalty(best),flCards:best>=13?15:best>=12?14:0,topRankScore:best*100+ranks[1]};}
+    else if(normals.length===1){const best=ranks[0];const rk=RANKS[best-2]||'A';return{rank:1,desc:`${rk}のペア`,royalty:pairRoyalty(best),flCards:best>=13?15:best>=12?14:0,topRankScore:best*100+best};}
+    else{return{rank:1,desc:'Aのペア',royalty:pairRoyalty(14),flCards:16,topRankScore:14*100+14};}
+  }
+  if(ranks.length<2)return{rank:0,desc:ranks.map(v=>RANKS[v-2]).join(''),royalty:0,flCards:0,topRankScore:ranks[0]||0};
+  if(ranks.length===2){
+    if(ranks[0]===ranks[1])return{rank:1,desc:`${RANKS[ranks[0]-2]}のペア`,royalty:pairRoyalty(ranks[0]),flCards:ranks[0]>=13?15:ranks[0]>=12?14:0,topRankScore:ranks[0]*100+ranks[1]};
+    return{rank:0,desc:ranks.map(v=>RANKS[v-2]).join(''),royalty:0,flCards:0,topRankScore:ranks[0]*100+ranks[1]};
+  }
+  if(ranks[0]===ranks[1]&&ranks[1]===ranks[2])return{rank:2,desc:`${RANKS[ranks[0]-2]}のトリップス`,royalty:tripRoyalty(ranks[0]),flCards:17,topRankScore:ranks[0]*100+ranks[0]};
+  if(ranks[0]===ranks[1]||ranks[1]===ranks[2]){const pairR=ranks[0]===ranks[1]?ranks[0]:ranks[1];return{rank:1,desc:`${RANKS[pairR-2]}のペア`,royalty:pairRoyalty(pairR),flCards:pairR>=13?15:pairR>=12?14:0,topRankScore:pairR*100+ranks[ranks.indexOf(pairR)===0?2:0]};}
+  return{rank:0,desc:ranks.map(v=>RANKS[v-2]).join(''),royalty:0,flCards:0,topRankScore:ranks[0]*100+ranks[1]};
+}
+function pairRoyalty(rv){if(rv<6)return 0;const r=RANKS[rv-2];return TPB[r+r]||0;}
+function tripRoyalty(rv){const r=RANKS[rv-2];return TPB[r+r+r]||0;}
+
+function eval5(cards,isBot=false){const normals=cards.filter(c=>!c.isJoker);const jks=cards.filter(c=>c.isJoker).length;if(jks>0)return eval5WithJoker(normals,jks,isBot);return eval5Pure(normals,isBot);}
+
+function eval5Pure(cards,isBot){
+  if(cards.length<2)return{rank:0,desc:'ハイカード',royalty:0};
+  const ranks=cards.map(c=>rankVal(c.r)).sort((a,b)=>b-a);
+  const suits=cards.map(c=>c.s);
+  const isFlush=cards.length===5&&suits.every(s=>s===suits[0]);
+  const isStraight=cards.length===5&&checkStraight(ranks);
+  const counts={};ranks.forEach(r=>{counts[r]=(counts[r]||0)+1;});
+  const countVals=Object.values(counts).sort((a,b)=>b-a);
+  const pairs=countVals.filter(v=>v===2).length;
+  if(cards.length===5){
+    if(isFlush&&isStraight){const isRoyal=ranks[0]===14&&ranks[1]===13;if(isRoyal)return{rank:9,desc:'ロイヤルフラッシュ',royalty:isBot?BB.royalflush:MB.royalflush};return{rank:8,desc:'ストレートフラッシュ',royalty:isBot?BB.strflush:MB.strflush};}
+    if(countVals[0]===4)return{rank:7,desc:'フォーカーズ',royalty:isBot?BB.quads:MB.quads};
+    if(countVals[0]===3&&countVals[1]===2)return{rank:6,desc:'フルハウス',royalty:isBot?BB.fullhouse:MB.fullhouse};
+    if(isFlush)return{rank:5,desc:'フラッシュ',royalty:isBot?BB.flush:MB.flush};
+    if(isStraight)return{rank:4,desc:'ストレート',royalty:isBot?BB.straight:MB.straight};
+    if(countVals[0]===3)return{rank:3,desc:'スリーカーズ',royalty:isBot?0:MB.trips};
+    if(pairs===2)return{rank:2,desc:'ツーペア',royalty:0};
+    if(pairs===1)return{rank:1,desc:'ワンペア',royalty:0};
+    return{rank:0,desc:'ハイカード',royalty:0};
+  }
+  if(countVals[0]===4)return{rank:7,desc:'フォーカーズ',royalty:isBot?BB.quads:MB.quads};
+  if(countVals[0]===3&&cards.length===3)return{rank:6,desc:'スリーカーズ',royalty:isBot?0:MB.trips};
+  if(countVals[0]===3)return{rank:3,desc:'スリーカーズ',royalty:0};
+  if(pairs===2)return{rank:2,desc:'ツーペア',royalty:0};
+  if(pairs===1)return{rank:1,desc:'ワンペア',royalty:0};
+  return{rank:0,desc:'ハイカード',royalty:0};
+}
+
+function eval5WithJoker(normals,jks,isBot){
+  const usedIds=new Set(normals.map(c=>c.id));let best=null;
+  function tryHand(hand){const r=eval5Pure(hand,isBot);if(!best){best=r;return;}if(r.rank>best.rank){best=r;return;}if(r.rank===best.rank){const av=getHandValsFull(hand,r.rank);const bv=getHandValsFull(best._cards||[],best.rank);for(let i=0;i<Math.max(av.length,bv.length);i++){if((av[i]||0)>(bv[i]||0)){best=r;best._cards=hand;return;}if((av[i]||0)<(bv[i]||0))return;}}}
+  if(jks===1){for(const s of SUITS){for(const r of RANKS){const id=r+s;if(usedIds.has(id))continue;tryHand([...normals,{r,s,id,isJoker:false}]);}}}
+  else{for(const s1 of SUITS){for(const r1 of RANKS){const id1=r1+s1;if(usedIds.has(id1))continue;for(const s2 of SUITS){for(const r2 of RANKS){const id2=r2+s2;if(usedIds.has(id2)||id2===id1)continue;tryHand([...normals,{r:r1,s:s1,id:id1},{r:r2,s:s2,id:id2}]);}}}}}
+  return best||eval5Pure(normals,isBot);
+}
+
+function getHandValsFull(cards,rank){const normals=cards.filter(c=>!c.isJoker);const rv=normals.map(c=>rankVal(c.r));const counts={};rv.forEach(r=>{counts[r]=(counts[r]||0)+1;});return Object.entries(counts).sort((a,b)=>b[1]-a[1]||parseInt(b[0])-parseInt(a[0])).flatMap(([r,c])=>Array(c).fill(parseInt(r)));}
+function checkStraight(sr){if(sr.length!==5)return false;if(sr[0]===14&&sr[1]===5&&sr[2]===4&&sr[3]===3&&sr[4]===2)return true;return sr[0]-sr[4]===4&&new Set(sr).size===5;}
+function compareEval(a,b,aC,bC,isTop=false){if(a.rank!==b.rank)return a.rank>b.rank?1:-1;if(isTop){const as=a.topRankScore||0,bs=b.topRankScore||0;if(as!==bs)return as>bs?1:-1;return 0;}const aVals=getHandVals(aC,a.rank);const bVals=getHandVals(bC,b.rank);for(let i=0;i<Math.max(aVals.length,bVals.length);i++){const av=aVals[i]||0,bv=bVals[i]||0;if(av!==bv)return av>bv?1:-1;}return 0;}
+function getHandVals(cards,rank){const normals=cards.filter(c=>!c.isJoker);const rv=normals.map(c=>rankVal(c.r));const counts={};rv.forEach(r=>{counts[r]=(counts[r]||0)+1;});return Object.entries(counts).sort((a,b)=>b[1]-a[1]||parseInt(b[0])-parseInt(a[0])).flatMap(([r,c])=>Array(c).fill(parseInt(r)));}
+function topRankTo5(te){return[0,1,3][te.rank]||0;}
+function compareStrength(eA,cA,eB,cB,isTopA=false,isTopB=false){const rA=isTopA?topRankTo5(eA):eA.rank;const rB=isTopB?topRankTo5(eB):eB.rank;if(rA!==rB)return rA>rB?1:-1;const vA=getHandVals(cA,eA.rank);const vB=getHandVals(cB,eB.rank);for(let i=0;i<Math.max(vA.length,vB.length);i++){if((vA[i]||0)!==(vB[i]||0))return(vA[i]||0)>(vB[i]||0)?1:-1;}return 0;}
+
+// Bug #2修正: JK2枚の重複排除（i<jのループで約半減: 2704→~1081通り）
+// ※ 最強rankフィルタはここでは行わない（evalWithFoulAwareが全候補を必要とするため）
+function allJokerEvals(cards,isBot){
+  const normals=cards.filter(c=>!c.isJoker);const jks=cards.filter(c=>c.isJoker).length;
+  if(jks===0)return[{eval:eval5Pure(cards,isBot),cards}];
+  const usedIds=new Set(normals.map(c=>c.id));const results=[];
+  if(jks===1){
+    for(const s of SUITS)for(const r of RANKS){const id=r+s;if(usedIds.has(id))continue;results.push({eval:eval5Pure([...normals,{r,s,id}],isBot),cards:[...normals,{r,s,id}]});}
+  } else {
+    // JK2枚: 全IDリストをi<jのペアでのみ試す（重複排除）
+    const allIds=[];for(const s of SUITS)for(const r of RANKS){const id=r+s;if(!usedIds.has(id))allIds.push({r,s,id});}
+    for(let i=0;i<allIds.length;i++){const{r:r1,s:s1,id:id1}=allIds[i];for(let j=i+1;j<allIds.length;j++){const{r:r2,s:s2,id:id2}=allIds[j];const hand=[...normals,{r:r1,s:s1,id:id1},{r:r2,s:s2,id:id2}];results.push({eval:eval5Pure(hand,isBot),cards:hand});}}
+  }
+  return results;
+}
+
+// isFoul: 内部でmax rankフィルタを適用して候補数を削減（高速化）
+// ロジック: midとbotの各最強rank組み合わせのみで判定すればOK
+function isFoul(board){
+  const{top,mid,bot}=board;
+  if(top.length===0||mid.length===0||bot.length===0)return false;
+  const te=eval3(top);const topR5=topRankTo5(te);
+  // mid候補: JKあれば全置換→最強rankでフィルタ
+  let mC=mid.some(c=>c.isJoker)?allJokerEvals(mid,false):[{eval:eval5(mid,false),cards:mid}];
+  if(mC.length>1){const mxR=Math.max(...mC.map(x=>x.eval.rank));mC=mC.filter(x=>x.eval.rank===mxR);}
+  // bot候補: JKあれば全置換→最強rankでフィルタ
+  let bC=bot.some(c=>c.isJoker)?allJokerEvals(bot,true):[{eval:eval5(bot,true),cards:bot}];
+  if(bC.length>1){const mxR=Math.max(...bC.map(x=>x.eval.rank));bC=bC.filter(x=>x.eval.rank===mxR);}
+  for(const mc of mC){
+    const mvt=mc.eval.rank!==topR5?mc.eval.rank-topR5:compareStrength(mc.eval,mc.cards,te,top,false,false);
+    if(mvt<0)continue;
+    for(const bc of bC){if(compareStrength(bc.eval,bc.cards,mc.eval,mc.cards)>=0)return false;}
+  }
+  return true;
+}
+
+// Bug #1修正: evalWithFoulAware
+// mid のbot制約: botが5枚完成かつbotにJKなしのときのみ eval5Pure で直接比較
+// botにJKがある場合は制約をスキップ（isFoulが完成ボードで正しく判定するため）
+// bot のmid制約: midが5枚完成のときのみ適用、midのJKも eval5 で正しく評価
+function evalWithFoulAware(cards,isBot,board,rowKey){
+  if(!cards.some(c=>c.isJoker))return eval5(cards,isBot);
+  const{top,mid,bot}=board;const te=eval3(top);const topR5=topRankTo5(te);
+  const cands=allJokerEvals(cards,isBot);let best=null;
+  for(const mc of cands){
+    if(rowKey==='mid'){
+      // top制約: midはtop以上
+      const mvt=mc.eval.rank!==topR5?mc.eval.rank-topR5:compareStrength(mc.eval,mc.cards,te,top,false,false);
+      if(mvt<0)continue;
+      // bot制約: botが完成かつJKなしの場合のみ（botにJKありは制約スキップ）
+      if(bot.length===5&&!bot.some(c=>c.isJoker)){
+        const bE=eval5Pure(bot,true);
+        if(compareStrength(bE,bot,mc.eval,mc.cards)<0)continue;
+      }
+    }
+    if(rowKey==='bot'){
+      // mid制約: midが5枚完成のときのみ（midのJKもeval5で正しく評価）
+      if(mid.length===5){
+        const mE=eval5(mid,false);
+        if(compareStrength(mc.eval,mc.cards,mE,mid)<0)continue;
+      }
+    }
+    if(!best||compareStrength(mc.eval,mc.cards,best.eval,best.cards)>0)best=mc;
+  }
+  return best?best.eval:eval5Pure(cards.filter(c=>!c.isJoker),isBot);
+}
+
+function flReach(board){
+  const top=board.top;const jks=top.filter(c=>c.isJoker).length;const normals=top.filter(c=>!c.isJoker);
+  if(top.length===0)return 0.37;
+  const ranks=normals.map(c=>rankVal(c.r));const hasA=ranks.includes(14)||jks>0;const hasK=ranks.includes(13);
+  if(jks>=2)return 0.97;if(jks===1&&hasA)return 0.96;if(jks===1&&hasK)return 0.97;
+  if(ranks.filter(r=>r===14).length>=2)return 0.93;if(ranks.filter(r=>r===13).length>=2)return 0.93;
+  if(hasA&&hasK)return 0.71;if(hasA||hasK)return 0.62;return 0.37;
+}
+
+function aiPlace5(cards){
+  const board={top:[],mid:[],bot:[]};
+  const jks=cards.filter(c=>c.isJoker);
+  const normals=cards.filter(c=>!c.isJoker).sort((a,b)=>rankVal(b.r)-rankVal(a.r));
+  if(jks.length>=2){board.top.push(jks[0],normals[0]||{r:'A',s:'s',id:'As'});board.bot.push(jks[1],...normals.slice(1,2));board.mid.push(...normals.slice(2));return board;}
+  if(jks.length===1){const jk=jks[0];const hasA=normals.find(c=>rankVal(c.r)===14);const hasK=normals.find(c=>rankVal(c.r)===13);const tC=hasA||hasK||normals[0];board.top.push(jk,tC);distributeRest(normals.filter(c=>c!==tC),board);return board;}
+  const pairs=findPairs(normals);
+  const hAA=pairs.find(p=>rankVal(p[0].r)===14&&p.length>=2);const hKK=pairs.find(p=>rankVal(p[0].r)===13&&p.length>=2);
+  const hAK=normals.find(c=>rankVal(c.r)===14)&&normals.find(c=>rankVal(c.r)===13);
+  if(hAA){board.top.push(...hAA.slice(0,2));distributeRest(normals.filter(c=>!hAA.slice(0,2).includes(c)),board);return board;}
+  if(hKK){board.top.push(...hKK.slice(0,2));distributeRest(normals.filter(c=>!hKK.slice(0,2).includes(c)),board);return board;}
+  if(hAK){const a=normals.find(c=>rankVal(c.r)===14);const k=normals.find(c=>rankVal(c.r)===13);board.top.push(a,k);distributeRest(normals.filter(c=>c!==a&&c!==k),board);return board;}
+  const tC=normals.find(c=>rankVal(c.r)>=13);
+  if(tC){board.top.push(tC);distributeRest(normals.filter(c=>c!==tC),board);return board;}
+  distributeRest(normals,board);return board;
+}
+
+function findPairs(cards){const g={};for(const c of cards){if(!g[c.r])g[c.r]=[];g[c.r].push(c);}return Object.values(g).filter(x=>x.length>=2).sort((a,b)=>rankVal(b[0].r)-rankVal(a[0].r));}
+
+function distributeRest(cards,board){
+  const sorted=[...cards].sort((a,b)=>rankVal(b.r)-rankVal(a.r));
+  const pairs=findPairs(sorted);
+  const sC={};for(const c of sorted){if(!sC[c.s])sC[c.s]=[];sC[c.s].push(c);}
+  const fD=Object.values(sC).find(g=>g.length>=3);
+  if(pairs.length>=2){const hi=pairs[0],lo=pairs[1];board.bot.push(...hi.slice(0,2));board.mid.push(...lo.slice(0,2));const used=new Set([...hi.slice(0,2),...lo.slice(0,2)].map(c=>c.id));const left=sorted.filter(c=>!used.has(c.id));board.bot.push(...left.slice(0,5-board.bot.length));board.mid.push(...left.slice(5-board.bot.length).slice(0,5-board.mid.length));}
+  else if(pairs.length===1){board.bot.push(...pairs[0].slice(0,2));const used=new Set(pairs[0].slice(0,2).map(c=>c.id));const left=sorted.filter(c=>!used.has(c.id));board.mid.push(...left.slice(0,1));board.bot.push(...left.slice(1).slice(0,5-board.bot.length));}
+  else if(fD){board.bot.push(...fD.slice(0,Math.min(fD.length,5-board.bot.length)));const used=new Set(fD.map(c=>c.id));const left=sorted.filter(c=>!used.has(c.id));board.mid.push(left[left.length-1]||left[0]);board.bot.push(...left.slice(0,-1).slice(0,5-board.bot.length));}
+  else{board.bot.push(...sorted.slice(0,Math.min(2,5-board.bot.length)));board.mid.push(sorted[sorted.length-1]);}
+}
+
+function aiPineapple(cards,board){
+  let best={score:-Infinity,place:[],discard:null};
+  for(let i=0;i<cards.length;i++){const tP=cards.filter((_,j)=>j!==i);const dis=cards[i];for(const pl of genPlacements(tP,board)){const nb={top:[...board.top,...pl.top],mid:[...board.mid,...pl.mid],bot:[...board.bot,...pl.bot]};const sc=boardScore(nb);if(sc>best.score)best={score:sc,place:pl,discard:dis};}}
+  return best;
+}
+
+function genPlacements(cards,board){const sl=['top','mid','bot'];const res=[];for(const r1 of sl)for(const r2 of sl){const p={top:[],mid:[],bot:[]};p[r1].push(cards[0]);p[r2].push(cards[1]);if(board.top.length+p.top.length<=3&&board.mid.length+p.mid.length<=5&&board.bot.length+p.bot.length<=5)res.push(p);}return res;}
+
+function boardScore(board){let sc=0;const fe=flReach(board);const te=eval3(board.top);if(te.flCards>0)sc+=FL_AI_EV[te.flCards]||0;sc+=fe*30;sc+=te.royalty;if(board.mid.length>=3)sc+=eval5(board.mid,false).royalty*1.5;if(board.bot.length>=3)sc+=eval5(board.bot,true).royalty;if(board.top.length===3&&board.mid.length===5&&board.bot.length===5&&isFoul(board))sc-=50;return sc;}
+
+function calcScore(pB,oB){
+  const pF=isFoul(pB);const oF=isFoul(oB);const rows=['top','mid','bot'];let pT=0,oT=0;const details=[];
+  for(let i=0;i<3;i++){const row=rows[i];const isTop=row==='top';const isBot=row==='bot';let pE,oE;
+    if(isTop){pE=eval3(pB[row]);oE=eval3(oB[row]);}else{pE=evalWithFoulAware(pB[row],isBot,pB,row);oE=evalWithFoulAware(oB[row],isBot,oB,row);}
+    let pW=0,oW=0;if(pF&&!oF)oW=1;else if(!pF&&oF)pW=1;else if(!pF&&!oF){const c=compareEval(pE,oE,pB[row],oB[row],isTop);if(c>0)pW=1;else if(c<0)oW=1;}
+    pT+=pW;oT+=oW;details.push({row,pEval:pE,oEval:oE,pWin:pW,oWin:oW});
+  }
+  if(pT===3&&!pF)pT+=3;if(oT===3&&!oF)oT+=3;
+  let pR=0,oR=0;
+  if(!pF){pR+=eval3(pB.top).royalty;pR+=evalWithFoulAware(pB.mid,false,pB,'mid').royalty;pR+=evalWithFoulAware(pB.bot,true,pB,'bot').royalty;}
+  if(!oF){oR+=eval3(oB.top).royalty;oR+=evalWithFoulAware(oB.mid,false,oB,'mid').royalty;oR+=evalWithFoulAware(oB.bot,true,oB,'bot').royalty;}
+  return{pTotal:pT,oTotal:oT,pRoy:pR,oRoy:oR,details,pFoul:pF,oFoul:oF};
+}
+
+let state={};
+
+function newGame(){
+  const deck=shuffle(makeDeck());let idx=0;const deal=n=>deck.slice(idx,idx+=n);
+  state={phase:'place5',round:1,playerBoard:{top:[],mid:[],bot:[]},oppBoard:{top:[],mid:[],bot:[]},hand:[],discard:[],selectedCard:null,deck,deckIdx:idx};
+  state.hand=deal(5);const oppH=deal(5);const oP=aiPlace5(oppH);
+  state.oppBoard.top=[...oP.top];state.oppBoard.mid=[...oP.mid];state.oppBoard.bot=[...oP.bot];
+  state.deckIdx=idx;renderGame();showScreen('game');
+}
+
+function dealNextRound(){
+  state.round++;if(state.round>5){endGame();return;}
+  const d=state.deck;let i=state.deckIdx;
+  state.hand=d.slice(i,i+=3);state.deckIdx=i;state.selectedCard=null;state.phase='pineapple';state.placedThisRound=[];
+  const oH=d.slice(i,i+=3);state.deckIdx=i;
+  const{place}=aiPineapple(oH,state.oppBoard);for(const row of['top','mid','bot'])state.oppBoard[row].push(...(place[row]||[]));
+  renderGame();
+}
+
+function endGame(){showResult(calcScore(state.playerBoard,state.oppBoard));}
+
+function renderGame(){
+  const dots=document.getElementById('roundDots');dots.innerHTML='';
+  for(let i=1;i<=5;i++){const d=document.createElement('div');d.className='round-dot'+(i<state.round?' done':i===state.round?' active':'');dots.appendChild(d);}
+  renderSlots('slotsTop',state.playerBoard.top,3,'top');renderSlots('slotsMid',state.playerBoard.mid,5,'mid');renderSlots('slotsBot',state.playerBoard.bot,5,'bot');
+  updateEvals();renderOppBoard();renderHand();
+  const ph=document.getElementById('phaseLabel');
+  if(state.phase==='place5'){const n=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;ph.textContent=`R1 · 5枚配置 (${n}/5) · タップまたは上スワイプで配置`;}
+  else{const placed=(state.placedThisRound||[]).length;if(state.discardedThisRound){const dc=state.discard[state.discard.length-1];ph.textContent=`R${state.round} · 配置${placed}/2 · 捨て: ${dc.isJoker?'JK':dc.r+SUIT_SYMS[dc.s]}`;}else{ph.textContent=`R${state.round} · 配置${placed}/2 · 2枚置くと自動捨て`;}}
+  updateConfirm();
+}
+
+function renderSlots(cId,cards,total,row){const el=document.getElementById(cId);el.innerHTML='';for(let i=0;i<total;i++){const sl=document.createElement('div');sl.className='slot';sl.dataset.row=row;sl.dataset.idx=i;if(cards[i]){const ce=makeCardEl(cards[i]);ce.classList.add('on-board');sl.appendChild(ce);}else if(state.selectedCard)sl.classList.add('valid-target');el.appendChild(sl);}}
+
+function renderOppBoard(){const cfg={top:[3,'oppTop'],mid:[5,'oppMid'],bot:[5,'oppBot']};for(const[row,[cnt,eId]]of Object.entries(cfg)){const el=document.getElementById(eId);if(!el)continue;el.innerHTML='';const cards=state.oppBoard[row];for(let i=0;i<cnt;i++){const sl=document.createElement('div');sl.className='opp-slot';if(cards[i]){const oc=document.createElement('div');oc.className='opp-card';if(cards[i].isJoker){oc.style.fontSize='12px';oc.textContent='🃏';}else{const cols={s:'var(--suit-spade)',h:'var(--suit-heart)',d:'var(--suit-diamond)',c:'var(--suit-club)'};oc.innerHTML=`<span style="color:${cols[cards[i].s]};font-size:8px;font-weight:900;font-family:'Orbitron',monospace">${cards[i].r}</span>`;}sl.appendChild(oc);}el.appendChild(sl);}}}
+
+function makeCardEl(card){const el=document.createElement('div');el.className='card'+(card.isJoker?' joker':` card-${card.s}`);el.dataset.id=card.id;if(card.isJoker){el.innerHTML=`<div class="card-rank-top card-joker-label">JK</div><div class="card-center"><div style="font-size:20px">🃏</div></div>`;}else{const sym=SUIT_SYMS[card.s];el.innerHTML=`<div class="card-rank-top">${card.r}</div><div class="card-suit-top">${sym}</div><div class="card-center"><div class="card-rank-center">${card.r}</div><div class="card-suit-center">${sym}</div></div>`;}return el;}
+
+function renderHand(){const el=document.getElementById('handCards');el.innerHTML='';for(const card of state.hand){const ce=makeCardEl(card);ce.classList.add('in-hand');if(state.selectedCard&&state.selectedCard.id===card.id)ce.classList.add('selected');el.appendChild(ce);}}
+
+function updateEvals(){const rows=[['top','evalTop',3],['mid','evalMid',5],['bot','evalBot',5]];const foul=isFoul(state.playerBoard);for(const[row,elId,full]of rows){const el=document.getElementById(elId);const cards=state.playerBoard[row];if(cards.length===0){el.textContent='';el.className='row-eval';continue;}let e;if(row==='top')e=eval3(cards);else e=evalWithFoulAware(cards,row==='bot',state.playerBoard,row);let txt=e.desc;if(e.royalty>0)txt+=` +${e.royalty}`;el.textContent=txt;el.className='row-eval';if(row==='top'&&e.flCards>0)el.classList.add('fl');if(foul&&cards.length===full)el.classList.add('foul');}}
+
+function updateConfirm(){const btn=document.getElementById('btnConfirm');const{top,mid,bot}=state.playerBoard;const total=top.length+mid.length+bot.length;if(state.phase==='place5'){btn.disabled=total<5;btn.textContent=total<5?`配置中 ${total}/5`:'CONFIRM →';}else{const placed=(state.placedThisRound||[]).length;const done=placed>=2&&state.discardedThisRound;btn.disabled=!done;btn.textContent=done?'CONFIRM →':`配置 ${placed}/2`;}}
+
+document.getElementById('playerArea').addEventListener('click',e=>{const sl=e.target.closest('.slot');if(sl){onSlotClick(sl.dataset.row,parseInt(sl.dataset.idx));return;}});
+document.getElementById('handCards').addEventListener('click',e=>{const card=e.target.closest('.card');if(!card)return;const found=state.hand.find(c=>c.id===card.dataset.id);if(found)onHandCardClick(found);});
+
+function onHandCardClick(card){state.selectedCard=(state.selectedCard&&state.selectedCard.id===card.id)?null:card;renderGame();}
+
+function onSlotClick(row,idx){const rC=state.playerBoard[row];const lim={top:3,mid:5,bot:5};if(rC[idx]){const card=rC[idx];if(state.phase==='pineapple'){if((state.placedThisRound||[]).find(c=>c.id===card.id))returnCardToHand(card,row,idx);else showToast('このカードは戻せません');}else if(state.phase==='place5')returnCardToHand(card,row,idx);return;}if(!state.selectedCard)return;if(rC.length<lim[row])placeCard(state.selectedCard,row);}
+
+function returnCardToHand(card,row,idx){state.playerBoard[row].splice(idx,1);state.hand.push(card);if(state.placedThisRound)state.placedThisRound=state.placedThisRound.filter(c=>c.id!==card.id);if(state.phase==='pineapple'&&state.discardedThisRound){const dc=state.discard.pop();if(dc)state.hand.push(dc);state.discardedThisRound=false;}state.selectedCard=null;renderGame();}
+
+function placeCard(card,row){state.hand=state.hand.filter(c=>c.id!==card.id);state.playerBoard[row].push(card);if(!state.placedThisRound)state.placedThisRound=[];state.placedThisRound.push(card);state.selectedCard=null;if(state.phase==='pineapple'&&state.placedThisRound.length>=2&&!state.discardedThisRound&&state.hand.length>0)autoDiscard();renderGame();}
+
+function autoDiscard(){const card=state.hand[0];state.hand=state.hand.filter(c=>c.id!==card.id);state.discard.push(card);state.discardedThisRound=true;showToast(`${card.isJoker?'JK':card.r+SUIT_SYMS[card.s]} を捨てました`);}
+
+document.getElementById('btnConfirm').addEventListener('click',()=>{if(state.phase==='place5'){const total=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;if(total<5){showToast('5枚すべて配置してください');return;}state.phase='done5';dealNextRound();}else{const placed=state.placedThisRound||[];if(placed.length<2){showToast('2枚配置してください');return;}if(!state.discardedThisRound){showToast('1枚捨ててください');return;}state.placedThisRound=[];state.discardedThisRound=false;dealNextRound();}});
+
+document.getElementById('btnAdvice').addEventListener('click',showAdvice);
+document.getElementById('adviceOverlay').addEventListener('click',hideAdvice);
+document.getElementById('btnNew').addEventListener('click',()=>document.getElementById('newGameOverlay').classList.add('open'));
+document.getElementById('btnNewCancel').addEventListener('click',()=>document.getElementById('newGameOverlay').classList.remove('open'));
+document.getElementById('btnNewConfirm').addEventListener('click',()=>{document.getElementById('newGameOverlay').classList.remove('open');newGame();});
+document.getElementById('btnStart').addEventListener('click',()=>newGame());
+document.getElementById('btnAgain').addEventListener('click',()=>newGame());
+
+function showAdvice(){const panel=document.getElementById('advicePanel');const ov=document.getElementById('adviceOverlay');const t=document.getElementById('adviceContent');const fe=flReach(state.playerBoard);const te=eval3(state.playerBoard.top);const me=eval5(state.playerBoard.mid,false);const be=eval5(state.playerBoard.bot,true);const foul=isFoul(state.playerBoard);let html='';if(te.flCards>0){html+=`<div>🌟 <span class="fl-chance">FL到達確率: 約${Math.round(fe*100)}%</span> (${te.flCards}枚FL)</div>`;html+=`<div>FL期待値: <span class="highlight">+${FL_AI_EV[te.flCards]}pt</span></div>`;}else{html+=`<div>FL到達確率: <span class="highlight">約${Math.round(fe*100)}%</span></div>`;}if(foul)html+=`<div style="color:var(--neon-pink)">⚠ 現在ファウル中！配置を見直してください</div>`;html+=`<div>上段: ${te.desc}${te.royalty>0?` <span class="highlight">+${te.royalty}</span>`:''}</div>`;if(state.playerBoard.mid.length>0)html+=`<div>中段: ${me.desc}${me.royalty>0?` <span class="highlight">+${me.royalty}</span>`:''}</div>`;if(state.playerBoard.bot.length>0)html+=`<div>下段: ${be.desc}${be.royalty>0?` <span class="highlight">+${be.royalty}</span>`:''}</div>`;if(state.hand.length>0)html+=`<div style="margin-top:8px;color:var(--text-dim)">手札: ${state.hand.map(c=>c.isJoker?'JK':c.r+SUIT_SYMS[c.s]).join(' ')}</div>`;t.innerHTML=html;panel.classList.add('open');ov.classList.add('open');}
+function hideAdvice(){document.getElementById('advicePanel').classList.remove('open');document.getElementById('adviceOverlay').classList.remove('open');}
+
+function showResult(score){const{pTotal,oTotal,pRoy,oRoy,details,pFoul,oFoul}=score;const net=(pTotal+pRoy)-(oTotal+oRoy);const title=document.getElementById('scoreTitle');if(net>0){title.textContent='WIN ✦';title.className='score-overlay-title win';}else if(net<0){title.textContent='LOSE';title.className='score-overlay-title lose';}else{title.textContent='DRAW';title.className='score-overlay-title draw';}const nEl=document.getElementById('scoreNet');nEl.textContent=net>0?`+${net}pt`:net<0?`${net}pt`:`±0pt`;nEl.className='score-net'+(net>0?' positive':net<0?' negative':'');const rn={top:'TOP',mid:'MID',bot:'BOT'};let g=`<div class="score-grid-row"><div class="sgc label"></div><div class="sgc you" style="font-size:10px">YOU</div><div class="sgc opp" style="font-size:10px">OPP</div></div>`;for(const d of details){const pw=d.pWin>0,ow=d.oWin>0;g+=`<div class="score-grid-row"><div class="sgc label">${rn[d.row]}</div><div class="sgc ${pw?'win':ow?'lose':''}">${pw?'✓':ow?'✗':'='} ${d.pEval.desc}</div><div class="sgc ${ow?'win':pw?'lose':''}">${ow?'✓':pw?'✗':'='} ${d.oEval.desc}</div></div>`;}g+=`<div class="score-grid-row" style="background:rgba(0,245,255,0.04)"><div class="sgc label">列計</div><div class="sgc you">${pTotal}</div><div class="sgc opp">${oTotal}</div></div>`;g+=`<div class="score-grid-row"><div class="sgc label">役</div><div class="sgc you ${pFoul?'lose':''}">${pFoul?'FOUL':pRoy>0?'+'+pRoy:'0'}</div><div class="sgc opp ${oFoul?'lose':''}">${oFoul?'FOUL':oRoy>0?'+'+oRoy:'0'}</div></div>`;g+=`<div class="score-grid-row" style="background:rgba(0,245,255,0.06)"><div class="sgc label" style="color:var(--text);font-weight:700">合計</div><div class="sgc you total">${pTotal+pRoy}</div><div class="sgc opp total">${oTotal+oRoy}</div></div>`;document.getElementById('scoreGrid').innerHTML=g;document.getElementById('scoreOverlay').classList.add('open');}
+
+function renderPreview(){const el=document.getElementById('previewCards');const samples=[{r:'A',s:'s'},{r:'K',s:'h'},{r:'JK',s:'',isJoker:true},{r:'Q',s:'d'},{r:'J',s:'c'}];el.innerHTML='';for(const c of samples){const div=document.createElement('div');div.className='preview-card'+(c.isJoker?' joker':` card-${c.s}`);if(c.isJoker)div.innerHTML='🃏';else{div.style.color=({s:'var(--suit-spade)',h:'var(--suit-heart)',d:'var(--suit-diamond)',c:'var(--suit-club)'})[c.s];div.innerHTML=`<span style="font-family:'Orbitron',monospace;font-weight:900">${c.r}</span>`;}el.appendChild(div);}}
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+
+(function setupSwipe(){const hEl=document.getElementById('handCards');const sel=document.getElementById('swipeSelector');const rBtns=sel.querySelectorAll('.swipe-row-btn');let sCard=null,sY=0,sX=0,swiping=false;const THR=30;function getRow(cx){const w=window.innerWidth;if(cx<w/3)return'top';if(cx<w*2/3)return'mid';return'bot';}function showSel(y){const t=Math.max(y-80,60);sel.style.top=t+'px';sel.classList.remove('hidden');}function hideSel(){sel.classList.add('hidden');rBtns.forEach(b=>b.classList.remove('active'));}hEl.addEventListener('touchstart',e=>{const cE=e.target.closest('.card.in-hand');if(!cE)return;const f=state.hand.find(c=>c.id===cE.dataset.id);if(!f)return;sCard=f;sY=e.touches[0].clientY;sX=e.touches[0].clientX;swiping=false;},{passive:true});hEl.addEventListener('touchmove',e=>{if(!sCard)return;const dy=sY-e.touches[0].clientY;const cx=e.touches[0].clientX;if(dy>THR){if(!swiping){swiping=true;showSel(e.touches[0].clientY);}const aR=getRow(cx);rBtns.forEach(b=>b.classList.toggle('active',b.dataset.row===aR));e.preventDefault();}},{passive:false});hEl.addEventListener('touchend',e=>{if(!sCard)return;if(swiping){const cx=e.changedTouches[0].clientX;const row=getRow(cx);const lim={top:3,mid:5,bot:5};if(state.playerBoard[row].length<lim[row])placeCard(sCard,row);else showToast(`${row.toUpperCase()}は満杯です`);}hideSel();sCard=null;swiping=false;},{passive:true});hEl.addEventListener('touchcancel',()=>{hideSel();sCard=null;swiping=false;},{passive:true});})();
+
+document.getElementById('btnCloseScore').addEventListener('click',()=>document.getElementById('scoreOverlay').classList.remove('open'));
+document.getElementById('btnOuts').addEventListener('click',showOuts);
+document.getElementById('btnCloseOuts').addEventListener('click',()=>document.getElementById('outsOverlay').classList.remove('open'));
+
+function showOuts(){const ov=document.getElementById('outsOverlay');const table=document.getElementById('outsTable');const used=new Set();for(const row of['top','mid','bot']){state.playerBoard[row].forEach(c=>used.add(c.id));state.oppBoard[row].forEach(c=>used.add(c.id));}state.discard.forEach(c=>used.add(c.id));state.hand.forEach(c=>used.add(c.id));const sS={s:'♠',h:'♥',d:'♦',c:'♣'};const sC={s:'var(--suit-spade)',h:'var(--suit-heart)',d:'var(--suit-diamond)',c:'var(--suit-club)'};let html=`<div class="outs-suit-row"><div class="outs-suit-label">🃏</div>`;for(let n=1;n<=2;n++){const id=`JK${n}`;html+=`<div class="outs-card-chip joker-chip ${used.has(id)?'used':'remaining'}">JK</div>`;}html+=`</div>`;for(const s of SUITS){html+=`<div class="outs-suit-row"><div class="outs-suit-label" style="color:${sC[s]}">${sS[s]}</div>`;for(const r of RANKS){const id=r+s;const iU=used.has(id);html+=`<div class="outs-card-chip ${iU?'used':'remaining'}" style="color:${iU?'':sC[s]}">${r}</div>`;}html+=`</div>`;}table.innerHTML=html;ov.classList.add('open');}
+
+renderPreview();
+</script>
+
+<!-- 点数オーバーレイ (画面遷移なし) -->
+<div class="score-overlay" id="scoreOverlay">
+  <div class="score-overlay-title" id="scoreTitle">RESULT</div>
+  <div class="score-net" id="scoreNet"></div>
+  <div class="score-grid" id="scoreGrid"></div>
+  <div class="score-overlay-btns">
+    <button class="btn-close-score" id="btnCloseScore">✕</button>
+    <button class="btn-again" id="btnAgain">PLAY AGAIN</button>
+  </div>
+</div>
+
+<!-- アウツ表モーダル -->
+<div class="outs-overlay" id="outsOverlay">
+  <div class="outs-header">
+    <div class="outs-title">残りカード</div>
+    <button class="btn-close-outs" id="btnCloseOuts">✕</button>
+  </div>
+  <div class="outs-table" id="outsTable"></div>
+  <div class="outs-legend">
+    <span>■ 残り</span>
+    <span style="opacity:0.4">■ 使用済み</span>
+  </div>
+</div>
+</body>
+</html>
