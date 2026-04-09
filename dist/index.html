@@ -432,6 +432,14 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
           <button class="fl-role-btn" data-role="strflush">ストフラ</button>
         </div>
       </div>
+      <div class="fl-discard-bar" id="flDiscardBar" style="display:none;gap:4px;padding:0 8px;align-items:center;flex-shrink:0;">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#9a6e10;letter-spacing:0.1em;flex-shrink:0">捨て:</span>
+        <div id="flDiscardSlots" style="display:flex;gap:3px;flex-wrap:wrap;"></div>
+      </div>
+      <div class="fl-discard-bar" id="flDiscardBar" style="display:none;gap:4px;padding:0 8px;align-items:center;flex-shrink:0;">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#9a6e10;letter-spacing:0.1em;flex-shrink:0">捨て:</span>
+        <div id="flDiscardSlots" style="display:flex;gap:3px;flex-wrap:wrap;"></div>
+      </div>
       <div class="phase-label" id="phaseLabel"></div>
       <div class="hand-cards" id="handCards"></div>
       <div class="action-bar">
@@ -766,7 +774,7 @@ function calcScore(pB,oB){return calcScoreWithJokers(pB,oB);}
 let state={};
 function newGame(){
   const deck=shuffle(makeDeck());let idx=0;const deal=n=>deck.slice(idx,idx+=n);
-  state={phase:'place5',round:1,playerBoard:{top:[],mid:[],bot:[]},oppBoard:{top:[],mid:[],bot:[]},hand:[],discard:[],selectedCard:null,deck,deckIdx:idx,flMode:false,oppFlMode:false,flCards:0,gameOver:false};
+  state={phase:'place5',round:1,playerBoard:{top:[],mid:[],bot:[]},oppBoard:{top:[],mid:[],bot:[]},hand:[],discard:[],selectedCard:null,deck,deckIdx:idx,flMode:false,oppFlMode:false,flCards:0,flDiscard:[],gameOver:false};
   state.hand=deal(5);const oppH=deal(5);const oP=aiPlace5(oppH);
   state.oppBoard={top:[...oP.top],mid:[...oP.mid],bot:[...oP.bot]};state.deckIdx=idx;
   document.getElementById('resultBand').classList.remove('show');document.getElementById('flEntryBanner').classList.remove('show');
@@ -823,8 +831,10 @@ function renderGame(){
     document.getElementById('flRoleBarOuter').classList.add('show');
     document.getElementById('handCards').classList.add('fl-flat');
     document.getElementById('handCards').classList.remove('fl');
+    document.getElementById('flDiscardBar').style.display=state.flCards>13?'flex':'none';
     updateFLEvalPanel();
     updateRoleButtons();
+    renderFLDiscardSlots();
     setTimeout(applyOverlapLayout, 30);
   }else{
     pa.classList.remove('fl-mode');pl.innerHTML='YOU';ha.classList.remove('fl-mode');
@@ -832,10 +842,18 @@ function renderGame(){
     document.getElementById('flHandWrap').classList.remove('show');
     const rbo=document.getElementById('flRoleBarOuter');if(rbo)rbo.classList.remove('show');
     document.getElementById('handCards').classList.remove('fl-flat');
+    const fdb=document.getElementById('flDiscardBar');if(fdb)fdb.style.display='none';
   }
   const oi=document.getElementById('oppAreaInner');state.oppFlMode?oi.classList.add('fl-mode'):oi.classList.remove('fl-mode');
   const ph=document.getElementById('phaseLabel');
-  if(state.flMode){const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;ph.textContent=`FANTASY LAND · ${tot}/${state.flCards}枚配置 (残${state.flCards-tot}枚)`;ph.className='phase-label fl';}
+  if(state.flMode){
+    const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
+    const discardNeeded=state.flCards-13;
+    const discarded=state.flDiscard?state.flDiscard.length:0;
+    let phTxt;
+    if(tot<13){phTxt='FANTASY LAND - '+tot+'/13枚配置 (残'+(13-tot)+'枚)'+(discardNeeded>0?' - 捨て'+discarded+'/'+discardNeeded:'');}
+    else{phTxt='FANTASY LAND - 配置完了'+(discardNeeded>0?' - 捨て'+discarded+'/'+discardNeeded+' (残カードをタップ)':'');}
+    ph.textContent=phTxt;ph.className='phase-label fl';}
   else if(state.phase==='place5'){const n=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;ph.textContent=`R1 · 5枚配置 (${n}/5) · タップまたはドラッグで配置`;ph.className='phase-label';}
   else{const placed=(state.placedThisRound||[]).length;if(state.discardedThisRound){const dc=state.discard[state.discard.length-1];ph.textContent=`R${state.round} · 配置${placed}/2 · 捨て: ${dc.isJoker?'JK':dc.r+SUIT_SYMS[dc.s]}`;}else{ph.textContent=`R${state.round} · 配置${placed}/2 · 2枚置くと自動捨て`;}ph.className='phase-label';}
   updateConfirm();
@@ -960,7 +978,18 @@ function updateEvals(){
 function updateConfirm(){
   const btn=document.getElementById('btnConfirm');
   if(state.gameOver){btn.disabled=false;btn.textContent='次のゲームへ →';btn.className='btn-confirm';return;}
-  if(state.flMode){const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;const rdy=tot===state.flCards&&state.hand.length===0;btn.disabled=!rdy;btn.textContent=rdy?'CONFIRM →':`配置中 ${tot}/${state.flCards}`;btn.className='btn-confirm fl';return;}
+  if(state.flMode){
+    const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
+    const discardNeeded=state.flCards-13;
+    const discarded=state.flDiscard.length;
+    const boardFull=tot===13;
+    const rdy=boardFull&&discarded>=discardNeeded&&state.hand.length===0;
+    let txt;
+    if(!boardFull)txt=`配置中 ${tot}/13`;
+    else if(discarded<discardNeeded)txt=`捨て ${discarded}/${discardNeeded}`;
+    else txt='CONFIRM →';
+    btn.disabled=!rdy;btn.textContent=txt;btn.className='btn-confirm fl';return;
+  }
   btn.className='btn-confirm';
   const{top,mid,bot}=state.playerBoard;const tot=top.length+mid.length+bot.length;
   if(state.phase==='place5'){btn.disabled=tot<5;btn.textContent=tot<5?`配置中 ${tot}/5`:'CONFIRM →';}
@@ -970,6 +999,8 @@ document.getElementById('playerArea').addEventListener('click',e=>{const sl=e.ta
 document.getElementById('handCards').addEventListener('click',e=>{const c=e.target.closest('.card');if(!c)return;const f=state.hand.find(x=>x.id===c.dataset.id);if(f)onHandClick(f);});
 function onHandClick(card){
   if(state.flMode&&flGroupSel.role){clearGroupSel();renderGame();return;}
+  // FL中でボード満杯かつ捨てが必要なら捨て処理
+  if(state.flMode && onFLHandTapForDiscard(card)) return;
   state.selectedCard=(state.selectedCard&&state.selectedCard.id===card.id)?null:card;renderGame();
 }
 function onSlot(row,idx){
@@ -992,22 +1023,28 @@ function retCard(card,row,idx){
 function placeCard(card,row){
   state.hand=state.hand.filter(c=>c.id!==card.id);state.playerBoard[row].push(card);
   if(!state.placedThisRound)state.placedThisRound=[];state.placedThisRound.push(card);state.selectedCard=null;
-  if(state.flMode)clearGroupSel();
+  if(state.flMode){clearGroupSel();renderFLDiscardSlots();}
   if(!state.flMode&&state.phase==='pineapple'&&state.placedThisRound.length>=2&&!state.discardedThisRound&&state.hand.length>0)autoDiscard();
   renderGame();
 }
 function autoDiscard(){const c=state.hand[0];state.hand=state.hand.filter(x=>x.id!==c.id);state.discard.push(c);state.discardedThisRound=true;showToast(`${c.isJoker?'JK':c.r+SUIT_SYMS[c.s]} を捨てました`);}
 document.getElementById('btnConfirm').addEventListener('click',()=>{
   if(state.gameOver){
-    const flE=checkFLEntry(state.playerBoard);const flC=getFLC(state.playerBoard);
+    const flContinue=checkFLContinue(state.playerBoard);
+    const prevFlCards=state.flCards;
+    console.log('CONFIRM next: flContinue='+flContinue+' flCards='+prevFlCards);
     newGame();
-    if(flE&&flC>=14)setTimeout(()=>startFL(flC),100);
+    if(flContinue&&prevFlCards>=14)setTimeout(()=>startFL(prevFlCards),100);
     return;
   }
   if(state.flMode){
     const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
-    if(tot<state.flCards||state.hand.length>0){showToast(`あと${state.flCards-tot}枚配置してください`);return;}
-    state.flMode=false;endGame();return;
+    const discardNeeded=state.flCards-13;
+    if(tot<13){showToast(`あと${13-tot}枚配置してください`);return;}
+    if(state.flDiscard.length<discardNeeded){showToast(`あと${discardNeeded-state.flDiscard.length}枚捨ててください`);return;}
+    state.flMode=false;
+    endGameFL();
+    return;
   }
   if(state.phase==='place5'){
     const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
@@ -1027,6 +1064,8 @@ function startFL(flCards){
   state.playerBoard={top:[],mid:[],bot:[]};state.selectedCard=null;state.phase='fl';
   flSortMode='rank';
   flGroupSel={role:null,combos:[],idx:0};
+  state.flDiscard=[];
+  state.flDiscard=[];
   const oFLE=checkFLEntry(state.oppBoard);
   if(oFLE){const oFlC=getFLC(state.oppBoard);const oH=d.slice(i,i+=oFlC);state.deckIdx=i;const oFLB=aiFLPlace(oH);state.oppBoard={top:[...oFLB.top],mid:[...oFLB.mid],bot:[...oFLB.bot]};state.oppFlMode=false;}
   document.getElementById('resultBand').classList.remove('show');document.getElementById('flEntryBanner').classList.remove('show');
@@ -1480,6 +1519,146 @@ function applyOverlapLayout(){
     // 選択・グループ選択は highlightGroupSel/onHandClick で z-index を上書き
     card.style.zIndex = String(i + 1);
   });
+}
+
+// FL捨てスロット表示
+function renderFLDiscardSlots(){
+  const bar = document.getElementById('flDiscardSlots');
+  if(!bar) return;
+  bar.innerHTML = '';
+  const discardNeeded = state.flCards - 13;
+  if(discardNeeded <= 0) return;
+  // 捨て済みカード表示
+  state.flDiscard.forEach(card=>{
+    const ce = makeCard(card);
+    ce.style.width='36px';ce.style.height='50px';ce.style.fontSize='0.7em';
+    ce.style.opacity='0.5';
+    bar.appendChild(ce);
+  });
+  // 空スロット表示
+  for(let i=state.flDiscard.length;i<discardNeeded;i++){
+    const sl=document.createElement('div');
+    sl.style.cssText='width:36px;height:50px;border:1px dashed rgba(200,160,48,0.4);border-radius:6px;background:rgba(200,160,48,0.04);';
+    bar.appendChild(sl);
+  }
+}
+
+// FL用カードタップ: ボードが13枚埋まっていれば手札をflDiscardに移動
+function onFLHandTapForDiscard(card){
+  const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
+  const discardNeeded=state.flCards-13;
+  if(tot===13 && state.flDiscard.length<discardNeeded){
+    state.hand=state.hand.filter(c=>c.id!==card.id);
+    state.flDiscard.push(card);
+    state.selectedCard=null;
+    clearGroupSel();
+    renderGame();
+    return true;
+  }
+  return false;
+}
+
+// endGame のFL版: FL継続判定を含む
+function endGameFL(){
+  state.gameOver=true;
+  // 点数計算
+  const score=calcScore(state.playerBoard,state.oppBoard);
+  showResultBand(score);
+  renderBoardWithJokers();
+  // FL継続判定
+  const flContinue = checkFLContinue(state.playerBoard);
+  const oppFlContinue = checkFLContinue(state.oppBoard);
+  console.log('FL end: player continue='+flContinue+' opp continue='+oppFlContinue);
+  // 継続情報をバナーに表示
+  if(flContinue){
+    const flC = getFLC(state.playerBoard); // 継続時は前回と同じ枚数
+    document.getElementById('flEntryText').textContent='🌟 FL継続! ('+state.flCards+'枚)';
+    document.getElementById('flEntrySub').textContent='次回もファンタジーランド';
+  } else {
+    document.getElementById('flEntryText').textContent='📋 平場へ';
+    document.getElementById('flEntrySub').textContent='ファンタジーランド終了';
+  }
+  document.getElementById('flEntryBanner').classList.add('show');
+}
+
+// FL継続条件: 上段トリップス OR 下段クワッズ以上
+function checkFLContinue(board){
+  if(isFoul(board)) return false;
+  const te = eval3(board.top);
+  if(te.rank >= 2) return true; // トリップス
+  const be = eval5(board.bot, true);
+  if(be.rank >= 7) return true; // クワッズ以上
+  return false;
+}
+
+// FL捨てスロット表示
+function renderFLDiscardSlots(){
+  const bar = document.getElementById('flDiscardSlots');
+  if(!bar) return;
+  bar.innerHTML = '';
+  const discardNeeded = state.flCards - 13;
+  if(discardNeeded <= 0) return;
+  // 捨て済みカード表示
+  state.flDiscard.forEach(card=>{
+    const ce = makeCard(card);
+    ce.style.width='36px';ce.style.height='50px';ce.style.fontSize='0.7em';
+    ce.style.opacity='0.5';
+    bar.appendChild(ce);
+  });
+  // 空スロット表示
+  for(let i=state.flDiscard.length;i<discardNeeded;i++){
+    const sl=document.createElement('div');
+    sl.style.cssText='width:36px;height:50px;border:1px dashed rgba(200,160,48,0.4);border-radius:6px;background:rgba(200,160,48,0.04);';
+    bar.appendChild(sl);
+  }
+}
+
+// FL用カードタップ: ボードが13枚埋まっていれば手札をflDiscardに移動
+function onFLHandTapForDiscard(card){
+  const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
+  const discardNeeded=state.flCards-13;
+  if(tot===13 && state.flDiscard.length<discardNeeded){
+    state.hand=state.hand.filter(c=>c.id!==card.id);
+    state.flDiscard.push(card);
+    state.selectedCard=null;
+    clearGroupSel();
+    renderGame();
+    return true;
+  }
+  return false;
+}
+
+// endGame のFL版: FL継続判定を含む
+function endGameFL(){
+  state.gameOver=true;
+  // 点数計算
+  const score=calcScore(state.playerBoard,state.oppBoard);
+  showResultBand(score);
+  renderBoardWithJokers();
+  // FL継続判定
+  const flContinue = checkFLContinue(state.playerBoard);
+  const oppFlContinue = checkFLContinue(state.oppBoard);
+  console.log('FL end: player continue='+flContinue+' opp continue='+oppFlContinue);
+  // 継続情報をバナーに表示
+  if(flContinue){
+    const flC = getFLC(state.playerBoard); // 継続時は前回と同じ枚数
+    document.getElementById('flEntryText').textContent='🌟 FL継続! ('+state.flCards+'枚)';
+    document.getElementById('flEntrySub').textContent='次回もファンタジーランド';
+  } else {
+    document.getElementById('flEntryText').textContent='📋 平場へ';
+    document.getElementById('flEntrySub').textContent='ファンタジーランド終了';
+  }
+  document.getElementById('flEntryBanner').classList.add('show');
+}
+
+// FL継続条件: 上段トリップス OR 下段クワッズ以上
+function checkFLContinue(board){
+  if(isFoul(board)) return false;
+  const te = eval3(board.top);
+  if(te.rank >= 2) return true; // トリップス
+  const be = eval5(board.bot, true);
+  if(be.rank >= 7) return true; // クワッズ以上
+  return false;
 }
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
