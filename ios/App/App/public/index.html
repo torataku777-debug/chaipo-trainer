@@ -203,9 +203,56 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 .drawer-item-icon.red{background:#fef2f2}.drawer-item-icon.gray{background:#f3f4f6}.drawer-item-icon.blue{background:#eff6ff}
 .drawer-item-sub{font-size:11px;color:#9ca3af;font-weight:400;margin-top:1px}
 .drawer-divider{height:1px;background:#f3f4f6;margin:4px 0}
+
+/* ===== FL突入演出 ===== */
+.fl-intro-overlay{position:fixed;inset:0;z-index:2000;background:radial-gradient(ellipse at center,#1a1200 0%,#000 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;opacity:0;pointer-events:none;transition:opacity 0.35s;}
+.fl-intro-overlay.show{opacity:1;pointer-events:all;}
+.fl-intro-ring{width:190px;height:190px;border-radius:50%;border:3px solid #c8a030;box-shadow:0 0 40px rgba(200,160,48,0.5),inset 0 0 30px rgba(200,160,48,0.15);display:flex;align-items:center;justify-content:center;animation:flRingIn 0.7s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes flRingIn{0%{transform:scale(0.2);opacity:0;}100%{transform:scale(1);opacity:1;}}
+.fl-intro-content{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.fl-intro-pine{font-size:44px;line-height:1;}
+.fl-intro-word{font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:700;color:#c8a030;letter-spacing:0.15em;text-shadow:0 0 20px rgba(200,160,48,0.7);}
+.fl-intro-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:#9a6e10;letter-spacing:0.2em;text-align:center;}
+
+/* ===== FL評価パネル（左側固定）===== */
+.fl-eval-panel{display:none;position:absolute;left:0;top:0;bottom:0;width:58px;background:rgba(200,160,48,0.05);border-right:1px solid rgba(200,160,48,0.18);flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:4px 2px;z-index:5;}
+.fl-eval-panel.show{display:flex;}
+.fl-eval-item{display:flex;flex-direction:column;align-items:center;gap:1px;width:100%;padding:3px 2px;}
+.fl-eval-lbl{font-family:'JetBrains Mono',monospace;font-size:6px;color:rgba(200,160,48,0.55);letter-spacing:0.12em;text-transform:uppercase;}
+.fl-eval-desc{font-family:'Space Grotesk',sans-serif;font-size:7px;font-weight:600;color:#9a6e10;text-align:center;line-height:1.25;word-break:break-all;}
+.fl-eval-roy{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;color:#c8a030;}
+.fl-eval-sep{width:38px;height:1px;background:rgba(200,160,48,0.12);}
+.fl-eval-total-wrap{display:flex;flex-direction:column;align-items:center;padding:3px 0;}
+.fl-eval-total-lbl{font-family:'JetBrains Mono',monospace;font-size:6px;color:rgba(200,160,48,0.55);letter-spacing:0.1em;}
+.fl-eval-total-val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:#c8a030;}
+
+/* ===== FL手札エリア拡張 ===== */
+.fl-hand-wrap{display:none;flex-direction:column;gap:4px;}
+.fl-hand-wrap.show{display:flex;}
+.fl-sort-bar{display:flex;gap:6px;justify-content:flex-end;padding:0 2px;}
+.fl-sort-btn{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.06em;padding:4px 10px;border-radius:9999px;cursor:pointer;transition:all 0.15s;border:1px solid rgba(200,160,48,0.35);background:rgba(200,160,48,0.06);color:#9a6e10;}
+.fl-sort-btn.active{background:rgba(200,160,48,0.22);border-color:#c8a030;color:#c8a030;}
+.fl-sort-btn:active{transform:scale(0.95);}
+
+/* ===== FL手札 扇型 ===== */
+.hand-cards.fl-fan{position:relative;height:96px;flex-wrap:nowrap;overflow:visible;justify-content:center;align-items:flex-end;padding-bottom:4px;}
+.hand-cards.fl-fan .card.in-hand{position:absolute;bottom:4px;transform-origin:50% 110%;width:48px;height:66px;}
+.hand-cards.fl-fan .card.in-hand.fl-selected{box-shadow:0 0 0 2px #c8a030,0 -12px 20px rgba(200,160,48,0.4)!important;}
+
+/* FL時 player-area オフセット */
+.player-area.fl-mode{position:relative;padding-left:62px;}
 </style>
 </head>
 <body>
+<div class="fl-intro-overlay" id="flIntroOverlay">
+  <div class="fl-intro-ring">
+    <div class="fl-intro-content">
+      <div class="fl-intro-pine">🍍</div>
+      <div class="fl-intro-word">FANTASY</div>
+    </div>
+  </div>
+  <div class="fl-intro-sub">FANTASY LAND · 全カード自由配置</div>
+</div>
 <div class="toast" id="toast"></div>
 
 <div class="screen active" id="screen-title">
@@ -284,6 +331,15 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
       </div>
     </div>
     <div class="player-area" id="playerArea">
+      <div class="fl-eval-panel" id="flEvalPanel">
+        <div class="fl-eval-item"><div class="fl-eval-lbl">TOP</div><div class="fl-eval-desc" id="flEvalTopD">-</div><div class="fl-eval-roy" id="flEvalTopR"></div></div>
+        <div class="fl-eval-sep"></div>
+        <div class="fl-eval-item"><div class="fl-eval-lbl">MID</div><div class="fl-eval-desc" id="flEvalMidD">-</div><div class="fl-eval-roy" id="flEvalMidR"></div></div>
+        <div class="fl-eval-sep"></div>
+        <div class="fl-eval-item"><div class="fl-eval-lbl">BOT</div><div class="fl-eval-desc" id="flEvalBotD">-</div><div class="fl-eval-roy" id="flEvalBotR"></div></div>
+        <div class="fl-eval-sep"></div>
+        <div class="fl-eval-total-wrap"><div class="fl-eval-total-lbl">ROY</div><div class="fl-eval-total-val" id="flEvalTot">0</div></div>
+      </div>
       <div class="player-label" id="playerLabel">YOU</div>
       <div class="board-row">
         <div class="row-header"><span class="row-label">TOP</span><span class="row-eval" id="evalTop"></span></div>
@@ -299,6 +355,12 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
       </div>
     </div>
     <div class="hand-area" id="handArea">
+      <div class="fl-hand-wrap" id="flHandWrap">
+        <div class="fl-sort-bar">
+          <button class="fl-sort-btn active" id="flSortRank">ランク順</button>
+          <button class="fl-sort-btn" id="flSortSuit">スーツ順</button>
+        </div>
+      </div>
       <div class="phase-label" id="phaseLabel"></div>
       <div class="hand-cards" id="handCards"></div>
       <div class="action-bar">
@@ -679,8 +741,18 @@ function renderGame(){
   renderSlots('slotsTop',state.playerBoard.top,3,'top');renderSlots('slotsMid',state.playerBoard.mid,5,'mid');renderSlots('slotsBot',state.playerBoard.bot,5,'bot');
   updateEvals();renderOpp();renderHand();
   const pa=document.getElementById('playerArea');const pl=document.getElementById('playerLabel');const ha=document.getElementById('handArea');
-  if(state.flMode){pa.classList.add('fl-mode');pl.innerHTML='YOU <span class="fl-badge">FANTASY LAND</span>';ha.classList.add('fl-mode');}
-  else{pa.classList.remove('fl-mode');pl.innerHTML='YOU';ha.classList.remove('fl-mode');}
+  if(state.flMode){
+    pa.classList.add('fl-mode');pl.innerHTML='YOU <span class="fl-badge">FANTASY LAND</span>';ha.classList.add('fl-mode');
+    document.getElementById('flEvalPanel').classList.add('show');
+    document.getElementById('flHandWrap').classList.add('show');
+    updateFLEvalPanel();
+    setTimeout(applyFanLayout, 30);
+  }else{
+    pa.classList.remove('fl-mode');pl.innerHTML='YOU';ha.classList.remove('fl-mode');
+    document.getElementById('flEvalPanel').classList.remove('show');
+    document.getElementById('flHandWrap').classList.remove('show');
+    document.getElementById('handCards').classList.remove('fl-fan');
+  }
   const oi=document.getElementById('oppAreaInner');state.oppFlMode?oi.classList.add('fl-mode'):oi.classList.remove('fl-mode');
   const ph=document.getElementById('phaseLabel');
   if(state.flMode){const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;ph.textContent=`FANTASY LAND · ${tot}/${state.flCards}枚配置 (残${state.flCards-tot}枚)`;ph.className='phase-label fl';}
@@ -787,6 +859,7 @@ function makeCard(card){
 function renderHand(){
   const el=document.getElementById('handCards');el.innerHTML='';
   for(const card of state.hand){const ce=makeCard(card);ce.classList.add('in-hand');if(state.selectedCard&&state.selectedCard.id===card.id)ce.classList.add(state.flMode?'fl-selected':'selected');el.appendChild(ce);}
+  if(state.flMode) setTimeout(applyFanLayout, 20);
 }
 function updateEvals(){
   const rows=[['top','evalTop',3],['mid','evalMid',5],['bot','evalBot',5]];
@@ -867,10 +940,11 @@ function startFL(flCards){
   const d=state.deck;let i=state.deckIdx;
   state.hand=d.slice(i,i+=flCards);state.deckIdx=i;
   state.playerBoard={top:[],mid:[],bot:[]};state.selectedCard=null;state.phase='fl';
+  flSortMode='rank';
   const oFLE=checkFLEntry(state.oppBoard);
   if(oFLE){const oFlC=getFLC(state.oppBoard);const oH=d.slice(i,i+=oFlC);state.deckIdx=i;const oFLB=aiFLPlace(oH);state.oppBoard={top:[...oFLB.top],mid:[...oFLB.mid],bot:[...oFLB.bot]};state.oppFlMode=false;}
   document.getElementById('resultBand').classList.remove('show');document.getElementById('flEntryBanner').classList.remove('show');
-  renderGame();
+  showFLIntro(()=>{ sortFlHand(); renderGame(); });
 }
 document.getElementById('btnAdvice').addEventListener('click',()=>{
   const panel=document.getElementById('advicePanel');const ov=document.getElementById('adviceOverlay');const t=document.getElementById('adviceContent');
@@ -1014,6 +1088,106 @@ document.getElementById('btnStart').addEventListener('click',()=>newGame());
   boardEl.addEventListener('touchcancel',onCancel,{passive:true});
 })();
 
+
+// ===== FL UI拡張 =====
+let flSortMode = 'rank';
+
+function showFLIntro(callback){
+  const ov = document.getElementById('flIntroOverlay');
+  ov.classList.add('show');
+  setTimeout(()=>{ ov.classList.remove('show'); setTimeout(callback, 350); }, 1300);
+}
+
+function shortDesc(desc){
+  return desc
+    .replace('のトリップス','トリ').replace('のペア','ペア')
+    .replace('ロイヤルフラッシュ','RF').replace('ストレートフラッシュ','SF')
+    .replace('フォーカーズ','4カ').replace('フルハウス','FH')
+    .replace('フラッシュ','フラ').replace('ストレート','ST')
+    .replace('スリーカーズ','3カ').replace('ツーペア','2P')
+    .replace('ワンペア','1P').replace('ハイカード','HC');
+}
+
+function updateFLEvalPanel(){
+  if(!state.flMode) return;
+  const b = state.playerBoard;
+  const allFilled = b.top.length===3&&b.mid.length===5&&b.bot.length===5;
+  const result = allFilled ? getBestValidEvals(b) : null;
+  let total = 0;
+  const rows = [
+    ['top','flEvalTopD','flEvalTopR'],
+    ['mid','flEvalMidD','flEvalMidR'],
+    ['bot','flEvalBotD','flEvalBotR'],
+  ];
+  for(const[row,dId,rId] of rows){
+    const cards = b[row];
+    const dEl = document.getElementById(dId);
+    const rEl = document.getElementById(rId);
+    if(!cards.length){ dEl.textContent='-'; rEl.textContent=''; continue; }
+    let e = result
+      ? (row==='top'?result.topEval:row==='mid'?result.midEval:result.botEval)
+      : (row==='top'?eval3(cards):eval5(cards,row==='bot'));
+    dEl.textContent = shortDesc(e.desc);
+    if(e.royalty>0){ rEl.textContent='+'+e.royalty; total+=e.royalty; }
+    else rEl.textContent='';
+  }
+  document.getElementById('flEvalTot').textContent = total>0?'+'+total:'0';
+}
+
+function applyFanLayout(){
+  const hc = document.getElementById('handCards');
+  if(!state.flMode||!state.hand.length){ hc.classList.remove('fl-fan'); return; }
+  hc.classList.add('fl-fan');
+  const cards = Array.from(hc.querySelectorAll('.card.in-hand'));
+  const n = cards.length;
+  if(n===0) return;
+  const contW = hc.parentElement.clientWidth - 70;
+  const cardW = 48;
+  const totalSpan = Math.min(contW * 0.92, n * 38);
+  const step = n > 1 ? totalSpan / (n-1) : 0;
+  const startX = (contW - totalSpan) / 2 + 62; // パネル分オフセット
+  const maxAngle = Math.min(2.5 * (n-1) / 2, 22);
+  cards.forEach((card,i)=>{
+    const ratio = n>1 ? (i/(n-1) - 0.5) : 0;
+    const angle = ratio * maxAngle * 2;
+    card.style.left = (startX + i * step) + 'px';
+    card.style.transform = 'rotate(' + angle + 'deg)';
+    card.style.zIndex = i;
+  });
+}
+
+function sortFlHand(){
+  if(!state.flMode) return;
+  const jks = state.hand.filter(c=>c.isJoker);
+  const rest = state.hand.filter(c=>!c.isJoker);
+  if(flSortMode==='rank'){
+    rest.sort((a,b)=>rankVal(b.r)-rankVal(a.r)||SUITS.indexOf(a.s)-SUITS.indexOf(b.s));
+  } else {
+    rest.sort((a,b)=>SUITS.indexOf(a.s)-SUITS.indexOf(b.s)||rankVal(b.r)-rankVal(a.r));
+  }
+  state.hand = [...jks, ...rest];
+}
+
+// ソートボタンのイベント（ページロード後）
+(function(){
+  function initSortBtns(){
+    const rankBtn = document.getElementById('flSortRank');
+    const suitBtn = document.getElementById('flSortSuit');
+    if(!rankBtn) return;
+    rankBtn.addEventListener('click',()=>{
+      flSortMode='rank';
+      rankBtn.classList.add('active'); suitBtn.classList.remove('active');
+      sortFlHand(); renderGame();
+    });
+    suitBtn.addEventListener('click',()=>{
+      flSortMode='suit';
+      suitBtn.classList.add('active'); rankBtn.classList.remove('active');
+      sortFlHand(); renderGame();
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', initSortBtns);
+  else initSortBtns();
+})();
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
 </script>
