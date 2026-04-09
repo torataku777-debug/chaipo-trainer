@@ -727,16 +727,77 @@ function getFLC(board){
   return e.flCards||0;
 }
 function aiPlace5(cards){
-  const board={top:[],mid:[],bot:[]};const jk=cards.filter(c=>c.isJoker);const n=cards.filter(c=>!c.isJoker).sort((a,b)=>rankVal(b.r)-rankVal(a.r));
-  if(jk.length>=2){board.top.push(jk[0],n[0]||{r:'A',s:'s',id:'As'});board.bot.push(jk[1],...n.slice(1,2));board.mid.push(...n.slice(2));return board;}
-  if(jk.length===1){const tC=(n.find(c=>rankVal(c.r)===14)||n.find(c=>rankVal(c.r)===13)||n[0]);board.top.push(jk[0],tC);distRest(n.filter(c=>c!==tC),board);return board;}
-  const pairs=findPairs(n);const hAA=pairs.find(p=>rankVal(p[0].r)===14&&p.length>=2);const hKK=pairs.find(p=>rankVal(p[0].r)===13&&p.length>=2);
-  const hAK=n.find(c=>rankVal(c.r)===14)&&n.find(c=>rankVal(c.r)===13);
-  if(hAA){board.top.push(...hAA.slice(0,2));distRest(n.filter(c=>!hAA.slice(0,2).includes(c)),board);return board;}
-  if(hKK){board.top.push(...hKK.slice(0,2));distRest(n.filter(c=>!hKK.slice(0,2).includes(c)),board);return board;}
-  if(hAK){const a=n.find(c=>rankVal(c.r)===14);const k=n.find(c=>rankVal(c.r)===13);board.top.push(a,k);distRest(n.filter(c=>c!==a&&c!==k),board);return board;}
-  const tC=n.find(c=>rankVal(c.r)>=13);if(tC){board.top.push(tC);distRest(n.filter(c=>c!==tC),board);return board;}
-  distRest(n,board);return board;
+  const board={top:[],mid:[],bot:[]};
+  const jk=cards.filter(c=>c.isJoker);
+  const n=cards.filter(c=>!c.isJoker).sort((a,b)=>rankVal(b.r)-rankVal(a.r));
+
+  // JK2枚: JK+最高ランク→top、JK+2番目→bot、残り→mid
+  if(jk.length>=2){
+    board.top.push(jk[0], n[0]||jk[1]);
+    const rest=n.slice(1);
+    board.bot.push(jk[1], ...(rest.slice(0,1)));
+    board.mid.push(...rest.slice(1));
+    fillBoard(board, n.slice(0)); // 不足分を補完
+    return board;
+  }
+
+  // JK1枚: JK+A/K→top
+  if(jk.length===1){
+    const tC=n.find(c=>rankVal(c.r)>=13)||n[0];
+    board.top.push(jk[0], tC);
+    distRest(n.filter(c=>c!==tC), board);
+    return board;
+  }
+
+  // ペア処理
+  const pairs=findPairs(n);
+  const hAA=pairs.find(p=>rankVal(p[0].r)===14&&p.length>=2);
+  const hKK=pairs.find(p=>rankVal(p[0].r)===13&&p.length>=2);
+  const hA=n.find(c=>rankVal(c.r)===14);
+  const hK=n.find(c=>rankVal(c.r)===13);
+
+  if(hAA){
+    board.top.push(hAA[0],hAA[1]);
+    distRest(n.filter(c=>c!==hAA[0]&&c!==hAA[1]), board);
+    return board;
+  }
+  if(hKK){
+    board.top.push(hKK[0],hKK[1]);
+    distRest(n.filter(c=>c!==hKK[0]&&c!==hKK[1]), board);
+    return board;
+  }
+  if(hA&&hK){
+    board.top.push(hA,hK);
+    distRest(n.filter(c=>c!==hA&&c!==hK), board);
+    return board;
+  }
+  if(hA){
+    board.top.push(hA);
+    distRest(n.filter(c=>c!==hA), board);
+    return board;
+  }
+  if(hK){
+    board.top.push(hK);
+    distRest(n.filter(c=>c!==hK), board);
+    return board;
+  }
+  // A/Kなし: 全部をdistRestに任せる（topは空でOK）
+  distRest(n, board);
+  return board;
+}
+
+// ボードの空きを埋めるユーティリティ
+function fillBoard(board, cards){
+  // 使用済みカードIDを収集
+  const used=new Set([...board.top,...board.mid,...board.bot].map(c=>c.id));
+  const rem=cards.filter(c=>!used.has(c.id));
+  const lim={top:3,mid:5,bot:5};
+  const rows=['bot','mid','top'];
+  for(const c of rem){
+    for(const r of rows){
+      if(board[r].length<lim[r]){board[r].push(c);break;}
+    }
+  }
 }
 function aiFLPlace(cards){
   const board={top:[],mid:[],bot:[]};const sorted=[...cards].sort((a,b)=>rankVal(b.r)-rankVal(a.r));
@@ -756,16 +817,60 @@ function aiFLPlace(cards){
 }
 function findPairs(cards){const g={};for(const c of cards){if(!g[c.r])g[c.r]=[];g[c.r].push(c);}return Object.values(g).filter(x=>x.length>=2).sort((a,b)=>rankVal(b[0].r)-rankVal(a[0].r));}
 function distRest(cards,board){
-  const s=[...cards].sort((a,b)=>rankVal(b.r)-rankVal(a.r));const p=findPairs(s);
-  const sc={};for(const c of s){if(!sc[c.s])sc[c.s]=[];sc[c.s].push(c);}const fd=Object.values(sc).find(g=>g.length>=3);
-  if(p.length>=2){board.bot.push(...p[0].slice(0,2));board.mid.push(...p[1].slice(0,2));const u=new Set([...p[0].slice(0,2),...p[1].slice(0,2)].map(c=>c.id));const l=s.filter(c=>!u.has(c.id));board.bot.push(...l.slice(0,5-board.bot.length));board.mid.push(...l.slice(5-board.bot.length).slice(0,5-board.mid.length));}
-  else if(p.length===1){board.bot.push(...p[0].slice(0,2));const u=new Set(p[0].slice(0,2).map(c=>c.id));const l=s.filter(c=>!u.has(c.id));board.mid.push(...l.slice(0,1));board.bot.push(...l.slice(1).slice(0,5-board.bot.length));}
-  else if(fd){board.bot.push(...fd.slice(0,Math.min(fd.length,5-board.bot.length)));const u=new Set(fd.map(c=>c.id));const l=s.filter(c=>!u.has(c.id));board.mid.push(l[l.length-1]||l[0]);board.bot.push(...l.slice(0,-1).slice(0,5-board.bot.length));}
-  else{board.bot.push(...s.slice(0,Math.min(2,5-board.bot.length)));board.mid.push(s[s.length-1]);}
+  // 残りカードをMID/BOTに最適配置（ペア優先・最終的に全カードを必ず配置）
+  const s=[...cards].sort((a,b)=>rankVal(b.r)-rankVal(a.r));
+  const lim={top:3,mid:5,bot:5};
+  const used=new Set();
+
+  const pairs=findPairs(s);
+  const sc={};for(const c of s){if(!sc[c.s])sc[c.s]=[];sc[c.s].push(c);}
+  const fd=Object.values(sc).filter(g=>g.length>=3).sort((a,b)=>b.length-a.length)[0];
+
+  function push(row, cards){
+    for(const c of cards){
+      if(board[row].length<lim[row]&&!used.has(c.id)){board[row].push(c);used.add(c.id);}
+    }
+  }
+
+  if(pairs.length>=2){
+    // 高ランクペア→bot、低ランクペア→mid
+    push('bot', pairs[0].slice(0,2));
+    push('mid', pairs[1].slice(0,2));
+  } else if(pairs.length===1){
+    push('bot', pairs[0].slice(0,2));
+  } else if(fd){
+    // フラッシュドロー→bot
+    push('bot', fd.slice(0,Math.min(fd.length,5-board.bot.length)));
+  }
+
+  // 残りカードを高ランク→bot、低ランク→mid、最後→topに埋める
+  const rem=s.filter(c=>!used.has(c.id));
+  for(const c of rem){
+    if(board.bot.length<lim.bot){push('bot',[c]);}
+    else if(board.mid.length<lim.mid){push('mid',[c]);}
+    else if(board.top.length<lim.top){push('top',[c]);}
+  }
 }
 function aiPineapple(cards,board){
+  // 3枚から2枚配置+1枚捨て。配置できる組み合わせがない場合も必ず返す
   let best={score:-Infinity,place:null,discard:null};
-  for(let i=0;i<cards.length;i++){const tp=cards.filter((_,j)=>j!==i);const di=cards[i];for(const pl of genPl(tp,board)){const nb={top:[...board.top,...pl.top],mid:[...board.mid,...pl.mid],bot:[...board.bot,...pl.bot]};const sc=bScore(nb);if(sc>best.score)best={score:sc,place:pl,discard:di};}}
+  for(let i=0;i<cards.length;i++){
+    const tp=cards.filter((_,j)=>j!==i);
+    const di=cards[i];
+    const pls=genPl(tp,board);
+    if(pls.length===0){
+      // 配置できる場所がない → スコアを-Infinityより上にして選択可能に
+      if(best.place===null) best={score:-9999,place:{top:[],mid:[],bot:[]},discard:di};
+      continue;
+    }
+    for(const pl of pls){
+      const nb={top:[...board.top,...pl.top],mid:[...board.mid,...pl.mid],bot:[...board.bot,...pl.bot]};
+      const sc=bScore(nb);
+      if(sc>best.score) best={score:sc,place:pl,discard:di};
+    }
+  }
+  // フォールバック: bestがまだnullなら最初のカードを捨て
+  if(!best.place) best={score:-9999,place:{top:[],mid:[],bot:[]},discard:cards[0]};
   return best;
 }
 function genPl(cards,board){const sl=['top','mid','bot'];const res=[];for(const r1 of sl)for(const r2 of sl){const p={top:[],mid:[],bot:[]};p[r1].push(cards[0]);p[r2].push(cards[1]);if(board.top.length+p.top.length<=3&&board.mid.length+p.mid.length<=5&&board.bot.length+p.bot.length<=5)res.push(p);}return res;}
@@ -787,7 +892,13 @@ function dealNext(){
   const d=state.deck;let i=state.deckIdx;
   state.hand=d.slice(i,i+=3);state.deckIdx=i;state.selectedCard=null;state.phase='pineapple';state.placedThisRound=[];
   const oH=d.slice(i,i+=3);state.deckIdx=i;
-  const{place}=aiPineapple(oH,state.oppBoard);for(const r of['top','mid','bot'])state.oppBoard[r].push(...(place[r]||[]));
+  const{place,discard}=aiPineapple(oH,state.oppBoard);
+  for(const r of['top','mid','bot'])state.oppBoard[r].push(...(place[r]||[]));
+  // デバッグ: 相手の枚数確認
+  const oppTot=state.oppBoard.top.length+state.oppBoard.mid.length+state.oppBoard.bot.length;
+  if(oppTot!=(state.round===2?7:state.round===3?9:state.round===4?11:state.round===5?13:7)){
+    console.warn('OPP枚数異常: R'+state.round+' tot='+oppTot);
+  }
   renderGame();
 }
 function endGame(){
