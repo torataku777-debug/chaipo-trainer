@@ -438,27 +438,139 @@ function allJE(cards,isBot){
   else{const all=[];for(const s of SUITS)for(const r of RANKS){const id=r+s;if(!uid.has(id))all.push({r,s,id});}for(let i=0;i<all.length;i++)for(let k=i+1;k<all.length;k++)res.push({eval:eval5P([...n,all[i],all[k]],isBot),cards:[...n,all[i],all[k]]});}
   return res;
 }
-function isFoul(board){
-  const{top,mid,bot}=board;if(!top.length||!mid.length||!bot.length)return false;
-  const te=eval3(top);const tR=t5(te);
-  let mC=mid.some(c=>c.isJoker)?allJE(mid,false):[{eval:eval5(mid,false),cards:mid}];
-  if(mC.length>1){const mx=Math.max(...mC.map(x=>x.eval.rank));mC=mC.filter(x=>x.eval.rank===mx);}
-  let bC=bot.some(c=>c.isJoker)?allJE(bot,true):[{eval:eval5(bot,true),cards:bot}];
-  if(bC.length>1){const mx=Math.max(...bC.map(x=>x.eval.rank));bC=bC.filter(x=>x.eval.rank===mx);}
-  for(const mc of mC){const d=mc.eval.rank!==tR?mc.eval.rank-tR:cmpStr(mc.eval,mc.cards,te,top);if(d<0)continue;for(const bc of bC){if(cmpStr(bc.eval,bc.cards,mc.eval,mc.cards)>=0)return false;}}
-  return true;
-}
-function evalFA(cards,isBot,board,rowKey){
-  if(!cards.some(c=>c.isJoker))return eval5(cards,isBot);
-  const{top,mid,bot}=board;const te=eval3(top);const tR=t5(te);
-  const cands=allJE(cards,isBot);let best=null;
-  for(const mc of cands){
-    if(rowKey==='mid'){const d=mc.eval.rank!==tR?mc.eval.rank-tR:cmpStr(mc.eval,mc.cards,te,top);if(d<0)continue;if(bot.length===5&&!bot.some(c=>c.isJoker)){const bE=eval5P(bot,true);if(cmpStr(bE,bot,mc.eval,mc.cards)<0)continue;}}
-    if(rowKey==='bot'){if(mid.length===5){const mE=eval5(mid,false);if(cmpStr(mc.eval,mc.cards,mE,mid)<0)continue;}}
-    if(!best||cmpStr(mc.eval,mc.cards,best.eval,best.cards)>0)best=mc;
+
+// ======================================================
+// getBestValidEvals: ボード全体でJKを最適割り当て
+// BOT >= MID >= TOP を満たす中で最高スコアの組み合わせを返す
+// ======================================================
+function getBestValidEvals(board){
+  var top=board.top,mid=board.mid,bot=board.bot;
+  var topCands=enumTop(top);
+  var midCands=enumMid(mid);
+  var botCands=enumBot(bot);
+  var bestValid=null,bestScore=-Infinity;
+  for(var ti=0;ti<topCands.length;ti++){
+    var tc=topCands[ti];
+    for(var mi=0;mi<midCands.length;mi++){
+      var mc=midCands[mi];
+      if(!midGeTop(mc,tc))continue;
+      for(var bi=0;bi<botCands.length;bi++){
+        var bc=botCands[bi];
+        if(cmpStr(bc.eval,bc.resolvedCards,mc.eval,mc.resolvedCards)<0)continue;
+        var score=(tc.eval.royalty||0)+(mc.eval.royalty||0)+(bc.eval.royalty||0)+(tc.eval.flCards>=14?100:0);
+        if(score>bestScore){bestScore=score;bestValid={tc:tc,mc:mc,bc:bc};}
+      }
+    }
   }
-  return best?best.eval:eval5P(cards.filter(c=>!c.isJoker),isBot);
+  if(bestValid){
+    return {topEval:bestValid.tc.eval,midEval:bestValid.mc.eval,botEval:bestValid.bc.eval,
+      topJkMap:bestValid.tc.jkMap,midJkMap:bestValid.mc.jkMap,botJkMap:bestValid.bc.jkMap,isFoul:false};
+  }
+  // ファウル確定 - 各段で最強手を表示
+  var ftc=topCands[0];
+  var fmc=midCands.reduce(function(a,b){return cmpStr(b.eval,b.resolvedCards,a.eval,a.resolvedCards)>0?b:a;});
+  var fbc=botCands.reduce(function(a,b){return cmpStr(b.eval,b.resolvedCards,a.eval,a.resolvedCards)>0?b:a;});
+  return {topEval:ftc.eval,midEval:fmc.eval,botEval:fbc.eval,
+    topJkMap:ftc.jkMap,midJkMap:fmc.jkMap,botJkMap:fbc.jkMap,isFoul:true};
 }
+function eval3Plain(cards){
+  var rv=cards.map(function(c){return rankVal(c.r);}).sort(function(a,b){return b-a;});
+  if(rv.length<2)return{rank:0,desc:rv.map(function(v){return RANKS[v-2]||'?';}).join(''),royalty:0,flCards:0,topRankScore:rv[0]||0};
+  if(rv.length===2){
+    if(rv[0]===rv[1])return{rank:1,desc:RANKS[rv[0]-2]+'\u306e\u30da\u30a2',royalty:pairRoy(rv[0]),flCards:rv[0]>=13?15:rv[0]>=12?14:0,topRankScore:rv[0]*100+rv[1]};
+    return{rank:0,desc:rv.map(function(v){return RANKS[v-2];}).join(''),royalty:0,flCards:0,topRankScore:rv[0]*100+rv[1]};
+  }
+  if(rv[0]===rv[1]&&rv[1]===rv[2])return{rank:2,desc:RANKS[rv[0]-2]+'\u306e\u30c8\u30ea\u30c3\u30d7\u30b9',royalty:tripRoy(rv[0]),flCards:17,topRankScore:rv[0]*100+rv[0]};
+  if(rv[0]===rv[1]||rv[1]===rv[2]){var p=rv[0]===rv[1]?rv[0]:rv[1];return{rank:1,desc:RANKS[p-2]+'\u306e\u30da\u30a2',royalty:pairRoy(p),flCards:p>=13?15:p>=12?14:0,topRankScore:p*100+(rv[0]===p?rv[2]:rv[0])};}
+  return{rank:0,desc:rv.map(function(v){return RANKS[v-2];}).join(''),royalty:0,flCards:0,topRankScore:rv[0]*100+rv[1]};
+}
+function enumTop(cards){
+  var n=cards.filter(function(c){return !c.isJoker;});
+  var j=cards.filter(function(c){return c.isJoker;});
+  if(j.length===0){return [{eval:eval3(cards),resolvedCards:cards,jkMap:{}}];}
+  var uid=new Set(n.map(function(c){return c.id;}));
+  var results=[];
+  if(j.length===1){
+    for(var si=0;si<SUITS.length;si++)for(var ri=0;ri<RANKS.length;ri++){
+      var s=SUITS[si],r=RANKS[ri],id=r+s;if(uid.has(id))continue;
+      var sub={r:r,s:s,id:id};var hand=n.concat([sub]);
+      results.push({eval:eval3Plain(hand),resolvedCards:hand,jkMap:(function(jid,sub2){var m={};m[jid]=sub2;return m;})(j[0].id,sub)});
+    }
+  }else{
+    var all=[];for(var si=0;si<SUITS.length;si++)for(var ri=0;ri<RANKS.length;ri++){var id=RANKS[ri]+SUITS[si];if(!uid.has(id))all.push({r:RANKS[ri],s:SUITS[si],id:id});}
+    for(var ii=0;ii<all.length;ii++)for(var ki=ii+1;ki<all.length;ki++){
+      var hand=n.concat([all[ii],all[ki]]);
+      var jm={};jm[j[0].id]=all[ii];jm[j[1].id]=all[ki];
+      results.push({eval:eval3Plain(hand),resolvedCards:hand,jkMap:jm});
+    }
+  }
+  return results.length>0?results:[{eval:eval3(cards),resolvedCards:cards,jkMap:{}}];
+}
+function enumMid(cards){return enumRow5(cards,false);}
+function enumBot(cards){return enumRow5(cards,true);}
+function enumRow5(cards,isBot){
+  var n=cards.filter(function(c){return !c.isJoker;});
+  var j=cards.filter(function(c){return c.isJoker;});
+  if(j.length===0){return [{eval:eval5P(cards,isBot),resolvedCards:cards,jkMap:{}}];}
+  var uid=new Set(n.map(function(c){return c.id;}));
+  var results=[];
+  if(j.length===1){
+    for(var si=0;si<SUITS.length;si++)for(var ri=0;ri<RANKS.length;ri++){
+      var s=SUITS[si],r=RANKS[ri],id=r+s;if(uid.has(id))continue;
+      var sub={r:r,s:s,id:id};var hand=n.concat([sub]);
+      var jm={};jm[j[0].id]=sub;
+      results.push({eval:eval5P(hand,isBot),resolvedCards:hand,jkMap:jm});
+    }
+  }else{
+    var all=[];for(var si=0;si<SUITS.length;si++)for(var ri=0;ri<RANKS.length;ri++){var id=RANKS[ri]+SUITS[si];if(!uid.has(id))all.push({r:RANKS[ri],s:SUITS[si],id:id});}
+    for(var ii=0;ii<all.length;ii++)for(var ki=ii+1;ki<all.length;ki++){
+      var hand=n.concat([all[ii],all[ki]]);
+      var jm={};jm[j[0].id]=all[ii];jm[j[1].id]=all[ki];
+      results.push({eval:eval5P(hand,isBot),resolvedCards:hand,jkMap:jm});
+    }
+  }
+  return results;
+}
+function midGeTop(mc,tc){
+  var minMid=[0,1,3][tc.eval.rank]||0;
+  if(mc.eval.rank>minMid)return true;
+  if(mc.eval.rank<minMid)return false;
+  var topPairRank=Math.floor((tc.eval.topRankScore||0)/100);
+  var midHv=hvFull(mc.resolvedCards,mc.eval.rank);
+  return (midHv[0]||0)>=topPairRank;
+}
+function isFoul(board){
+  if(!board.top.length||!board.mid.length||!board.bot.length)return false;
+  return getBestValidEvals(board).isFoul;
+}
+function calcScoreWithJokers(pB,oB){
+  var pRes=getBestValidEvals(pB);var oRes=getBestValidEvals(oB);
+  var pF=pRes.isFoul,oF=oRes.isFoul;
+  var rows=['top','mid','bot'];var pT=0,oT=0;var det=[];
+  for(var i=0;i<3;i++){
+    var row=rows[i];var isTop=row==='top';
+    var pE=row==='top'?pRes.topEval:row==='mid'?pRes.midEval:pRes.botEval;
+    var oE=row==='top'?oRes.topEval:row==='mid'?oRes.midEval:oRes.botEval;
+    var pW=0,oW=0;
+    if(pF&&!oF)oW=1;else if(!pF&&oF)pW=1;
+    else if(!pF&&!oF){var c=cmpEval(pE,oE,pB[row],oB[row],isTop);if(c>0)pW=1;else if(c<0)oW=1;}
+    pT+=pW;oT+=oW;det.push({row:row,pEval:pE,oEval:oE,pWin:pW,oWin:oW});
+  }
+  if(pT===3&&!pF)pT+=3;if(oT===3&&!oF)oT+=3;
+  var pR=0,oR=0;
+  if(!pF){pR+=(pRes.topEval.royalty||0)+(pRes.midEval.royalty||0)+(pRes.botEval.royalty||0);}
+  if(!oF){oR+=(oRes.topEval.royalty||0)+(oRes.midEval.royalty||0)+(oRes.botEval.royalty||0);}
+  return{pTotal:pT,oTotal:oT,pRoy:pR,oRoy:oR,det:det,pFoul:pF,oFoul:oF,pResult:pRes,oResult:oRes};
+}
+function isFoulSimple(board){
+  var top=board.top,mid=board.mid,bot=board.bot;
+  if(!top.length||!mid.length||!bot.length)return false;
+  var tR=t5(eval3(top));var mR=eval5(mid,false).rank;var bR=eval5(bot,true).rank;
+  if(mR<tR)return true;if(mid.length===5&&bot.length===5&&bR<mR)return true;return false;
+}
+
+
+
 function flReach(board){
   const top=board.top;const j=top.filter(c=>c.isJoker).length;const n=top.filter(c=>!c.isJoker);
   if(!top.length)return 0.37;
@@ -513,19 +625,7 @@ function aiPineapple(cards,board){
 }
 function genPl(cards,board){const sl=['top','mid','bot'];const res=[];for(const r1 of sl)for(const r2 of sl){const p={top:[],mid:[],bot:[]};p[r1].push(cards[0]);p[r2].push(cards[1]);if(board.top.length+p.top.length<=3&&board.mid.length+p.mid.length<=5&&board.bot.length+p.bot.length<=5)res.push(p);}return res;}
 function bScore(board){let sc=0;const fe=flReach(board);const te=eval3(board.top);if(te.flCards>0)sc+=FL_AI_EV[te.flCards]||0;sc+=fe*30;sc+=te.royalty;if(board.mid.length>=3)sc+=eval5(board.mid,false).royalty*1.5;if(board.bot.length>=3)sc+=eval5(board.bot,true).royalty;if(board.top.length===3&&board.mid.length===5&&board.bot.length===5&&isFoul(board))sc-=50;return sc;}
-function calcScore(pB,oB){
-  const pF=isFoul(pB);const oF=isFoul(oB);const rows=['top','mid','bot'];let pT=0,oT=0;const det=[];
-  for(let i=0;i<3;i++){const row=rows[i];const isTop=row==='top';const isBot=row==='bot';let pE,oE;
-    if(isTop){pE=eval3(pB[row]);oE=eval3(oB[row]);}else{pE=evalFA(pB[row],isBot,pB,row);oE=evalFA(oB[row],isBot,oB,row);}
-    let pW=0,oW=0;if(pF&&!oF)oW=1;else if(!pF&&oF)pW=1;else if(!pF&&!oF){const c=cmpEval(pE,oE,pB[row],oB[row],isTop);if(c>0)pW=1;else if(c<0)oW=1;}
-    pT+=pW;oT+=oW;det.push({row,pEval:pE,oEval:oE,pWin:pW,oWin:oW});
-  }
-  if(pT===3&&!pF)pT+=3;if(oT===3&&!oF)oT+=3;
-  let pR=0,oR=0;
-  if(!pF){pR+=eval3(pB.top).royalty;pR+=evalFA(pB.mid,false,pB,'mid').royalty;pR+=evalFA(pB.bot,true,pB,'bot').royalty;}
-  if(!oF){oR+=eval3(oB.top).royalty;oR+=evalFA(oB.mid,false,oB,'mid').royalty;oR+=evalFA(oB.bot,true,oB,'bot').royalty;}
-  return{pTotal:pT,oTotal:oT,pRoy:pR,oRoy:oR,det,pFoul:pF,oFoul:oF};
-}
+function calcScore(pB,oB){return calcScoreWithJokers(pB,oB);}
 let state={};
 function newGame(){
   const deck=shuffle(makeDeck());let idx=0;const deal=n=>deck.slice(idx,idx+=n);
@@ -551,13 +651,10 @@ function endGame(){
   renderBoardWithJokers();
 }
 function renderBoardWithJokers(){
-  // 各段のJK化け先マップを計算
-  const jkTop=state.playerBoard.top.some(c=>c.isJoker)?resolveJokersTop(state.playerBoard.top):{};
-  const jkMid=state.playerBoard.mid.some(c=>c.isJoker)?resolveJokers(state.playerBoard.mid):{};
-  const jkBot=state.playerBoard.bot.some(c=>c.isJoker)?resolveJokers(state.playerBoard.bot):{};
-  renderSlots('slotsTop',state.playerBoard.top,3,'top',jkTop);
-  renderSlots('slotsMid',state.playerBoard.mid,5,'mid',jkMid);
-  renderSlots('slotsBot',state.playerBoard.bot,5,'bot',jkBot);
+  const result=getBestValidEvals(state.playerBoard);
+  renderSlots('slotsTop',state.playerBoard.top,3,'top',result.topJkMap);
+  renderSlots('slotsMid',state.playerBoard.mid,5,'mid',result.midJkMap);
+  renderSlots('slotsBot',state.playerBoard.bot,5,'bot',result.botJkMap);
 }
 function showResultBand(score){
   const{pTotal,oTotal,pRoy,oRoy,det,pFoul,oFoul}=score;const net=(pTotal+pRoy)-(oTotal+oRoy);
@@ -692,8 +789,19 @@ function renderHand(){
   for(const card of state.hand){const ce=makeCard(card);ce.classList.add('in-hand');if(state.selectedCard&&state.selectedCard.id===card.id)ce.classList.add(state.flMode?'fl-selected':'selected');el.appendChild(ce);}
 }
 function updateEvals(){
-  const rows=[['top','evalTop',3],['mid','evalMid',5],['bot','evalBot',5]];const foul=isFoul(state.playerBoard);
-  for(const[row,elId,full]of rows){const el=document.getElementById(elId);const cards=state.playerBoard[row];if(!cards.length){el.textContent='';el.className='row-eval';continue;}let e=row==='top'?eval3(cards):evalFA(cards,row==='bot',state.playerBoard,row);let txt=e.desc;if(e.royalty>0)txt+=` +${e.royalty}`;el.textContent=txt;el.className='row-eval';if(row==='top'&&e.flCards>0)el.classList.add('fl');if(foul&&cards.length===full)el.classList.add('foul');}
+  const rows=[['top','evalTop',3],['mid','evalMid',5],['bot','evalBot',5]];
+  const allFilled=state.playerBoard.top.length===3&&state.playerBoard.mid.length===5&&state.playerBoard.bot.length===5;
+  const result=allFilled?getBestValidEvals(state.playerBoard):null;
+  const foul=result?result.isFoul:isFoulSimple(state.playerBoard);
+  for(const[row,elId,full]of rows){
+    const el=document.getElementById(elId);const cards=state.playerBoard[row];
+    if(!cards.length){el.textContent='';el.className='row-eval';continue;}
+    let e=result?(row==='top'?result.topEval:row==='mid'?result.midEval:result.botEval):(row==='top'?eval3(cards):eval5(cards,row==='bot'));
+    let txt=e.desc;if(e.royalty>0)txt+=` +${e.royalty}`;
+    el.textContent=txt;el.className='row-eval';
+    if(row==='top'&&e.flCards>0)el.classList.add('fl');
+    if(foul&&cards.length===full)el.classList.add('foul');
+  }
 }
 function updateConfirm(){
   const btn=document.getElementById('btnConfirm');
