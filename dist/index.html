@@ -813,8 +813,11 @@ function showResultBand(score){
   g+=`<div class="rbc lbl">役</div><div class="rbc you ${pFoul?'l':''}">${pFoul?'FOUL':pRoy>0?'+'+pRoy:'0'}</div><div class="rbc opp ${oFoul?'l':''}">${oFoul?'FOUL':oRoy>0?'+'+oRoy:'0'}</div>`;
   g+=`<div class="rbc lbl" style="font-weight:600">合計</div><div class="rbc you tot">${pTotal+pRoy}</div><div class="rbc opp tot">${oTotal+oRoy}</div>`;
   rowsEl.innerHTML=g;band.classList.add('show');
-  const flE=checkFLEntry(state.playerBoard);
-  if(flE){const flC=getFLC(state.playerBoard);document.getElementById('flEntryText').textContent=`🌟 FANTASY LAND! (${flC}枚)`;document.getElementById('flEntrySub').textContent='次回ゲームはFL — 全カードを自由配置';document.getElementById('flEntryBanner').classList.add('show');}
+  if(!state.flMode){
+    // 平場ゲーム終了: FL初入り判定
+    const flE=checkFLEntry(state.playerBoard);
+    if(flE){const flC=getFLC(state.playerBoard);document.getElementById('flEntryText').textContent='🌟 FANTASY LAND! ('+flC+'枚)';document.getElementById('flEntrySub').textContent='次のゲームへ → でFLへ！';document.getElementById('flEntryBanner').classList.add('show');}
+  }
 }
 function renderGame(){
   const titleEl=document.getElementById('gameTitle');
@@ -1030,11 +1033,29 @@ function placeCard(card,row){
 function autoDiscard(){const c=state.hand[0];state.hand=state.hand.filter(x=>x.id!==c.id);state.discard.push(c);state.discardedThisRound=true;showToast(`${c.isJoker?'JK':c.r+SUIT_SYMS[c.s]} を捨てました`);}
 document.getElementById('btnConfirm').addEventListener('click',()=>{
   if(state.gameOver){
-    const flContinue=checkFLContinue(state.playerBoard);
-    const prevFlCards=state.flCards;
-    console.log('CONFIRM next: flContinue='+flContinue+' flCards='+prevFlCards);
+    // ★ newGame()前にボード情報を保存する（newGame()でstateがリセットされるため）
+    const wasFL = state.flCards > 0;
+    const prevFlCards = state.flCards;
+    const savedBoard = {
+      top:[...state.playerBoard.top],
+      mid:[...state.playerBoard.mid],
+      bot:[...state.playerBoard.bot]
+    };
+    let shouldStartFL = false;
+    let nextFlCards = 0;
+    if(wasFL){
+      shouldStartFL = checkFLContinue(savedBoard);
+      nextFlCards = prevFlCards;
+      console.log('FL継続判定: '+shouldStartFL+' cards='+prevFlCards);
+    } else {
+      shouldStartFL = checkFLEntry(savedBoard);
+      nextFlCards = getFLC(savedBoard);
+      console.log('FL初入り判定: '+shouldStartFL+' cards='+nextFlCards);
+    }
     newGame();
-    if(flContinue&&prevFlCards>=14)setTimeout(()=>startFL(prevFlCards),100);
+    if(shouldStartFL && nextFlCards>=14){
+      setTimeout(()=>startFL(nextFlCards), 100);
+    }
     return;
   }
   if(state.flMode){
