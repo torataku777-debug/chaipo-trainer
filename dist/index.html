@@ -686,53 +686,107 @@ document.getElementById('btnCloseOuts').addEventListener('click',closeOuts);
 document.getElementById('outsBackdrop').addEventListener('click',closeOuts);
 document.getElementById('btnStart').addEventListener('click',()=>newGame());
 
-// ===== ドラッグ&ドロップ =====
+// ===== ドラッグ&ドロップ（手札 + ボード上カード移動対応）=====
 (function(){
+  const boardEl=document.getElementById('playerArea');
   const handEl=document.getElementById('handCards');
-  let dragCard=null,ghostEl=null,lastSlot=null,dragging=false,startX=0,startY=0;
+  let drag=null,ghostEl=null,lastSlot=null,dragging=false,startX=0,startY=0;
   const THR=6;
+
   function createGhost(card,x,y){ghostEl=makeCard(card);ghostEl.classList.add('card-drag-ghost');ghostEl.style.left=(x-27)+'px';ghostEl.style.top=(y-37)+'px';document.body.appendChild(ghostEl);}
   function moveGhost(x,y){if(!ghostEl)return;ghostEl.style.left=(x-27)+'px';ghostEl.style.top=(y-37)+'px';}
   function removeGhost(){if(ghostEl){ghostEl.remove();ghostEl=null;}}
+
   function getSlotAt(x,y){
     if(ghostEl)ghostEl.style.visibility='hidden';
     const el=document.elementFromPoint(x,y);
     if(ghostEl)ghostEl.style.visibility='';
-    if(!el)return null;const slot=el.closest('.slot');if(!slot)return null;
+    if(!el)return null;
+    const slot=el.closest('.slot');if(!slot)return null;
     const row=slot.dataset.row;const idx=parseInt(slot.dataset.idx);
+    if(drag&&!drag.fromHand&&drag.fromRow===row&&drag.fromIdx===idx)return null;
     if(state.playerBoard[row][idx])return null;
-    const lim={top:3,mid:5,bot:5};if(state.playerBoard[row].length>=lim[row])return null;
+    const lim={top:3,mid:5,bot:5};
+    const correction=(drag&&!drag.fromHand&&drag.fromRow===row)?1:0;
+    if(state.playerBoard[row].length-correction>=lim[row])return null;
     return slot;
   }
+
   function setHighlight(slot){if(lastSlot&&lastSlot!==slot)lastSlot.classList.remove('drag-over');if(slot)slot.classList.add('drag-over');lastSlot=slot;}
   function clearHighlight(){if(lastSlot){lastSlot.classList.remove('drag-over');lastSlot=null;}}
-  function getOrigEl(){return dragCard?handEl.querySelector('[data-id="'+dragCard.id+'"]'):null;}
+
+  function dimOrig(){
+    if(!drag)return;
+    if(drag.fromHand){const o=handEl.querySelector('[data-id="'+drag.card.id+'"]');if(o)o.style.opacity='0.3';}
+    else{const s=document.querySelector('.slot[data-row="'+drag.fromRow+'"][data-idx="'+drag.fromIdx+'"]');if(s){const o=s.querySelector('.card');if(o)o.style.opacity='0.3';}}
+  }
+  function undimOrig(){
+    if(!drag||!drag.fromHand)return;
+    const o=handEl.querySelector('[data-id="'+drag.card.id+'"]');if(o)o.style.opacity='';
+  }
+
+  function canMoveFromBoard(row,idx){
+    const card=state.playerBoard[row][idx];if(!card)return false;
+    if(state.flMode||state.phase==='place5')return true;
+    if(state.phase==='pineapple')return !!(state.placedThisRound||[]).find(c=>c.id===card.id);
+    return false;
+  }
+
+  function moveCardOnBoard(card,fromRow,fromIdx,toRow){
+    state.playerBoard[fromRow].splice(fromIdx,1);
+    state.playerBoard[toRow].push(card);
+    state.selectedCard=null;
+    renderGame();
+  }
+
   handEl.addEventListener('touchstart',e=>{
     const cE=e.target.closest('.card.in-hand');if(!cE)return;
     const f=state.hand.find(c=>c.id===cE.dataset.id);if(!f)return;
-    dragCard=f;startX=e.touches[0].clientX;startY=e.touches[0].clientY;dragging=false;
+    drag={card:f,fromHand:true};startX=e.touches[0].clientX;startY=e.touches[0].clientY;dragging=false;
   },{passive:true});
-  handEl.addEventListener('touchmove',e=>{
-    if(!dragCard)return;const cx=e.touches[0].clientX;const cy=e.touches[0].clientY;
-    if(!dragging&&(Math.abs(cx-startX)>THR||Math.abs(cy-startY)>THR)){
-      dragging=true;createGhost(dragCard,cx,cy);const o=getOrigEl();if(o)o.style.opacity='0.3';
-    }
+
+  boardEl.addEventListener('touchstart',e=>{
+    const cE=e.target.closest('.card.on-board');if(!cE)return;
+    const slotEl=cE.closest('.slot');if(!slotEl)return;
+    const row=slotEl.dataset.row;const idx=parseInt(slotEl.dataset.idx);
+    if(!canMoveFromBoard(row,idx))return;
+    const card=state.playerBoard[row][idx];
+    drag={card,fromHand:false,fromRow:row,fromIdx:idx};startX=e.touches[0].clientX;startY=e.touches[0].clientY;dragging=false;
+  },{passive:true});
+
+  function onMove(e){
+    if(!drag)return;
+    const cx=e.touches[0].clientX;const cy=e.touches[0].clientY;
+    if(!dragging&&(Math.abs(cx-startX)>THR||Math.abs(cy-startY)>THR)){dragging=true;createGhost(drag.card,cx,cy);dimOrig();}
     if(dragging){moveGhost(cx,cy);setHighlight(getSlotAt(cx,cy));e.preventDefault();}
-  },{passive:false});
-  handEl.addEventListener('touchend',e=>{
-    if(!dragCard)return;
+  }
+  handEl.addEventListener('touchmove',onMove,{passive:false});
+  boardEl.addEventListener('touchmove',onMove,{passive:false});
+
+  function onEnd(e){
+    if(!drag)return;
     if(dragging){
       const cx=e.changedTouches[0].clientX;const cy=e.changedTouches[0].clientY;
       const slot=getSlotAt(cx,cy);clearHighlight();removeGhost();
-      const o=getOrigEl();if(o)o.style.opacity='';
-      if(slot){placeCard(dragCard,slot.dataset.row);}else{state.selectedCard=null;renderGame();}
-    }else{onHandClick(dragCard);}
-    dragCard=null;dragging=false;
-  },{passive:true});
-  handEl.addEventListener('touchcancel',e=>{
-    clearHighlight();removeGhost();const o=getOrigEl();if(o)o.style.opacity='';
-    dragCard=null;dragging=false;
-  },{passive:true});
+      if(drag.fromHand){
+        undimOrig();
+        if(slot){placeCard(drag.card,slot.dataset.row);}else{state.selectedCard=null;renderGame();}
+      }else{
+        if(slot){moveCardOnBoard(drag.card,drag.fromRow,drag.fromIdx,slot.dataset.row);}
+        else{renderGame();}
+      }
+    }else{
+      if(drag.fromHand){onHandClick(drag.card);}
+      else{onSlot(drag.fromRow,drag.fromIdx);}
+    }
+    drag=null;dragging=false;
+  }
+  handEl.addEventListener('touchend',onEnd,{passive:true});
+  boardEl.addEventListener('touchend',onEnd,{passive:true});
+
+  function onCancel(){clearHighlight();removeGhost();undimOrig();drag=null;dragging=false;renderGame();}
+  handEl.addEventListener('touchcancel',onCancel,{passive:true});
+  boardEl.addEventListener('touchcancel',onCancel,{passive:true});
 })();
 
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
