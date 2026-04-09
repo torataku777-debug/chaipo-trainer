@@ -235,9 +235,59 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 .fl-sort-btn:active{transform:scale(0.95);}
 
 /* ===== FL手札 扇型 ===== */
-.hand-cards.fl-fan{position:relative;height:96px;flex-wrap:nowrap;overflow:visible;justify-content:center;align-items:flex-end;padding-bottom:4px;}
-.hand-cards.fl-fan .card.in-hand{position:absolute;bottom:4px;transform-origin:50% 110%;width:48px;height:66px;}
-.hand-cards.fl-fan .card.in-hand.fl-selected{box-shadow:0 0 0 2px #c8a030,0 -12px 20px rgba(200,160,48,0.4)!important;}
+
+/* ===== FL手札: フラット横スクロール ===== */
+.hand-cards.fl-flat{
+  display:flex;gap:5px;align-items:flex-end;
+  overflow-x:auto;overflow-y:visible;flex-wrap:nowrap;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  padding:4px 4px 8px;min-height:84px;
+}
+.hand-cards.fl-flat::-webkit-scrollbar{display:none;}
+.hand-cards.fl-flat .card.in-hand{
+  width:52px;height:72px;flex-shrink:0;
+  position:static!important;transform:none!important;left:auto!important;
+  transition:transform 0.12s,box-shadow 0.12s;
+}
+.hand-cards.fl-flat .card.in-hand.fl-selected{
+  transform:translateY(-10px)!important;
+  box-shadow:0 0 0 2px #c8a030,0 8px 20px rgba(200,160,48,0.35)!important;
+  border-color:#c8a030!important;z-index:20;
+}
+.hand-cards.fl-flat .card.in-hand.fl-group-sel{
+  transform:translateY(-10px)!important;
+  box-shadow:0 0 0 2.5px #10b981,0 8px 20px rgba(16,185,129,0.35)!important;
+  border-color:#10b981!important;z-index:21;
+}
+/* ===== 役ボタンバー ===== */
+.fl-role-bar-outer{
+  display:none;overflow-x:auto;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  padding:4px 8px 2px;flex-shrink:0;
+}
+.fl-role-bar-outer::-webkit-scrollbar{display:none;}
+.fl-role-bar-outer.show{display:block;}
+.fl-role-bar{display:flex;gap:6px;width:max-content;}
+.fl-role-btn{
+  font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;
+  letter-spacing:0.03em;padding:6px 14px;border-radius:9999px;
+  cursor:pointer;transition:all 0.15s;white-space:nowrap;
+  border:1px solid rgba(200,160,48,0.4);background:rgba(200,160,48,0.08);color:#9a6e10;
+}
+.fl-role-btn:active{transform:scale(0.95);}
+.fl-role-btn.active{background:#c8a030;border-color:#c8a030;color:#fff;box-shadow:0 2px 8px rgba(200,160,48,0.4);}
+.fl-role-btn.unavail{opacity:0.3;pointer-events:none;}
+/* グループドラッグゴースト */
+.card-group-ghost{
+  position:fixed;pointer-events:none;z-index:9999;
+  display:flex;gap:3px;opacity:0.9;
+}
+.card-group-ghost .card{
+  width:44px;height:60px;flex-shrink:0;
+  border-color:#10b981!important;
+  box-shadow:0 0 0 2px #10b981,0 4px 12px rgba(16,185,129,0.3)!important;
+}
+
 
 /* FL時 player-area オフセット */
 .player-area.fl-mode{position:relative;padding-left:62px;}
@@ -359,6 +409,17 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
         <div class="fl-sort-bar">
           <button class="fl-sort-btn active" id="flSortRank">ランク順</button>
           <button class="fl-sort-btn" id="flSortSuit">スーツ順</button>
+        </div>
+      </div>
+      <div class="fl-role-bar-outer" id="flRoleBarOuter">
+        <div class="fl-role-bar">
+          <button class="fl-role-btn" data-role="pair">ペア</button>
+          <button class="fl-role-btn" data-role="trips">トリップス</button>
+          <button class="fl-role-btn" data-role="straight">ストレート</button>
+          <button class="fl-role-btn" data-role="flush">フラッシュ</button>
+          <button class="fl-role-btn" data-role="fullhouse">フルハウス</button>
+          <button class="fl-role-btn" data-role="quads">フォーカーズ</button>
+          <button class="fl-role-btn" data-role="strflush">ストフラ</button>
         </div>
       </div>
       <div class="phase-label" id="phaseLabel"></div>
@@ -745,13 +806,17 @@ function renderGame(){
     pa.classList.add('fl-mode');pl.innerHTML='YOU <span class="fl-badge">FANTASY LAND</span>';ha.classList.add('fl-mode');
     document.getElementById('flEvalPanel').classList.add('show');
     document.getElementById('flHandWrap').classList.add('show');
+    document.getElementById('flRoleBarOuter').classList.add('show');
+    document.getElementById('handCards').classList.add('fl-flat');
+    document.getElementById('handCards').classList.remove('fl');
     updateFLEvalPanel();
-    setTimeout(applyFanLayout, 30);
+    updateRoleButtons();
   }else{
     pa.classList.remove('fl-mode');pl.innerHTML='YOU';ha.classList.remove('fl-mode');
     document.getElementById('flEvalPanel').classList.remove('show');
     document.getElementById('flHandWrap').classList.remove('show');
-    document.getElementById('handCards').classList.remove('fl-fan');
+    const rbo=document.getElementById('flRoleBarOuter');if(rbo)rbo.classList.remove('show');
+    document.getElementById('handCards').classList.remove('fl-flat');
   }
   const oi=document.getElementById('oppAreaInner');state.oppFlMode?oi.classList.add('fl-mode'):oi.classList.remove('fl-mode');
   const ph=document.getElementById('phaseLabel');
@@ -859,7 +924,7 @@ function makeCard(card){
 function renderHand(){
   const el=document.getElementById('handCards');el.innerHTML='';
   for(const card of state.hand){const ce=makeCard(card);ce.classList.add('in-hand');if(state.selectedCard&&state.selectedCard.id===card.id)ce.classList.add(state.flMode?'fl-selected':'selected');el.appendChild(ce);}
-  if(state.flMode) setTimeout(applyFanLayout, 20);
+
 }
 function updateEvals(){
   const rows=[['top','evalTop',3],['mid','evalMid',5],['bot','evalBot',5]];
@@ -887,7 +952,10 @@ function updateConfirm(){
 }
 document.getElementById('playerArea').addEventListener('click',e=>{const sl=e.target.closest('.slot');if(sl)onSlot(sl.dataset.row,parseInt(sl.dataset.idx));});
 document.getElementById('handCards').addEventListener('click',e=>{const c=e.target.closest('.card');if(!c)return;const f=state.hand.find(x=>x.id===c.dataset.id);if(f)onHandClick(f);});
-function onHandClick(card){state.selectedCard=(state.selectedCard&&state.selectedCard.id===card.id)?null:card;renderGame();}
+function onHandClick(card){
+  if(state.flMode&&flGroupSel.role){clearGroupSel();renderGame();return;}
+  state.selectedCard=(state.selectedCard&&state.selectedCard.id===card.id)?null:card;renderGame();
+}
 function onSlot(row,idx){
   const rC=state.playerBoard[row];const lim={top:3,mid:5,bot:5};
   if(rC[idx]){
@@ -908,6 +976,7 @@ function retCard(card,row,idx){
 function placeCard(card,row){
   state.hand=state.hand.filter(c=>c.id!==card.id);state.playerBoard[row].push(card);
   if(!state.placedThisRound)state.placedThisRound=[];state.placedThisRound.push(card);state.selectedCard=null;
+  if(state.flMode)clearGroupSel();
   if(!state.flMode&&state.phase==='pineapple'&&state.placedThisRound.length>=2&&!state.discardedThisRound&&state.hand.length>0)autoDiscard();
   renderGame();
 }
@@ -941,6 +1010,7 @@ function startFL(flCards){
   state.hand=d.slice(i,i+=flCards);state.deckIdx=i;
   state.playerBoard={top:[],mid:[],bot:[]};state.selectedCard=null;state.phase='fl';
   flSortMode='rank';
+  flGroupSel={role:null,combos:[],idx:0};
   const oFLE=checkFLEntry(state.oppBoard);
   if(oFLE){const oFlC=getFLC(state.oppBoard);const oH=d.slice(i,i+=oFlC);state.deckIdx=i;const oFLB=aiFLPlace(oH);state.oppBoard={top:[...oFLB.top],mid:[...oFLB.mid],bot:[...oFLB.bot]};state.oppFlMode=false;}
   document.getElementById('resultBand').classList.remove('show');document.getElementById('flEntryBanner').classList.remove('show');
@@ -992,7 +1062,19 @@ document.getElementById('btnStart').addEventListener('click',()=>newGame());
   let drag=null,ghostEl=null,lastSlot=null,dragging=false,startX=0,startY=0;
   const THR=6;
 
-  function createGhost(card,x,y){ghostEl=makeCard(card);ghostEl.classList.add('card-drag-ghost');ghostEl.style.left=(x-27)+'px';ghostEl.style.top=(y-37)+'px';document.body.appendChild(ghostEl);}
+  function createGhost(card,x,y){
+    if(drag&&drag.isGroup&&drag.groupCards&&drag.groupCards.length>1){
+      ghostEl=document.createElement('div');ghostEl.className='card-group-ghost';
+      const showN=Math.min(drag.groupCards.length,5);
+      for(let gi=0;gi<showN;gi++){ghostEl.appendChild(makeCard(drag.groupCards[gi]));}
+      const offX=Math.min(drag.groupCards.length,5)*22;
+      ghostEl.style.left=(x-offX)+'px';ghostEl.style.top=(y-37)+'px';
+    }else{
+      ghostEl=makeCard(card);ghostEl.classList.add('card-drag-ghost');
+      ghostEl.style.left=(x-27)+'px';ghostEl.style.top=(y-37)+'px';
+    }
+    document.body.appendChild(ghostEl);
+  }
   function moveGhost(x,y){if(!ghostEl)return;ghostEl.style.left=(x-27)+'px';ghostEl.style.top=(y-37)+'px';}
   function removeGhost(){if(ghostEl){ghostEl.remove();ghostEl=null;}}
 
@@ -1041,7 +1123,14 @@ document.getElementById('btnStart').addEventListener('click',()=>newGame());
   handEl.addEventListener('touchstart',e=>{
     const cE=e.target.closest('.card.in-hand');if(!cE)return;
     const f=state.hand.find(c=>c.id===cE.dataset.id);if(!f)return;
-    drag={card:f,fromHand:true};startX=e.touches[0].clientX;startY=e.touches[0].clientY;dragging=false;
+    const selIds=(flGroupSel.combos[flGroupSel.idx]||[]).map(c=>c.id);
+    if(selIds.length>0&&selIds.includes(f.id)){
+      drag={card:f,fromHand:true,isGroup:true,groupCards:flGroupSel.combos[flGroupSel.idx]};
+    } else {
+      if(state.flMode&&flGroupSel.role)clearGroupSel();
+      drag={card:f,fromHand:true,isGroup:false};
+    }
+    startX=e.touches[0].clientX;startY=e.touches[0].clientY;dragging=false;
   },{passive:true});
 
   boardEl.addEventListener('touchstart',e=>{
@@ -1069,7 +1158,20 @@ document.getElementById('btnStart').addEventListener('click',()=>newGame());
       const slot=getSlotAt(cx,cy);clearHighlight();removeGhost();
       if(drag.fromHand){
         undimOrig();
-        if(slot){placeCard(drag.card,slot.dataset.row);}else{state.selectedCard=null;renderGame();}
+        if(slot){
+          if(drag.isGroup&&drag.groupCards&&drag.groupCards.length>1){
+            const row=slot.dataset.row;
+            const lim={top:3,mid:5,bot:5};
+            const avail=lim[row]-state.playerBoard[row].length;
+            const toPlace=drag.groupCards.slice(0,avail);
+            toPlace.forEach(c=>{state.hand=state.hand.filter(x=>x.id!==c.id);state.playerBoard[row].push(c);});
+            clearGroupSel();state.selectedCard=null;renderGame();
+          }else{
+            placeCard(drag.card,slot.dataset.row);
+          }
+        }else{
+          state.selectedCard=null;if(state.flMode)clearGroupSel();renderGame();
+        }
       }else{
         if(slot){moveCardOnBoard(drag.card,drag.fromRow,drag.fromIdx,slot.dataset.row);}
         else{renderGame();}
@@ -1187,6 +1289,116 @@ function sortFlHand(){
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', initSortBtns);
   else initSortBtns();
+})();
+
+// ===== FL 役ボタン + グループ選択 + まとめてドラッグ =====
+let flGroupSel = {role:null, combos:[], idx:0};
+
+function getCombinations(arr,k){
+  if(k===0)return[[]];
+  if(arr.length<k)return[];
+  const [first,...rest]=arr;
+  return [...getCombinations(rest,k-1).map(c=>[first,...c]),...getCombinations(rest,k)];
+}
+
+function getHandCombinations(hand, role){
+  const n=hand.filter(c=>!c.isJoker);
+  const jks=hand.filter(c=>c.isJoker);
+  const results=[];
+
+  if(role==='pair'){
+    const byR={};
+    n.forEach(c=>{if(!byR[c.r])byR[c.r]=[];byR[c.r].push(c);});
+    for(const cards of Object.values(byR)){
+      if(cards.length>=2)for(let i=0;i<cards.length;i++)for(let j=i+1;j<cards.length;j++)results.push([cards[i],cards[j]]);
+    }
+    if(jks.length>=1) n.forEach(c=>results.push([jks[0],c]));
+  } else if(role==='trips'){
+    const byR={};
+    n.forEach(c=>{if(!byR[c.r])byR[c.r]=[];byR[c.r].push(c);});
+    for(const cards of Object.values(byR)){
+      if(cards.length>=3)for(let i=0;i<cards.length-2;i++)for(let j=i+1;j<cards.length-1;j++)for(let k=j+1;k<cards.length;k++)results.push([cards[i],cards[j],cards[k]]);
+      if(cards.length>=2&&jks.length>=1)for(let i=0;i<cards.length;i++)for(let j=i+1;j<cards.length;j++)results.push([jks[0],cards[i],cards[j]]);
+    }
+    if(jks.length>=2) n.forEach(c=>results.push([jks[0],jks[1],c]));
+  } else {
+    const rankMap={straight:4,flush:5,fullhouse:6,quads:7,strflush:8};
+    const target=rankMap[role];
+    const combos=getCombinations(hand,5);
+    for(const combo of combos){
+      const ev=eval5(combo,false);
+      if(ev.rank===target) results.push(combo);
+    }
+  }
+
+  // 重複除去
+  const seen=new Set();const unique=[];
+  for(const combo of results){
+    const key=combo.map(c=>c.id).sort().join(',');
+    if(!seen.has(key)){seen.add(key);unique.push(combo);}
+  }
+  // ロイヤリティ+ランク降順ソート
+  unique.sort((a,b)=>{
+    const ea=role==='pair'||role==='trips'?{royalty:0,rank:Math.max(...a.map(c=>rankVal(c.r)))}:eval5(a,false);
+    const eb=role==='pair'||role==='trips'?{royalty:0,rank:Math.max(...b.map(c=>rankVal(c.r)))}:eval5(b,false);
+    return (eb.royalty||eb.rank)-(ea.royalty||ea.rank);
+  });
+  return unique;
+}
+
+function updateRoleButtons(){
+  document.querySelectorAll('.fl-role-btn').forEach(btn=>{
+    const role=btn.dataset.role;
+    const combos=getHandCombinations(state.hand,role);
+    btn.classList.toggle('unavail',combos.length===0);
+    btn.classList.toggle('active',flGroupSel.role===role);
+    // コンボ数表示（複数ある場合）
+    const base={pair:'ペア',trips:'トリップス',straight:'ストレート',flush:'フラッシュ',fullhouse:'フルハウス',quads:'フォーカーズ',strflush:'ストフラ'};
+    if(flGroupSel.role===role&&combos.length>1){
+      btn.textContent=`${base[role]} ${flGroupSel.idx+1}/${combos.length}`;
+    } else {
+      btn.textContent=base[role];
+    }
+  });
+}
+
+function onRoleBtnClick(role){
+  const combos=getHandCombinations(state.hand,role);
+  if(combos.length===0)return;
+  if(flGroupSel.role===role){
+    flGroupSel.idx=(flGroupSel.idx+1)%combos.length;
+    flGroupSel.combos=combos;
+  } else {
+    flGroupSel={role,combos,idx:0};
+  }
+  highlightGroupSel();
+  updateRoleButtons();
+}
+
+function highlightGroupSel(){
+  const selIds=(flGroupSel.combos[flGroupSel.idx]||[]).map(c=>c.id);
+  document.querySelectorAll('.card.in-hand').forEach(el=>{
+    el.classList.remove('fl-group-sel','fl-selected');
+    if(selIds.includes(el.dataset.id))el.classList.add('fl-group-sel');
+  });
+  state.selectedCard=null;
+}
+
+function clearGroupSel(){
+  flGroupSel={role:null,combos:[],idx:0};
+  document.querySelectorAll('.card.in-hand.fl-group-sel').forEach(el=>el.classList.remove('fl-group-sel'));
+  if(state.flMode)updateRoleButtons();
+}
+
+// 役ボタンイベント登録
+(function(){
+  function init(){
+    document.querySelectorAll('.fl-role-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>onRoleBtnClick(btn.dataset.role));
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+  else init();
 })();
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
