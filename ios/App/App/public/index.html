@@ -373,21 +373,21 @@ function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random
 function rankVal(r){return RANK_VAL[r]||0;}
 function eval3(cards){
   const n=cards.filter(c=>!c.isJoker);const j=cards.filter(c=>c.isJoker).length;const rv=n.map(c=>rankVal(c.r)).sort((a,b)=>b-a);
-  if(j===2){const r=n.length>0?rv[0]:14;const k=RANKS[r-2]||'A';return{rank:2,desc:`${k}のトリップス`,royalty:tripRoy(r),flCards:3,topRankScore:r*100+r};}
+  if(j===2){const r=n.length>0?rv[0]:14;const k=RANKS[r-2]||'A';return{rank:2,desc:`${k}のトリップス`,royalty:tripRoy(r),flCards:17,topRankScore:r*100+r};}
   if(j===1){
     if(n.length>=2){
       // JK + 既存ペア → トリップス
       if(rv[0]===rv[1]){const b=rv[0];const k=RANKS[b-2]||'A';return{rank:2,desc:`${k}のトリップス`,royalty:tripRoy(b),flCards:17,topRankScore:b*100+b};}
       // JK + ハイカード2枚 → 最高ランクとペア
-      const b=rv[0];const k=RANKS[b-2]||'A';return{rank:1,desc:`${k}のペア`,royalty:pairRoy(b),flCards:b>=13?15:b>=12?14:0,topRankScore:b*100+rv[1]};
+      const b=rv[0];const k=RANKS[b-2]||'A';return{rank:1,desc:`${k}のペア`,royalty:pairRoy(b),flCards:b>=14?16:b>=13?15:b>=12?14:0,topRankScore:b*100+rv[1]};
     }
-    if(n.length===1){const b=rv[0];const k=RANKS[b-2]||'A';return{rank:1,desc:`${k}のペア`,royalty:pairRoy(b),flCards:b>=13?15:b>=12?14:0,topRankScore:b*100+b};}
+    if(n.length===1){const b=rv[0];const k=RANKS[b-2]||'A';return{rank:1,desc:`${k}のペア`,royalty:pairRoy(b),flCards:b>=14?16:b>=13?15:b>=12?14:0,topRankScore:b*100+b};}
     return{rank:1,desc:'Aのペア',royalty:pairRoy(14),flCards:16,topRankScore:14*100+14};
   }
   if(rv.length<2)return{rank:0,desc:rv.map(v=>RANKS[v-2]).join(''),royalty:0,flCards:0,topRankScore:rv[0]||0};
-  if(rv.length===2){if(rv[0]===rv[1])return{rank:1,desc:`${RANKS[rv[0]-2]}のペア`,royalty:pairRoy(rv[0]),flCards:rv[0]>=13?15:rv[0]>=12?14:0,topRankScore:rv[0]*100+rv[1]};return{rank:0,desc:rv.map(v=>RANKS[v-2]).join(''),royalty:0,flCards:0,topRankScore:rv[0]*100+rv[1]};}
+  if(rv.length===2){if(rv[0]===rv[1])return{rank:1,desc:`${RANKS[rv[0]-2]}のペア`,royalty:pairRoy(rv[0]),flCards:rv[0]>=14?16:rv[0]>=13?15:rv[0]>=12?14:0,topRankScore:rv[0]*100+rv[1]};return{rank:0,desc:rv.map(v=>RANKS[v-2]).join(''),royalty:0,flCards:0,topRankScore:rv[0]*100+rv[1]};}
   if(rv[0]===rv[1]&&rv[1]===rv[2])return{rank:2,desc:`${RANKS[rv[0]-2]}のトリップス`,royalty:tripRoy(rv[0]),flCards:17,topRankScore:rv[0]*100+rv[0]};
-  if(rv[0]===rv[1]||rv[1]===rv[2]){const p=rv[0]===rv[1]?rv[0]:rv[1];return{rank:1,desc:`${RANKS[p-2]}のペア`,royalty:pairRoy(p),flCards:p>=13?15:p>=12?14:0,topRankScore:p*100+rv[rv.indexOf(p)===0?2:0]};}
+  if(rv[0]===rv[1]||rv[1]===rv[2]){const p=rv[0]===rv[1]?rv[0]:rv[1];return{rank:1,desc:`${RANKS[p-2]}のペア`,royalty:pairRoy(p),flCards:p>=14?16:p>=13?15:p>=12?14:0,topRankScore:p*100+rv[rv.indexOf(p)===0?2:0]};}
   return{rank:0,desc:rv.map(v=>RANKS[v-2]).join(''),royalty:0,flCards:0,topRankScore:rv[0]*100+rv[1]};
 }
 function pairRoy(rv){if(rv<6)return 0;const r=RANKS[rv-2];return TPB[r+r]||0;}
@@ -477,11 +477,11 @@ function eval3Plain(cards){
   var rv=cards.map(function(c){return rankVal(c.r);}).sort(function(a,b){return b-a;});
   if(rv.length<2)return{rank:0,desc:rv.map(function(v){return RANKS[v-2]||'?';}).join(''),royalty:0,flCards:0,topRankScore:rv[0]||0};
   if(rv.length===2){
-    if(rv[0]===rv[1])return{rank:1,desc:RANKS[rv[0]-2]+'\u306e\u30da\u30a2',royalty:pairRoy(rv[0]),flCards:rv[0]>=13?15:rv[0]>=12?14:0,topRankScore:rv[0]*100+rv[1]};
+    if(rv[0]===rv[1])return{rank:1,desc:RANKS[rv[0]-2]+'\u306e\u30da\u30a2',royalty:pairRoy(rv[0]),flCards:rv[0]>=14?16:rv[0]>=13?15:rv[0]>=12?14:0,topRankScore:rv[0]*100+rv[1]};
     return{rank:0,desc:rv.map(function(v){return RANKS[v-2];}).join(''),royalty:0,flCards:0,topRankScore:rv[0]*100+rv[1]};
   }
   if(rv[0]===rv[1]&&rv[1]===rv[2])return{rank:2,desc:RANKS[rv[0]-2]+'\u306e\u30c8\u30ea\u30c3\u30d7\u30b9',royalty:tripRoy(rv[0]),flCards:17,topRankScore:rv[0]*100+rv[0]};
-  if(rv[0]===rv[1]||rv[1]===rv[2]){var p=rv[0]===rv[1]?rv[0]:rv[1];return{rank:1,desc:RANKS[p-2]+'\u306e\u30da\u30a2',royalty:pairRoy(p),flCards:p>=13?15:p>=12?14:0,topRankScore:p*100+(rv[0]===p?rv[2]:rv[0])};}
+  if(rv[0]===rv[1]||rv[1]===rv[2]){var p=rv[0]===rv[1]?rv[0]:rv[1];return{rank:1,desc:RANKS[p-2]+'\u306e\u30da\u30a2',royalty:pairRoy(p),flCards:p>=14?16:p>=13?15:p>=12?14:0,topRankScore:p*100+(rv[0]===p?rv[2]:rv[0])};}
   return{rank:0,desc:rv.map(function(v){return RANKS[v-2];}).join(''),royalty:0,flCards:0,topRankScore:rv[0]*100+rv[1]};
 }
 function enumTop(cards){
@@ -806,7 +806,7 @@ function updateEvals(){
 function updateConfirm(){
   const btn=document.getElementById('btnConfirm');
   if(state.gameOver){btn.disabled=true;btn.textContent='GAME OVER';btn.className='btn-confirm';return;}
-  if(state.flMode){const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;const rdy=tot===state.flCards&&!state.hand.length;btn.disabled=!rdy;btn.textContent=rdy?'CONFIRM →':`配置中 ${tot}/${state.flCards}`;btn.className='btn-confirm fl';return;}
+  if(state.flMode){const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;const rdy=tot>=13&&state.hand.length===0;btn.disabled=!rdy;btn.textContent=rdy?'CONFIRM →':`配置中 ${tot}/${state.flCards}`;btn.className='btn-confirm fl';return;}
   btn.className='btn-confirm';
   const{top,mid,bot}=state.playerBoard;const tot=top.length+mid.length+bot.length;
   if(state.phase==='place5'){btn.disabled=tot<5;btn.textContent=tot<5?`配置中 ${tot}/5`:'CONFIRM →';}
@@ -843,7 +843,7 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{
   if(state.gameOver)return;
   if(state.flMode){
     const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
-    if(tot<state.flCards){showToast(`あと${state.flCards-tot}枚配置してください`);return;}
+    if(tot<13||state.hand.length>0){showToast(`あと${state.flCards-tot}枚配置してください`);return;}
     state.flMode=false;endGame();return;
   }
   if(state.phase==='place5'){
@@ -857,9 +857,12 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{
 });
 document.getElementById('btnAgainInline').addEventListener('click',()=>{
   const flE=checkFLEntry(state.playerBoard);const flC=getFLC(state.playerBoard);
-  newGame();if(flE&&flC>=14)setTimeout(()=>startFL(flC),100);
+  const prevBoard={top:[...state.playerBoard.top],mid:[...state.playerBoard.mid],bot:[...state.playerBoard.bot]};
+  newGame();
+  if(flE&&flC>=14)setTimeout(()=>startFL(flC),100);
 });
 function startFL(flCards){
+  console.log('startFL called with', flCards, 'cards');
   state.flMode=true;state.flCards=flCards;
   const d=state.deck;let i=state.deckIdx;
   state.hand=d.slice(i,i+=flCards);state.deckIdx=i;
