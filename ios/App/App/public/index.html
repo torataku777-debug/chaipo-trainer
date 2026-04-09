@@ -1015,15 +1015,7 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{
     if(state.round>=5){endGame();return;}dealNext();
   }
 });
-document.getElementById('btnAgainInline').addEventListener('click',()=>{
-  const flE=checkFLEntry(state.playerBoard);const flC=getFLC(state.playerBoard);
-  console.log('PLAY AGAIN: flE='+flE+' flC='+flC);
-  newGame();
-  if(flE&&flC>=14){
-    console.log('Starting FL with '+flC+' cards, deckIdx after newGame='+state.deckIdx);
-    setTimeout(()=>startFL(flC),100);
-  }
-});
+// btnAgainInline removed (integrated into CONFIRM button)
 function startFL(flCards){
   console.log('startFL called with', flCards, 'cards, deckIdx='+state.deckIdx);
   state.flMode=true;state.flCards=flCards;
