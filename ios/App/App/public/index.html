@@ -268,21 +268,23 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 }
 /* ===== 役ボタンバー ===== */
 .fl-role-bar-outer{
-  display:none;overflow-x:auto;overflow-y:hidden;
-  -webkit-overflow-scrolling:touch;scrollbar-width:none;
-  padding:4px 8px 2px;flex-shrink:0;
+  display:none;padding:4px 8px 2px;flex-shrink:0;
 }
-.fl-role-bar-outer::-webkit-scrollbar{display:none;}
 .fl-role-bar-outer.show{display:block;}
-.fl-role-bar{display:flex;gap:6px;width:max-content;}
+.fl-role-bar{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:5px;
+}
 .fl-role-btn{
-  font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;
-  letter-spacing:0.03em;padding:6px 14px;border-radius:9999px;
+  font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:600;
+  letter-spacing:0.02em;padding:6px 4px;border-radius:8px;
   cursor:pointer;transition:all 0.15s;white-space:nowrap;
   border:1px solid rgba(200,160,48,0.4);background:rgba(200,160,48,0.08);color:#9a6e10;
+  text-align:center;
 }
 .fl-role-btn:active{transform:scale(0.95);}
-.fl-role-btn.active{background:#c8a030;border-color:#c8a030;color:#fff;box-shadow:0 2px 8px rgba(200,160,48,0.4);}
+.fl-role-btn.active{background:#c8a030;border-color:#c8a030;color:#fff;box-shadow:0 2px 8px rgba(200,160,48,0.3);}
 .fl-role-btn.unavail{opacity:0.3;pointer-events:none;}
 /* グループドラッグゴースト */
 .card-group-ghost{
@@ -421,6 +423,7 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
       <div class="fl-role-bar-outer" id="flRoleBarOuter">
         <div class="fl-role-bar">
           <button class="fl-role-btn" data-role="pair">ペア</button>
+          <button class="fl-role-btn" data-role="twopair">ツーペア</button>
           <button class="fl-role-btn" data-role="trips">トリップス</button>
           <button class="fl-role-btn" data-role="straight">ストレート</button>
           <button class="fl-role-btn" data-role="flush">フラッシュ</button>
@@ -1326,6 +1329,35 @@ function getHandCombinations(hand, role){
       if(cards.length>=2)for(let i=0;i<cards.length;i++)for(let j=i+1;j<cards.length;j++)results.push([cards[i],cards[j]]);
     }
     if(jks.length>=1) n.forEach(c=>results.push([jks[0],c]));
+  } else if(role==='twopair'){
+    // ツーペア(5枚): 異なるランクのペア2組+キッカー1枚
+    const byR={};
+    n.forEach(c=>{if(!byR[c.r])byR[c.r]=[];byR[c.r].push(c);});
+    const pairRanks=Object.entries(byR).filter(([r,cs])=>cs.length>=2).map(([r,cs])=>cs);
+    // ペア2組を選ぶ
+    for(let i=0;i<pairRanks.length;i++){
+      for(let j=i+1;j<pairRanks.length;j++){
+        const p1=pairRanks[i].slice(0,2);
+        const p2=pairRanks[j].slice(0,2);
+        const usedIds=new Set([...p1,...p2].map(c=>c.id));
+        // キッカーを選ぶ（残りの全カード）
+        const kickers=n.filter(c=>!usedIds.has(c.id));
+        kickers.forEach(k=>results.push([...p1,...p2,k]));
+        // JK1枚でキッカーとして使う
+        if(jks.length>=1&&kickers.length===0)results.push([...p1,...p2,jks[0]]);
+      }
+    }
+    // JK1枚でペア追加: 既存ペア1組+JKで新ペア
+    if(jks.length>=1){
+      pairRanks.forEach(pair=>{
+        // JK+異なるランクカード → 新ペア扱い
+        n.filter(c=>c.r!==pair[0].r).forEach(c=>{
+          const usedIds=new Set([pair[0].id,pair[1].id,jks[0].id,c.id]);
+          const kickers=n.filter(x=>!usedIds.has(x.id));
+          kickers.forEach(k=>results.push([pair[0],pair[1],jks[0],c,k]));
+        });
+      });
+    }
   } else if(role==='trips'){
     const byR={};
     n.forEach(c=>{if(!byR[c.r])byR[c.r]=[];byR[c.r].push(c);});
@@ -1366,7 +1398,7 @@ function updateRoleButtons(){
     btn.classList.toggle('unavail',combos.length===0);
     btn.classList.toggle('active',flGroupSel.role===role);
     // コンボ数表示（複数ある場合）
-    const base={pair:'ペア',trips:'トリップス',straight:'ストレート',flush:'フラッシュ',fullhouse:'フルハウス',quads:'フォーカーズ',strflush:'ストフラ'};
+    const base={pair:'ペア',twopair:'ツーペア',trips:'トリップス',straight:'ストレート',flush:'フラッシュ',fullhouse:'フルハウス',quads:'フォーカーズ',strflush:'ストフラ'};
     if(flGroupSel.role===role&&combos.length>1){
       btn.textContent=`${base[role]} ${flGroupSel.idx+1}/${combos.length}`;
     } else {
