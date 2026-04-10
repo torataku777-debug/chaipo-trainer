@@ -682,7 +682,7 @@ function getBestValidEvals(board){
       for(var bi=0;bi<botCands.length;bi++){
         var bc=botCands[bi];
         if(cmpStr(bc.eval,bc.resolvedCards,mc.eval,mc.resolvedCards)<0)continue;
-        var score=(tc.eval.royalty||0)+(mc.eval.royalty||0)+(bc.eval.royalty||0)+(tc.eval.flCards>=14?100:0);
+        var score=(tc.eval.royalty||0)+(mc.eval.royalty||0)+(bc.eval.royalty||0)+(tc.eval.flCards||0)*10;
         if(score>bestScore){bestScore=score;bestValid={tc:tc,mc:mc,bc:bc};}
       }
     }
@@ -804,11 +804,22 @@ function flReach(board){
   if(rv.filter(r=>r===14).length>=2)return 0.93;if(rv.filter(r=>r===13).length>=2)return 0.93;
   if(hA&&hK)return 0.71;if(hA||hK)return 0.62;return 0.37;
 }
-function checkFLEntry(board){if(isFoul(board))return false;const te=eval3(board.top);return te.flCards>=14;}
+function checkFLEntry(board){
+  // getBestValidEvals を使って正しいJK割り当てでFL判定
+  if(!board.top.length||!board.mid.length||!board.bot.length) return false;
+  const res=getBestValidEvals(board);
+  if(res.isFoul) return false;
+  return (res.topEval.flCards||0)>=14;
+}
 function getFLC(board){
-  const e=eval3(board.top);
-  console.log('getFLC: top='+board.top.map(c=>c.isJoker?'JK':c.r+c.s).join('+'), 'desc='+e.desc, 'flCards='+e.flCards);
-  return e.flCards||0;
+  // getBestValidEvals を使って正しいJK割り当てでFL枚数取得
+  if(!board.top.length||!board.mid.length||!board.bot.length){
+    // ボードが未完成の場合はeval3で推定
+    const e=eval3(board.top);return e.flCards||0;
+  }
+  const res=getBestValidEvals(board);
+  if(res.isFoul) return 0;
+  return res.topEval.flCards||0;
 }
 function aiPlace5(cards){
   const board={top:[],mid:[],bot:[]};
@@ -1047,9 +1058,14 @@ function showResultBand(score){
   // 累計スコアに反映
   applyScoreResult(net);
   if(!state.flMode){
-    // 平場ゲーム終了: FL初入り判定
+    // 平場ゲーム終了: FL初入り判定（getBestValidEvalsベースで正確に判定）
     const flE=checkFLEntry(state.playerBoard);
-    if(flE){const flC=getFLC(state.playerBoard);document.getElementById('flEntryText').textContent='🌟 FANTASY LAND! ('+flC+'枚)';document.getElementById('flEntrySub').textContent='次のゲームへ → でFLへ！';document.getElementById('flEntryBanner').classList.add('show');}
+    if(flE){
+      const flC=getFLC(state.playerBoard);
+      document.getElementById('flEntryText').textContent='🌟 FANTASY LAND! ('+flC+'枚)';
+      document.getElementById('flEntrySub').textContent='次のゲームへ → でFLへ！';
+      document.getElementById('flEntryBanner').classList.add('show');
+    }
   }
 }
 function renderGame(){
