@@ -1019,10 +1019,12 @@ function dealNext(){
 }
 function endGame(){
   state.gameOver=true;
+  state.phase='ended'; // transitioning を解除してCONFIRMを有効化
   const score=calcScore(state.playerBoard,state.oppBoard);
   showResultBand(score);
   // ゲーム終了後：JKの化け先を計算してボードを再描画
   renderBoardWithJokers();
+  updateConfirm(); // ボタンを即更新
 }
 function renderBoardWithJokers(){
   const result=getBestValidEvals(state.playerBoard);
@@ -1291,9 +1293,10 @@ function updateEvals(){
 }
 function updateConfirm(){
   const btn=document.getElementById('btnConfirm');
-  // 遷移中は全ボタン無効
-  if(state.phase==='transitioning'){btn.disabled=true;btn.textContent='...';btn.className='btn-confirm';return;}
+  // ゲーム終了: 常に有効（transitioning より優先）
   if(state.gameOver&&!state.flMode){btn.disabled=false;btn.textContent='次のゲームへ →';btn.className='btn-confirm';return;}
+  // 遷移中は無効（ゲーム終了でない場合のみ）
+  if(state.phase==='transitioning'){btn.disabled=true;btn.textContent='...';btn.className='btn-confirm';return;}
   if(state.flMode){
     const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
     const discardNeeded=state.flCards-13;
@@ -1967,6 +1970,7 @@ function onFLHandTapForDiscard(card){
 // endGame のFL版: FL継続判定を含む
 function endGameFL(){
   state.gameOver=true;
+  state.phase='ended'; // transitioning を解除
   // 点数計算（showResultBand内でapplyScoreResultも呼ばれる）
   const score=calcScore(state.playerBoard,state.oppBoard);
   showResultBand(score);
