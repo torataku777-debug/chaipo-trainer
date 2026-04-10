@@ -1185,27 +1185,64 @@ function renderSlots(cId,cards,total,row,jkMap){
 function renderOpp(){
   const cfg={top:[3,'oppTop'],mid:[5,'oppMid'],bot:[5,'oppBot']};
   const cols={s:'#1e293b',h:'#dc2626',d:'#1d4ed8',c:'#059669'};
-  const showCards = shouldShowOppCards(); // ボタン判定
+
+  // 今ラウンドで相手が未配置の枚数（ノンボタン時の保留分）
+  // R1: oppPendingBoard があれば今ラウンド未配置
+  // R2-5: oppPendingPlace があれば今ラウンド未配置
+  const hasPendingR1 = !isPlayerButton && state.oppPendingBoard;
+  const hasPendingPine = !isPlayerButton && state.oppPendingPlace;
+  const pendingCount = hasPendingR1 ? 5 : hasPendingPine ? 2 : 0;
+
   for(const[row,[cnt,eId]]of Object.entries(cfg)){
     const el=document.getElementById(eId);if(!el)continue;el.innerHTML='';
     const cards=state.oppBoard[row];
+    // 今ラウンド前の配置枚数（表示済み分）
+    const prevPlaced = state.round===1 ? 0 :
+      state.round===2 ? 5 :
+      state.round===3 ? 7 :
+      state.round===4 ? 9 :
+      state.round===5 ? 11 : 0;
+
     for(let i=0;i<cnt;i++){
       const sl=document.createElement('div');sl.className='opp-slot';
       if(cards[i]){
         const oc=document.createElement('div');
-        if(!showCards){
-          // 裏向き表示（ノンボタン先置きのR1）
-          oc.className='opp-card face-down';
-          oc.style.position='relative';
-        } else {
-          oc.className='opp-card';
-          if(cards[i].isJoker){oc.style.cssText='font-size:11px;color:#7170ff';oc.textContent='🃏';}
-          else{oc.innerHTML='<span style="color:'+cols[cards[i].s]+';font-size:8px;font-weight:700;font-family:var(--font-ui)">'+cards[i].r+'</span>';}
-        }
+        oc.className='opp-card';
+        if(cards[i].isJoker){oc.style.cssText='font-size:11px;color:#7170ff';oc.textContent='🃏';}
+        else{oc.innerHTML='<span style="color:'+cols[cards[i].s]+';font-size:8px;font-weight:700;font-family:var(--font-ui)">'+cards[i].r+'</span>';}
         sl.appendChild(oc);
+      } else if(pendingCount > 0 && state.gameOver===false) {
+        // 今ラウンドの保留分は裏向きスロットで表示（枚数だけ示す）
+        // 枠のみ表示（どのスロットが今ラウンド分か示す）
       }
       el.appendChild(sl);
     }
+  }
+
+  // 今ラウンドの保留分（裏向き）を別エリアで表示
+  renderOppPending(pendingCount);
+}
+
+// 今ラウンドで相手がまだ配置していない分を裏向きで表示
+function renderOppPending(count){
+  let pendingEl = document.getElementById('oppPendingCards');
+  if(!pendingEl){
+    // oppAreaにpendingエリアを動的追加
+    const oppArea = document.querySelector('.opp-area-inner');
+    if(!oppArea) return;
+    pendingEl = document.createElement('div');
+    pendingEl.id='oppPendingCards';
+    pendingEl.style.cssText='display:flex;gap:2px;align-items:center;padding-left:4px;border-left:1px solid rgba(200,160,48,0.3);margin-left:4px;';
+    oppArea.appendChild(pendingEl);
+  }
+  pendingEl.innerHTML='';
+  if(count<=0){pendingEl.style.display='none';return;}
+  pendingEl.style.display='flex';
+  for(let i=0;i<count;i++){
+    const fc=document.createElement('div');
+    fc.className='opp-card face-down';
+    fc.style.cssText='position:relative;opacity:0.7;';
+    pendingEl.appendChild(fc);
   }
 }
 function makeCard(card){
@@ -2031,18 +2068,11 @@ function updateButtonUI(){
   chipOpp.style.display = !isPlayerButton ? 'inline-flex' : 'none';
 }
 
-// ノンボタン(先置き): 全ラウンドで相手カードは自分が確定するまで見えない
-// ボタン(後置き): 全ラウンドで相手の配置済みカードが見える
+// 相手カードの表示判定
+// 見えないのは「今のラウンドで相手がまだ置いていない保留分」のみ
+// 前のラウンドの配置は常に表示
 function shouldShowOppCards(){
-  if(state.gameOver) return true; // ゲーム終了後は全表示
-  if(state.flMode) return true;   // FL中は全表示
-  if(!isPlayerButton){
-    // ノンボタン: 自分が配置中は相手カードを隠す
-    // (CONFIRMで自分の配置確定後にAIが配置して表示される)
-    if(state.phase==='place5') return false;
-    if(state.phase==='pineapple' && !state.oppPlayedThisRound) return false;
-  }
-  return true;
+  return true; // oppBoardは常に表示（保留分はoppPendingに分離）
 }
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
