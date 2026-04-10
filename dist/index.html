@@ -954,29 +954,55 @@ function bScore(board){let sc=0;const fe=flReach(board);const te=eval3(board.top
 function calcScore(pB,oB){return calcScoreWithJokers(pB,oB);}
 let state={};
 function newGame(){
+  // ★ まずボタンを切替えてから、その値でボード初期化
+  toggleButton();
+  updateButtonUI();
+
   const deck=shuffle(makeDeck());let idx=0;const deal=n=>deck.slice(idx,idx+=n);
-  state={phase:'place5',round:1,playerBoard:{top:[],mid:[],bot:[]},oppBoard:{top:[],mid:[],bot:[]},hand:[],discard:[],selectedCard:null,deck,deckIdx:idx,flMode:false,oppFlMode:false,flCards:0,flDiscard:[],gameOver:false};
-  state.hand=deal(5);const oppH=deal(5);const oP=aiPlace5(oppH);
-  state.oppBoard={top:[...oP.top],mid:[...oP.mid],bot:[...oP.bot]};state.deckIdx=idx;
+  state={phase:'place5',round:1,playerBoard:{top:[],mid:[],bot:[]},oppBoard:{top:[],mid:[],bot:[]},hand:[],discard:[],selectedCard:null,deck,deckIdx:idx,flMode:false,oppFlMode:false,flCards:0,flDiscard:[],gameOver:false,oppPendingBoard:null,oppPendingPlace:null,oppPlayedThisRound:false};
+  state.hand=deal(5);
+  const oppH=deal(5);
+  const oP=aiPlace5(oppH);
+  state.oppPlayedThisRound=false;
+
+  if(isPlayerButton){
+    // ボタン=プレイヤー後置き: AIが先に配置済み（見える状態でスタート）
+    state.oppBoard={top:[...oP.top],mid:[...oP.mid],bot:[...oP.bot]};
+    state.oppPlayedThisRound=true;
+  } else {
+    // ノンボタン=プレイヤー先置き: AIの配置は保留（自分CONFIRM後に表示）
+    state.oppBoard={top:[],mid:[],bot:[]};
+    state.oppPendingBoard={top:[...oP.top],mid:[...oP.mid],bot:[...oP.bot]};
+    state.oppPlayedThisRound=false;
+  }
+  state.deckIdx=idx;
   document.getElementById('resultBand').classList.remove('show');
   document.getElementById('flEntryBanner').classList.remove('show');
-  state.gameOver = false; // FL中はgameOverをリセット
+  state.gameOver=false;
   resetScoreTransition();
-  toggleButton(); // ゲームごとにボタン交互
   renderGame();showScreen('game');
   setTimeout(updateScoreBar, 50);
 }
 function dealNext(){
   state.round++;if(state.round>5){endGame();return;}
   const d=state.deck;let i=state.deckIdx;
-  state.hand=d.slice(i,i+=3);state.deckIdx=i;state.selectedCard=null;state.phase='pineapple';state.placedThisRound=[];
+  state.hand=d.slice(i,i+=3);state.deckIdx=i;
+  state.selectedCard=null;state.phase='pineapple';state.placedThisRound=[];
+  state.discardedThisRound=false;
+
+  // 相手のパイナップルカードを引く
   const oH=d.slice(i,i+=3);state.deckIdx=i;
-  const{place,discard}=aiPineapple(oH,state.oppBoard);
-  for(const r of['top','mid','bot'])state.oppBoard[r].push(...(place[r]||[]));
-  // デバッグ: 相手の枚数確認
-  const oppTot=state.oppBoard.top.length+state.oppBoard.mid.length+state.oppBoard.bot.length;
-  if(oppTot!=(state.round===2?7:state.round===3?9:state.round===4?11:state.round===5?13:7)){
-    console.warn('OPP枚数異常: R'+state.round+' tot='+oppTot);
+
+  if(isPlayerButton){
+    // ボタン=後置き: AIが先に配置済み（見える状態）
+    const{place}=aiPineapple(oH,state.oppBoard);
+    for(const r of['top','mid','bot'])state.oppBoard[r].push(...(place[r]||[]));
+    state.oppPlayedThisRound=true;
+  } else {
+    // ノンボタン=先置き: AIの配置を保留（プレイヤーCONFIRM後に表示）
+    const{place}=aiPineapple(oH,state.oppBoard);
+    state.oppPendingPlace={place, hand:oH};
+    state.oppPlayedThisRound=false;
   }
   renderGame();
 }
@@ -1058,11 +1084,17 @@ function renderGame(){
     ph.textContent=phTxt;ph.className='phase-label fl';}
   else if(state.phase==='place5'){
     const n=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
-    const btnTxt = isPlayerButton ? ' · ボタン(後置き有利)' : ' · ノンボタン(先置き・相手カード非表示)';
-    ph.textContent='R1 · 5枚配置 ('+n+'/5)'+btnTxt;
+    const btnTxt = isPlayerButton ? 'ボタン · 相手の配置を見てから置く' : 'ノンボタン · 先に配置（相手は非表示）';
+    ph.textContent='R1 · 5枚配置 ('+n+'/5) · '+btnTxt;
     ph.className='phase-label';
   }
-  else{const placed=(state.placedThisRound||[]).length;if(state.discardedThisRound){const dc=state.discard[state.discard.length-1];ph.textContent=`R${state.round} · 配置${placed}/2 · 捨て: ${dc.isJoker?'JK':dc.r+SUIT_SYMS[dc.s]}`;}else{ph.textContent=`R${state.round} · 配置${placed}/2 · 2枚置くと自動捨て`;}ph.className='phase-label';}
+  else{
+    const placed=(state.placedThisRound||[]).length;
+    const btnTxt2=isPlayerButton?'(ボタン・後置き)':'(ノンボタン・先置き)';
+    if(state.discardedThisRound){const dc=state.discard[state.discard.length-1];ph.textContent='R'+state.round+' · 配置'+placed+'/2 · 捨て: '+(dc.isJoker?'JK':dc.r+SUIT_SYMS[dc.s])+' '+btnTxt2;}
+    else{ph.textContent='R'+state.round+' · 配置'+placed+'/2 · 2枚置くと自動捨て '+btnTxt2;}
+    ph.className='phase-label';
+  }
   updateConfirm();
   const hc=document.getElementById('handCards');state.flMode?hc.classList.add('fl'):hc.classList.remove('fl');
 }
@@ -1306,11 +1338,34 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{
   }
   if(state.phase==='place5'){
     const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
-    if(tot<5){showToast('5枚すべて配置してください');return;}state.phase='done5';dealNext();
+    if(tot<5){showToast('5枚すべて配置してください');return;}
+    state.phase='done5';
+    // ノンボタン: プレイヤー配置確定後にAIの配置を表示
+    if(!isPlayerButton && state.oppPendingBoard){
+      state.oppBoard=state.oppPendingBoard;
+      state.oppPendingBoard=null;
+      state.oppPlayedThisRound=true;
+      renderGame(); // AIの配置を一瞬見せる
+      setTimeout(()=>dealNext(), 600); // 少し間を置いてから次ラウンドへ
+    } else {
+      dealNext();
+    }
   }else{
     const pl=state.placedThisRound||[];if(pl.length<2){showToast('2枚配置してください');return;}if(!state.discardedThisRound){showToast('1枚捨ててください');return;}
     state.placedThisRound=[];state.discardedThisRound=false;
-    if(state.round>=5){endGame();return;}dealNext();
+    // ノンボタン: プレイヤー配置確定後にAIの保留配置を表示
+    if(!isPlayerButton && state.oppPendingPlace){
+      const{place}=state.oppPendingPlace;
+      for(const r of['top','mid','bot'])state.oppBoard[r].push(...(place[r]||[]));
+      state.oppPendingPlace=null;
+      state.oppPlayedThisRound=true;
+      renderGame();
+      if(state.round>=5){setTimeout(()=>endGame(),600);return;}
+      setTimeout(()=>dealNext(),600);
+    } else {
+      if(state.round>=5){endGame();return;}
+      dealNext();
+    }
   }
 });
 // btnAgainInline removed (integrated into CONFIRM button)
@@ -1976,12 +2031,18 @@ function updateButtonUI(){
   chipOpp.style.display = !isPlayerButton ? 'inline-flex' : 'none';
 }
 
-// ノンボタン側（プレイヤー）がR1を先置き → 相手R1は裏向き
-// ボタン側（プレイヤー）がR1を後置き → 相手R1は表向き
+// ノンボタン(先置き): 全ラウンドで相手カードは自分が確定するまで見えない
+// ボタン(後置き): 全ラウンドで相手の配置済みカードが見える
 function shouldShowOppCards(){
-  // R1配置中 かつ プレイヤーがノンボタン(先置き) → 相手カードを隠す
-  if(state.phase === 'place5' && !isPlayerButton) return false;
-  return true; // それ以外は全て表示
+  if(state.gameOver) return true; // ゲーム終了後は全表示
+  if(state.flMode) return true;   // FL中は全表示
+  if(!isPlayerButton){
+    // ノンボタン: 自分が配置中は相手カードを隠す
+    // (CONFIRMで自分の配置確定後にAIが配置して表示される)
+    if(state.phase==='place5') return false;
+    if(state.phase==='pineapple' && !state.oppPlayedThisRound) return false;
+  }
+  return true;
 }
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
