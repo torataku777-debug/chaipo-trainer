@@ -300,6 +300,33 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 
 /* FL時 player-area オフセット */
 .player-area.fl-mode{position:relative;padding-left:62px;}
+
+/* ===== 累計スコア表示 ===== */
+.score-bar{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:3px 12px;background:var(--game-surface);
+  border-bottom:1px solid var(--game-border);
+  flex-shrink:0;
+}
+.score-player{display:flex;flex-direction:column;align-items:center;gap:1px;}
+.score-label{font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:0.15em;color:var(--game-text-dim);text-transform:uppercase;}
+.score-val{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--game-text);}
+.score-val.winning{color:#c8a030;}
+.score-val.losing{color:var(--foul-color);}
+.score-sep{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--game-text-dim);font-weight:300;}
+
+/* 結果バンドのスコア推移表示 */
+.score-transition{
+  display:flex;justify-content:space-around;align-items:center;
+  padding:6px 0 2px;border-top:1px solid var(--game-border);margin-top:4px;
+}
+.score-trans-player{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.score-trans-label{font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--game-text-dim);letter-spacing:0.1em;}
+.score-trans-flow{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--game-text);}
+.score-trans-delta{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;}
+.score-trans-delta.pos{color:#c8a030;}
+.score-trans-delta.neg{color:var(--foul-color);}
+.score-trans-delta.zero{color:var(--game-text-dim);}
 </style>
 </head>
 <body>
@@ -363,6 +390,17 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
         <div class="btn-menu-line"></div><div class="btn-menu-line"></div><div class="btn-menu-line"></div>
       </button>
     </div>
+    <div class="score-bar" id="scoreBar">
+      <div class="score-player">
+        <div class="score-label">YOU</div>
+        <div class="score-val" id="scoreYou">100</div>
+      </div>
+      <div class="score-sep">VS</div>
+      <div class="score-player">
+        <div class="score-label">OPP</div>
+        <div class="score-val" id="scoreOpp">100</div>
+      </div>
+    </div>
     <div class="opp-area">
       <div class="opp-area-inner" id="oppAreaInner">
         <div class="opp-label">OPP</div>
@@ -386,6 +424,18 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
           <div class="result-band-net" id="resultBandNet"></div>
         </div>
         <div class="result-band-rows" id="resultBandRows"></div>
+        <div class="score-transition" id="scoreTransition" style="display:none">
+          <div class="score-trans-player">
+            <div class="score-trans-label">YOU</div>
+            <div class="score-trans-flow" id="scoreTransYou">100 → 100</div>
+            <div class="score-trans-delta" id="scoreTransDeltaYou"></div>
+          </div>
+          <div class="score-trans-player">
+            <div class="score-trans-label">OPP</div>
+            <div class="score-trans-flow" id="scoreTransOpp">100 → 100</div>
+            <div class="score-trans-delta" id="scoreTransDeltaOpp"></div>
+          </div>
+        </div>
         <!-- PLAY AGAIN removed: use CONFIRM button -->
       </div>
     </div>
@@ -885,7 +935,9 @@ function newGame(){
   document.getElementById('resultBand').classList.remove('show');
   document.getElementById('flEntryBanner').classList.remove('show');
   state.gameOver = false; // FL中はgameOverをリセット
+  resetScoreTransition();
   renderGame();showScreen('game');
+  setTimeout(updateScoreBar, 50);
 }
 function dealNext(){
   state.round++;if(state.round>5){endGame();return;}
@@ -926,6 +978,8 @@ function showResultBand(score){
   g+=`<div class="rbc lbl">役</div><div class="rbc you ${pFoul?'l':''}">${pFoul?'FOUL':pRoy>0?'+'+pRoy:'0'}</div><div class="rbc opp ${oFoul?'l':''}">${oFoul?'FOUL':oRoy>0?'+'+oRoy:'0'}</div>`;
   g+=`<div class="rbc lbl" style="font-weight:600">合計</div><div class="rbc you tot">${pTotal+pRoy}</div><div class="rbc opp tot">${oTotal+oRoy}</div>`;
   rowsEl.innerHTML=g;band.classList.add('show');
+  // 累計スコアに反映
+  applyScoreResult(net);
   if(!state.flMode){
     // 平場ゲーム終了: FL初入り判定
     const flE=checkFLEntry(state.playerBoard);
@@ -1220,7 +1274,7 @@ function startFL(flCards){
   const oFLE=checkFLEntry(state.oppBoard);
   if(oFLE){const oFlC=getFLC(state.oppBoard);const oH=d.slice(i,i+=oFlC);state.deckIdx=i;const oFLB=aiFLPlace(oH);state.oppBoard={top:[...oFLB.top],mid:[...oFLB.mid],bot:[...oFLB.bot]};state.oppFlMode=false;}
   document.getElementById('resultBand').classList.remove('show');document.getElementById('flEntryBanner').classList.remove('show');
-  showFLIntro(()=>{ sortFlHand(); renderGame(); });
+  showFLIntro(()=>{ sortFlHand(); renderGame(); setTimeout(updateScoreBar,50); });
 }
 document.getElementById('btnAdvice').addEventListener('click',()=>{
   const panel=document.getElementById('advicePanel');const ov=document.getElementById('adviceOverlay');const t=document.getElementById('adviceContent');
@@ -1721,7 +1775,7 @@ function onFLHandTapForDiscard(card){
 // endGame のFL版: FL継続判定を含む
 function endGameFL(){
   state.gameOver=true;
-  // 点数計算
+  // 点数計算（showResultBand内でapplyScoreResultも呼ばれる）
   const score=calcScore(state.playerBoard,state.oppBoard);
   showResultBand(score);
   renderBoardWithJokers();
@@ -1797,6 +1851,56 @@ function checkFLContinue(board){
   const be = eval5(board.bot, true);
   if(be.rank >= 7) return true; // クワッズ以上
   return false;
+}
+
+// ===== 累計スコア管理 =====
+let sessionScore = {you: 100, opp: 100, games: 0};
+
+function updateScoreBar(){
+  const yEl = document.getElementById('scoreYou');
+  const oEl = document.getElementById('scoreOpp');
+  if(!yEl||!oEl) return;
+  yEl.textContent = sessionScore.you;
+  oEl.textContent = sessionScore.opp;
+  // 勝ってる方をゴールド表示
+  yEl.className = 'score-val' + (sessionScore.you > sessionScore.opp ? ' winning' : sessionScore.you < sessionScore.opp ? ' losing' : '');
+  oEl.className = 'score-val' + (sessionScore.opp > sessionScore.you ? ' winning' : sessionScore.opp < sessionScore.you ? ' losing' : '');
+}
+
+function applyScoreResult(net){
+  // net = YOU の純得点（正=YOU勝ち、負=OPP勝ち）
+  const prevYou = sessionScore.you;
+  const prevOpp = sessionScore.opp;
+  sessionScore.you += net;
+  sessionScore.opp -= net;
+  sessionScore.games++;
+
+  // 推移表示を更新
+  const stEl = document.getElementById('scoreTransition');
+  const tyEl = document.getElementById('scoreTransYou');
+  const toEl = document.getElementById('scoreTransOpp');
+  const dyEl = document.getElementById('scoreTransDeltaYou');
+  const doEl = document.getElementById('scoreTransDeltaOpp');
+
+  if(stEl){
+    stEl.style.display = 'flex';
+    tyEl.textContent = prevYou + ' → ' + sessionScore.you;
+    toEl.textContent = prevOpp + ' → ' + sessionScore.opp;
+
+    const yDelta = net;
+    const oDelta = -net;
+    dyEl.textContent = yDelta > 0 ? '+' + yDelta : yDelta === 0 ? '±0' : String(yDelta);
+    dyEl.className = 'score-trans-delta' + (yDelta > 0 ? ' pos' : yDelta < 0 ? ' neg' : ' zero');
+    doEl.textContent = oDelta > 0 ? '+' + oDelta : oDelta === 0 ? '±0' : String(oDelta);
+    doEl.className = 'score-trans-delta' + (oDelta > 0 ? ' pos' : oDelta < 0 ? ' neg' : ' zero');
+  }
+
+  updateScoreBar();
+}
+
+function resetScoreTransition(){
+  const stEl = document.getElementById('scoreTransition');
+  if(stEl) stEl.style.display = 'none';
 }
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
