@@ -255,14 +255,14 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
   cursor:pointer;
 }
 .hand-cards.fl-flat .card.in-hand.fl-selected{
-  transform:translateY(-14px) scale(1.06)!important;
-  box-shadow:0 0 0 2px #c8a030,0 8px 20px rgba(200,160,48,0.45)!important;
+  transform:translateY(0) scale(1.0)!important;
+  box-shadow:0 0 0 2.5px #c8a030!important;
   border-color:#c8a030!important;
   z-index:50!important;
 }
 .hand-cards.fl-flat .card.in-hand.fl-group-sel{
-  transform:translateY(-14px) scale(1.06)!important;
-  box-shadow:0 0 0 2.5px #10b981,0 8px 20px rgba(16,185,129,0.45)!important;
+  transform:translateY(0) scale(1.0)!important;
+  box-shadow:0 0 0 2.5px #10b981!important;
   border-color:#10b981!important;
   z-index:51!important;
 }
@@ -350,8 +350,8 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 
 /* FL複数タップ選択 */
 .hand-cards.fl-flat .card.in-hand.fl-tap-sel{
-  transform:translateY(-12px) scale(1.04)!important;
-  box-shadow:0 0 0 2.5px #7170ff,0 8px 20px rgba(113,112,255,0.35)!important;
+  transform:translateY(0) scale(1.0)!important;
+  box-shadow:0 0 0 2.5px #7170ff!important;
   border-color:#7170ff!important;
   z-index:30!important;
 }
@@ -1390,8 +1390,8 @@ function autoDiscard(){const c=state.hand[0];state.hand=state.hand.filter(x=>x.i
 document.getElementById('btnConfirm').addEventListener('click',()=>{
   if(state.gameOver){
     // ★ newGame()前にボード情報を保存する（newGame()でstateがリセットされるため）
-    const wasFL = state.flCards > 0;
-    const prevFlCards = state.flCards;
+    const wasFL = state.wasFL || (state.flCards > 0);
+    const prevFlCards = state.savedFlCards || state.flCards;
     const savedBoard = {
       top:[...state.playerBoard.top],
       mid:[...state.playerBoard.mid],
@@ -1986,25 +1986,50 @@ function onFLHandTapForDiscard(card){
 // endGame のFL版: FL継続判定を含む
 function endGameFL(){
   state.gameOver=true;
-  state.phase='ended'; // transitioning を解除
-  // 点数計算（showResultBand内でapplyScoreResultも呼ばれる）
+  state.phase='ended';
+
+  // FL継続判定（flMode=trueのうちに判定）
+  const flContinue = checkFLContinue(state.playerBoard);
+  const savedFlCards = state.flCards;
+
+  // ★ flMode=false にしてからUI描画（FL画面が表示されないように）
+  state.savedFlCards=savedFlCards; // CONFIRMで継続判定に使う
+  state.wasFL=true; // FL終了フラグ
+  state.flMode=false;
+
+  // 点数計算・結果表示
   const score=calcScore(state.playerBoard,state.oppBoard);
   showResultBand(score);
   renderBoardWithJokers();
-  // FL継続判定
-  const flContinue = checkFLContinue(state.playerBoard);
-  const oppFlContinue = checkFLContinue(state.oppBoard);
-  console.log('FL end: player continue='+flContinue+' opp continue='+oppFlContinue);
-  // 継続情報をバナーに表示
+
+  // FL継続バナー表示
   if(flContinue){
-    const flC = getFLC(state.playerBoard); // 継続時は前回と同じ枚数
-    document.getElementById('flEntryText').textContent='🌟 FL継続! ('+state.flCards+'枚)';
+    document.getElementById('flEntryText').textContent='🌟 FL継続! ('+savedFlCards+'枚)';
     document.getElementById('flEntrySub').textContent='次回もファンタジーランド';
   } else {
     document.getElementById('flEntryText').textContent='📋 平場へ';
     document.getElementById('flEntrySub').textContent='ファンタジーランド終了';
   }
   document.getElementById('flEntryBanner').classList.add('show');
+
+  // FL関連UIを非表示
+  const pa=document.getElementById('playerArea');
+  if(pa) pa.classList.remove('fl-mode');
+  const ha=document.getElementById('handArea');
+  if(ha) ha.classList.remove('fl-mode');
+  const ep=document.getElementById('flEvalPanel');
+  if(ep) ep.classList.remove('show');
+  const hw=document.getElementById('flHandWrap');
+  if(hw) hw.classList.remove('show');
+  const rbo=document.getElementById('flRoleBarOuter');
+  if(rbo) rbo.classList.remove('show');
+  const hc=document.getElementById('handCards');
+  if(hc){hc.classList.remove('fl-flat');hc.classList.remove('fl');}
+  const fdb=document.getElementById('flDiscardBar');
+  if(fdb) fdb.style.display='none';
+
+  // ボードを通常表示に戻す（FL評価パネルなし）
+  updateConfirm();
 }
 
 // FL継続条件: 上段トリップス OR 下段クワッズ以上
