@@ -682,7 +682,7 @@ function getBestValidEvals(board){
       for(var bi=0;bi<botCands.length;bi++){
         var bc=botCands[bi];
         if(cmpStr(bc.eval,bc.resolvedCards,mc.eval,mc.resolvedCards)<0)continue;
-        var score=(tc.eval.royalty||0)+(mc.eval.royalty||0)+(bc.eval.royalty||0)+(tc.eval.flCards||0)*10;
+        var score=(tc.eval.royalty||0)+(mc.eval.royalty||0)+(bc.eval.royalty||0)+(tc.eval.flCards||0)*10+tc.eval.rank*5+(mc.eval.rank)+(bc.eval.rank);
         if(score>bestScore){bestScore=score;bestValid={tc:tc,mc:mc,bc:bc};}
       }
     }
