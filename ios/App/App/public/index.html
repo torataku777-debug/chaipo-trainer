@@ -347,6 +347,14 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
   content:'';position:absolute;inset:2px;
   border:1px solid rgba(255,255,255,0.08);border-radius:2px;
 }
+
+/* FL複数タップ選択 */
+.hand-cards.fl-flat .card.in-hand.fl-tap-sel{
+  transform:translateY(-12px) scale(1.04)!important;
+  box-shadow:0 0 0 2.5px #7170ff,0 8px 20px rgba(113,112,255,0.35)!important;
+  border-color:#7170ff!important;
+  z-index:30!important;
+}
 </style>
 </head>
 <body>
@@ -1045,12 +1053,12 @@ function showResultBand(score){
 function renderGame(){
   const titleEl=document.getElementById('gameTitle');
   titleEl.innerHTML=state.flMode?'チャイポ <span class="fl-badge">FANTASY</span>':'チャイポ';
-  // FL中、または通常ゲーム進行中は結果バンドを非表示
-  if(state.flMode || (!state.gameOver && state.phase !== 'transitioning')){
+  // 結果バンド表示制御
+  // gameOver=true の場合は結果を維持（FL中でも）
+  // gameOver=false かつ通常進行中は非表示
+  if(!state.gameOver){
     document.getElementById('resultBand').classList.remove('show');
-  }
-  if(state.flMode){
-    document.getElementById('flEntryBanner').classList.remove('show');
+    if(!state.flMode) document.getElementById('flEntryBanner').classList.remove('show');
   }
   const dots=document.getElementById('roundDots');dots.innerHTML='';
   for(let i=1;i<=5;i++){const d=document.createElement('div');d.className='round-dot'+(i<state.round?' done':i===state.round?' active':'');dots.appendChild(d);}
@@ -1258,9 +1266,13 @@ function makeCard(card){
 }
 function renderHand(){
   const el=document.getElementById('handCards');el.innerHTML='';
-  for(const card of state.hand){const ce=makeCard(card);ce.classList.add('in-hand');if(state.selectedCard&&state.selectedCard.id===card.id)ce.classList.add(state.flMode?'fl-selected':'selected');el.appendChild(ce);}
+  for(const card of state.hand){
+    const ce=makeCard(card);ce.classList.add('in-hand');
+    if(state.selectedCard&&state.selectedCard.id===card.id) ce.classList.add(state.flMode?'fl-selected':'selected');
+    if(state.flMode&&flTapSel.includes(card.id)) ce.classList.add('fl-tap-sel');
+    el.appendChild(ce);
+  }
   if(state.flMode) setTimeout(applyOverlapLayout, 10);
-
 }
 function updateEvals(){
   const rows=[['top','evalTop',3],['mid','evalMid',5],['bot','evalBot',5]];
@@ -1302,9 +1314,20 @@ function updateConfirm(){
 document.getElementById('playerArea').addEventListener('click',e=>{const sl=e.target.closest('.slot');if(sl)onSlot(sl.dataset.row,parseInt(sl.dataset.idx));});
 document.getElementById('handCards').addEventListener('click',e=>{const c=e.target.closest('.card');if(!c)return;const f=state.hand.find(x=>x.id===c.dataset.id);if(f)onHandClick(f);});
 function onHandClick(card){
-  if(state.flMode&&flGroupSel.role){clearGroupSel();renderGame();return;}
-  // FL中でボード満杯かつ捨てが必要なら捨て処理
-  if(state.flMode && onFLHandTapForDiscard(card)) return;
+  if(state.flMode&&flGroupSel.role){
+    // 役ボタン選択中: クリアして通常タップ選択へ
+    clearGroupSel();
+  }
+  if(state.flMode){
+    // ボード満杯かつ捨て必要 → 捨て処理
+    const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
+    if(tot===13){
+      if(onFLHandTapForDiscard(card)) return;
+    }
+    // 複数タップ選択モード
+    toggleFLTapSel(card);
+    return;
+  }
   state.selectedCard=(state.selectedCard&&state.selectedCard.id===card.id)?null:card;renderGame();
 }
 function onSlot(row,idx){
@@ -1329,6 +1352,7 @@ function placeCard(card,row){
   if(!state.placedThisRound)state.placedThisRound=[];state.placedThisRound.push(card);state.selectedCard=null;
   if(state.flMode){
     clearGroupSel();
+    clearFLTapSel();
     // FL: 13枚配置完了したら手札を自動的に捨てに移動
     const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
     if(tot===13 && state.hand.length>0){
@@ -1423,6 +1447,7 @@ function startFL(flCards){
   state.playerBoard={top:[],mid:[],bot:[]};state.selectedCard=null;state.phase='fl';
   flSortMode='rank';
   flGroupSel={role:null,combos:[],idx:0};
+  flTapSel=[];
   state.flDiscard=[];
   state.gameOver=false;
   const oFLE=checkFLEntry(state.oppBoard);
@@ -1537,9 +1562,15 @@ document.getElementById('btnStart').addEventListener('click',()=>newGame());
   handEl.addEventListener('touchstart',e=>{
     const cE=e.target.closest('.card.in-hand');if(!cE)return;
     const f=state.hand.find(c=>c.id===cE.dataset.id);if(!f)return;
-    const selIds=(flGroupSel.combos[flGroupSel.idx]||[]).map(c=>c.id);
-    if(selIds.length>0&&selIds.includes(f.id)){
+
+    // 役ボタン選択(fl-group-sel)優先
+    const groupSelIds=(flGroupSel.combos[flGroupSel.idx]||[]).map(c=>c.id);
+    if(groupSelIds.length>0&&groupSelIds.includes(f.id)){
       drag={card:f,fromHand:true,isGroup:true,groupCards:flGroupSel.combos[flGroupSel.idx]};
+    } else if(state.flMode&&flTapSel.length>0&&flTapSel.includes(f.id)){
+      // タップ選択カードをまとめてドラッグ
+      const tapCards=getFLTapSelCards();
+      drag={card:f,fromHand:true,isGroup:true,groupCards:tapCards,isTapGroup:true};
     } else {
       if(state.flMode&&flGroupSel.role)clearGroupSel();
       drag={card:f,fromHand:true,isGroup:false};
@@ -1579,7 +1610,9 @@ document.getElementById('btnStart').addEventListener('click',()=>newGame());
             const avail=lim[row]-state.playerBoard[row].length;
             const toPlace=drag.groupCards.slice(0,avail);
             toPlace.forEach(c=>{state.hand=state.hand.filter(x=>x.id!==c.id);state.playerBoard[row].push(c);});
-            clearGroupSel();state.selectedCard=null;
+            clearGroupSel();
+            clearFLTapSel(); // タップ選択もクリア
+            state.selectedCard=null;
             // FL: 13枚配置完了したら手札を自動捨て
             if(state.flMode){
               const tot2=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
@@ -1732,10 +1765,15 @@ function getHandCombinations(hand, role){
   if(role==='pair'){
     const byR={};
     n.forEach(c=>{if(!byR[c.r])byR[c.r]=[];byR[c.r].push(c);});
+    // 同ランクのペアは1通りとして扱う（3枚以上あっても代表の2枚のみ）
     for(const cards of Object.values(byR)){
-      if(cards.length>=2)for(let i=0;i<cards.length;i++)for(let j=i+1;j<cards.length;j++)results.push([cards[i],cards[j]]);
+      if(cards.length>=2) results.push([cards[0],cards[1]]);
     }
-    if(jks.length>=1) n.forEach(c=>results.push([jks[0],c]));
+    if(jks.length>=1){
+      // JK+各ランク(1通りずつ)
+      const seen=new Set();
+      n.forEach(c=>{if(!seen.has(c.r)){seen.add(c.r);results.push([jks[0],c]);}});
+    }
   } else if(role==='twopair'){
     // ツーペア(5枚): 異なるランクのペア2組+キッカー1枚
     const byR={};
@@ -2082,6 +2120,34 @@ function updateButtonUI(){
 // 前のラウンドの配置は常に表示
 function shouldShowOppCards(){
   return true; // oppBoardは常に表示（保留分はoppPendingに分離）
+}
+
+// ===== FL複数タップ選択 =====
+let flTapSel = []; // タップで選択したカードのID配列
+
+function toggleFLTapSel(card){
+  const idx = flTapSel.indexOf(card.id);
+  if(idx >= 0){
+    flTapSel.splice(idx, 1); // 選択解除
+  } else {
+    flTapSel.push(card.id); // 選択追加
+  }
+  updateFLTapSelUI();
+}
+
+function updateFLTapSelUI(){
+  document.querySelectorAll('.card.in-hand').forEach(el=>{
+    el.classList.toggle('fl-tap-sel', flTapSel.includes(el.dataset.id));
+  });
+}
+
+function clearFLTapSel(){
+  flTapSel = [];
+  document.querySelectorAll('.card.in-hand.fl-tap-sel').forEach(el=>el.classList.remove('fl-tap-sel'));
+}
+
+function getFLTapSelCards(){
+  return state.hand.filter(c=>flTapSel.includes(c.id));
 }
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
