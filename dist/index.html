@@ -327,6 +327,26 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 .score-trans-delta.pos{color:#c8a030;}
 .score-trans-delta.neg{color:var(--foul-color);}
 .score-trans-delta.zero{color:var(--game-text-dim);}
+
+/* ===== ボタン(Dealer)表示 ===== */
+.btn-chip{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;border-radius:50%;
+  background:#111;color:#fff;
+  font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;
+  letter-spacing:0;flex-shrink:0;
+}
+.score-label-wrap{display:flex;align-items:center;gap:4px;}
+
+/* 裏向きカード（相手がノンボタン先置き時、R1では相手カードを裏表示）*/
+.opp-card.face-down{
+  background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
+  border:1px solid rgba(255,255,255,0.12);
+}
+.opp-card.face-down::after{
+  content:'';position:absolute;inset:2px;
+  border:1px solid rgba(255,255,255,0.08);border-radius:2px;
+}
 </style>
 </head>
 <body>
@@ -392,12 +412,18 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
     </div>
     <div class="score-bar" id="scoreBar">
       <div class="score-player">
-        <div class="score-label">YOU</div>
+        <div class="score-label-wrap">
+          <div class="score-label">YOU</div>
+          <div class="btn-chip" id="btnChipYou" style="display:none">B</div>
+        </div>
         <div class="score-val" id="scoreYou">100</div>
       </div>
       <div class="score-sep">VS</div>
       <div class="score-player">
-        <div class="score-label">OPP</div>
+        <div class="score-label-wrap">
+          <div class="btn-chip" id="btnChipOpp" style="display:none">B</div>
+          <div class="score-label">OPP</div>
+        </div>
         <div class="score-val" id="scoreOpp">100</div>
       </div>
     </div>
@@ -936,6 +962,7 @@ function newGame(){
   document.getElementById('flEntryBanner').classList.remove('show');
   state.gameOver = false; // FL中はgameOverをリセット
   resetScoreTransition();
+  toggleButton(); // ゲームごとにボタン交互
   renderGame();showScreen('game');
   setTimeout(updateScoreBar, 50);
 }
@@ -1029,7 +1056,12 @@ function renderGame(){
     if(tot<13){phTxt='FANTASY LAND - '+tot+'/13枚配置 (残'+(13-tot)+'枚)'+(discardNeeded>0?' - 捨て'+discarded+'/'+discardNeeded:'');}
     else{phTxt='FANTASY LAND - 配置完了'+(discardNeeded>0?' - 捨て'+discarded+'/'+discardNeeded+' (残カードをタップ)':'');}
     ph.textContent=phTxt;ph.className='phase-label fl';}
-  else if(state.phase==='place5'){const n=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;ph.textContent=`R1 · 5枚配置 (${n}/5) · タップまたはドラッグで配置`;ph.className='phase-label';}
+  else if(state.phase==='place5'){
+    const n=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
+    const btnTxt = isPlayerButton ? ' · ボタン(後置き有利)' : ' · ノンボタン(先置き・相手カード非表示)';
+    ph.textContent='R1 · 5枚配置 ('+n+'/5)'+btnTxt;
+    ph.className='phase-label';
+  }
   else{const placed=(state.placedThisRound||[]).length;if(state.discardedThisRound){const dc=state.discard[state.discard.length-1];ph.textContent=`R${state.round} · 配置${placed}/2 · 捨て: ${dc.isJoker?'JK':dc.r+SUIT_SYMS[dc.s]}`;}else{ph.textContent=`R${state.round} · 配置${placed}/2 · 2枚置くと自動捨て`;}ph.className='phase-label';}
   updateConfirm();
   const hc=document.getElementById('handCards');state.flMode?hc.classList.add('fl'):hc.classList.remove('fl');
@@ -1121,7 +1153,28 @@ function renderSlots(cId,cards,total,row,jkMap){
 function renderOpp(){
   const cfg={top:[3,'oppTop'],mid:[5,'oppMid'],bot:[5,'oppBot']};
   const cols={s:'#1e293b',h:'#dc2626',d:'#1d4ed8',c:'#059669'};
-  for(const[row,[cnt,eId]]of Object.entries(cfg)){const el=document.getElementById(eId);if(!el)continue;el.innerHTML='';const cards=state.oppBoard[row];for(let i=0;i<cnt;i++){const sl=document.createElement('div');sl.className='opp-slot';if(cards[i]){const oc=document.createElement('div');oc.className='opp-card';if(cards[i].isJoker){oc.style.cssText='font-size:11px;color:#7170ff';oc.textContent='🃏';}else{oc.innerHTML=`<span style="color:${cols[cards[i].s]};font-size:8px;font-weight:700;font-family:var(--font-ui)">${cards[i].r}</span>`;}sl.appendChild(oc);}el.appendChild(sl);}}
+  const showCards = shouldShowOppCards(); // ボタン判定
+  for(const[row,[cnt,eId]]of Object.entries(cfg)){
+    const el=document.getElementById(eId);if(!el)continue;el.innerHTML='';
+    const cards=state.oppBoard[row];
+    for(let i=0;i<cnt;i++){
+      const sl=document.createElement('div');sl.className='opp-slot';
+      if(cards[i]){
+        const oc=document.createElement('div');
+        if(!showCards){
+          // 裏向き表示（ノンボタン先置きのR1）
+          oc.className='opp-card face-down';
+          oc.style.position='relative';
+        } else {
+          oc.className='opp-card';
+          if(cards[i].isJoker){oc.style.cssText='font-size:11px;color:#7170ff';oc.textContent='🃏';}
+          else{oc.innerHTML='<span style="color:'+cols[cards[i].s]+';font-size:8px;font-weight:700;font-family:var(--font-ui)">'+cards[i].r+'</span>';}
+        }
+        sl.appendChild(oc);
+      }
+      el.appendChild(sl);
+    }
+  }
 }
 function makeCard(card){
   const el=document.createElement('div');el.className='card'+(card.isJoker?' joker':` card-${card.s}`);el.dataset.id=card.id;
@@ -1270,11 +1323,11 @@ function startFL(flCards){
   flSortMode='rank';
   flGroupSel={role:null,combos:[],idx:0};
   state.flDiscard=[];
-  state.flDiscard=[];
+  state.gameOver=false;
   const oFLE=checkFLEntry(state.oppBoard);
   if(oFLE){const oFlC=getFLC(state.oppBoard);const oH=d.slice(i,i+=oFlC);state.deckIdx=i;const oFLB=aiFLPlace(oH);state.oppBoard={top:[...oFLB.top],mid:[...oFLB.mid],bot:[...oFLB.bot]};state.oppFlMode=false;}
   document.getElementById('resultBand').classList.remove('show');document.getElementById('flEntryBanner').classList.remove('show');
-  showFLIntro(()=>{ sortFlHand(); renderGame(); setTimeout(updateScoreBar,50); });
+  showFLIntro(()=>{ sortFlHand(); renderGame(); setTimeout(()=>{updateScoreBar();updateButtonUI();},50); });
 }
 document.getElementById('btnAdvice').addEventListener('click',()=>{
   const panel=document.getElementById('advicePanel');const ov=document.getElementById('adviceOverlay');const t=document.getElementById('adviceContent');
@@ -1901,6 +1954,34 @@ function applyScoreResult(net){
 function resetScoreTransition(){
   const stEl = document.getElementById('scoreTransition');
   if(stEl) stEl.style.display = 'none';
+}
+
+// ===== ボタン(Dealer)概念 =====
+// isPlayerButton=true: プレイヤーがボタン（後置き・有利）
+// isPlayerButton=false: プレイヤーがノンボタン（先置き・相手カード見えない）
+// ゲームごとに交互に入れ替わる
+let isPlayerButton = false; // 最初はプレイヤーがノンボタン
+
+function toggleButton(){
+  isPlayerButton = !isPlayerButton;
+  updateButtonUI();
+}
+
+function updateButtonUI(){
+  const chipYou = document.getElementById('btnChipYou');
+  const chipOpp = document.getElementById('btnChipOpp');
+  if(!chipYou||!chipOpp) return;
+  // ボタン持ちにチップ表示
+  chipYou.style.display = isPlayerButton ? 'inline-flex' : 'none';
+  chipOpp.style.display = !isPlayerButton ? 'inline-flex' : 'none';
+}
+
+// ノンボタン側（プレイヤー）がR1を先置き → 相手R1は裏向き
+// ボタン側（プレイヤー）がR1を後置き → 相手R1は表向き
+function shouldShowOppCards(){
+  // R1配置中 かつ プレイヤーがノンボタン(先置き) → 相手カードを隠す
+  if(state.phase === 'place5' && !isPlayerButton) return false;
+  return true; // それ以外は全て表示
 }
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
