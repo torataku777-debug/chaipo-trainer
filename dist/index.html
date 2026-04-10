@@ -1794,31 +1794,28 @@ function getHandCombinations(hand, role){
       n.forEach(c=>{if(!seen.has(c.r)){seen.add(c.r);results.push([jks[0],c]);}});
     }
   } else if(role==='twopair'){
-    // ツーペア(5枚): 異なるランクのペア2組+キッカー1枚
+    // ツーペア: ペア2組の4枚のみ（キッカー不要）
     const byR={};
     n.forEach(c=>{if(!byR[c.r])byR[c.r]=[];byR[c.r].push(c);});
     const pairRanks=Object.entries(byR).filter(([r,cs])=>cs.length>=2).map(([r,cs])=>cs);
-    // ペア2組を選ぶ
+    // ペア2組（4枚）の組み合わせ
     for(let i=0;i<pairRanks.length;i++){
       for(let j=i+1;j<pairRanks.length;j++){
         const p1=pairRanks[i].slice(0,2);
         const p2=pairRanks[j].slice(0,2);
-        const usedIds=new Set([...p1,...p2].map(c=>c.id));
-        // キッカーを選ぶ（残りの全カード）
-        const kickers=n.filter(c=>!usedIds.has(c.id));
-        kickers.forEach(k=>results.push([...p1,...p2,k]));
-        // JK1枚でキッカーとして使う
-        if(jks.length>=1&&kickers.length===0)results.push([...p1,...p2,jks[0]]);
+        results.push([...p1,...p2]);
       }
     }
-    // JK1枚でペア追加: 既存ペア1組+JKで新ペア
+    // JK1枚がある場合: JK+任意ランク1枚 で作るペア + 既存ペア1組
     if(jks.length>=1){
+      const seen=new Set();
       pairRanks.forEach(pair=>{
-        // JK+異なるランクカード → 新ペア扱い
         n.filter(c=>c.r!==pair[0].r).forEach(c=>{
-          const usedIds=new Set([pair[0].id,pair[1].id,jks[0].id,c.id]);
-          const kickers=n.filter(x=>!usedIds.has(x.id));
-          kickers.forEach(k=>results.push([pair[0],pair[1],jks[0],c,k]));
+          const key=[pair[0].r,c.r].sort().join('-');
+          if(!seen.has(key)){
+            seen.add(key);
+            results.push([pair[0],pair[1],jks[0],c]);
+          }
         });
       });
     }
