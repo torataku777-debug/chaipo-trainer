@@ -976,8 +976,11 @@ function newGame(){
     state.oppPlayedThisRound=false;
   }
   state.deckIdx=idx;
+  // 結果表示を全てクリア
   document.getElementById('resultBand').classList.remove('show');
   document.getElementById('flEntryBanner').classList.remove('show');
+  const pendingEl=document.getElementById('oppPendingCards');
+  if(pendingEl) pendingEl.style.display='none';
   state.gameOver=false;
   resetScoreTransition();
   renderGame();showScreen('game');
@@ -1001,7 +1004,7 @@ function dealNext(){
   } else {
     // ノンボタン=先置き: AIの配置を保留（プレイヤーCONFIRM後に表示）
     const{place}=aiPineapple(oH,state.oppBoard);
-    state.oppPendingPlace={place, hand:oH};
+    state.oppPendingPlace={place};
     state.oppPlayedThisRound=false;
   }
   renderGame();
@@ -1042,9 +1045,11 @@ function showResultBand(score){
 function renderGame(){
   const titleEl=document.getElementById('gameTitle');
   titleEl.innerHTML=state.flMode?'チャイポ <span class="fl-badge">FANTASY</span>':'チャイポ';
-  // FL中は結果バンドを非表示
-  if(state.flMode){
+  // FL中、または通常ゲーム進行中は結果バンドを非表示
+  if(state.flMode || (!state.gameOver && state.phase !== 'transitioning')){
     document.getElementById('resultBand').classList.remove('show');
+  }
+  if(state.flMode){
     document.getElementById('flEntryBanner').classList.remove('show');
   }
   const dots=document.getElementById('roundDots');dots.innerHTML='';
@@ -1274,6 +1279,8 @@ function updateEvals(){
 }
 function updateConfirm(){
   const btn=document.getElementById('btnConfirm');
+  // 遷移中は全ボタン無効
+  if(state.phase==='transitioning'){btn.disabled=true;btn.textContent='...';btn.className='btn-confirm';return;}
   if(state.gameOver&&!state.flMode){btn.disabled=false;btn.textContent='次のゲームへ →';btn.className='btn-confirm';return;}
   if(state.flMode){
     const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
@@ -1382,8 +1389,9 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{
       state.oppBoard=state.oppPendingBoard;
       state.oppPendingBoard=null;
       state.oppPlayedThisRound=true;
-      renderGame(); // AIの配置を一瞬見せる
-      setTimeout(()=>dealNext(), 600); // 少し間を置いてから次ラウンドへ
+      state.phase='transitioning'; // 遷移中フラグ（二重押し防止）
+      renderGame();
+      setTimeout(()=>{ state.phase='done5'; dealNext(); }, 600);
     } else {
       dealNext();
     }
@@ -1396,6 +1404,7 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{
       for(const r of['top','mid','bot'])state.oppBoard[r].push(...(place[r]||[]));
       state.oppPendingPlace=null;
       state.oppPlayedThisRound=true;
+      state.phase='transitioning'; // 遷移中フラグ（二重押し防止）
       renderGame();
       if(state.round>=5){setTimeout(()=>endGame(),600);return;}
       setTimeout(()=>dealNext(),600);
