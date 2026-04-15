@@ -73,8 +73,11 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 .opp-row-line{display:flex;align-items:center;gap:4px}
 .opp-row-tag{font-family:var(--font-mono);font-size:7px;color:var(--game-text-dim);width:20px;flex-shrink:0;letter-spacing:0.05em}
 .opp-row-slots{display:flex;gap:2px;justify-content:flex-end}
-.opp-slot{width:26px;height:37px;background:var(--game-slot-bg);border:1px solid var(--game-slot-border);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.opp-card{width:24px;height:35px;background:var(--game-card-bg);border:1px solid var(--game-card-border);border-radius:3px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+.opp-slot{width:30px;height:42px;background:var(--game-slot-bg);border:1px solid var(--game-slot-border);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.opp-card{width:28px;height:40px;background:var(--game-card-bg);border:1px solid var(--game-card-border);border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+
+/* 結果画面時に相手エリアを非表示 */
+.opp-area.hide-on-result{display:none!important;}
 .result-band{display:none;flex-shrink:0;padding:4px 10px}
 .result-band.show{display:block}
 .result-band-inner{background:var(--game-surface);border:1px solid var(--game-border);border-radius:var(--radius-md);padding:6px 8px;display:flex;flex-direction:column;gap:4px;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
@@ -98,7 +101,7 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 .fl-entry-inner{background:rgba(200,160,48,0.08);border:1px solid rgba(200,160,48,0.3);border-radius:var(--radius-md);padding:8px 12px;text-align:center}
 .fl-entry-text{font-family:var(--font-mono);font-size:11px;font-weight:700;color:#9a6e10;letter-spacing:0.08em}
 .fl-entry-sub{font-size:10px;color:#78716c;margin-top:2px}
-.player-area{flex:1;padding:2px 10px;display:flex;flex-direction:column;gap:2px;min-height:0;justify-content:center}
+.player-area{flex:1;padding:4px 10px 6px;display:flex;flex-direction:column;gap:4px;min-height:0;justify-content:center;overflow:visible}
 .player-area.fl-mode{border:1px solid rgba(200,160,48,0.35);border-radius:var(--radius-md);padding:4px 10px;background:rgba(200,160,48,0.03)}
 .player-label{font-family:var(--font-mono);font-size:7px;color:var(--accent);letter-spacing:0.22em;text-align:left;padding-left:2px;text-transform:uppercase;margin-bottom:1px}
 .player-label .fl-badge{display:inline-block;margin-left:4px;padding:1px 5px;background:var(--fl-bg);border:1px solid var(--border-gold);border-radius:3px;font-size:8px;color:#9a6e10;letter-spacing:0.08em}
@@ -121,12 +124,12 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 .card-rank-top{font-family:var(--font-ui);font-size:11px;font-weight:700;line-height:1;letter-spacing:-0.02em}
 .card-suit-top{font-size:8px;line-height:1}
 .card-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0}
-.card-rank-center{font-family:var(--font-ui);font-size:20px;font-weight:700;line-height:1;letter-spacing:-0.03em}
+.card-rank-center{font-family:var(--font-ui);font-size:22px;font-weight:800;line-height:1;letter-spacing:-0.03em}
 .card-suit-center{font-size:13px;line-height:1}
-.card-s .card-rank-top,.card-s .card-rank-center{color:#1e293b}.card-s .card-suit-top,.card-s .card-suit-center{color:#1e293b}
-.card-h .card-rank-top,.card-h .card-rank-center{color:#dc2626}.card-h .card-suit-top,.card-h .card-suit-center{color:#dc2626}
-.card-d .card-rank-top,.card-d .card-rank-center{color:#1d4ed8}.card-d .card-suit-top,.card-d .card-suit-center{color:#1d4ed8}
-.card-c .card-rank-top,.card-c .card-rank-center{color:#059669}.card-c .card-suit-top,.card-c .card-suit-center{color:#059669}
+.card-s .card-rank-top,.card-s .card-rank-center{color:#0f172a}.card-s .card-suit-top,.card-s .card-suit-center{color:#1e293b}
+.card-h .card-rank-top,.card-h .card-rank-center{color:#ef4444}.card-h .card-suit-top,.card-h .card-suit-center{color:#dc2626}
+.card-d .card-rank-top,.card-d .card-rank-center{color:#3b82f6}.card-d .card-suit-top,.card-d .card-suit-center{color:#1d4ed8}
+.card-c .card-rank-top,.card-c .card-rank-center{color:#10b981}.card-c .card-suit-top,.card-c .card-suit-center{color:#059669}
 .card-joker-label{font-family:var(--font-mono);font-size:8px;font-weight:700;color:var(--accent);text-align:center;letter-spacing:0.05em}
 .hand-area{flex-shrink:0;padding:4px 10px 0;display:flex;flex-direction:column;gap:6px;background:var(--game-surface);border-top:1px solid var(--game-border);box-shadow:0 -1px 4px rgba(0,0,0,0.05)}
 .hand-area.fl-mode{border-top-color:rgba(200,160,48,0.35);padding-bottom:4px;}
@@ -212,7 +215,13 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 .fl-intro-content{display:flex;flex-direction:column;align-items:center;gap:4px;}
 .fl-intro-pine{font-size:44px;line-height:1;}
 .fl-intro-word{font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:700;color:#c8a030;letter-spacing:0.15em;text-shadow:0 0 20px rgba(200,160,48,0.7);}
-.fl-intro-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:#9a6e10;letter-spacing:0.2em;text-align:center;}
+/* FL枚数表示 */
+.fl-intro-cards{font-family:'JetBrains Mono',monospace;font-size:56px;font-weight:700;color:#fff;text-shadow:0 0 30px rgba(200,160,48,0.9),0 0 60px rgba(200,160,48,0.5);letter-spacing:0.05em;animation:flCardsIn 0.5s 0.3s both;}
+.fl-intro-type{font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:700;color:#c8a030;letter-spacing:0.12em;text-transform:uppercase;margin-top:24px;animation:flTypeIn 0.5s 0.5s both;text-shadow:0 0 30px rgba(200,160,48,0.9);}
+.fl-intro-ev{font-family:'JetBrains Mono',monospace;font-size:14px;color:#9a6e10;letter-spacing:0.1em;margin-top:8px;animation:flTypeIn 0.5s 0.6s both;}
+@keyframes flCardsIn{0%{transform:scale(0.5);opacity:0;}100%{transform:scale(1);opacity:1;}}
+@keyframes flTypeIn{0%{opacity:0;transform:translateY(10px);}100%{opacity:1;transform:translateY(0);}}
+
 
 /* ===== FL評価パネル（左側固定）===== */
 .fl-eval-panel{display:none;position:absolute;left:0;top:0;bottom:0;width:58px;background:rgba(200,160,48,0.05);border-right:1px solid rgba(200,160,48,0.18);flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:4px 2px;z-index:5;}
@@ -355,6 +364,144 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
   border-color:#7170ff!important;
   /* z-indexはapplyOverlapLayoutに任せる（重なり順を維持） */
 }
+
+/* ===== FL練習モード ===== */
+#screen-mode-select{z-index:10;background:#ffffff;padding:0;justify-content:flex-start;}
+.mode-select-body{width:100%;padding:20px 24px;padding-top:calc(var(--safe-top) + 12px);padding-bottom:calc(40px + var(--safe-bottom));display:flex;flex-direction:column;gap:16px;}
+.mode-select-title{font-family:var(--font-ui);font-size:20px;font-weight:700;color:#111;letter-spacing:-0.02em;margin-bottom:4px;}
+.mode-select-desc{font-size:13px;color:#888;line-height:1.5;margin-bottom:12px;}
+.mode-btn{width:100%;font-family:var(--font-ui);font-size:15px;font-weight:600;padding:18px 20px;border:1px solid var(--game-border);border-radius:14px;background:#fff;color:#111;cursor:pointer;transition:all 0.15s;text-align:left;display:flex;flex-direction:column;gap:4px;}
+.mode-btn:active{transform:scale(0.98);background:#f8f8f8;}
+.mode-btn-title{font-size:16px;font-weight:700;}
+.mode-btn-sub{font-size:12px;color:#888;font-weight:400;}
+.mode-btn.primary{background:#111;color:#fff;border-color:#111;}
+.mode-btn.primary .mode-btn-sub{color:#aaa;}
+.mode-btn.gold{background:linear-gradient(135deg,#c8a030,#e0b840);color:#fff;border-color:#c8a030;}
+.mode-btn.gold .mode-btn-sub{color:rgba(255,255,255,0.7);}
+.btn-back{font-family:var(--font-ui);font-size:13px;font-weight:500;padding:10px;background:transparent;border:none;color:#888;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.btn-back:active{color:#555;}
+
+/* FL枚数選択 */
+#screen-fl-select{z-index:10;background:#ffffff;padding:0;}
+.fl-select-body{width:100%;padding:28px 24px;padding-bottom:calc(40px + var(--safe-bottom));display:flex;flex-direction:column;gap:16px;}
+.fl-select-title{font-family:var(--font-ui);font-size:22px;font-weight:700;color:#111;margin-bottom:4px;}
+.fl-select-desc{font-size:13px;color:#888;line-height:1.5;margin-bottom:8px;}
+.fl-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fl-card-btn{padding:20px 16px;border:2px solid rgba(200,160,48,0.3);border-radius:14px;background:rgba(200,160,48,0.04);cursor:pointer;transition:all 0.15s;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.fl-card-btn:active{transform:scale(0.97);border-color:#c8a030;background:rgba(200,160,48,0.12);}
+.fl-card-num{font-family:var(--font-mono);font-size:32px;font-weight:700;color:#c8a030;}
+.fl-card-label{font-family:var(--font-ui);font-size:11px;font-weight:600;color:#9a6e10;letter-spacing:0.05em;}
+.fl-card-ev{font-family:var(--font-mono);font-size:10px;color:#888;}
+
+/* FL練習結果 */
+.fl-practice-result{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);align-items:flex-start;justify-content:center;padding:12px;padding-top:calc(var(--safe-top) + 12px);overflow-y:auto;}
+.fl-practice-result.show{display:flex;}
+.fl-practice-result-inner{background:#fff;border-radius:16px;padding:16px;width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px;}
+.fl-pr-title{font-family:var(--font-ui);font-size:16px;font-weight:700;color:#111;text-align:center;margin-bottom:4px;}
+.fl-pr-diff-banner{display:flex;align-items:center;justify-content:center;gap:12px;padding:14px;border-radius:12px;margin-bottom:4px;}
+.fl-pr-diff-banner.perfect{background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(16,185,129,0.05));border:2px solid #10b981;}
+.fl-pr-diff-banner.loss{background:linear-gradient(135deg,rgba(255,59,92,0.1),rgba(255,59,92,0.02));border:2px solid var(--foul-color);}
+.fl-pr-diff-banner.neutral{background:#f8f8f8;border:2px solid #ddd;}
+.fl-pr-diff-label{font-family:var(--font-mono);font-size:11px;color:#888;letter-spacing:0.05em;}
+.fl-pr-diff-val{font-family:var(--font-mono);font-size:28px;font-weight:800;}
+.fl-pr-diff-val.perfect{color:#10b981;}
+.fl-pr-diff-val.loss{color:var(--foul-color);}
+.fl-pr-diff-val.neutral{color:#888;}
+.fl-pr-section{display:flex;flex-direction:column;gap:6px;}
+.fl-pr-section-header{display:flex;align-items:center;justify-content:space-between;padding:0 4px;}
+.fl-pr-section-title{font-family:var(--font-mono);font-size:9px;font-weight:700;color:#888;letter-spacing:0.12em;}
+.fl-pr-section-badge{font-family:var(--font-mono);font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;}
+.fl-pr-section-badge.refan{background:rgba(200,160,48,0.2);color:#9a6e10;}
+.fl-pr-section-badge.norefan{background:rgba(0,0,0,0.06);color:#999;}
+.fl-pr-section-badge.foul{background:rgba(255,59,92,0.15);color:var(--foul-color);}
+.fl-pr-board{display:flex;flex-direction:column;gap:6px;padding:10px;background:#f8f9fa;border-radius:10px;border:1px solid rgba(0,0,0,0.06);}
+.fl-pr-row{display:flex;align-items:center;gap:6px;}
+.fl-pr-row-label{font-family:var(--font-mono);font-size:8px;color:#999;width:24px;text-align:center;flex-shrink:0;}
+.fl-pr-cards{display:flex;gap:3px;flex:1;}
+.fl-pr-card{width:32px;height:44px;background:#fff;border:1.5px solid rgba(0,0,0,0.1);border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-ui);box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+.fl-pr-card .rank{font-size:12px;font-weight:800;line-height:1;}
+.fl-pr-card .suit{font-size:9px;line-height:1;margin-top:1px;}
+.fl-pr-card.joker{background:linear-gradient(145deg,#1a1040,#0f1530);border-color:rgba(113,112,255,0.5);}
+.fl-pr-card.joker .rank{color:#a5a4ff;font-size:10px;}
+.fl-pr-card-s .rank{color:#1e293b}.fl-pr-card-s .suit{color:#334155}
+.fl-pr-card-h .rank{color:#ef4444}.fl-pr-card-h .suit{color:#dc2626}
+.fl-pr-card-d .rank{color:#3b82f6}.fl-pr-card-d .suit{color:#2563eb}
+.fl-pr-card-c .rank{color:#10b981}.fl-pr-card-c .suit{color:#059669}
+.fl-pr-eval{font-family:var(--font-ui);font-size:9px;color:#666;font-weight:500;flex-shrink:0;max-width:70px;text-align:right;}
+.fl-pr-bonus-row{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:4px 8px 0;}
+.fl-pr-bonus-label{font-family:var(--font-mono);font-size:8px;color:#999;}
+.fl-pr-bonus-val{font-family:var(--font-mono);font-size:16px;font-weight:700;color:var(--accent);}
+.fl-pr-bonus-val.gold{color:#c8a030;}
+.fl-pr-btns{display:flex;gap:10px;margin-top:4px;}
+.fl-pr-btn{flex:1;padding:13px;border:none;border-radius:10px;font-family:var(--font-ui);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;}
+.fl-pr-btn:active{transform:scale(0.97);}
+.fl-pr-btn.again{background:#111;color:#fff;}
+.fl-pr-btn.menu{background:#f0f0f0;color:#555;}
+
+
+/* 横画面警告 */
+.landscape-warning {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #111;
+  color: #fff;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-family: var(--font-ui);
+}
+.landscape-warning-icon {
+  font-size: 48px;
+  animation: rotatePhone 1.5s ease-in-out infinite;
+}
+@keyframes rotatePhone {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-90deg); }
+}
+.landscape-warning-text {
+  font-size: 16px;
+  font-weight: 600;
+}
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  .landscape-warning { display: flex; }
+  .screen { display: none !important; }
+}
+
+
+.calculating-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+.calculating-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #333;
+  border-top: 4px solid #00ff88;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.calculating-text {
+  color: #00ff88;
+  font-size: 18px;
+  margin-top: 15px;
+  font-weight: bold;
+}
 </style>
 </head>
 <body>
@@ -362,10 +509,122 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
   <div class="fl-intro-ring">
     <div class="fl-intro-content">
       <div class="fl-intro-pine">🍍</div>
-      <div class="fl-intro-word">FANTASY</div>
+      <div class="fl-intro-cards" id="flIntroCards">16</div><!-- FL_TYPE_MOVED -->
     </div>
   </div>
-  <div class="fl-intro-sub">FANTASY LAND · 全カード自由配置</div>
+  <div class="fl-intro-type" id="flIntroType">AA FANTASY</div>
+  
+</div>
+
+<div class="screen" id="screen-mode-select">
+  <div class="mode-select-body">
+    <button class="btn-back" id="btnBackToTitle">< Back</button>
+    <div class="mode-select-title">モード選択</div>
+    <div class="mode-select-desc">プレイモードを選んでください</div>
+    <button class="mode-btn primary" id="btnModeNormal">
+      <span class="mode-btn-title">通常プレイ</span>
+      <span class="mode-btn-sub">AIと対戦してスコアを競う</span>
+    </button>
+    <button class="mode-btn gold" id="btnModeFlPractice">
+      <span class="mode-btn-title">FL練習</span>
+      <span class="mode-btn-sub">ファンタジーランドの配置を練習</span>
+    </button>
+  </div>
+</div>
+
+
+<div class="screen" id="screen-ai-select">
+  <div class="mode-select-body">
+    <button class="btn-back" id="btnBackToModeFromAI">< Back</button>
+    <div class="mode-select-title">AI対戦</div>
+    <div class="mode-select-desc">対戦人数を選んでください</div>
+    <button class="mode-btn primary" id="btnAI2P">
+      <span class="mode-btn-title">2人対戦</span>
+      <span class="mode-btn-sub">AIと1対1で対戦</span>
+    </button>
+    <button class="mode-btn" id="btnAI3P" style="opacity:0.5;pointer-events:none;">
+      <span class="mode-btn-title">3人対戦</span>
+      <span class="mode-btn-sub">実装予定</span>
+    </button>
+  </div>
+</div>
+
+<div class="screen" id="screen-fl-select">
+  <div class="fl-select-body">
+    <button class="btn-back" id="btnBackToMode">< Back</button>
+    <div class="fl-select-title">FL練習</div>
+    <div class="fl-select-desc">練習するファンタジーランドの枚数を選んでください</div>
+    <div class="fl-card-grid">
+      <button class="fl-card-btn" data-fl="14">
+        <div class="fl-card-num">14</div>
+        <div class="fl-card-label">QQ FANTASY</div>
+        <div class="fl-card-ev">EV: 25pt</div>
+      </button>
+      <button class="fl-card-btn" data-fl="15">
+        <div class="fl-card-num">15</div>
+        <div class="fl-card-label">KK FANTASY</div>
+        <div class="fl-card-ev">EV: 40pt</div>
+      </button>
+      <button class="fl-card-btn" data-fl="16">
+        <div class="fl-card-num">16</div>
+        <div class="fl-card-label">AA FANTASY</div>
+        <div class="fl-card-ev">EV: 69pt</div>
+      </button>
+      <button class="fl-card-btn" data-fl="17">
+        <div class="fl-card-num">17</div>
+        <div class="fl-card-label">TRIPS FANTASY</div>
+        <div class="fl-card-ev">EV: 133pt</div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="fl-practice-result" id="flPracticeResult">
+  <div class="fl-practice-result-inner">
+    <div class="fl-pr-title">FL PRACTICE RESULT</div>
+    
+    <!-- 点数差バナー -->
+    <div class="fl-pr-diff-banner neutral" id="flPrDiffBanner">
+      <span class="fl-pr-diff-label">SCORE DIFF</span>
+      <span class="fl-pr-diff-val neutral" id="flPrDiffVal">±0</span>
+    </div>
+    
+    <!-- ユーザー配置 -->
+    <div class="fl-pr-section">
+      <div class="fl-pr-section-header">
+        <div class="fl-pr-section-title">YOUR PLACEMENT</div>
+        <div class="fl-pr-section-badge norefan" id="flPrUserBadge">NO REFAN</div>
+      </div>
+      <div class="fl-pr-board" id="flPrUserBoard"></div>
+      <div class="fl-pr-bonus-row">
+        <span class="fl-pr-bonus-label">BONUS:</span>
+        <span class="fl-pr-bonus-val" id="flPrUserBonus">+0</span>
+      </div>
+    </div>
+    
+    <!-- 最適配置 -->
+    <div class="fl-pr-section">
+      <div class="fl-pr-section-header">
+        <div class="fl-pr-section-title">OPTIMAL PLACEMENT</div>
+        <div class="fl-pr-section-badge refan" id="flPrOptBadge">REFANTASY</div>
+      </div>
+      <div class="fl-pr-board" id="flPrOptBoard"></div>
+      <div class="fl-pr-bonus-row">
+        <span class="fl-pr-bonus-label">BONUS:</span>
+        <span class="fl-pr-bonus-val gold" id="flPrOptBonus">+0</span>
+      </div>
+    </div>
+    
+    <div class="fl-pr-btns">
+      <button class="fl-pr-btn menu" id="flPrBtnMenu">メニュー</button>
+      <button class="fl-pr-btn again" id="flPrBtnAgain">もう一度</button>
+    </div>
+  </div>
+</div>
+
+<div class="landscape-warning" id="landscapeWarning">
+  <div class="landscape-warning-icon">📱</div>
+  <div class="landscape-warning-text">縦画面でプレイしてください</div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -405,7 +664,7 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
     <div class="title-logo-white">チャイ<span>ポ</span></div>
     <div class="title-desc">OFCポーカートレーナー<br>ジョーカー・アルティメット</div>
     <button class="btn-start-white" id="btnStart">PLAY NOW</button>
-    <div class="title-version-white">v5.2 · iOS Edition</div>
+    <div class="title-version-white">v5.11 · iOS Edition</div>
   </div>
 </div>
 
@@ -555,6 +814,10 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
   <div class="drawer-handle"></div>
   <div class="drawer-header"><div class="drawer-title">メニュー</div></div>
   <div class="drawer-items">
+    <button class="drawer-item" id="drawerBackToTitle">
+      <div class="drawer-item-icon gray">🏠</div>
+      <div><div>Back to Title</div><div class="drawer-item-sub">ホーム画面に戻る</div></div>
+    </button>
     <button class="drawer-item" id="drawerNewGame">
       <div class="drawer-item-icon red">🔄</div>
       <div><div>New Game</div><div class="drawer-item-sub">現在のゲームを終了して最初から</div></div>
@@ -790,8 +1053,37 @@ function calcScoreWithJokers(pB,oB){
 function isFoulSimple(board){
   var top=board.top,mid=board.mid,bot=board.bot;
   if(!top.length||!mid.length||!bot.length)return false;
-  var tR=t5(eval3(top));var mR=eval5(mid,false).rank;var bR=eval5(bot,true).rank;
-  if(mR<tR)return true;if(mid.length===5&&bot.length===5&&bR<mR)return true;return false;
+  
+  var topE=eval3(top);
+  var tR=t5(topE); // 3枚を5枚換算
+  var mE=eval5(mid,false);
+  var bE=eval5(bot,true);
+  var mR=mE.rank;
+  var bR=bE.rank;
+  
+  // MID < TOP のチェック（同ランクならハイカード比較）
+  if(mR<tR)return true;
+  if(mR===tR){
+    // TOPのハイカード（ペアのランク）
+    var topPairRank=Math.floor((topE.topRankScore||0)/100);
+    // MIDのハイカード
+    var mHv=hvFull(mid,mR);
+    if(mHv[0]<topPairRank)return true;
+  }
+  
+  // BOT < MID のチェック（完成時のみ）
+  if(mid.length===5&&bot.length===5){
+    if(bR<mR)return true;
+    if(bR===mR){
+      var mHv2=hvFull(mid,mR);
+      var bHv=hvFull(bot,bR);
+      for(var i=0;i<Math.min(mHv2.length,bHv.length);i++){
+        if(bHv[i]<mHv2[i])return true;
+        if(bHv[i]>mHv2[i])return false;
+      }
+    }
+  }
+  return false;
 }
 
 
@@ -825,32 +1117,72 @@ function aiPlace5(cards){
   const board={top:[],mid:[],bot:[]};
   const jk=cards.filter(c=>c.isJoker);
   const n=cards.filter(c=>!c.isJoker).sort((a,b)=>rankVal(b.r)-rankVal(a.r));
-
-  // JK2枚: JK+最高ランク→top、JK+2番目→bot、残り→mid
+  // === v31: 探索結果に基づく最適配置 ===
+  // JK2枚: A優先、2枚目JKはMIDへ（BOTではなく）
   if(jk.length>=2){
-    board.top.push(jk[0], n[0]||jk[1]);
-    const rest=n.slice(1);
-    board.bot.push(jk[1], ...(rest.slice(0,1)));
-    board.mid.push(...rest.slice(1));
-    fillBoard(board, n.slice(0)); // 不足分を補完
+    const hasA=n.find(c=>rankVal(c.r)===14);
+    const hasK=n.find(c=>rankVal(c.r)===13);
+    if(hasA){
+      // JK×2 + A: TOP: A+JK, MID: JK+低
+      board.top.push(jk[0], hasA);
+      const rest=n.filter(c=>c!==hasA).sort((a,b)=>rankVal(a.r)-rankVal(b.r));
+      if(rest.length>0) board.mid.push(jk[1], rest[0]);
+      else board.mid.push(jk[1]);
+      board.bot.push(...rest.slice(1));
+    } else if(hasK){
+      // JK×2 + K: TOP: K+JK, MID: JK+低
+      board.top.push(jk[0], hasK);
+      const rest=n.filter(c=>c!==hasK).sort((a,b)=>rankVal(a.r)-rankVal(b.r));
+      if(rest.length>0) board.mid.push(jk[1], rest[0]);
+      else board.mid.push(jk[1]);
+      board.bot.push(...rest.slice(1));
+    } else {
+      // JK×2のみ（A/Kなし）: TOP: JK+JK
+      board.top.push(jk[0], jk[1]);
+      const rest=n.sort((a,b)=>rankVal(a.r)-rankVal(b.r));
+      if(rest.length>0) board.mid.push(rest[0]);
+      board.bot.push(...rest.slice(1));
+    }
+    fillBoard(board, n.slice(0));
     return board;
   }
-
-  // JK1枚: JK+A/K→top
+  // JK1枚: AA/KK優先、その場合JKはMIDへ
   if(jk.length===1){
+    const pairs=findPairs(n);
+    const hAA=pairs.find(p=>rankVal(p[0].r)===14&&p.length>=2);
+    const hKK=pairs.find(p=>rankVal(p[0].r)===13&&p.length>=2);
+    if(hAA){
+      // JK×1 + AA: TOP: AA, MID: JK+低
+      board.top.push(hAA[0],hAA[1]);
+      const rest=n.filter(c=>c!==hAA[0]&&c!==hAA[1]).sort((a,b)=>rankVal(a.r)-rankVal(b.r));
+      if(rest.length>0) board.mid.push(jk[0], rest[0]);
+      else board.mid.push(jk[0]);
+      board.bot.push(...rest.slice(1));
+      fillBoard(board, n.slice(0));
+      return board;
+    }
+    if(hKK){
+      // JK×1 + KK: TOP: KK, MID: JK
+      board.top.push(hKK[0],hKK[1]);
+      const rest=n.filter(c=>c!==hKK[0]&&c!==hKK[1]).sort((a,b)=>rankVal(a.r)-rankVal(b.r));
+      if(rest.length>0) board.mid.push(jk[0], rest[0]);
+      else board.mid.push(jk[0]);
+      board.bot.push(...rest.slice(1));
+      fillBoard(board, n.slice(0));
+      return board;
+    }
+    // JK×1 + A/K: TOP: JK+A/K
     const tC=n.find(c=>rankVal(c.r)>=13)||n[0];
     board.top.push(jk[0], tC);
     distRest(n.filter(c=>c!==tC), board);
     return board;
   }
-
   // ペア処理
   const pairs=findPairs(n);
   const hAA=pairs.find(p=>rankVal(p[0].r)===14&&p.length>=2);
   const hKK=pairs.find(p=>rankVal(p[0].r)===13&&p.length>=2);
   const hA=n.find(c=>rankVal(c.r)===14);
   const hK=n.find(c=>rankVal(c.r)===13);
-
   if(hAA){
     board.top.push(hAA[0],hAA[1]);
     distRest(n.filter(c=>c!==hAA[0]&&c!==hAA[1]), board);
@@ -880,7 +1212,6 @@ function aiPlace5(cards){
   distRest(n, board);
   return board;
 }
-
 // ボードの空きを埋めるユーティリティ
 function fillBoard(board, cards){
   // 使用済みカードIDを収集
@@ -938,12 +1269,19 @@ function distRest(cards,board){
     push('bot', fd.slice(0,Math.min(fd.length,5-board.bot.length)));
   }
 
-  // 残りカードを高ランク→bot、低ランク→mid、最後→topに埋める
+  // === v34修正: 低ランクはMIDへ ===
   const rem=s.filter(c=>!used.has(c.id));
-  for(const c of rem){
-    if(board.bot.length<lim.bot){push('bot',[c]);}
-    else if(board.mid.length<lim.mid){push('mid',[c]);}
-    else if(board.top.length<lim.top){push('top',[c]);}
+  if(rem.length >= 3){
+    const remSorted = [...rem].sort((a,b)=>rankVal(a.r)-rankVal(b.r));
+    const midCount = Math.min(2, rem.length - 1);
+    push('mid', remSorted.slice(0, midCount));
+    push('bot', remSorted.slice(midCount));
+  } else {
+    for(const c of rem){
+      if(board.bot.length<lim.bot){push('bot',[c]);}
+      else if(board.mid.length<lim.mid){push('mid',[c]);}
+      else if(board.top.length<lim.top){push('top',[c]);}
+    }
   }
 }
 function aiPineapple(cards,board){
@@ -973,6 +1311,9 @@ function bScore(board){let sc=0;const fe=flReach(board);const te=eval3(board.top
 function calcScore(pB,oB){return calcScoreWithJokers(pB,oB);}
 let state={};
 function newGame(){
+  // 相手エリアを表示に戻す
+  const oppArea = document.querySelector('.opp-area');
+  if(oppArea) oppArea.classList.remove('hide-on-result');
   // ★ まずボタンを切替えてから、その値でボード初期化
   toggleButton();
   updateButtonUI();
@@ -1044,6 +1385,9 @@ function renderBoardWithJokers(){
   renderSlots('slotsBot',state.playerBoard.bot,5,'bot',result.botJkMap);
 }
 function showResultBand(score){
+  // 結果表示時は相手エリアを非表示（相手FL時は除く）
+  const oppArea = document.querySelector('.opp-area');
+  if(oppArea && !state.oppFlMode) oppArea.classList.add('hide-on-result');
   const{pTotal,oTotal,pRoy,oRoy,det,pFoul,oFoul}=score;const net=(pTotal+pRoy)-(oTotal+oRoy);
   const band=document.getElementById('resultBand');const title=document.getElementById('resultBandTitle');const netEl=document.getElementById('resultBandNet');const rowsEl=document.getElementById('resultBandRows');
   title.textContent=net>0?'WIN':net<0?'LOSE':'DRAW';title.className='result-band-title '+(net>0?'win':net<0?'lose':'draw');
@@ -1240,7 +1584,7 @@ function renderOpp(){
         const oc=document.createElement('div');
         oc.className='opp-card';
         if(cards[i].isJoker){oc.style.cssText='font-size:11px;color:#7170ff';oc.textContent='🃏';}
-        else{oc.innerHTML='<span style="color:'+cols[cards[i].s]+';font-size:8px;font-weight:700;font-family:var(--font-ui)">'+cards[i].r+'</span>';}
+        else{const sym=SUIT_SYMS[cards[i].s];oc.innerHTML='<div style="color:'+cols[cards[i].s]+';font-size:12px;font-weight:700;font-family:var(--font-ui);line-height:1">'+cards[i].r+'</div><div style="color:'+cols[cards[i].s]+';font-size:10px;line-height:1">'+sym+'</div>';}
         sl.appendChild(oc);
       } else if(pendingCount > 0 && state.gameOver===false) {
         // 今ラウンドの保留分は裏向きスロットで表示（枚数だけ示す）
@@ -1250,8 +1594,8 @@ function renderOpp(){
     }
   }
 
-  // 今ラウンドの保留分（裏向き）を別エリアで表示
-  renderOppPending(pendingCount);
+  // 今ラウンドの保留分（裏向き）を別エリアで表示 - FL中は非表示
+  renderOppPending(state.flMode ? 0 : pendingCount);
 }
 
 // 今ラウンドで相手がまだ配置していない分を裏向きで表示
@@ -1331,7 +1675,15 @@ function updateConfirm(){
   else{const pl=(state.placedThisRound||[]).length;const done=pl>=2&&state.discardedThisRound;btn.disabled=!done;btn.textContent=done?'CONFIRM →':`配置 ${pl}/2`;}
 }
 document.getElementById('playerArea').addEventListener('click',e=>{const sl=e.target.closest('.slot');if(sl)onSlot(sl.dataset.row,parseInt(sl.dataset.idx));});
-document.getElementById('handCards').addEventListener('click',e=>{const c=e.target.closest('.card');if(!c)return;const f=state.hand.find(x=>x.id===c.dataset.id);if(f)onHandClick(f);});
+// タップ重複防止フラグ
+let touchHandledCard = null;
+let touchHandledTime = 0;
+
+document.getElementById('handCards').addEventListener('click',e=>{
+  // touchendで既に処理済みならスキップ
+  if(Date.now() - touchHandledTime < 300) return;
+  const c=e.target.closest('.card');if(!c)return;const f=state.hand.find(x=>x.id===c.dataset.id);if(f)onHandClick(f);
+});
 function onHandClick(card){
   if(state.flMode&&flGroupSel.role){
     // 役ボタン選択中: クリアして通常タップ選択へ
@@ -1419,6 +1771,11 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{
     const discardNeeded=state.flCards-13;
     if(tot<13){showToast(`あと${13-tot}枚配置してください`);return;}
     if(state.flDiscard.length<discardNeeded){showToast(`あと${discardNeeded-state.flDiscard.length}枚捨ててください`);return;}
+    // FL練習モードの場合は専用の結果画面を表示
+    if(typeof flPracticeMode !== 'undefined' && flPracticeMode){
+      confirmFLPractice();
+      return;
+    }
     state.flMode=false;
     endGameFL();
     return;
@@ -1472,7 +1829,7 @@ function startFL(flCards){
   const oFLE=checkFLEntry(state.oppBoard);
   if(oFLE){const oFlC=getFLC(state.oppBoard);const oH=d.slice(i,i+=oFlC);state.deckIdx=i;const oFLB=aiFLPlace(oH);state.oppBoard={top:[...oFLB.top],mid:[...oFLB.mid],bot:[...oFLB.bot]};state.oppFlMode=false;}
   document.getElementById('resultBand').classList.remove('show');document.getElementById('flEntryBanner').classList.remove('show');
-  showFLIntro(()=>{ sortFlHand(); renderGame(); setTimeout(()=>{updateScoreBar();updateButtonUI();},50); });
+  showFLIntro(flCards, ()=>{ sortFlHand(); renderGame(); setTimeout(()=>{updateScoreBar();updateButtonUI();},50); });
 }
 document.getElementById('btnAdvice').addEventListener('click',()=>{
   const panel=document.getElementById('advicePanel');const ov=document.getElementById('adviceOverlay');const t=document.getElementById('adviceContent');
@@ -1494,6 +1851,8 @@ function closeDrawer(){document.getElementById('drawerSheet').classList.remove('
 document.getElementById('btnMenu').addEventListener('click',openDrawer);
 document.getElementById('drawerBackdrop').addEventListener('click',closeDrawer);
 document.getElementById('drawerNewGame').addEventListener('click',()=>{closeDrawer();newGame();});
+document.getElementById('drawerBackToTitle').addEventListener('click',()=>{closeDrawer();backToTitle();});
+function backToTitle(){showScreen('title');}
 function openOuts(){
   const table=document.getElementById('outsTable');
   const used=new Set();
@@ -1511,7 +1870,7 @@ function closeOuts(){document.getElementById('outsSheet').classList.remove('open
 document.getElementById('btnOuts').addEventListener('click',openOuts);
 document.getElementById('btnCloseOuts').addEventListener('click',closeOuts);
 document.getElementById('outsBackdrop').addEventListener('click',closeOuts);
-document.getElementById('btnStart').addEventListener('click',()=>newGame());
+// DISABLED: document.getElementById('btnStart').addEventListener('click',()=>newGame());
 
 // ===== ドラッグ&ドロップ（手札 + ボード上カード移動対応）=====
 (function(){
@@ -1652,7 +2011,7 @@ document.getElementById('btnStart').addEventListener('click',()=>newGame());
         else{renderGame();}
       }
     }else{
-      if(drag.fromHand){onHandClick(drag.card);}
+      if(drag.fromHand){touchHandledTime=Date.now();onHandClick(drag.card);}
       else{onSlot(drag.fromRow,drag.fromIdx);}
     }
     drag=null;dragging=false;
@@ -1669,10 +2028,45 @@ document.getElementById('btnStart').addEventListener('click',()=>newGame());
 // ===== FL UI拡張 =====
 let flSortMode = 'rank';
 
-function showFLIntro(callback){
+function showFLIntro(flCards, callback){
   const ov = document.getElementById('flIntroOverlay');
+  
+  // 枚数に応じた表示と色
+  const flNames = {14:'QQ', 15:'KK', 16:'AA', 17:'TRIPS'};
+  const flColors = {
+    14: {bg:'radial-gradient(ellipse at center,#2a2a2a 0%,#111 100%)', text:'#9ca3af', glow:'rgba(156,163,175,0.5)'},
+    15: {bg:'radial-gradient(ellipse at center,#0a1628 0%,#000 100%)', text:'#3b82f6', glow:'rgba(59,130,246,0.6)'},
+    16: {bg:'radial-gradient(ellipse at center,#1a1200 0%,#000 100%)', text:'#f59e0b', glow:'rgba(245,158,11,0.6)'},
+    17: {bg:'radial-gradient(ellipse at center,#1a0000 0%,#000 100%)', text:'#ef4444', glow:'rgba(239,68,68,0.6)'}
+  };
+  
+  const c = flColors[flCards] || flColors[16];
+  
+  const cardsEl = document.getElementById('flIntroCards');
+  const typeEl = document.getElementById('flIntroType');
+  const ring = ov.querySelector('.fl-intro-ring');
+  
+  // 背景色を変更
+  ov.style.background = c.bg;
+  
+  // リングの色を変更
+  if(ring) {
+    ring.style.borderColor = c.text;
+    ring.style.boxShadow = '0 0 40px '+c.glow+',inset 0 0 30px '+c.glow.replace('0.6','0.15');
+  }
+  
+  if(cardsEl) {
+    cardsEl.textContent = flCards;
+    cardsEl.style.textShadow = '0 0 30px '+c.glow+',0 0 60px '+c.glow.replace('0.6','0.3');
+  }
+  if(typeEl) {
+    typeEl.textContent = flNames[flCards] + ' FANTASY';
+    typeEl.style.color = c.text;
+    typeEl.style.textShadow = '0 0 20px '+c.glow;
+  }
+  
   ov.classList.add('show');
-  setTimeout(()=>{ ov.classList.remove('show'); setTimeout(callback, 350); }, 1300);
+  setTimeout(()=>{ ov.classList.remove('show'); setTimeout(callback, 350); }, 1800);
 }
 
 function shortDesc(desc){
@@ -1769,6 +2163,10 @@ function sortFlHand(){
 // ===== FL 役ボタン + グループ選択 + まとめてドラッグ =====
 let flGroupSel = {role:null, combos:[], idx:0};
 
+// ===== 最適化: メモ化キャッシュ =====
+let handComboCache = {};
+let handCacheKey = '';
+
 function getCombinations(arr,k){
   if(k===0)return[[]];
   if(arr.length<k)return[];
@@ -1776,7 +2174,81 @@ function getCombinations(arr,k){
   return [...getCombinations(rest,k-1).map(c=>[first,...c]),...getCombinations(rest,k)];
 }
 
+// ===== 最適化: 軽量チェック（ボタン表示用）=====
+function hasRoleAvailable(hand, role){
+  const n=hand.filter(c=>!c.isJoker);
+  const jks=hand.filter(c=>c.isJoker);
+  const byR={};
+  n.forEach(c=>{if(!byR[c.r])byR[c.r]=[];byR[c.r].push(c);});
+  const bySuit={};
+  n.forEach(c=>{if(!bySuit[c.s])bySuit[c.s]=[];bySuit[c.s].push(c);});
+  
+  if(role==='pair') return n.length>=1 || jks.length>=2;
+  if(role==='twopair'){
+    const pairCount=Object.values(byR).filter(g=>g.length>=2).length;
+    return pairCount>=2 || (pairCount>=1 && jks.length>=1);
+  }
+  if(role==='trips'){
+    const hasTrips=Object.values(byR).some(g=>g.length>=3);
+    const hasPair=Object.values(byR).some(g=>g.length>=2);
+    return hasTrips || (hasPair && jks.length>=1) || jks.length>=2;
+  }
+  if(role==='flush'){
+    const maxSuit=Math.max(...Object.values(bySuit).map(g=>g.length),0);
+    return maxSuit+jks.length>=5;
+  }
+  if(role==='straight'){
+    const ranks=new Set(n.map(c=>rankVal(c.r)));
+    // 連続5枚の可能性チェック（JK補完）
+    for(let start=2;start<=10;start++){
+      let have=0;
+      for(let r=start;r<start+5;r++) if(ranks.has(r))have++;
+      if(have+jks.length>=5) return true;
+    }
+    // A-2-3-4-5
+    let lowHave=0;
+    for(const r of [14,2,3,4,5]) if(ranks.has(r))lowHave++;
+    if(lowHave+jks.length>=5) return true;
+    return false;
+  }
+  if(role==='fullhouse'){
+    const trips=Object.values(byR).filter(g=>g.length>=3).length;
+    const pairs=Object.values(byR).filter(g=>g.length>=2).length;
+    return (trips>=1 && pairs>=2) || (trips>=2) || (jks.length>=1 && pairs>=2);
+  }
+  if(role==='quads'){
+    const hasQuads=Object.values(byR).some(g=>g.length>=4);
+    const hasTrips=Object.values(byR).some(g=>g.length>=3);
+    return hasQuads || (hasTrips && jks.length>=1) || jks.length>=2;
+  }
+  if(role==='strflush'){
+    for(const suit of Object.keys(bySuit)){
+      const suitCards=bySuit[suit];
+      if(suitCards.length+jks.length<5) continue;
+      const ranks=new Set(suitCards.map(c=>rankVal(c.r)));
+      for(let start=2;start<=10;start++){
+        let have=0;
+        for(let r=start;r<start+5;r++) if(ranks.has(r))have++;
+        if(have+jks.length>=5) return true;
+      }
+      let lowHave=0;
+      for(const r of [14,2,3,4,5]) if(ranks.has(r))lowHave++;
+      if(lowHave+jks.length>=5) return true;
+    }
+    return false;
+  }
+  return false;
+}
+
 function getHandCombinations(hand, role){
+  // ===== 最適化: キャッシュチェック =====
+  const key = hand.map(c=>c.id).sort().join(',');
+  if(handCacheKey !== key){
+    handCacheKey = key;
+    handComboCache = {};
+  }
+  if(handComboCache[role]) return handComboCache[role];
+  
   const n=hand.filter(c=>!c.isJoker);
   const jks=hand.filter(c=>c.isJoker);
   const results=[];
@@ -1784,38 +2256,28 @@ function getHandCombinations(hand, role){
   if(role==='pair'){
     const byR={};
     n.forEach(c=>{if(!byR[c.r])byR[c.r]=[];byR[c.r].push(c);});
-    // 同ランクのペアは1通りとして扱う（3枚以上あっても代表の2枚のみ）
     for(const cards of Object.values(byR)){
       if(cards.length>=2) results.push([cards[0],cards[1]]);
     }
     if(jks.length>=1){
-      // JK+各ランク(1通りずつ)
       const seen=new Set();
       n.forEach(c=>{if(!seen.has(c.r)){seen.add(c.r);results.push([jks[0],c]);}});
     }
   } else if(role==='twopair'){
-    // ツーペア: ペア2組の4枚のみ（キッカー不要）
     const byR={};
     n.forEach(c=>{if(!byR[c.r])byR[c.r]=[];byR[c.r].push(c);});
     const pairRanks=Object.entries(byR).filter(([r,cs])=>cs.length>=2).map(([r,cs])=>cs);
-    // ペア2組（4枚）の組み合わせ
     for(let i=0;i<pairRanks.length;i++){
       for(let j=i+1;j<pairRanks.length;j++){
-        const p1=pairRanks[i].slice(0,2);
-        const p2=pairRanks[j].slice(0,2);
-        results.push([...p1,...p2]);
+        results.push([...pairRanks[i].slice(0,2),...pairRanks[j].slice(0,2)]);
       }
     }
-    // JK1枚がある場合: JK+任意ランク1枚 で作るペア + 既存ペア1組
     if(jks.length>=1){
       const seen=new Set();
       pairRanks.forEach(pair=>{
         n.filter(c=>c.r!==pair[0].r).forEach(c=>{
           const key=[pair[0].r,c.r].sort().join('-');
-          if(!seen.has(key)){
-            seen.add(key);
-            results.push([pair[0],pair[1],jks[0],c]);
-          }
+          if(!seen.has(key)){seen.add(key);results.push([pair[0],pair[1],jks[0],c]);}
         });
       });
     }
@@ -1828,48 +2290,84 @@ function getHandCombinations(hand, role){
     }
     if(jks.length>=2) n.forEach(c=>results.push([jks[0],jks[1],c]));
   } else {
+    // ===== 最適化: 5枚役の事前フィルタリング =====
     const rankMap={straight:4,flush:5,fullhouse:6,quads:7,strflush:8};
     const target=rankMap[role];
-    const combos=getCombinations(hand,5);
-    for(const combo of combos){
+    
+    // 早期判定: hasRoleAvailableで可能性チェック済みなので基本的には存在する
+    const bySuit={};
+    hand.forEach(c=>{if(!c.isJoker){if(!bySuit[c.s])bySuit[c.s]=[];bySuit[c.s].push(c);}});
+    
+    let candidateCombos;
+    if(role==='flush' || role==='strflush'){
+      // フラッシュ/ストフラ: 同スーツ5枚以上のみ探索
+      candidateCombos=[];
+      for(const suit of Object.keys(bySuit)){
+        const suitCards=[...bySuit[suit],...jks];
+        if(suitCards.length>=5){
+          candidateCombos.push(...getCombinations(suitCards,5));
+        }
+      }
+      // JK2枚の場合は別スーツも補完可能
+      if(jks.length>=2){
+        candidateCombos=getCombinations(hand,5);
+      }
+    } else {
+      candidateCombos=getCombinations(hand,5);
+    }
+    
+    for(const combo of candidateCombos){
       const ev=eval5(combo,false);
-      if(ev.rank===target) results.push(combo);
+      // ストフラの場合はロイヤル(rank=9)も含める
+      if(ev.rank===target || (role==='strflush' && ev.rank===9)) results.push(combo);
     }
   }
 
-  // 重複除去
   const seen=new Set();const unique=[];
   for(const combo of results){
-    const key=combo.map(c=>c.id).sort().join(',');
-    if(!seen.has(key)){seen.add(key);unique.push(combo);}
+    const k=combo.map(c=>c.id).sort().join(',');
+    if(!seen.has(k)){seen.add(k);unique.push(combo);}
   }
-  // ロイヤリティ+ランク降順ソート
   unique.sort((a,b)=>{
     const ea=role==='pair'||role==='trips'?{royalty:0,rank:Math.max(...a.map(c=>rankVal(c.r)))}:eval5(a,false);
     const eb=role==='pair'||role==='trips'?{royalty:0,rank:Math.max(...b.map(c=>rankVal(c.r)))}:eval5(b,false);
     return (eb.royalty||eb.rank)-(ea.royalty||ea.rank);
   });
+  
+  handComboCache[role] = unique;
   return unique;
 }
 
 function updateRoleButtons(){
   document.querySelectorAll('.fl-role-btn').forEach(btn=>{
     const role=btn.dataset.role;
-    const combos=getHandCombinations(state.hand,role);
-    btn.classList.toggle('unavail',combos.length===0);
-    btn.classList.toggle('active',flGroupSel.role===role);
-    // コンボ数表示（複数ある場合）
+    // ===== 最適化: 軽量チェックでボタン表示を判定 =====
+    const avail = hasRoleAvailable(state.hand, role);
     const base={pair:'ペア',twopair:'ツーペア',trips:'トリップス',straight:'ストレート',flush:'フラッシュ',fullhouse:'フルハウス',quads:'フォーカーズ',strflush:'ストフラ'};
-    if(flGroupSel.role===role&&combos.length>1){
-      btn.textContent=`${base[role]} ${flGroupSel.idx+1}/${combos.length}`;
+    
+    if(flGroupSel.role===role){
+      // 選択中の役のみフル計算
+      let combos=getHandCombinations(state.hand,role);
+  // JK不使用パターンを優先
+  combos=combos.sort((a,b)=>{
+    const aJk=a.some(c=>c.isJoker);
+    const bJk=b.some(c=>c.isJoker);
+    return aJk===bJk?0:(aJk?1:-1);
+  });
+      btn.classList.toggle('unavail',combos.length===0);
+      btn.classList.add('active');
+      btn.textContent=combos.length>1?`${base[role]} ${flGroupSel.idx+1}/${combos.length}`:base[role];
     } else {
+      btn.classList.toggle('unavail',!avail);
+      btn.classList.remove('active');
       btn.textContent=base[role];
     }
   });
 }
 
 function onRoleBtnClick(role){
-  const combos=getHandCombinations(state.hand,role);
+  let combos=getHandCombinations(state.hand,role);
+  combos.sort((a,b)=>{const aJk=a.some(c=>c.isJoker);const bJk=b.some(c=>c.isJoker);return aJk===bJk?0:(aJk?1:-1);});
   if(combos.length===0)return;
   if(flGroupSel.role===role){
     flGroupSel.idx=(flGroupSel.idx+1)%combos.length;
@@ -1943,18 +2441,28 @@ function applyOverlapLayout(){
   });
 }
 
-// FL捨てスロット表示
+// FL捨てスロット表示（タップで手札に戻す機能付き）
 function renderFLDiscardSlots(){
   const bar = document.getElementById('flDiscardSlots');
   if(!bar) return;
   bar.innerHTML = '';
   const discardNeeded = state.flCards - 13;
   if(discardNeeded <= 0) return;
-  // 捨て済みカード表示
-  state.flDiscard.forEach(card=>{
+  // 捨て済みカード表示（タップで手札に戻す）
+  state.flDiscard.forEach((card, idx)=>{
     const ce = makeCard(card);
     ce.style.width='36px';ce.style.height='50px';ce.style.fontSize='0.7em';
-    ce.style.opacity='0.5';
+    ce.style.opacity='0.6';
+    ce.style.cursor='pointer';
+    ce.style.transition='opacity 0.15s, transform 0.15s';
+    ce.addEventListener('click', function(e){
+      e.stopPropagation();
+      // 捨て札から手札に戻す
+      state.flDiscard.splice(idx, 1);
+      state.hand.push(card);
+      renderGame();
+      showToast('手札に戻しました');
+    });
     bar.appendChild(ce);
   });
   // 空スロット表示
@@ -2039,18 +2547,28 @@ function checkFLContinue(board){
   return false;
 }
 
-// FL捨てスロット表示
+// FL捨てスロット表示（タップで手札に戻す機能付き）
 function renderFLDiscardSlots(){
   const bar = document.getElementById('flDiscardSlots');
   if(!bar) return;
   bar.innerHTML = '';
   const discardNeeded = state.flCards - 13;
   if(discardNeeded <= 0) return;
-  // 捨て済みカード表示
-  state.flDiscard.forEach(card=>{
+  // 捨て済みカード表示（タップで手札に戻す）
+  state.flDiscard.forEach((card, idx)=>{
     const ce = makeCard(card);
     ce.style.width='36px';ce.style.height='50px';ce.style.fontSize='0.7em';
-    ce.style.opacity='0.5';
+    ce.style.opacity='0.6';
+    ce.style.cursor='pointer';
+    ce.style.transition='opacity 0.15s, transform 0.15s';
+    ce.addEventListener('click', function(e){
+      e.stopPropagation();
+      // 捨て札から手札に戻す
+      state.flDiscard.splice(idx, 1);
+      state.hand.push(card);
+      renderGame();
+      showToast('手札に戻しました');
+    });
     bar.appendChild(ce);
   });
   // 空スロット表示
@@ -2193,6 +2711,639 @@ function getFLTapSelCards(){
 }
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+
+
+// ===== FL練習モード v5 =====
+// 視覚的に改善された結果表示
+let flPracticeMode = false;
+let flPracticeCards = 14;
+let flPracticeDealt = [];
+
+document.addEventListener('DOMContentLoaded', function(){ initModeSelect(); });
+if(document.readyState !== 'loading'){ setTimeout(initModeSelect, 100); }
+
+function initModeSelect(){
+  console.log('initModeSelect v5');
+  
+  var btnStart = document.getElementById('btnStart');
+  if(btnStart) btnStart.onclick = function(e){ e.preventDefault(); showScreen('mode-select'); };
+  
+  var btnBackToTitle = document.getElementById('btnBackToTitle');
+  if(btnBackToTitle) btnBackToTitle.onclick = function(e){ e.preventDefault(); showScreen('title'); };
+  
+  var btnBackToMode = document.getElementById('btnBackToMode');
+  if(btnBackToMode) btnBackToMode.onclick = function(e){ e.preventDefault(); showScreen('mode-select'); };
+  
+  var btnBackToModeFromAI = document.getElementById('btnBackToModeFromAI');
+  if(btnBackToModeFromAI) btnBackToModeFromAI.onclick = function(e){ e.preventDefault(); showScreen('mode-select'); };
+  
+  var btnModeNormal = document.getElementById('btnModeNormal');
+  if(btnModeNormal) btnModeNormal.onclick = function(e){ e.preventDefault(); showScreen('ai-select'); };
+  
+  var btnAI2P = document.getElementById('btnAI2P');
+  if(btnAI2P) btnAI2P.onclick = function(e){ e.preventDefault(); flPracticeMode = false; if(typeof newGame === 'function') newGame(); };
+  
+  var btnModeFlPractice = document.getElementById('btnModeFlPractice');
+  if(btnModeFlPractice) btnModeFlPractice.onclick = function(e){ e.preventDefault(); showScreen('fl-select'); };
+  
+  document.querySelectorAll('.fl-card-btn').forEach(function(btn){
+    btn.onclick = function(e){
+      e.preventDefault();
+      flPracticeCards = parseInt(btn.getAttribute('data-fl'));
+      flPracticeMode = true;
+      startFLPractice();
+    };
+  });
+  
+  var flPrBtnMenu = document.getElementById('flPrBtnMenu');
+  if(flPrBtnMenu) flPrBtnMenu.onclick = function(e){ e.preventDefault(); document.getElementById('flPracticeResult').classList.remove('show'); showScreen('fl-select'); };
+  
+  var flPrBtnAgain = document.getElementById('flPrBtnAgain');
+  if(flPrBtnAgain) flPrBtnAgain.onclick = function(e){ e.preventDefault(); document.getElementById('flPracticeResult').classList.remove('show'); startFLPractice(); };
+}
+
+function startFLPractice(){
+  console.log('[FL] startFLPractice called, flPracticeCards=', flPracticeCards);
+  console.log('startFLPractice v5, cards:', flPracticeCards);
+  
+  if(typeof makeDeck !== 'function') return;
+  var deck = makeDeck();
+  for(var i = deck.length - 1; i > 0; i--){
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = deck[i]; deck[i] = deck[j]; deck[j] = tmp;
+  }
+  
+  flPracticeDealt = deck.slice(0, flPracticeCards);
+  
+  state.flMode = true;
+  state.flCards = flPracticeCards;
+  state.hand = flPracticeDealt.slice();
+  state.flDiscard = [];
+  state.playerBoard = {top:[], mid:[], bot:[]};
+  state.oppBoard = {top:[], mid:[], bot:[]};
+  state.gameOver = false;
+  state.phase = 'fl-place';
+  state.selectedCard = null;
+  state.round = 1;
+  
+  showScreen('game');
+  
+  var pa = document.getElementById('playerArea');
+  if(pa) pa.classList.add('fl-mode');
+  var ha = document.getElementById('handArea');
+  if(ha) ha.classList.add('fl-mode');
+  var ep = document.getElementById('flEvalPanel');
+  if(ep) ep.classList.add('show');
+  var hw = document.getElementById('flHandWrap');
+  if(hw) hw.classList.add('show');
+  var rbo = document.getElementById('flRoleBarOuter');
+  if(rbo) rbo.classList.add('show');
+  
+  var oppArea = document.querySelector('.opp-area');
+  if(oppArea) oppArea.style.display = 'none';
+  var scoreBar = document.getElementById('scoreBar');
+  if(scoreBar) scoreBar.style.display = 'none';
+  
+  var gt = document.getElementById('gameTitle');
+  if(gt) gt.innerHTML = 'FL PRACTICE <span class="fl-badge">' + flPracticeCards + '</span>';
+  
+  var rd = document.getElementById('roundDots');
+  if(rd) rd.innerHTML = '';
+  
+  if(typeof clearGroupSel === 'function') clearGroupSel();
+  if(typeof clearFLTapSel === 'function') clearFLTapSel();
+  if(typeof renderGame === 'function') renderGame();
+}
+
+function confirmFLPractice(){
+  // 計算中UI表示
+  showCalculating();
+  
+  // 非同期で計算実行（UI更新のため）
+  setTimeout(function(){
+    confirmFLPracticeInternal();
+    hideCalculating();
+  }, 50);
+}
+
+function confirmFLPracticeInternal(){
+  var total = state.playerBoard.top.length + state.playerBoard.mid.length + state.playerBoard.bot.length;
+  var discardNeeded = state.flCards - 13;
+  
+  if(total !== 13){
+    if(typeof showToast === 'function') showToast('13枚配置してください');
+    return;
+  }
+  if(state.flDiscard.length !== discardNeeded){
+    if(typeof showToast === 'function') showToast('あと' + (discardNeeded - state.flDiscard.length) + '枚捨ててください');
+    return;
+  }
+  
+  console.log('[FL] flPracticeDealt=', flPracticeDealt.length, flPracticeDealt.map(c => c.id).join(','));
+  var optimal = findBestFLPlacement(flPracticeDealt);
+  console.log('[FL] optimal=', optimal ? 'found' : 'null');
+  var userEval = evaluateFLBoard(state.playerBoard);
+  var optEval = optimal ? evaluateFLBoard(optimal) : {bonus: 0, refantasy: false, score: 0};
+  
+  showFLPracticeResult(state.playerBoard, optimal, userEval, optEval);
+}
+
+function evaluateFLBoard(board){
+  if(!board) return {bonus: 0, refantasy: false, foul: true, score: -6};
+  
+  var topE = eval3(board.top);
+  var midE = eval5(board.mid, false);
+  var botE = eval5(board.bot, true);
+  
+  var foul = isFoul(board);
+  if(foul) return {bonus: 0, refantasy: false, foul: true, score: -6, topE: topE, midE: midE, botE: botE};
+  
+  var bonus = (topE.royalty || 0) + (midE.royalty || 0) + (botE.royalty || 0);
+  var refantasy = (topE.rank >= 2) || (botE.rank >= 7);
+  
+  var score = bonus;
+  if(refantasy){
+    var flEv = {14: 25, 15: 40, 16: 69, 17: 133};
+    score += flEv[17] || 133;
+  }
+  
+  return {bonus: bonus, refantasy: refantasy, foul: false, score: score, topE: topE, midE: midE, botE: botE};
+}
+
+function showFLPracticeResult(userBoard, optBoard, userEval, optEval){
+  var el = document.getElementById('flPracticeResult');
+  if(!el) return;
+  
+  // 点数差バナー
+  var diff = userEval.score - optEval.score;
+  var banner = document.getElementById('flPrDiffBanner');
+  var diffVal = document.getElementById('flPrDiffVal');
+  
+  if(banner && diffVal){
+    banner.className = 'fl-pr-diff-banner';
+    diffVal.className = 'fl-pr-diff-val';
+    
+    if(diff >= 0){
+      banner.classList.add('perfect');
+      diffVal.classList.add('perfect');
+      diffVal.textContent = '正解！';
+      // SCORE DIFFも小さく表示
+      var subText = document.createElement('div');
+      subText.style.cssText = 'font-size:14px;color:#666;margin-top:5px;';
+      subText.textContent = 'SCORE DIFF: ' + (diff >= 0 ? '+' : '') + diff;
+      diffVal.appendChild(subText);
+    } else {
+      banner.classList.add('loss');
+      diffVal.classList.add('loss');
+      diffVal.textContent = '不正解';
+      var subText2 = document.createElement('div');
+      subText2.style.cssText = 'font-size:14px;color:#666;margin-top:5px;';
+      subText2.textContent = 'SCORE DIFF: ' + diff;
+      diffVal.appendChild(subText2);
+    }
+  }
+  
+  // ユーザーボード
+  renderFLPrBoardV5('flPrUserBoard', userBoard, userEval);
+  var userBadge = document.getElementById('flPrUserBadge');
+  if(userBadge){
+    if(userEval.foul){
+      userBadge.textContent = 'FOUL';
+      userBadge.className = 'fl-pr-section-badge foul';
+    } else if(userEval.refantasy){
+      userBadge.textContent = 'REFANTASY';
+      userBadge.className = 'fl-pr-section-badge refan';
+    } else {
+      userBadge.textContent = 'NO REFAN';
+      userBadge.className = 'fl-pr-section-badge norefan';
+    }
+  }
+  var userBonus = document.getElementById('flPrUserBonus');
+  if(userBonus) userBonus.textContent = userEval.foul ? 'FOUL' : '+' + userEval.bonus;
+  
+  // 最適ボード
+  if(optBoard){
+    renderFLPrBoardV5('flPrOptBoard', optBoard, optEval);
+    var optBadge = document.getElementById('flPrOptBadge');
+    if(optBadge){
+      if(optEval.refantasy){
+        optBadge.textContent = 'REFANTASY';
+        optBadge.className = 'fl-pr-section-badge refan';
+      } else {
+        optBadge.textContent = 'NO REFAN';
+        optBadge.className = 'fl-pr-section-badge norefan';
+      }
+    }
+    var optBonus = document.getElementById('flPrOptBonus');
+    if(optBonus) optBonus.textContent = '+' + optEval.bonus;
+  }
+  
+  el.classList.add('show');
+}
+
+// カードを視覚的に表示
+function renderFLPrBoardV5(containerId, board, evalResult){
+  var container = document.getElementById(containerId);
+  if(!container) return;
+  container.innerHTML = '';
+  
+  var SUIT_SYMBOLS = {s:'♠', h:'♥', d:'♦', c:'♣'};
+  var rows = ['top', 'mid', 'bot'];
+  var rowLabels = {top:'TOP', mid:'MID', bot:'BOT'};
+  
+  for(var ri = 0; ri < rows.length; ri++){
+    var row = rows[ri];
+    var rowEl = document.createElement('div');
+    rowEl.className = 'fl-pr-row';
+    
+    // ラベル
+    var labelEl = document.createElement('div');
+    labelEl.className = 'fl-pr-row-label';
+    labelEl.textContent = rowLabels[row];
+    rowEl.appendChild(labelEl);
+    
+    // カード
+    var cardsEl = document.createElement('div');
+    cardsEl.className = 'fl-pr-cards';
+    
+    var cardList = board[row] || [];
+    for(var ci = 0; ci < cardList.length; ci++){
+      var card = cardList[ci];
+      var cardEl = document.createElement('div');
+      
+      if(card.isJoker){
+        cardEl.className = 'fl-pr-card joker';
+        var rankSpan = document.createElement('span');
+        rankSpan.className = 'rank';
+        rankSpan.textContent = 'JK';
+        cardEl.appendChild(rankSpan);
+      } else {
+        cardEl.className = 'fl-pr-card fl-pr-card-' + card.s;
+        var rankSpan = document.createElement('span');
+        rankSpan.className = 'rank';
+        rankSpan.textContent = card.r;
+        cardEl.appendChild(rankSpan);
+        var suitSpan = document.createElement('span');
+        suitSpan.className = 'suit';
+        suitSpan.textContent = SUIT_SYMBOLS[card.s] || '';
+        cardEl.appendChild(suitSpan);
+      }
+      
+      cardsEl.appendChild(cardEl);
+    }
+    
+    rowEl.appendChild(cardsEl);
+    
+    // 役名
+    var evalEl = document.createElement('div');
+    evalEl.className = 'fl-pr-eval';
+    if(evalResult){
+      if(row === 'top' && evalResult.topE) evalEl.textContent = evalResult.topE.name || '';
+      if(row === 'mid' && evalResult.midE) evalEl.textContent = evalResult.midE.name || '';
+      if(row === 'bot' && evalResult.botE) evalEl.textContent = evalResult.botE.name || '';
+    }
+    rowEl.appendChild(evalEl);
+    
+    container.appendChild(rowEl);
+  }
+}
+
+// 最適配置計算
+
+// 計算中オーバーレイ表示
+function showCalculating(){
+  var overlay = document.getElementById('calculatingOverlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'calculatingOverlay';
+    overlay.className = 'calculating-overlay';
+    overlay.innerHTML = '<div class="calculating-spinner"></div><div class="calculating-text">最適配置を計算中...</div>';
+    document.body.appendChild(overlay);
+  }
+  overlay.style.display = 'flex';
+}
+
+function hideCalculating(){
+  var overlay = document.getElementById('calculatingOverlay');
+  if(overlay) overlay.style.display = 'none';
+}
+
+// バックグラウンド計算用変数
+var bgCalcResult = null;
+var bgCalcCards = null;
+var bgCalcRunning = false;
+
+// バックグラウンド計算開始（配置変更時に呼ぶ）
+function startBgCalc(cards){
+  if(bgCalcRunning) return;
+  bgCalcCards = cards.slice();
+  bgCalcResult = null;
+  bgCalcRunning = true;
+  
+  // 非同期で計算開始
+  setTimeout(function(){
+    try {
+      bgCalcResult = findBestFLPlacement(bgCalcCards);
+    } catch(e) {
+      console.error('BG calc error:', e);
+    }
+    bgCalcRunning = false;
+  }, 10);
+}
+
+// バックグラウンド計算結果を取得
+function getBgCalcResult(currentCards){
+  // カードが同じなら結果を返す
+  if(bgCalcResult && bgCalcCards && 
+     currentCards.length === bgCalcCards.length &&
+     currentCards.every(function(c,i){ return c.id === bgCalcCards[i].id; })){
+    return bgCalcResult;
+  }
+  return null;
+}
+
+function findBestFLPlacement(cards){
+  // ============================================================
+  // FL最適配置アルゴリズム v27.8
+  // 
+  // 【リファン条件】
+  //   TOPトリップス (rank>=2) OR BOTクワッズ以上 (rank>=7)
+  //
+  // 【v27.8改善点】
+  //   - JK2枚でストフラ/ロイヤル候補を追加
+  //   - ツーペア候補を全組み合わせで探索
+  // ============================================================
+  
+  var allCards = cards;
+  var bestPlacement = null;
+  var bestBonus = -1;
+  var bestIsRefan = false;
+  
+  var RANKS = ['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
+  var SUITS = ['s','h','d','c'];
+  
+  function rankVal(r){ return RANKS.indexOf(r) + 2; }
+  
+  function tryPlacement(top, mid, bot){
+    if(top.length !== 3 || mid.length !== 5 || bot.length !== 5) return;
+    if(isFoulSimple({top:top, mid:mid, bot:bot})) return;
+    var topE = eval3(top), midE = eval5(mid, false), botE = eval5(bot, true);
+    var refan = (topE.rank >= 2) || (botE.rank >= 7);
+    var bonus = (topE.royalty || 0) + (midE.royalty || 0) + (botE.royalty || 0);
+    if(refan && !bestIsRefan){ bestPlacement = {top:top.slice(), mid:mid.slice(), bot:bot.slice()}; bestBonus = bonus; bestIsRefan = true; }
+    else if(refan === bestIsRefan && bonus > bestBonus){ bestPlacement = {top:top.slice(), mid:mid.slice(), bot:bot.slice()}; bestBonus = bonus; }
+  }
+  
+  function removeIds(arr, toRemove){
+    var ids = {}; for(var i = 0; i < toRemove.length; i++) ids[toRemove[i].id] = true;
+    return arr.filter(function(c){ return !ids[c.id]; });
+  }
+  
+  function C(arr, k){
+    if(k === 0) return [[]]; if(arr.length < k) return [];
+    var result = [];
+    function rec(start, combo){
+      if(combo.length === k){ result.push(combo.slice()); return; }
+      for(var i = start; i <= arr.length - (k - combo.length); i++){ combo.push(arr[i]); rec(i + 1, combo); combo.pop(); }
+    }
+    rec(0, []); return result;
+  }
+  
+  var jkCards = allCards.filter(function(c){ return c.isJoker; });
+  var normalCards = allCards.filter(function(c){ return !c.isJoker; });
+  var rankCards = {};
+  normalCards.forEach(function(c){ if(!rankCards[c.r]) rankCards[c.r] = []; rankCards[c.r].push(c); });
+  var suitCards = {s:[], h:[], d:[], c:[]};
+  normalCards.forEach(function(c){ suitCards[c.s].push(c); });
+  
+  var SF = [[12,0,1,2,3],[0,1,2,3,4],[1,2,3,4,5],[2,3,4,5,6],[3,4,5,6,7],[4,5,6,7,8],[5,6,7,8,9],[6,7,8,9,10],[7,8,9,10,11],[8,9,10,11,12]];
+  
+  // ========================================
+  // 探索A: TOPトリップス
+  // ========================================
+  var topTripsPatterns = [];
+  for(var ri = RANKS.length - 1; ri >= 0; ri--){
+    var sameRank = rankCards[RANKS[ri]] || [];
+    if(sameRank.length >= 3) topTripsPatterns.push(sameRank.slice(0, 3));
+  }
+  if(jkCards.length >= 1){
+    for(var ri = RANKS.length - 1; ri >= 0; ri--){
+      var sameRank = rankCards[RANKS[ri]] || [];
+      if(sameRank.length >= 2) topTripsPatterns.push([sameRank[0], sameRank[1], jkCards[0]]);
+    }
+  }
+  if(jkCards.length >= 2){
+    for(var ri = RANKS.length - 1; ri >= 0; ri--){
+      var sameRank = rankCards[RANKS[ri]] || [];
+      if(sameRank.length >= 1) topTripsPatterns.push([sameRank[0], jkCards[0], jkCards[1]]);
+    }
+  }
+  
+  for(var ti = 0; ti < topTripsPatterns.length; ti++){
+    var topCards = topTripsPatterns[ti];
+    var remaining = removeIds(allCards, topCards);
+    var botCombos = C(remaining, 5);
+    var sampleSize = Math.min(botCombos.length, 200);
+    for(var bi = 0; bi < sampleSize; bi++){
+      var idx = sampleSize === botCombos.length ? bi : Math.floor(Math.random() * botCombos.length);
+      var bot = botCombos[idx], mid = removeIds(remaining, bot);
+      if(mid.length === 5) tryPlacement(topCards, mid, bot);
+    }
+  }
+  
+  // ========================================
+  // 探索B: BOTクワッズ
+  // ========================================
+  for(var ri = RANKS.length - 1; ri >= 0; ri--){
+    var sameRank = rankCards[RANKS[ri]] || [];
+    if(sameRank.length + jkCards.length >= 4){
+      var quadCards = sameRank.slice(0, Math.min(4, sameRank.length));
+      var needJk = 4 - quadCards.length;
+      if(needJk <= jkCards.length) quadCards = quadCards.concat(jkCards.slice(0, needJk));
+      if(quadCards.length === 4){
+        var remaining = removeIds(allCards, quadCards);
+        for(var ki = 0; ki < Math.min(remaining.length, 8); ki++){
+          var bot = quadCards.concat([remaining[ki]]);
+          var topMidPool = removeIds(remaining, [remaining[ki]]);
+          var topCombos = C(topMidPool, 3);
+          for(var tci = 0; tci < topCombos.length; tci++){
+            var top = topCombos[tci], mid = removeIds(topMidPool, top);
+            if(mid.length === 5) tryPlacement(top, mid, bot);
+          }
+        }
+      }
+    }
+  }
+  
+  // ========================================
+  // 探索C: BOT高ロイヤルティ役 → 全TOP候補
+  // ========================================
+  var allBotCandidates = [];
+  var seenBots = {};
+  
+  function addBotCandidate(cards){
+    if(cards.length !== 5) return;
+    var key = cards.map(function(c){ return c.id; }).sort().join(',');
+    if(!seenBots[key]){ seenBots[key] = true; allBotCandidates.push(cards); }
+  }
+  
+  // フルハウス
+  for(var ri = RANKS.length - 1; ri >= 0; ri--){
+    var trips = rankCards[RANKS[ri]] || [];
+    if(trips.length >= 3){
+      for(var rj = RANKS.length - 1; rj >= 0; rj--){
+        if(rj === ri) continue;
+        var pair = rankCards[RANKS[rj]] || [];
+        if(pair.length >= 2) addBotCandidate(trips.slice(0,3).concat(pair.slice(0,2)));
+      }
+    }
+    if(jkCards.length >= 1 && trips.length >= 2){
+      for(var rj = RANKS.length - 1; rj >= 0; rj--){
+        if(rj === ri) continue;
+        var pair = rankCards[RANKS[rj]] || [];
+        if(pair.length >= 2) addBotCandidate(trips.slice(0,2).concat([jkCards[0]]).concat(pair.slice(0,2)));
+      }
+    }
+  }
+  
+  // フラッシュ: 全組み合わせ
+  for(var si = 0; si < SUITS.length; si++){
+    var suited = suitCards[SUITS[si]].slice();
+    if(suited.length >= 5){
+      var flushCombos = C(suited, 5);
+      for(var fi = 0; fi < flushCombos.length; fi++) addBotCandidate(flushCombos[fi]);
+    }
+    if(suited.length >= 4 && jkCards.length >= 1){
+      var flush4 = C(suited, 4);
+      for(var fi = 0; fi < flush4.length; fi++) addBotCandidate(flush4[fi].concat([jkCards[0]]));
+    }
+    if(suited.length >= 3 && jkCards.length >= 2){
+      var flush3 = C(suited, 3);
+      for(var fi = 0; fi < flush3.length; fi++) addBotCandidate(flush3[fi].concat(jkCards.slice(0,2)));
+    }
+  }
+  
+  // ストレートフラッシュ（JK使用含む）
+  for(var si = 0; si < SUITS.length; si++){
+    var s = SUITS[si];
+    var suited = suitCards[s];
+    for(var pi = SF.length - 1; pi >= 0; pi--){
+      var pat = SF[pi];
+      // JK0枚
+      var sf0 = [];
+      var ok0 = true;
+      for(var i = 0; i < pat.length; i++){
+        var found = suited.filter(function(c){ return c.r === RANKS[pat[i]]; })[0];
+        if(found) sf0.push(found); else { ok0 = false; break; }
+      }
+      if(ok0 && sf0.length === 5) addBotCandidate(sf0);
+      
+      // JK1枚
+      if(jkCards.length >= 1){
+        for(var skip = 0; skip < pat.length; skip++){
+          var sf1 = [];
+          var ok1 = true;
+          for(var i = 0; i < pat.length; i++){
+            if(i === skip){ sf1.push(jkCards[0]); continue; }
+            var found = suited.filter(function(c){ return c.r === RANKS[pat[i]]; })[0];
+            if(found) sf1.push(found); else { ok1 = false; break; }
+          }
+          if(ok1 && sf1.length === 5) addBotCandidate(sf1);
+        }
+      }
+      
+      // JK2枚
+      if(jkCards.length >= 2){
+        for(var skip1 = 0; skip1 < pat.length; skip1++){
+          for(var skip2 = skip1 + 1; skip2 < pat.length; skip2++){
+            var sf2 = [];
+            var ok2 = true;
+            for(var i = 0; i < pat.length; i++){
+              if(i === skip1){ sf2.push(jkCards[0]); continue; }
+              if(i === skip2){ sf2.push(jkCards[1]); continue; }
+              var found = suited.filter(function(c){ return c.r === RANKS[pat[i]]; })[0];
+              if(found) sf2.push(found); else { ok2 = false; break; }
+            }
+            if(ok2 && sf2.length === 5) addBotCandidate(sf2);
+          }
+        }
+      }
+    }
+  }
+  
+  // 通常ストレート
+  for(var pi = SF.length - 1; pi >= 0; pi--){
+    var pat = SF[pi], strCards = [], jkUsed = 0, ok = true;
+    for(var i = 0; i < pat.length; i++){
+      var found = (rankCards[RANKS[pat[i]]] || [])[0];
+      if(found) strCards.push(found);
+      else if(jkUsed < jkCards.length){ strCards.push(jkCards[jkUsed]); jkUsed++; }
+      else { ok = false; break; }
+    }
+    if(ok && strCards.length === 5) addBotCandidate(strCards);
+  }
+  
+  // ツーペア: 全ペア組み合わせ
+  var pairRanks = [];
+  for(var ri = RANKS.length - 1; ri >= 0; ri--){
+    var pair = rankCards[RANKS[ri]] || [];
+    if(pair.length >= 2) pairRanks.push({ r: RANKS[ri], cards: pair.slice(0,2) });
+  }
+  for(var pi = 0; pi < pairRanks.length; pi++){
+    for(var pj = pi + 1; pj < pairRanks.length; pj++){
+      var twoPair = pairRanks[pi].cards.concat(pairRanks[pj].cards);
+      var kickers = normalCards.filter(function(c){ return !twoPair.some(function(p){ return p.id === c.id; }); })
+        .sort(function(a,b){ return rankVal(b.r) - rankVal(a.r); });
+      for(var ki = 0; ki < Math.min(kickers.length, 5); ki++){
+        addBotCandidate(twoPair.concat([kickers[ki]]));
+      }
+    }
+  }
+  
+  // 各BOT候補から全TOP候補を試す
+  for(var bi = 0; bi < allBotCandidates.length; bi++){
+    var bot = allBotCandidates[bi];
+    var remaining = removeIds(allCards, bot);
+    if(remaining.length < 8) continue;
+    var topCombos = C(remaining, 3);
+    for(var tci = 0; tci < topCombos.length; tci++){
+      var top = topCombos[tci], mid = removeIds(remaining, top);
+      if(mid.length === 5) tryPlacement(top, mid, bot);
+    }
+  }
+  
+  // ========================================
+  // 探索D: ランダムサンプリング
+  // ========================================
+  for(var sample = 0; sample < 200; sample++){
+    var shuffled = allCards.slice();
+    for(var i = shuffled.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var tmp = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = tmp; }
+    tryPlacement(shuffled.slice(0, 3), shuffled.slice(3, 8), shuffled.slice(8, 13));
+  }
+  
+  return bestPlacement;
+}
+
+function handleConfirmFL(){
+  if(flPracticeMode && state && state.flMode){
+    confirmFLPractice();
+    return true;
+  }
+  return false;
+}
+
+(function patchConfirmBtn(){
+  var btnConfirm = document.getElementById('btnConfirm');
+  if(btnConfirm){
+    var origHandler = btnConfirm.onclick;
+    btnConfirm.onclick = function(e){
+      if(handleConfirmFL()) return;
+      if(origHandler) origHandler.call(this, e);
+      else if(typeof onConfirm === 'function') onConfirm();
+    };
+  }
+})();
+
 </script>
 </body>
 </html>
