@@ -1226,6 +1226,11 @@ function fillBoard(board, cards){
   }
 }
 function aiFLPlace(cards){
+  // findBestFL17を使って最適配置を求める
+  var result = findBestFL17(cards);
+  if(result) return result;
+  
+  // フォールバック（万が一findBestFL17が失敗した場合）
   const board={top:[],mid:[],bot:[]};const sorted=[...cards].sort((a,b)=>rankVal(b.r)-rankVal(a.r));
   const byR={};for(const c of sorted){if(!byR[c.r])byR[c.r]=[];byR[c.r].push(c);}
   const trips=Object.values(byR).filter(g=>g.length>=3).sort((a,b)=>rankVal(b[0].r)-rankVal(a[0].r));
