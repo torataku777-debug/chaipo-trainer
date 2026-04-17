@@ -992,6 +992,42 @@ function logEndGame(score){
   window._currentGameLog = null;
 }
 
+// 途中離脱時のログ保存
+function flushCurrentGameLog(reason){
+  if(!window._currentGameLog) return;
+  try{
+    window._currentGameLog.aborted = true;
+    window._currentGameLog.abort_reason = reason || 'unknown';
+    window._currentGameLog.abort_round = state ? state.round : null;
+    window._currentGameLog.abort_phase = state ? state.phase : null;
+    if(state && state.playerBoard){
+      window._currentGameLog.player.final_board = _logBoard(state.playerBoard);
+    }
+    if(state && state.oppBoard){
+      window._currentGameLog.opponent.final_board = _logBoard(state.oppBoard);
+    }
+    try{
+      if(state && state.playerBoard && state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length > 0){
+        const pRes = getBestValidEvals(state.playerBoard);
+        window._currentGameLog.player.result = {
+          fl: !pRes.isFoul && (pRes.topEval.flCards||0) >= 15,
+          fl_cards: !pRes.isFoul ? (pRes.topEval.flCards||0) : 0,
+          foul: !!pRes.isFoul,
+          partial: true,
+        };
+      }
+    }catch(e){}
+    let logs = [];
+    try{ logs = JSON.parse(localStorage.getItem(CHAIPO_LOG_KEY) || '[]'); }catch(e){ logs = []; }
+    logs.push(window._currentGameLog);
+    if(logs.length > 500) logs = logs.slice(-500);
+    localStorage.setItem(CHAIPO_LOG_KEY, JSON.stringify(logs));
+    console.log('[chaipo_log] aborted game saved:', reason, 'total:', logs.length);
+  }catch(e){
+    console.error('[chaipo_log] flush error:', e);
+  }
+  window._currentGameLog = null;
+}
 
 /* ===== CHAIPO STATS (Phase 3) ===== */
 function calcChaipoStats(){
@@ -1800,7 +1836,7 @@ function newGame(){
   updateButtonUI();
 
   const deck=shuffle(makeDeck());let idx=0;const deal=n=>deck.slice(idx,idx+=n);
-  state={phase:'place5',round:1,playerBoard:{top:[],mid:[],bot:[]},oppBoard:{top:[],mid:[],bot:[]},hand:[],discard:[],selectedCard:null,deck,deckIdx:idx,flMode:false,oppFlMode:false,flCards:0,flDiscard:[],gameOver:false,oppPendingBoard:null,oppPendingPlace:null,oppPlayedThisRound:false};
+  state={phase:'place5',round:1,playerBoard:{top:[],mid:[],bot:[]},oppBoard:{top:[],mid:[],bot:[]},hand:[],discard:[],selectedCard:null,deck,deckIdx:idx,flMode:false,oppFlMode:false,flCards:0,flDiscard:[],gameOver:false,oppPendingBoard:null,oppPendingPlace:null,oppPlayedThisRound:false,wasFL:false,oppWasFL:false};
   state.hand=deal(5);
   const oppH=deal(5);
   const oP=aiPlace5(oppH);
@@ -2244,6 +2280,18 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{
       nextFlCards = getFLC(savedBoard);
       console.log('FL初入り判定: '+shouldStartFL+' cards='+nextFlCards);
     }
+
+    // ===== FL から平場に落ちる瞬間にマッチ終了判定 =====
+    // wasFL=true かつ shouldStartFL=false = FL 落ち→平場
+    // この時点でスコアが 0 以下ならマッチ終了
+    if(wasFL && !shouldStartFL && (sessionScore.you <= 0 || sessionScore.opp <= 0)){
+      console.log('[match] FL 落ち + 0 以下 → マッチ終了');
+      try{ checkMatchEnd(); }catch(e){ console.error('[match] checkMatchEnd error:', e); }
+      // マッチ終了バナーが出ている間は newGame しない
+      // 「次のマッチへ」タップで resetMatch 実行後、ユーザが再度 PLAY するフロー
+      return;
+    }
+
     newGame();
     if(shouldStartFL && nextFlCards>=14){
       setTimeout(()=>startFL(nextFlCards), 100);
@@ -2335,8 +2383,8 @@ function openDrawer(){document.getElementById('drawerSheet').classList.add('open
 function closeDrawer(){document.getElementById('drawerSheet').classList.remove('open');document.getElementById('drawerBackdrop').classList.remove('open');}
 document.getElementById('btnMenu').addEventListener('click',openDrawer);
 document.getElementById('drawerBackdrop').addEventListener('click',closeDrawer);
-document.getElementById('drawerNewGame').addEventListener('click',()=>{closeDrawer();newGame();});
-document.getElementById('drawerBackToTitle').addEventListener('click',()=>{closeDrawer();backToTitle();});
+document.getElementById('drawerNewGame').addEventListener('click',()=>{closeDrawer();try{flushCurrentGameLog('drawer_new_game');}catch(e){}newGame();});
+document.getElementById('drawerBackToTitle').addEventListener('click',()=>{closeDrawer();try{flushCurrentGameLog('drawer_back_to_title');}catch(e){}backToTitle();});
 function backToTitle(){showScreen('title');}
 function openOuts(){
   const table=document.getElementById('outsTable');
@@ -2984,9 +3032,11 @@ function endGameFL(){
   const savedFlCards = state.flCards;
 
   // ★ flMode=false にしてからUI描画（FL画面が表示されないように）
-  state.savedFlCards=savedFlCards; // CONFIRMで継続判定に使う
-  state.wasFL=true; // FL終了フラグ
+  state.savedFlCards=savedFlCards;
+  state.wasFL=true;
+  state.oppWasFL=!!state.oppFlMode;
   state.flMode=false;
+  state.oppFlMode=false;
 
   // 点数計算・結果表示
   const score=calcScore(state.playerBoard,state.oppBoard);
@@ -3136,9 +3186,8 @@ function applyScoreResult(net){
   updateScoreBar();
 
   // ===== マッチ勝敗判定 =====
-  // FL 関連ゲーム (プレイヤー or 相手が FL 中) はスキップ
-  // 両者とも平場に戻って 0 以下になったらマッチ終了
-  const isFlRelated = !!(state.flMode) || !!(state.oppFlMode);
+  // FL 関連ゲーム (プレイヤー or 相手が FL 中 or 直前まで FL だった) はスキップ
+  const isFlRelated = !!(state.flMode) || !!(state.oppFlMode) || !!(state.wasFL) || !!(state.oppWasFL);
   if(!isFlRelated && (sessionScore.you <= 0 || sessionScore.opp <= 0)){
     try{ checkMatchEnd(); }catch(e){ console.error('[match] checkMatchEnd error:', e); }
   }
