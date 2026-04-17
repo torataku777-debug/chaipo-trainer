@@ -529,6 +529,10 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
       <span class="mode-btn-title">FL練習</span>
       <span class="mode-btn-sub">ファンタジーランドの配置を練習</span>
     </button>
+    <button class="mode-btn" id="btnModeStats" style="background:#fff;color:#111;border:1px solid #ddd;margin-top:4px;">
+      <span class="mode-btn-title">📊 スタッツ</span>
+      <span class="mode-btn-sub">プレイ履歴・FL 率・リファン率</span>
+    </button>
   </div>
 </div>
 
@@ -987,6 +991,182 @@ function logEndGame(score){
   }
   window._currentGameLog = null;
 }
+
+
+/* ===== CHAIPO STATS (Phase 3) ===== */
+function calcChaipoStats(){
+  let logs = [];
+  let matches = [];
+  try{ logs = JSON.parse(localStorage.getItem(CHAIPO_LOG_KEY) || '[]'); }catch(e){ logs = []; }
+  try{ matches = JSON.parse(localStorage.getItem(CHAIPO_MATCHES_KEY) || '[]'); }catch(e){ matches = []; }
+
+  // 対戦モードのみ集計対象
+  const versusLogs = logs.filter(l => l && l.mode === 'versus');
+  const totalGames = versusLogs.length;
+  const totalMatches = matches.length;
+
+  // FL 到達 (プレイヤー視点)
+  let flCount = 0;
+  let foulCount = 0;
+  let netSum = 0;
+  const flBreakdown = {14:0, 15:0, 16:0, 17:0};
+
+  // リファンタジー率 (正しい定義):
+  //   分母 = FL に入った全ゲーム数 (平場→FL + FL→FL)
+  //   分子 = 前ゲームが FL 中 かつ 今ゲームも FL (FL→FL 継続成功数)
+  let flEntryCount = 0;      // FL に入った全ゲーム数 (分母)
+  let flRefantasyCount = 0;  // FL→FL 継続成功数 (分子)
+
+  for(let i = 0; i < versusLogs.length; i++){
+    const g = versusLogs[i];
+    if(!g || !g.player) continue;
+    const res = g.player.result || {};
+    const isFl = !!res.fl;
+    const isFoul = !!res.foul;
+    const flCards = res.fl_cards || 0;
+    const flStart = !!g.player_fl_start;  // このゲーム自体が FL 中だった
+
+    if(isFl) flCount++;
+    if(isFoul) foulCount++;
+    if(isFl && flBreakdown.hasOwnProperty(flCards)) flBreakdown[flCards]++;
+
+    // net 累積
+    if(g.match && typeof g.match.net === 'number') netSum += g.match.net;
+
+    // リファンタジー計算
+    // 「FL に入った」= そのゲームで FL 条件を満たした (isFl)
+    // 前ゲームが FL 中 (flStart=true) で、今ゲームも FL を満たした = FL→FL 継続
+    // 前ゲームが平場 (flStart=false) で、今ゲームで FL を満たした = 平場→FL 新規
+    if(isFl){
+      flEntryCount++;
+      if(flStart) flRefantasyCount++;
+    }
+  }
+
+  // マッチ勝率
+  const matchWins = matches.filter(m => m && m.player_won && !m.draw).length;
+  const matchDraws = matches.filter(m => m && m.draw).length;
+  const matchLosses = totalMatches - matchWins - matchDraws;
+
+  // 平均 net
+  const avgNet = totalGames > 0 ? (netSum / totalGames) : 0;
+
+  return {
+    totalGames: totalGames,
+    totalMatches: totalMatches,
+    flCount: flCount,
+    flRate: totalGames > 0 ? (flCount / totalGames * 100) : 0,
+    flBreakdown: flBreakdown,
+    refantasyRate: flEntryCount > 0 ? (flRefantasyCount / flEntryCount * 100) : 0,
+    flEntryCount: flEntryCount,
+    flRefantasyCount: flRefantasyCount,
+    foulCount: foulCount,
+    foulRate: totalGames > 0 ? (foulCount / totalGames * 100) : 0,
+    matchWins: matchWins,
+    matchDraws: matchDraws,
+    matchLosses: matchLosses,
+    matchWinRate: totalMatches > 0 ? (matchWins / totalMatches * 100) : 0,
+    avgNet: avgNet,
+    netSum: netSum,
+  };
+}
+
+function showStatsModal(){
+  const s = calcChaipoStats();
+  // データなしガード
+  if(s.totalGames === 0 && s.totalMatches === 0){
+    alert('まだプレイログがありません。対戦モードでプレイしてみてください。');
+    return;
+  }
+
+  const old = document.getElementById('statsModal');
+  if(old) old.remove();
+
+  // ヘルパー: 数値フォーマット
+  const pct = (v) => v.toFixed(1) + '%';
+  const fxd = (v, d) => v.toFixed(d);
+
+  const bdKeys = [14, 15, 16, 17];
+  const bdTotal = bdKeys.reduce((a,k)=>a+s.flBreakdown[k], 0);
+  const bdRowsHtml = bdKeys.map(k => {
+    const count = s.flBreakdown[k];
+    const ratio = bdTotal > 0 ? (count/bdTotal*100) : 0;
+    const label = k===14?'QQ':k===15?'KK':k===16?'AA':'TRIPS';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;">' +
+      '<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:#c8a030;font-weight:700;width:40px;">' + k + '枚</div>' +
+      '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:10px;color:#888;width:50px;">' + label + '</div>' +
+      '<div style="flex:1;height:6px;background:#f3f4f6;border-radius:3px;overflow:hidden;"><div style="height:100%;background:linear-gradient(90deg,#c8a030,#e0b840);width:' + (bdTotal>0?ratio:0) + '%;"></div></div>' +
+      '<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:#111;font-weight:700;min-width:30px;text-align:right;">' + count + '</div>' +
+    '</div>';
+  }).join('');
+
+  const statItem = (label, value, sub) => {
+    return '<div style="display:flex;flex-direction:column;gap:2px;padding:10px 8px;background:#f8f9fa;border-radius:8px;flex:1;min-width:90px;">' +
+      '<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#888;letter-spacing:0.1em;text-transform:uppercase;">' + label + '</div>' +
+      '<div style="font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:700;color:#111;">' + value + '</div>' +
+      (sub ? '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:9px;color:#6b7280;">' + sub + '</div>' : '') +
+    '</div>';
+  };
+
+  const modal = document.createElement('div');
+  modal.id = 'statsModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:3100;background:rgba(0,0,0,0.6);display:flex;align-items:flex-start;justify-content:center;padding:20px;padding-top:calc(env(safe-area-inset-top,0px) + 20px);backdrop-filter:blur(6px);overflow-y:auto;';
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:16px;padding:18px;max-width:380px;width:100%;display:flex;flex-direction:column;gap:14px;margin-bottom:20px;box-shadow:0 20px 60px rgba(0,0,0,0.4);">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+        '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:18px;font-weight:700;color:#111;">📊 スタッツ</div>' +
+        '<button id="statsModalClose" style="background:none;border:none;font-size:24px;cursor:pointer;color:#666;line-height:1;padding:0 4px;">×</button>' +
+      '</div>' +
+
+      // 総プレイ数セクション
+      '<div style="display:flex;flex-direction:column;gap:6px;">' +
+        '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#888;letter-spacing:0.12em;">OVERALL</div>' +
+        '<div style="display:flex;gap:8px;">' +
+          statItem('総ゲーム数', s.totalGames, '対戦モード') +
+          statItem('総マッチ数', s.totalMatches, '0点以下で終了') +
+        '</div>' +
+      '</div>' +
+
+      // FL セクション
+      '<div style="display:flex;flex-direction:column;gap:6px;">' +
+        '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#c8a030;letter-spacing:0.12em;">FANTASY LAND</div>' +
+        '<div style="display:flex;gap:8px;">' +
+          statItem('FL率', pct(s.flRate), s.flCount + '/' + s.totalGames + ' ゲーム') +
+          statItem('リファン率', pct(s.refantasyRate), s.flRefantasyCount + '/' + s.flEntryCount + ' FL') +
+        '</div>' +
+        (bdTotal > 0 ? '<div style="padding:10px;background:#fffdf5;border:1px solid rgba(200,160,48,0.2);border-radius:8px;margin-top:4px;">' +
+          '<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#9a6e10;letter-spacing:0.1em;margin-bottom:4px;">FL 内訳</div>' +
+          bdRowsHtml +
+        '</div>' : '') +
+      '</div>' +
+
+      // マッチ勝敗セクション
+      (s.totalMatches > 0 ?
+        '<div style="display:flex;flex-direction:column;gap:6px;">' +
+          '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#888;letter-spacing:0.12em;">MATCH RESULT</div>' +
+          '<div style="display:flex;gap:8px;">' +
+            statItem('勝率', pct(s.matchWinRate), s.matchWins + '勝 ' + s.matchLosses + '敗' + (s.matchDraws > 0 ? ' ' + s.matchDraws + '分' : '')) +
+          '</div>' +
+        '</div>' : '') +
+
+      // その他
+      '<div style="display:flex;flex-direction:column;gap:6px;">' +
+        '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#888;letter-spacing:0.12em;">OTHER</div>' +
+        '<div style="display:flex;gap:8px;">' +
+          statItem('ファウル率', pct(s.foulRate), s.foulCount + '/' + s.totalGames) +
+          statItem('平均 net', (s.avgNet >= 0 ? '+' : '') + fxd(s.avgNet, 1), '1ゲームあたり') +
+        '</div>' +
+      '</div>' +
+
+      '<button id="statsModalOk" style="padding:12px;background:#111;color:#fff;border:none;border-radius:10px;font-family:\'Space Grotesk\',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px;">閉じる</button>' +
+    '</div>';
+
+  document.body.appendChild(modal);
+  document.getElementById('statsModalClose').onclick = function(){ modal.remove(); };
+  document.getElementById('statsModalOk').onclick = function(){ modal.remove(); };
+  modal.addEventListener('click', function(e){ if(e.target === modal) modal.remove(); });
+}
+/* ===== END CHAIPO STATS ===== */
 
 function exportChaipoLogs(){
   let logs = [];
@@ -2955,8 +3135,11 @@ function applyScoreResult(net){
 
   updateScoreBar();
 
-  // ===== マッチ勝敗判定: どちらかが 0 以下でマッチ終了 =====
-  if(sessionScore.you <= 0 || sessionScore.opp <= 0){
+  // ===== マッチ勝敗判定 =====
+  // FL 関連ゲーム (プレイヤー or 相手が FL 中) はスキップ
+  // 両者とも平場に戻って 0 以下になったらマッチ終了
+  const isFlRelated = !!(state.flMode) || !!(state.oppFlMode);
+  if(!isFlRelated && (sessionScore.you <= 0 || sessionScore.opp <= 0)){
     try{ checkMatchEnd(); }catch(e){ console.error('[match] checkMatchEnd error:', e); }
   }
 }
@@ -3138,6 +3321,10 @@ function initModeSelect(){
   
   var btnModeNormal = document.getElementById('btnModeNormal');
   if(btnModeNormal) btnModeNormal.onclick = function(e){ e.preventDefault(); showScreen('ai-select'); };
+
+  // スタッツボタン (Phase 3 v28.4)
+  var btnModeStats = document.getElementById('btnModeStats');
+  if(btnModeStats) btnModeStats.onclick = function(e){ e.preventDefault(); showStatsModal(); };
   
   var btnAI2P = document.getElementById('btnAI2P');
   if(btnAI2P) btnAI2P.onclick = function(e){ e.preventDefault(); flPracticeMode = false; if(typeof newGame === 'function') newGame(); };
