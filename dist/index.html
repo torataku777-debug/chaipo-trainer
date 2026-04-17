@@ -991,7 +991,9 @@ function logEndGame(score){
 function exportChaipoLogs(){
   let logs = [];
   try{ logs = JSON.parse(localStorage.getItem(CHAIPO_LOG_KEY) || '[]'); }catch(e){ logs = []; }
-  if(logs.length === 0){
+  let matches = [];
+  try{ matches = JSON.parse(localStorage.getItem(CHAIPO_MATCHES_KEY) || '[]'); }catch(e){ matches = []; }
+  if(logs.length === 0 && matches.length === 0){
     alert('ログがまだありません。対戦モードでプレイしてからエクスポートしてください。');
     return;
   }
@@ -999,6 +1001,8 @@ function exportChaipoLogs(){
     exported_at: new Date().toISOString(),
     app_version: CHAIPO_LOG_VERSION,
     total_games: logs.length,
+    total_matches: matches.length,
+    matches: matches,
     games: logs,
   };
   const json = JSON.stringify(payload, null, 2);
@@ -2950,6 +2954,99 @@ function applyScoreResult(net){
   }
 
   updateScoreBar();
+
+  // ===== マッチ勝敗判定: どちらかが 0 以下でマッチ終了 =====
+  if(sessionScore.you <= 0 || sessionScore.opp <= 0){
+    try{ checkMatchEnd(); }catch(e){ console.error('[match] checkMatchEnd error:', e); }
+  }
+}
+
+// ===== マッチ管理 =====
+const CHAIPO_MATCHES_KEY = 'chaipo_matches';
+
+function checkMatchEnd(){
+  // 勝者決定: 0以下にならなかった側が勝ち
+  // 両方同時に0以下なら、スコアが高い側(マイナスが少ない側)が勝ち
+  const playerWon = sessionScore.you > sessionScore.opp;
+  const draw = sessionScore.you === sessionScore.opp;
+
+  // マッチ結果を記録
+  try{
+    let matches = [];
+    try{ matches = JSON.parse(localStorage.getItem(CHAIPO_MATCHES_KEY) || '[]'); }catch(e){ matches = []; }
+    matches.push({
+      timestamp: new Date().toISOString(),
+      player_final_score: sessionScore.you,
+      opp_final_score: sessionScore.opp,
+      games_played: sessionScore.games,
+      player_won: playerWon,
+      draw: draw,
+    });
+    if(matches.length > 500) matches = matches.slice(-500);
+    localStorage.setItem(CHAIPO_MATCHES_KEY, JSON.stringify(matches));
+    console.log('[match] saved. total matches:', matches.length);
+  }catch(e){ console.error('[match] save error:', e); }
+
+  // バナー表示
+  showMatchEndBanner(playerWon, draw);
+}
+
+function showMatchEndBanner(playerWon, draw){
+  // 既存のバナーがあれば削除
+  const old = document.getElementById('matchEndBanner');
+  if(old) old.remove();
+
+  const titleText = draw ? '🤝 MATCH DRAW' : (playerWon ? '🏆 MATCH WIN' : '😢 MATCH LOSE');
+  const titleColor = draw ? '#6b7280' : (playerWon ? '#c8a030' : '#ff3b5c');
+  const bgGrad = draw ? 'linear-gradient(135deg,#f3f4f6,#e5e7eb)' :
+                  (playerWon ? 'linear-gradient(135deg,rgba(200,160,48,0.15),rgba(245,166,35,0.08))' :
+                               'linear-gradient(135deg,rgba(255,59,92,0.12),rgba(255,59,92,0.04))');
+  const borderColor = draw ? '#d1d5db' : (playerWon ? '#c8a030' : '#ff3b5c');
+
+  const banner = document.createElement('div');
+  banner.id = 'matchEndBanner';
+  banner.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);';
+  banner.innerHTML =
+    '<div style="background:#fff;border-radius:18px;padding:24px 22px;max-width:340px;width:100%;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 60px rgba(0,0,0,0.4);">' +
+      '<div style="background:'+bgGrad+';border:2px solid '+borderColor+';border-radius:14px;padding:18px 14px;text-align:center;">' +
+        '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:22px;font-weight:700;color:'+titleColor+';letter-spacing:0.08em;">'+titleText+'</div>' +
+        '<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:#888;letter-spacing:0.1em;margin-top:6px;">'+sessionScore.games+' ゲーム / '+(playerWon?'勝利':draw?'引分':'敗北')+'</div>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-around;padding:8px 0;">' +
+        '<div style="text-align:center;">' +
+          '<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#888;letter-spacing:0.1em;">YOU</div>' +
+          '<div style="font-family:\'JetBrains Mono\',monospace;font-size:28px;font-weight:700;color:'+(sessionScore.you>0?'#111':'#ff3b5c')+';">'+sessionScore.you+'</div>' +
+        '</div>' +
+        '<div style="font-family:\'JetBrains Mono\',monospace;font-size:14px;color:#ccc;align-self:center;">VS</div>' +
+        '<div style="text-align:center;">' +
+          '<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#888;letter-spacing:0.1em;">OPP</div>' +
+          '<div style="font-family:\'JetBrains Mono\',monospace;font-size:28px;font-weight:700;color:'+(sessionScore.opp>0?'#111':'#ff3b5c')+';">'+sessionScore.opp+'</div>' +
+        '</div>' +
+      '</div>' +
+      '<button id="btnNextMatch" style="padding:14px;background:#111;color:#fff;border:none;border-radius:10px;font-family:\'Space Grotesk\',sans-serif;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:0.05em;">次のマッチへ →</button>' +
+      '<button id="btnMatchToTitle" style="padding:10px;background:#fff;color:#666;border:1px solid #ddd;border-radius:10px;font-family:\'Space Grotesk\',sans-serif;font-size:12px;cursor:pointer;">タイトルに戻る</button>' +
+    '</div>';
+  document.body.appendChild(banner);
+
+  document.getElementById('btnNextMatch').onclick = function(){
+    resetMatch();
+    banner.remove();
+  };
+  document.getElementById('btnMatchToTitle').onclick = function(){
+    resetMatch();
+    banner.remove();
+    if(typeof backToTitle === 'function') backToTitle();
+  };
+}
+
+function resetMatch(){
+  const INITIAL_SCORE = 100;
+  sessionScore.you = INITIAL_SCORE;
+  sessionScore.opp = INITIAL_SCORE;
+  sessionScore.games = 0;
+  updateScoreBar();
+  resetScoreTransition();
+  console.log('[match] reset to', INITIAL_SCORE);
 }
 
 function resetScoreTransition(){
