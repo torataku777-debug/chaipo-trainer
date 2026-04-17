@@ -367,9 +367,10 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 
 /* ===== FL練習モード ===== */
 #screen-mode-select{z-index:10;background:#ffffff;padding:0;justify-content:flex-start;}
+#screen-ai-select{z-index:10;background:#ffffff;padding:0;justify-content:flex-start;}
 .mode-select-body{width:100%;padding:20px 24px;padding-top:calc(var(--safe-top) + 12px);padding-bottom:calc(40px + var(--safe-bottom));display:flex;flex-direction:column;gap:16px;}
-.mode-select-title{font-family:var(--font-ui);font-size:20px;font-weight:700;color:#111;letter-spacing:-0.02em;margin-bottom:4px;}
-.mode-select-desc{font-size:13px;color:#888;line-height:1.5;margin-bottom:12px;}
+.mode-select-title{font-family:var(--font-ui);font-size:22px;font-weight:700;color:#111;letter-spacing:-0.02em;margin-bottom:2px;}
+.mode-select-desc{font-size:13px;color:#888;line-height:1.5;margin-bottom:8px;}
 .mode-btn{width:100%;font-family:var(--font-ui);font-size:15px;font-weight:600;padding:18px 20px;border:1px solid var(--game-border);border-radius:14px;background:#fff;color:#111;cursor:pointer;transition:all 0.15s;text-align:left;display:flex;flex-direction:column;gap:4px;}
 .mode-btn:active{transform:scale(0.98);background:#f8f8f8;}
 .mode-btn-title{font-size:16px;font-weight:700;}
@@ -378,13 +379,72 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 .mode-btn.primary .mode-btn-sub{color:#aaa;}
 .mode-btn.gold{background:linear-gradient(135deg,#c8a030,#e0b840);color:#fff;border-color:#c8a030;}
 .mode-btn.gold .mode-btn-sub{color:rgba(255,255,255,0.7);}
-.btn-back{font-family:var(--font-ui);font-size:13px;font-weight:500;padding:10px;background:transparent;border:none;color:#888;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.btn-back{
+  font-family:var(--font-ui);font-size:14px;font-weight:600;
+  padding:14px 24px;background:#fff;border:1px solid var(--game-border);
+  color:#555;cursor:pointer;border-radius:9999px;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  margin:0 auto;margin-top:auto;
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+  transition:all 0.15s;
+  width:auto;min-width:120px;
+  letter-spacing:0.02em;
+}
+.btn-back:active{transform:scale(0.96);background:#f8f8f8;}
+
+/* ===== 選択画面共通: 背景デザインアクセント ===== */
+#screen-mode-select,#screen-ai-select,#screen-fl-select{
+  position:fixed;overflow:hidden;
+}
+#screen-mode-select::before,#screen-ai-select::before,#screen-fl-select::before{
+  content:'';position:absolute;
+  top:-180px;right:-120px;
+  width:420px;height:420px;border-radius:50%;
+  background:radial-gradient(circle,rgba(200,160,48,0.10) 0%,rgba(200,160,48,0.03) 40%,transparent 70%);
+  pointer-events:none;z-index:0;
+}
+#screen-mode-select::after,#screen-ai-select::after,#screen-fl-select::after{
+  content:'';position:absolute;
+  bottom:-180px;left:-120px;
+  width:360px;height:360px;border-radius:50%;
+  background:radial-gradient(circle,rgba(113,112,255,0.06) 0%,rgba(113,112,255,0.02) 40%,transparent 70%);
+  pointer-events:none;z-index:0;
+}
+
+/* 選択画面 body のコンテンツは前面に */
+.mode-select-body,.fl-select-body{
+  position:relative;z-index:1;
+  flex:1;min-height:100vh;
+  justify-content:flex-start;
+}
+
+/* 選択画面 body のコンテンツエリアを上下に分ける */
+.select-content{
+  display:flex;flex-direction:column;gap:14px;
+  flex:1;
+}
+.select-footer{
+  padding-top:20px;
+  display:flex;justify-content:center;
+  padding-bottom:10px;
+}
+
+/* ミニパイナップル装飾 (右上ふんわり) */
+.select-deco-icon{
+  position:absolute;
+  top:calc(var(--safe-top) + 20px);
+  right:20px;
+  width:56px;height:56px;
+  opacity:0.15;
+  pointer-events:none;
+  z-index:1;
+}
 .btn-back:active{color:#555;}
 
 /* FL枚数選択 */
-#screen-fl-select{z-index:10;background:#ffffff;padding:0;}
-.fl-select-body{width:100%;padding:28px 24px;padding-bottom:calc(40px + var(--safe-bottom));display:flex;flex-direction:column;gap:16px;}
-.fl-select-title{font-family:var(--font-ui);font-size:22px;font-weight:700;color:#111;margin-bottom:4px;}
+#screen-fl-select{z-index:10;background:#ffffff;padding:0;justify-content:flex-start;}
+.fl-select-body{width:100%;padding:20px 24px;padding-top:calc(var(--safe-top) + 12px);padding-bottom:calc(40px + var(--safe-bottom));display:flex;flex-direction:column;gap:16px;}
+.fl-select-title{font-family:var(--font-ui);font-size:22px;font-weight:700;color:#111;letter-spacing:-0.02em;margin-bottom:2px;}
 .fl-select-desc{font-size:13px;color:#888;line-height:1.5;margin-bottom:8px;}
 .fl-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .fl-card-btn{padding:20px 16px;border:2px solid rgba(200,160,48,0.3);border-radius:14px;background:rgba(200,160,48,0.04);cursor:pointer;transition:all 0.15s;display:flex;flex-direction:column;align-items:center;gap:6px;}
@@ -517,68 +577,113 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 </div>
 
 <div class="screen" id="screen-mode-select">
+  <svg class="select-deco-icon" viewBox="0 0 280 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="140" y1="118" x2="140" y2="12" stroke="#c8a030" stroke-width="10" stroke-linecap="round"/>
+    <line x1="140" y1="118" x2="102" y2="28" stroke="#c8a030" stroke-width="8" stroke-linecap="round"/>
+    <line x1="140" y1="118" x2="178" y2="28" stroke="#c8a030" stroke-width="8" stroke-linecap="round"/>
+    <ellipse cx="140" cy="248" rx="105" ry="118" stroke="#c8a030" stroke-width="10" fill="none"/>
+    <line x1="44" y1="200" x2="236" y2="200" stroke="#c8a030" stroke-width="5"/>
+    <line x1="36" y1="270" x2="244" y2="270" stroke="#c8a030" stroke-width="4.5"/>
+    <line x1="90" y1="140" x2="90" y2="355" stroke="#c8a030" stroke-width="4.5"/>
+    <line x1="140" y1="132" x2="140" y2="365" stroke="#c8a030" stroke-width="5"/>
+    <line x1="190" y1="140" x2="190" y2="355" stroke="#c8a030" stroke-width="4.5"/>
+  </svg>
   <div class="mode-select-body">
-    <button class="btn-back" id="btnBackToTitle">< Back</button>
-    <div class="mode-select-title">モード選択</div>
-    <div class="mode-select-desc">プレイモードを選んでください</div>
-    <button class="mode-btn primary" id="btnModeNormal">
-      <span class="mode-btn-title">通常プレイ</span>
-      <span class="mode-btn-sub">AIと対戦してスコアを競う</span>
-    </button>
-    <button class="mode-btn gold" id="btnModeFlPractice">
-      <span class="mode-btn-title">FL練習</span>
-      <span class="mode-btn-sub">ファンタジーランドの配置を練習</span>
-    </button>
-    <button class="mode-btn" id="btnModeStats" style="background:#fff;color:#111;border:1px solid #ddd;margin-top:4px;">
-      <span class="mode-btn-title">📊 スタッツ</span>
-      <span class="mode-btn-sub">プレイ履歴・FL 率・リファン率</span>
-    </button>
+    <div class="select-content">
+      <div class="mode-select-title">モード選択</div>
+      <div class="mode-select-desc">プレイモードを選んでください</div>
+      <button class="mode-btn primary" id="btnModeNormal">
+        <span class="mode-btn-title">通常プレイ</span>
+        <span class="mode-btn-sub">AIと対戦してスコアを競う</span>
+      </button>
+      <button class="mode-btn gold" id="btnModeFlPractice">
+        <span class="mode-btn-title">FL練習</span>
+        <span class="mode-btn-sub">ファンタジーランドの配置を練習</span>
+      </button>
+      <button class="mode-btn" id="btnModeStats">
+        <span class="mode-btn-title">スタッツ</span>
+        <span class="mode-btn-sub">プレイ履歴・FL 率・リファン率</span>
+      </button>
+    </div>
+    <div class="select-footer">
+      <button class="btn-back" id="btnBackToTitle">← タイトルに戻る</button>
+    </div>
   </div>
 </div>
 
 
 <div class="screen" id="screen-ai-select">
+  <svg class="select-deco-icon" viewBox="0 0 280 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="140" y1="118" x2="140" y2="12" stroke="#c8a030" stroke-width="10" stroke-linecap="round"/>
+    <line x1="140" y1="118" x2="102" y2="28" stroke="#c8a030" stroke-width="8" stroke-linecap="round"/>
+    <line x1="140" y1="118" x2="178" y2="28" stroke="#c8a030" stroke-width="8" stroke-linecap="round"/>
+    <ellipse cx="140" cy="248" rx="105" ry="118" stroke="#c8a030" stroke-width="10" fill="none"/>
+    <line x1="44" y1="200" x2="236" y2="200" stroke="#c8a030" stroke-width="5"/>
+    <line x1="36" y1="270" x2="244" y2="270" stroke="#c8a030" stroke-width="4.5"/>
+    <line x1="90" y1="140" x2="90" y2="355" stroke="#c8a030" stroke-width="4.5"/>
+    <line x1="140" y1="132" x2="140" y2="365" stroke="#c8a030" stroke-width="5"/>
+    <line x1="190" y1="140" x2="190" y2="355" stroke="#c8a030" stroke-width="4.5"/>
+  </svg>
   <div class="mode-select-body">
-    <button class="btn-back" id="btnBackToModeFromAI">< Back</button>
-    <div class="mode-select-title">AI対戦</div>
-    <div class="mode-select-desc">対戦人数を選んでください</div>
-    <button class="mode-btn primary" id="btnAI2P">
-      <span class="mode-btn-title">2人対戦</span>
-      <span class="mode-btn-sub">AIと1対1で対戦</span>
-    </button>
-    <button class="mode-btn" id="btnAI3P" style="opacity:0.5;pointer-events:none;">
-      <span class="mode-btn-title">3人対戦</span>
-      <span class="mode-btn-sub">実装予定</span>
-    </button>
+    <div class="select-content">
+      <div class="mode-select-title">AI対戦</div>
+      <div class="mode-select-desc">対戦人数を選んでください</div>
+      <button class="mode-btn primary" id="btnAI2P">
+        <span class="mode-btn-title">2人対戦</span>
+        <span class="mode-btn-sub">AIと1対1で対戦</span>
+      </button>
+      <button class="mode-btn" id="btnAI3P" style="opacity:0.5;pointer-events:none;">
+        <span class="mode-btn-title">3人対戦</span>
+        <span class="mode-btn-sub">実装予定</span>
+      </button>
+    </div>
+    <div class="select-footer">
+      <button class="btn-back" id="btnBackToModeFromAI">← モード選択に戻る</button>
+    </div>
   </div>
 </div>
 
 <div class="screen" id="screen-fl-select">
+  <svg class="select-deco-icon" viewBox="0 0 280 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="140" y1="118" x2="140" y2="12" stroke="#c8a030" stroke-width="10" stroke-linecap="round"/>
+    <line x1="140" y1="118" x2="102" y2="28" stroke="#c8a030" stroke-width="8" stroke-linecap="round"/>
+    <line x1="140" y1="118" x2="178" y2="28" stroke="#c8a030" stroke-width="8" stroke-linecap="round"/>
+    <ellipse cx="140" cy="248" rx="105" ry="118" stroke="#c8a030" stroke-width="10" fill="none"/>
+    <line x1="44" y1="200" x2="236" y2="200" stroke="#c8a030" stroke-width="5"/>
+    <line x1="36" y1="270" x2="244" y2="270" stroke="#c8a030" stroke-width="4.5"/>
+    <line x1="90" y1="140" x2="90" y2="355" stroke="#c8a030" stroke-width="4.5"/>
+    <line x1="140" y1="132" x2="140" y2="365" stroke="#c8a030" stroke-width="5"/>
+    <line x1="190" y1="140" x2="190" y2="355" stroke="#c8a030" stroke-width="4.5"/>
+  </svg>
   <div class="fl-select-body">
-    <button class="btn-back" id="btnBackToMode">< Back</button>
-    <div class="fl-select-title">FL練習</div>
-    <div class="fl-select-desc">練習するファンタジーランドの枚数を選んでください</div>
-    <div class="fl-card-grid">
-      <button class="fl-card-btn" data-fl="14">
-        <div class="fl-card-num">14</div>
-        <div class="fl-card-label">QQ FANTASY</div>
-        <div class="fl-card-ev">EV: 25pt</div>
-      </button>
-      <button class="fl-card-btn" data-fl="15">
-        <div class="fl-card-num">15</div>
-        <div class="fl-card-label">KK FANTASY</div>
-        <div class="fl-card-ev">EV: 40pt</div>
-      </button>
-      <button class="fl-card-btn" data-fl="16">
-        <div class="fl-card-num">16</div>
-        <div class="fl-card-label">AA FANTASY</div>
-        <div class="fl-card-ev">EV: 69pt</div>
-      </button>
-      <button class="fl-card-btn" data-fl="17">
-        <div class="fl-card-num">17</div>
-        <div class="fl-card-label">TRIPS FANTASY</div>
-        <div class="fl-card-ev">EV: 133pt</div>
-      </button>
+    <div class="select-content">
+      <div class="fl-select-title">FL練習</div>
+      <div class="fl-select-desc">練習するファンタジーランドの枚数を選んでください</div>
+      <div class="fl-card-grid">
+        <button class="fl-card-btn" data-fl="14">
+          <div class="fl-card-num">14</div>
+          <div class="fl-card-label">QQ FANTASY</div>
+          <div class="fl-card-ev">EV: 25pt</div>
+        </button>
+        <button class="fl-card-btn" data-fl="15">
+          <div class="fl-card-num">15</div>
+          <div class="fl-card-label">KK FANTASY</div>
+          <div class="fl-card-ev">EV: 40pt</div>
+        </button>
+        <button class="fl-card-btn" data-fl="16">
+          <div class="fl-card-num">16</div>
+          <div class="fl-card-label">AA FANTASY</div>
+          <div class="fl-card-ev">EV: 69pt</div>
+        </button>
+        <button class="fl-card-btn" data-fl="17">
+          <div class="fl-card-num">17</div>
+          <div class="fl-card-label">TRIPS FANTASY</div>
+          <div class="fl-card-ev">EV: 133pt</div>
+        </button>
+      </div>
+    </div>
+    <div class="select-footer">
+      <button class="btn-back" id="btnBackToMode">← モード選択に戻る</button>
     </div>
   </div>
 </div>
@@ -668,7 +773,7 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
     <div class="title-logo-white">チャイ<span>ポ</span></div>
     <div class="title-desc">OFCポーカートレーナー<br>ジョーカー・アルティメット</div>
     <button class="btn-start-white" id="btnStart">PLAY NOW</button>
-    <button id="btnExportLogs" style="width:100%;padding:12px;background:#fff;color:#111;border:1px solid #ddd;border-radius:10px;font-size:13px;cursor:pointer;margin-top:8px;font-family:var(--font-ui);">📤 プレイログをエクスポート</button>
+    <button id="btnExportLogs" style="width:100%;padding:12px;background:#fff;color:#111;border:1px solid #ddd;border-radius:10px;font-size:13px;cursor:pointer;margin-top:8px;font-family:var(--font-ui);">プレイログをエクスポート</button>
         <div class="title-version-white">v5.11 · iOS Edition</div>
   </div>
 </div>
@@ -992,6 +1097,9 @@ function logEndGame(score){
   window._currentGameLog = null;
 }
 
+// Phase 4-A: 次ゲームで相手が FL に入るかフラグ (0=平場, 14-17=FL枚数)
+window._nextOppFl = 0;
+
 // 途中離脱時のログ保存
 function flushCurrentGameLog(reason){
   if(!window._currentGameLog) return;
@@ -1030,11 +1138,43 @@ function flushCurrentGameLog(reason){
 }
 
 /* ===== CHAIPO STATS (Phase 3) ===== */
-function calcChaipoStats(){
+const CHAIPO_SEASON_START_KEY = 'chaipo_season_start';
+
+function getSeasonStart(){
+  // localStorage に保存されてなければ初回使用時刻を保存 (シーズン = 初回以降のデータ)
+  let s = localStorage.getItem(CHAIPO_SEASON_START_KEY);
+  if(!s){
+    s = new Date().toISOString();
+    localStorage.setItem(CHAIPO_SEASON_START_KEY, s);
+  }
+  return s;
+}
+
+function resetSeason(){
+  const nowIso = new Date().toISOString();
+  localStorage.setItem(CHAIPO_SEASON_START_KEY, nowIso);
+  return nowIso;
+}
+
+function formatSeasonLabel(isoStr){
+  // "2026-04-17T..." → "4/17〜"
+  try{
+    const d = new Date(isoStr);
+    return (d.getMonth()+1) + '/' + d.getDate() + '〜';
+  }catch(e){ return '〜'; }
+}
+
+function calcChaipoStats(fromTimestamp){
   let logs = [];
   let matches = [];
   try{ logs = JSON.parse(localStorage.getItem(CHAIPO_LOG_KEY) || '[]'); }catch(e){ logs = []; }
   try{ matches = JSON.parse(localStorage.getItem(CHAIPO_MATCHES_KEY) || '[]'); }catch(e){ matches = []; }
+
+  // fromTimestamp 指定があればフィルタ
+  if(fromTimestamp){
+    logs = logs.filter(l => l && l.timestamp && l.timestamp >= fromTimestamp);
+    matches = matches.filter(m => m && m.timestamp && m.timestamp >= fromTimestamp);
+  }
 
   // 対戦モードのみ集計対象
   const versusLogs = logs.filter(l => l && l.mode === 'versus');
@@ -1107,13 +1247,25 @@ function calcChaipoStats(){
   };
 }
 
+// モーダルの内部状態 (タブ切り替え用)
+window._statsMode = 'all'; // 'all' or 'season'
+
 function showStatsModal(){
-  const s = calcChaipoStats();
-  // データなしガード
-  if(s.totalGames === 0 && s.totalMatches === 0){
+  // データ存在チェック (フィルタなし)
+  const allS = calcChaipoStats();
+  if(allS.totalGames === 0 && allS.totalMatches === 0){
     alert('まだプレイログがありません。対戦モードでプレイしてみてください。');
     return;
   }
+  // 初期表示: 通算
+  window._statsMode = 'all';
+  _renderStatsModal();
+}
+
+function _renderStatsModal(){
+  const seasonStart = getSeasonStart();
+  const isSeasonMode = window._statsMode === 'season';
+  const s = isSeasonMode ? calcChaipoStats(seasonStart) : calcChaipoStats();
 
   const old = document.getElementById('statsModal');
   if(old) old.remove();
@@ -1147,11 +1299,21 @@ function showStatsModal(){
   const modal = document.createElement('div');
   modal.id = 'statsModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:3100;background:rgba(0,0,0,0.6);display:flex;align-items:flex-start;justify-content:center;padding:20px;padding-top:calc(env(safe-area-inset-top,0px) + 20px);backdrop-filter:blur(6px);overflow-y:auto;';
+  const seasonLabel = 'シーズン ' + formatSeasonLabel(seasonStart);
+  const tabAllStyle = 'flex:1;padding:8px 12px;border:none;border-radius:8px;font-family:\'Space Grotesk\',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;' + (isSeasonMode ? 'background:transparent;color:#888;' : 'background:#111;color:#fff;');
+  const tabSeasonStyle = 'flex:1;padding:8px 12px;border:none;border-radius:8px;font-family:\'Space Grotesk\',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;' + (isSeasonMode ? 'background:#c8a030;color:#fff;' : 'background:transparent;color:#888;');
+
   modal.innerHTML =
     '<div style="background:#fff;border-radius:16px;padding:18px;max-width:380px;width:100%;display:flex;flex-direction:column;gap:14px;margin-bottom:20px;box-shadow:0 20px 60px rgba(0,0,0,0.4);">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-        '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:18px;font-weight:700;color:#111;">📊 スタッツ</div>' +
+        '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:18px;font-weight:700;color:#111;letter-spacing:-0.01em;">スタッツ</div>' +
         '<button id="statsModalClose" style="background:none;border:none;font-size:24px;cursor:pointer;color:#666;line-height:1;padding:0 4px;">×</button>' +
+      '</div>' +
+
+      // タブ切り替え (通算 / シーズン)
+      '<div style="display:flex;gap:4px;background:#f3f4f6;padding:3px;border-radius:10px;">' +
+        '<button id="statsTabAll" style="' + tabAllStyle + '">通算</button>' +
+        '<button id="statsTabSeason" style="' + tabSeasonStyle + '">' + seasonLabel + '</button>' +
       '</div>' +
 
       // 総プレイ数セクション
@@ -1194,6 +1356,7 @@ function showStatsModal(){
         '</div>' +
       '</div>' +
 
+      (isSeasonMode ? '<button id="statsResetSeason" style="padding:10px;background:#fff;color:#c8a030;border:1px solid #c8a030;border-radius:10px;font-family:\'Space Grotesk\',sans-serif;font-size:12px;font-weight:600;cursor:pointer;margin-top:4px;">新しいシーズンを開始</button>' : '') +
       '<button id="statsModalOk" style="padding:12px;background:#111;color:#fff;border:none;border-radius:10px;font-family:\'Space Grotesk\',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px;">閉じる</button>' +
     '</div>';
 
@@ -1201,6 +1364,31 @@ function showStatsModal(){
   document.getElementById('statsModalClose').onclick = function(){ modal.remove(); };
   document.getElementById('statsModalOk').onclick = function(){ modal.remove(); };
   modal.addEventListener('click', function(e){ if(e.target === modal) modal.remove(); });
+
+  // タブ切り替え
+  document.getElementById('statsTabAll').onclick = function(){
+    window._statsMode = 'all';
+    modal.remove();
+    _renderStatsModal();
+  };
+  document.getElementById('statsTabSeason').onclick = function(){
+    window._statsMode = 'season';
+    modal.remove();
+    _renderStatsModal();
+  };
+
+  // シーズンリセット
+  const rst = document.getElementById('statsResetSeason');
+  if(rst){
+    rst.onclick = function(){
+      if(confirm('新しいシーズンを開始しますか?\n\n今までの通算データは残りますが、シーズン集計は今日からになります。')){
+        resetSeason();
+        modal.remove();
+        window._statsMode = 'season';
+        _renderStatsModal();
+      }
+    };
+  }
 }
 /* ===== END CHAIPO STATS ===== */
 
@@ -1255,8 +1443,8 @@ function _showLogExportModal(json, filename, count){
       '</div>' +
       '<textarea id="logExportText" readonly style="flex:1;width:100%;min-height:200px;font-family:monospace;font-size:10px;padding:8px;border:1px solid #ddd;border-radius:6px;resize:vertical;background:#f9f9f9;">' + json.replace(/</g,'&lt;') + '</textarea>' +
       '<div style="display:flex;gap:8px;margin-top:12px;">' +
-        '<button id="logCopyBtn" style="flex:1;padding:12px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;">📋 コピー</button>' +
-        '<button id="logClearBtn" style="padding:12px 16px;background:#fff;color:#c00;border:1px solid #c00;border-radius:8px;font-size:14px;cursor:pointer;">🗑 削除</button>' +
+        '<button id="logCopyBtn" style="flex:1;padding:12px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;">コピー</button>' +
+        '<button id="logClearBtn" style="padding:12px 16px;background:#fff;color:#c00;border:1px solid #c00;border-radius:8px;font-size:14px;cursor:pointer;">削除</button>' +
       '</div>' +
     '</div>';
   document.body.appendChild(modal);
@@ -1266,8 +1454,8 @@ function _showLogExportModal(json, filename, count){
     ta.focus(); ta.select();
     try{
       await navigator.clipboard.writeText(json);
-      document.getElementById('logCopyBtn').textContent = '✓ コピー完了';
-      setTimeout(function(){ const b=document.getElementById('logCopyBtn'); if(b) b.textContent = '📋 コピー'; }, 2000);
+      document.getElementById('logCopyBtn').textContent = 'コピー完了';
+      setTimeout(function(){ const b=document.getElementById('logCopyBtn'); if(b) b.textContent = 'コピー'; }, 2000);
     }catch(e){
       try{document.execCommand('copy');}catch(ee){}
     }
@@ -1836,21 +2024,38 @@ function newGame(){
   updateButtonUI();
 
   const deck=shuffle(makeDeck());let idx=0;const deal=n=>deck.slice(idx,idx+=n);
-  state={phase:'place5',round:1,playerBoard:{top:[],mid:[],bot:[]},oppBoard:{top:[],mid:[],bot:[]},hand:[],discard:[],selectedCard:null,deck,deckIdx:idx,flMode:false,oppFlMode:false,flCards:0,flDiscard:[],gameOver:false,oppPendingBoard:null,oppPendingPlace:null,oppPlayedThisRound:false,wasFL:false,oppWasFL:false};
+  state={phase:'place5',round:1,playerBoard:{top:[],mid:[],bot:[]},oppBoard:{top:[],mid:[],bot:[]},hand:[],discard:[],selectedCard:null,deck,deckIdx:idx,flMode:false,oppFlMode:false,flCards:0,flDiscard:[],gameOver:false,oppPendingBoard:null,oppPendingPlace:null,oppPlayedThisRound:false,wasFL:false,oppWasFL:false,oppSavedFlCards:0};
   state.hand=deal(5);
-  const oppH=deal(5);
-  const oP=aiPlace5(oppH);
-  state.oppPlayedThisRound=false;
 
-  if(isPlayerButton || state.flMode){
-    // ボタン or FL中: AIが先に配置済み（全部見える）
-    state.oppBoard={top:[...oP.top],mid:[...oP.mid],bot:[...oP.bot]};
-    state.oppPlayedThisRound=true;
+  // Phase 4-A: 相手 FL 判定 (_nextOppFl > 0 なら相手は FL)
+  const oppFlCards = window._nextOppFl || 0;
+  window._nextOppFl = 0;  // 消費
+
+  if(oppFlCards >= 14){
+    // ===== 相手 FL: FL 枚数を配って一気に配置 =====
+    const oppFlHand = deal(oppFlCards);
+    const oFLB = aiFLPlace(oppFlHand);
+    state.oppBoard = {top:[...oFLB.top], mid:[...oFLB.mid], bot:[...oFLB.bot]};
+    state.oppFlMode = true;
+    state.oppSavedFlCards = oppFlCards;  // 後で FL 継続判定に使う
+    state.oppPlayedThisRound = true;
+    console.log('[opp FL] 相手 FL 開始 ('+oppFlCards+'枚) aiFLPlace 完了');
   } else {
-    // ノンボタン（平場のみ）: AIの配置は保留
-    state.oppBoard={top:[],mid:[],bot:[]};
-    state.oppPendingBoard={top:[...oP.top],mid:[...oP.mid],bot:[...oP.bot]};
-    state.oppPlayedThisRound=false;
+    // ===== 相手 平場: 通常の 5 枚配布 =====
+    const oppH = deal(5);
+    const oP = aiPlace5(oppH);
+    state.oppPlayedThisRound = false;
+
+    if(isPlayerButton || state.flMode){
+      // ボタン or FL中: AIが先に配置済み（全部見える）
+      state.oppBoard = {top:[...oP.top], mid:[...oP.mid], bot:[...oP.bot]};
+      state.oppPlayedThisRound = true;
+    } else {
+      // ノンボタン（平場のみ）: AIの配置は保留
+      state.oppBoard = {top:[], mid:[], bot:[]};
+      state.oppPendingBoard = {top:[...oP.top], mid:[...oP.mid], bot:[...oP.bot]};
+      state.oppPlayedThisRound = false;
+    }
   }
   state.deckIdx=idx;
   // 結果表示を全てクリア
@@ -1871,20 +2076,26 @@ function dealNext(){
   state.selectedCard=null;state.phase='pineapple';state.placedThisRound=[];
   state.discardedThisRound=false;
 
-  // 相手のパイナップルカードを引く
-  const oH=d.slice(i,i+=3);state.deckIdx=i;
-
-  if(isPlayerButton || state.flMode){
-    // ボタン or FL中: AIが先に配置済み（全部見える）
-    const{place}=aiPineapple(oH,state.oppBoard);
-    for(const r of['top','mid','bot'])state.oppBoard[r].push(...(place[r]||[]));
-    try{logRoundOppDiff(state.round);}catch(e){console.error('[log] oppDiff:',e);}
+  // Phase 4-A: 相手 FL 中はラウンド処理不要 (既に13枚配置済み)
+  if(state.oppFlMode){
     state.oppPlayedThisRound=true;
+    // 相手 FL のカードは deck から引かない (newGame 時に引き済み)
   } else {
-    // ノンボタン（平場のみ）: AIの配置を保留
-    const{place}=aiPineapple(oH,state.oppBoard);
-    state.oppPendingPlace={place};
-    state.oppPlayedThisRound=false;
+    // 相手のパイナップルカードを引く
+    const oH=d.slice(i,i+=3);state.deckIdx=i;
+
+    if(isPlayerButton || state.flMode){
+      // ボタン or FL中: AIが先に配置済み（全部見える）
+      const{place}=aiPineapple(oH,state.oppBoard);
+      for(const r of['top','mid','bot'])state.oppBoard[r].push(...(place[r]||[]));
+      try{logRoundOppDiff(state.round);}catch(e){console.error('[log] oppDiff:',e);}
+      state.oppPlayedThisRound=true;
+    } else {
+      // ノンボタン（平場のみ）: AIの配置を保留
+      const{place}=aiPineapple(oH,state.oppBoard);
+      state.oppPendingPlace={place};
+      state.oppPlayedThisRound=false;
+    }
   }
   renderGame();
 }
@@ -2292,6 +2503,31 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{
       return;
     }
 
+    // ===== Phase 4-A: 次ゲームで相手が FL に入るか判定 =====
+    // 前局の相手ボードが FL 条件 (KK+ ペア or トリップス + ファウルなし) を満たせば
+    // 次ゲームは相手 FL
+    // 相手が今ゲーム FL 中だった場合は FL 継続判定を使う
+    const savedOppBoard = {
+      top:[...state.oppBoard.top],
+      mid:[...state.oppBoard.mid],
+      bot:[...state.oppBoard.bot]
+    };
+    const wasOppFL = !!state.oppWasFL;
+    let oppShouldStartFL = false;
+    let oppNextFlCards = 0;
+    if(wasOppFL){
+      // 相手 FL だった → 継続判定
+      oppShouldStartFL = checkFLContinue(savedOppBoard);
+      oppNextFlCards = state.oppSavedFlCards || 16;  // 前局 FL 枚数 (フォールバック 16)
+      console.log('相手 FL 継続判定: '+oppShouldStartFL+' cards='+oppNextFlCards);
+    } else {
+      // 相手 平場だった → 初入り判定
+      oppShouldStartFL = checkFLEntry(savedOppBoard);
+      oppNextFlCards = getFLC(savedOppBoard);
+      console.log('相手 FL 初入り判定: '+oppShouldStartFL+' cards='+oppNextFlCards);
+    }
+    window._nextOppFl = (oppShouldStartFL && oppNextFlCards >= 14) ? oppNextFlCards : 0;
+
     newGame();
     if(shouldStartFL && nextFlCards>=14){
       setTimeout(()=>startFL(nextFlCards), 100);
@@ -2353,14 +2589,29 @@ function startFL(flCards){
   state.flMode=true;state.flCards=flCards;
   const d=state.deck;let i=state.deckIdx;
   state.hand=d.slice(i,i+=flCards);state.deckIdx=i;
+
+  // v28.8: ログの player_fl_start を遅延更新 (logStartGame 時点では flMode=false だったため)
+  try{
+    if(window._currentGameLog){
+      window._currentGameLog.player_fl_start = true;
+      window._currentGameLog.player.fl_cards_start = flCards;
+      window._currentGameLog.player.r1_hand = _logCardIds(state.hand);
+    }
+  }catch(e){ console.error('[log] startFL update:', e); }
+
   state.playerBoard={top:[],mid:[],bot:[]};state.selectedCard=null;state.phase='fl';
   flSortMode='rank';
   flGroupSel={role:null,combos:[],idx:0};
   flTapSel=[];
   state.flDiscard=[];
   state.gameOver=false;
-  const oFLE=checkFLEntry(state.oppBoard);
-  if(oFLE){const oFlC=getFLC(state.oppBoard);const oH=d.slice(i,i+=oFlC);state.deckIdx=i;const oFLB=aiFLPlace(oH);state.oppBoard={top:[...oFLB.top],mid:[...oFLB.mid],bot:[...oFLB.bot]};state.oppFlMode=false;}
+  // Phase 4-A: 相手 FL は newGame 時点で既にセット済み (state.oppFlMode=true)
+  // startFL 時点で重複処理しない
+  // 万一 newGame を経由せず startFL が呼ばれた場合のフォールバック判定
+  if(!state.oppFlMode){
+    const oFLE=checkFLEntry(state.oppBoard);
+    if(oFLE){const oFlC=getFLC(state.oppBoard);const oH=d.slice(i,i+=oFlC);state.deckIdx=i;const oFLB=aiFLPlace(oH);state.oppBoard={top:[...oFLB.top],mid:[...oFLB.mid],bot:[...oFLB.bot]};state.oppFlMode=true;state.oppSavedFlCards=oFlC;}
+  }
   document.getElementById('resultBand').classList.remove('show');document.getElementById('flEntryBanner').classList.remove('show');
   showFLIntro(flCards, ()=>{ sortFlHand(); renderGame(); setTimeout(()=>{updateScoreBar();updateButtonUI();},50); });
 }
@@ -3228,7 +3479,7 @@ function showMatchEndBanner(playerWon, draw){
   const old = document.getElementById('matchEndBanner');
   if(old) old.remove();
 
-  const titleText = draw ? '🤝 MATCH DRAW' : (playerWon ? '🏆 MATCH WIN' : '😢 MATCH LOSE');
+  const titleText = draw ? 'MATCH DRAW' : (playerWon ? 'MATCH WIN' : 'MATCH LOSE');
   const titleColor = draw ? '#6b7280' : (playerWon ? '#c8a030' : '#ff3b5c');
   const bgGrad = draw ? 'linear-gradient(135deg,#f3f4f6,#e5e7eb)' :
                   (playerWon ? 'linear-gradient(135deg,rgba(200,160,48,0.15),rgba(245,166,35,0.08))' :
@@ -3276,6 +3527,7 @@ function resetMatch(){
   sessionScore.you = INITIAL_SCORE;
   sessionScore.opp = INITIAL_SCORE;
   sessionScore.games = 0;
+  window._nextOppFl = 0;  // Phase 4-A: 相手 FL フラグもクリア
   updateScoreBar();
   resetScoreTransition();
   console.log('[match] reset to', INITIAL_SCORE);
