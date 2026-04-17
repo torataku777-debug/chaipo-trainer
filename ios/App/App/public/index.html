@@ -1039,7 +1039,7 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 <script>
 
 /* ===== CHAIPO PLAY LOGGER (Phase 1) ===== */
-const CHAIPO_LOG_VERSION = 'v28.0';
+const CHAIPO_LOG_VERSION = 'v28.23';
 const CHAIPO_LOG_KEY = 'chaipo_logs';
 
 function _logCardIds(cards){return (cards||[]).map(c=>c&&c.id?c.id:'?');}
@@ -1683,15 +1683,28 @@ function calcChaipoStats(fromTimestamp){
     // net 累積
     if(g.match && typeof g.match.net === 'number') netSum += g.match.net;
 
-    // リファンタジー計算
-    // 「FL に入った」= そのゲームで FL 条件を満たした (isFl)
-    // 前ゲームが FL 中 (flStart=true) で、今ゲームも FL を満たした = FL→FL 継続
-    // 前ゲームが平場 (flStart=false) で、今ゲームで FL を満たした = 平場→FL 新規
-    if(isFl){
-      flEntryCount++;
-      if(flStart) flRefantasyCount++;
+    // v28.23: リファン率は timeline 方式で後から計算 (ここではスキップ)
+  }
+
+  // ===== v28.23: リファン率 timeline 方式 =====
+  // timestamp 順にソート、前ゲームの result.fl を見て FL→FL を数える
+  // player_fl_start フラグに依存せず、v28.0 時代のログも正しく計算
+  {
+    const sortedLogs_refan = [...versusLogs].sort((a, b) => {
+      return (a.timestamp || '').localeCompare(b.timestamp || '');
+    });
+    let prevIsFl = false;
+    for(const g of sortedLogs_refan){
+      const r = (g && g.player && g.player.result) || {};
+      const isFlCur = !!r.fl;
+      if(isFlCur){
+        flEntryCount++;
+        if(prevIsFl) flRefantasyCount++;
+      }
+      prevIsFl = isFlCur;
     }
   }
+  // ===== end timeline =====
 
   // マッチ勝率
   const matchWins = matches.filter(m => m && m.player_won && !m.draw).length;
