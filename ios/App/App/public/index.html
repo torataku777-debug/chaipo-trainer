@@ -54,7 +54,7 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 /* ===== GAME ===== */
 #screen-game{z-index:10;justify-content:flex-start;padding:0;overflow:hidden;background:var(--game-bg)}
 .game-layout{width:100%;height:100%;display:flex;flex-direction:column;padding-top:calc(var(--safe-top) + 4px);padding-bottom:calc(var(--safe-bottom) + 2px);gap:0}
-.game-header{display:flex;align-items:center;justify-content:space-between;padding:2px 12px 4px;flex-shrink:0;background:var(--game-surface);border-bottom:1px solid var(--game-border);box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.game-header{position:relative;display:flex;align-items:center;justify-content:space-between;padding:2px 12px 4px;flex-shrink:0;background:var(--game-surface);border-bottom:1px solid var(--game-border);box-shadow:0 1px 3px rgba(0,0,0,0.06)}
 .game-title-small{font-family:var(--font-mono);font-size:12px;font-weight:700;color:#c8a030;letter-spacing:0.12em;text-transform:uppercase}
 .game-title-small .fl-badge{display:inline-block;margin-left:6px;padding:1px 6px;background:var(--fl-bg);border:1px solid var(--border-gold);border-radius:4px;font-size:9px;color:var(--gold);letter-spacing:0.1em;vertical-align:middle}
 .round-indicator{display:flex;gap:4px;align-items:center}
@@ -202,8 +202,8 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 .drawer-items{padding:8px 10px}
 .drawer-item{display:flex;align-items:center;gap:12px;padding:13px 8px;border-radius:var(--radius-md);cursor:pointer;transition:background 0.1s;color:#111;font-family:var(--font-ui);font-size:14px;font-weight:500;border:none;background:transparent;width:100%;text-align:left}
 .drawer-item:active{background:#f3f4f6}
-.drawer-item-icon{width:32px;height:32px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.drawer-item-icon.red{background:#fef2f2}.drawer-item-icon.gray{background:#f3f4f6}.drawer-item-icon.blue{background:#eff6ff}
+.drawer-item-icon{width:4px;height:32px;flex-shrink:0;display:none}
+.drawer-item-icon.red,.drawer-item-icon.gray,.drawer-item-icon.blue{background:transparent}
 .drawer-item-sub{font-size:11px;color:#9ca3af;font-weight:400;margin-top:1px}
 .drawer-divider{height:1px;background:#f3f4f6;margin:4px 0}
 
@@ -312,6 +312,7 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 
 /* ===== 累計スコア表示 ===== */
 .score-bar{
+  position:relative;
   display:flex;justify-content:space-between;align-items:center;
   padding:3px 12px;background:var(--game-surface);
   border-bottom:1px solid var(--game-border);
@@ -322,7 +323,16 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 .score-val{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--game-text);}
 .score-val.winning{color:#c8a030;}
 .score-val.losing{color:var(--foul-color);}
-.score-sep{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--game-text-dim);font-weight:300;}
+.score-sep{
+  position:absolute;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  color:var(--game-text-dim);
+  font-weight:300;
+  pointer-events:none;
+}
 
 /* 結果バンドのスコア推移表示 */
 .score-transition{
@@ -562,9 +572,67 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
   margin-top: 15px;
   font-weight: bold;
 }
+
+/* ===== v28.17 タイマー UI ===== */
+.round-timer{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:36px;height:36px;
+  display:none;
+  pointer-events:none;
+}
+.round-timer.show{display:block;}
+.round-timer svg{
+  width:100%;height:100%;
+  transform:rotate(-90deg);
+}
+.round-timer-bg{
+  fill:rgba(255,255,255,0.92);
+  stroke:rgba(0,0,0,0.08);
+  stroke-width:1;
+}
+.round-timer-track{
+  fill:none;
+  stroke:#e5e7eb;
+  stroke-width:3;
+}
+.round-timer-progress{
+  fill:none;
+  stroke:#111;
+  stroke-width:3;
+  stroke-linecap:round;
+  transition:stroke-dashoffset 0.9s linear,stroke 0.3s;
+}
+.round-timer.warn .round-timer-progress{stroke:#c8a030;}
+.round-timer.danger .round-timer-progress{
+  stroke:#ef4444;
+  animation:timerPulse 0.6s ease-in-out infinite;
+}
+@keyframes timerPulse{
+  0%,100%{opacity:1;}
+  50%{opacity:0.4;}
+}
+.round-timer-label{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--font-mono);
+  font-size:11px;
+  font-weight:700;
+  color:#111;
+  letter-spacing:-0.02em;
+}
+.round-timer.warn .round-timer-label{color:#c8a030;}
+.round-timer.danger .round-timer-label{color:#ef4444;}
+/* ===== END タイマー UI ===== */
 </style>
 </head>
 <body>
+
 <div class="fl-intro-overlay" id="flIntroOverlay">
   <div class="fl-intro-ring">
     <div class="fl-intro-content">
@@ -782,7 +850,14 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
   <div class="game-layout">
     <div class="game-header">
       <div class="game-title-small" id="gameTitle">チャイポ</div>
-      <div class="round-indicator" id="roundDots"></div>
+      <div class="round-timer" id="roundTimer">
+        <svg viewBox="0 0 40 40">
+          <circle class="round-timer-bg" cx="20" cy="20" r="19"/>
+          <circle class="round-timer-track" cx="20" cy="20" r="16"/>
+          <circle class="round-timer-progress" id="roundTimerProgress" cx="20" cy="20" r="16" stroke-dasharray="100.5" stroke-dashoffset="0"/>
+        </svg>
+        <div class="round-timer-label" id="roundTimerLabel">--</div>
+      </div>
       <button class="btn-menu" id="btnMenu" aria-label="メニュー">
         <div class="btn-menu-line"></div><div class="btn-menu-line"></div><div class="btn-menu-line"></div>
       </button>
@@ -925,21 +1000,26 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
   <div class="drawer-header"><div class="drawer-title">メニュー</div></div>
   <div class="drawer-items">
     <button class="drawer-item" id="drawerBackToTitle">
-      <div class="drawer-item-icon gray">🏠</div>
-      <div><div>Back to Title</div><div class="drawer-item-sub">ホーム画面に戻る</div></div>
+      <div class="drawer-item-icon gray"></div>
+      <div><div>タイトルに戻る</div><div class="drawer-item-sub">ホーム画面に戻る</div></div>
     </button>
     <button class="drawer-item" id="drawerNewGame">
-      <div class="drawer-item-icon red">🔄</div>
-      <div><div>New Game</div><div class="drawer-item-sub">現在のゲームを終了して最初から</div></div>
+      <div class="drawer-item-icon red"></div>
+      <div><div>新しいゲーム</div><div class="drawer-item-sub">現在のゲームを終了して最初から</div></div>
     </button>
     <div class="drawer-divider"></div>
-    <button class="drawer-item" style="opacity:0.4;cursor:default">
-      <div class="drawer-item-icon blue">📊</div>
-      <div><div>Stats</div><div class="drawer-item-sub">Coming soon</div></div>
+    <button class="drawer-item" id="drawerTimeLimit">
+      <div class="drawer-item-icon blue"></div>
+      <div><div>制限時間</div><div class="drawer-item-sub" id="drawerTimeLimitSub">未設定</div></div>
     </button>
-    <button class="drawer-item" style="opacity:0.4;cursor:default">
-      <div class="drawer-item-icon gray">⚙️</div>
-      <div><div>Settings</div><div class="drawer-item-sub">Coming soon</div></div>
+    <button class="drawer-item" id="drawerStartScore">
+      <div class="drawer-item-icon gray"></div>
+      <div><div>初期点数</div><div class="drawer-item-sub" id="drawerStartScoreSub">100 点</div></div>
+    </button>
+    <div class="drawer-divider"></div>
+    <button class="drawer-item" id="drawerStats">
+      <div class="drawer-item-icon blue"></div>
+      <div><div>スタッツ</div><div class="drawer-item-sub">プレイ履歴を確認</div></div>
     </button>
   </div>
 </div>
@@ -966,6 +1046,400 @@ function _logCardIds(cards){return (cards||[]).map(c=>c&&c.id?c.id:'?');}
 function _logBoard(b){return {top:_logCardIds(b&&b.top),mid:_logCardIds(b&&b.mid),bot:_logCardIds(b&&b.bot)};}
 
 window._currentGameLog = null;
+
+
+/* ===== v28.16 設定 (時間制限 + 初期点数) ===== */
+const CHAIPO_SETTINGS_KEY = 'chaipo_settings';
+
+function getChaipoSettings(){
+  try{
+    const raw = localStorage.getItem(CHAIPO_SETTINGS_KEY);
+    if(!raw) return {roundLimitSec: 0, flLimitSec: 0, startScore: 100};
+    const s = JSON.parse(raw);
+    return {
+      roundLimitSec: s.roundLimitSec || 0,
+      flLimitSec: s.flLimitSec || 0,
+      startScore: s.startScore || 100,
+    };
+  }catch(e){ return {roundLimitSec: 0, flLimitSec: 0, startScore: 100}; }
+}
+
+function setChaipoSettings(settings){
+  try{
+    localStorage.setItem(CHAIPO_SETTINGS_KEY, JSON.stringify(settings));
+  }catch(e){ console.error('[settings] save error:', e); }
+}
+
+function updateDrawerSettingLabels(){
+  const s = getChaipoSettings();
+  const tl = document.getElementById('drawerTimeLimitSub');
+  if(tl){
+    const round = s.roundLimitSec ? (s.roundLimitSec + '秒') : 'なし';
+    const fl = s.flLimitSec ? (s.flLimitSec + '秒') : 'なし';
+    tl.textContent = 'ラウンド ' + round + ' / FL ' + fl;
+  }
+  const ss = document.getElementById('drawerStartScoreSub');
+  if(ss) ss.textContent = s.startScore + ' 点';
+}
+
+function showTimeLimitModal(){
+  const s = getChaipoSettings();
+  const modal = document.createElement('div');
+  modal.id = 'timeLimitModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;justify-content:center;';
+  const mkBtn = (label, value, current) => {
+    const active = value === current;
+    return '<button data-val="'+value+'" style="flex:1;padding:14px;border:1px solid '+(active?'#c8a030':'#e5e5e5')+';background:'+(active?'#fef8e8':'#fff')+';color:'+(active?'#c8a030':'#111')+';border-radius:10px;font-family:\'Space Grotesk\',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;">'+label+'</button>';
+  };
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:16px 16px 0 0;padding:20px 18px calc(24px + var(--safe-bottom));max-width:420px;width:100%;display:flex;flex-direction:column;gap:16px;box-shadow:0 -8px 30px rgba(0,0,0,0.15);">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+        '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:17px;font-weight:700;color:#111;">制限時間</div>' +
+        '<button id="tlClose" style="background:none;border:none;font-size:22px;color:#888;cursor:pointer;padding:0 4px;">×</button>' +
+      '</div>' +
+      '<div>' +
+        '<div style="font-size:12px;color:#666;font-weight:600;margin-bottom:8px;letter-spacing:0.05em;">各ラウンド</div>' +
+        '<div id="tlRoundGroup" style="display:flex;gap:6px;">' +
+          mkBtn('なし', 0, s.roundLimitSec) + mkBtn('30秒', 30, s.roundLimitSec) + mkBtn('60秒', 60, s.roundLimitSec) +
+        '</div>' +
+      '</div>' +
+      '<div>' +
+        '<div style="font-size:12px;color:#666;font-weight:600;margin-bottom:8px;letter-spacing:0.05em;">ファンタジー</div>' +
+        '<div id="tlFlGroup" style="display:flex;gap:6px;">' +
+          mkBtn('なし', 0, s.flLimitSec) + mkBtn('60秒', 60, s.flLimitSec) + mkBtn('120秒', 120, s.flLimitSec) +
+        '</div>' +
+      '</div>' +
+      '<button id="tlSave" style="padding:14px;background:#111;color:#fff;border:none;border-radius:10px;font-family:\'Space Grotesk\',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px;">保存</button>' +
+    '</div>';
+  document.body.appendChild(modal);
+
+  let roundVal = s.roundLimitSec;
+  let flVal = s.flLimitSec;
+  const closeModal = () => modal.remove();
+  document.getElementById('tlClose').onclick = closeModal;
+  modal.addEventListener('click', (e)=>{ if(e.target === modal) closeModal(); });
+
+  const bindGroup = (groupId, isRound) => {
+    const g = document.getElementById(groupId);
+    if(!g) return;
+    g.querySelectorAll('button').forEach(btn => {
+      btn.onclick = () => {
+        const v = parseInt(btn.getAttribute('data-val'), 10);
+        if(isRound) roundVal = v;
+        else flVal = v;
+        g.querySelectorAll('button').forEach(b => {
+          const bv = parseInt(b.getAttribute('data-val'), 10);
+          const active = bv === v;
+          b.style.borderColor = active ? '#c8a030' : '#e5e5e5';
+          b.style.background = active ? '#fef8e8' : '#fff';
+          b.style.color = active ? '#c8a030' : '#111';
+        });
+      };
+    });
+  };
+  bindGroup('tlRoundGroup', true);
+  bindGroup('tlFlGroup', false);
+
+  document.getElementById('tlSave').onclick = () => {
+    const cur = getChaipoSettings();
+    cur.roundLimitSec = roundVal;
+    cur.flLimitSec = flVal;
+    setChaipoSettings(cur);
+    updateDrawerSettingLabels();
+    // v28.22: 即時反映 — 現在のタイマーを停止して新しい設定で再起動
+    try{
+      _stopChaipoTimer();
+      if(typeof state !== 'undefined' && state){
+        if(state.flMode && !state.gameOver){
+          startFlTimerIfEnabled();
+        } else if(state.round >= 1 && state.round <= 5 && !state.gameOver){
+          startRoundTimerIfEnabled();
+        }
+      }
+    }catch(e){ console.error('[timer] immediate restart error:', e); }
+    closeModal();
+  };
+}
+
+function showStartScoreModal(){
+  const s = getChaipoSettings();
+  const modal = document.createElement('div');
+  modal.id = 'startScoreModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;justify-content:center;';
+  const mkBtn = (label, value, current) => {
+    const active = value === current;
+    return '<button data-val="'+value+'" style="flex:1;padding:14px;border:1px solid '+(active?'#c8a030':'#e5e5e5')+';background:'+(active?'#fef8e8':'#fff')+';color:'+(active?'#c8a030':'#111')+';border-radius:10px;font-family:\'Space Grotesk\',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;">'+label+'</button>';
+  };
+  const presetMatch = [100,200,500].indexOf(s.startScore) >= 0;
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:16px 16px 0 0;padding:20px 18px calc(24px + var(--safe-bottom));max-width:420px;width:100%;display:flex;flex-direction:column;gap:16px;box-shadow:0 -8px 30px rgba(0,0,0,0.15);">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+        '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:17px;font-weight:700;color:#111;">初期点数</div>' +
+        '<button id="ssClose" style="background:none;border:none;font-size:22px;color:#888;cursor:pointer;padding:0 4px;">×</button>' +
+      '</div>' +
+      '<div>' +
+        '<div style="font-size:12px;color:#666;font-weight:600;margin-bottom:8px;letter-spacing:0.05em;">プリセット</div>' +
+        '<div id="ssGroup" style="display:flex;gap:6px;">' +
+          mkBtn('100', 100, presetMatch?s.startScore:-1) + mkBtn('200', 200, presetMatch?s.startScore:-1) + mkBtn('500', 500, presetMatch?s.startScore:-1) +
+        '</div>' +
+      '</div>' +
+      '<div>' +
+        '<div style="font-size:12px;color:#666;font-weight:600;margin-bottom:8px;letter-spacing:0.05em;">カスタム</div>' +
+        '<input type="number" id="ssCustom" min="10" max="9999" value="'+(presetMatch?'':s.startScore)+'" placeholder="例: 300" style="width:100%;padding:12px;border:1px solid #e5e5e5;border-radius:10px;font-family:\'Space Grotesk\',sans-serif;font-size:15px;font-weight:600;box-sizing:border-box;"/>' +
+      '</div>' +
+      '<div style="font-size:11px;color:#999;line-height:1.5;">※ 変更はマッチ再開時 (リセット) から適用されます</div>' +
+      '<button id="ssSave" style="padding:14px;background:#111;color:#fff;border:none;border-radius:10px;font-family:\'Space Grotesk\',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px;">保存</button>' +
+    '</div>';
+  document.body.appendChild(modal);
+
+  let selVal = s.startScore;
+  const closeModal = () => modal.remove();
+  document.getElementById('ssClose').onclick = closeModal;
+  modal.addEventListener('click', (e)=>{ if(e.target === modal) closeModal(); });
+
+  const g = document.getElementById('ssGroup');
+  const input = document.getElementById('ssCustom');
+  g.querySelectorAll('button').forEach(btn => {
+    btn.onclick = () => {
+      const v = parseInt(btn.getAttribute('data-val'), 10);
+      selVal = v;
+      input.value = '';
+      g.querySelectorAll('button').forEach(b => {
+        const bv = parseInt(b.getAttribute('data-val'), 10);
+        const active = bv === v;
+        b.style.borderColor = active ? '#c8a030' : '#e5e5e5';
+        b.style.background = active ? '#fef8e8' : '#fff';
+        b.style.color = active ? '#c8a030' : '#111';
+      });
+    };
+  });
+  input.addEventListener('input', () => {
+    const v = parseInt(input.value, 10);
+    if(isNaN(v) || v < 10) { return; }
+    selVal = v;
+    g.querySelectorAll('button').forEach(b => {
+      b.style.borderColor = '#e5e5e5';
+      b.style.background = '#fff';
+      b.style.color = '#111';
+    });
+  });
+
+  document.getElementById('ssSave').onclick = () => {
+    if(selVal < 10) { alert('10 点以上を指定してください'); return; }
+    if(selVal > 9999) { alert('9999 点以下を指定してください'); return; }
+    const cur = getChaipoSettings();
+    cur.startScore = selVal;
+    setChaipoSettings(cur);
+    updateDrawerSettingLabels();
+
+    // v28.18: マッチ進行中なら確認してリセット、未プレイなら即適用
+    const hasMatchInProgress = (typeof sessionScore !== 'undefined') &&
+      (sessionScore.games > 0 ||
+       sessionScore.you !== sessionScore.opp ||
+       (sessionScore.you !== 100 && sessionScore.you !== selVal));
+    if(hasMatchInProgress){
+      if(confirm('進行中のマッチをリセットして新しい初期点数 ('+selVal+'点) で開始しますか?')){
+        if(typeof resetMatch === 'function') resetMatch();
+      }
+    } else {
+      // 未プレイの場合は sessionScore を即更新
+      if(typeof sessionScore !== 'undefined'){
+        sessionScore.you = selVal;
+        sessionScore.opp = selVal;
+        sessionScore.games = 0;
+        if(typeof updateScoreBar === 'function') updateScoreBar();
+      }
+    }
+    closeModal();
+  };
+}
+/* ===== END v28.16 設定 ===== */
+/* ===== v28.17 タイマー JS ===== */
+let _chaipoTimer = {
+  intervalId: null,
+  endTime: 0,
+  totalSec: 0,
+  active: false,
+  onExpire: null,
+};
+
+function _stopChaipoTimer(){
+  if(_chaipoTimer.intervalId){
+    clearInterval(_chaipoTimer.intervalId);
+    _chaipoTimer.intervalId = null;
+  }
+  _chaipoTimer.active = false;
+  _chaipoTimer.onExpire = null;
+  const el = document.getElementById('roundTimer');
+  if(el) el.classList.remove('show', 'warn', 'danger');
+}
+
+function _updateChaipoTimerDisplay(remSec, totalSec){
+  const el = document.getElementById('roundTimer');
+  const lbl = document.getElementById('roundTimerLabel');
+  const prog = document.getElementById('roundTimerProgress');
+  if(!el || !lbl || !prog) return;
+
+  const ratio = Math.max(0, Math.min(1, remSec / totalSec));
+  const circumference = 100.5; // 2πr with r=16
+  const offset = circumference * (1 - ratio);
+  prog.setAttribute('stroke-dashoffset', offset);
+
+  lbl.textContent = Math.max(0, Math.ceil(remSec));
+
+  el.classList.remove('warn', 'danger');
+  if(remSec <= 5) el.classList.add('danger');
+  else if(remSec <= 10) el.classList.add('warn');
+}
+
+function startChaipoTimer(totalSec, onExpire){
+  _stopChaipoTimer();
+  if(!totalSec || totalSec <= 0) return;
+  _chaipoTimer.totalSec = totalSec;
+  _chaipoTimer.endTime = Date.now() + totalSec * 1000;
+  _chaipoTimer.active = true;
+  _chaipoTimer.onExpire = onExpire;
+
+  const el = document.getElementById('roundTimer');
+  if(el) el.classList.add('show');
+  _updateChaipoTimerDisplay(totalSec, totalSec);
+
+  _chaipoTimer.intervalId = setInterval(function(){
+    if(!_chaipoTimer.active) return;
+    const remMs = _chaipoTimer.endTime - Date.now();
+    const remSec = remMs / 1000;
+    _updateChaipoTimerDisplay(remSec, _chaipoTimer.totalSec);
+    if(remMs <= 0){
+      const cb = _chaipoTimer.onExpire;
+      _stopChaipoTimer();
+      if(typeof cb === 'function') cb();
+    }
+  }, 100);
+}
+
+// タイマー開始トリガー: ラウンド開始 / FL 開始 から呼ぶ
+function startRoundTimerIfEnabled(){
+  const s = getChaipoSettings();
+  if(!s.roundLimitSec || s.roundLimitSec <= 0) return;
+  // v28.18: R1 でもタイマーを適用
+  if(state.round < 1 || state.round > 5) return;
+  if(state.flMode) return;  // FL 中は別タイマー
+  if(state.gameOver) return;  // ゲーム終了時は起動しない
+  startChaipoTimer(s.roundLimitSec, _handleRoundTimeout);
+}
+
+function startFlTimerIfEnabled(){
+  const s = getChaipoSettings();
+  if(!s.flLimitSec || s.flLimitSec <= 0) return;
+  startChaipoTimer(s.flLimitSec, _handleFlTimeout);
+}
+
+// タイムアウト時の処理
+function _handleRoundTimeout(){
+  console.log('[timer] round timeout → ランダム配置');
+  try{
+    _autoPlaceRandomRound();
+  }catch(e){ console.error('[timer] round auto error:', e); }
+}
+
+function _handleFlTimeout(){
+  console.log('[timer] FL timeout → ランダム配置');
+  try{
+    _autoPlaceRandomFl();
+  }catch(e){ console.error('[timer] FL auto error:', e); }
+}
+
+// R1-R5 ランダム配置 + (R2-R5) ランダム捨て
+function _autoPlaceRandomRound(){
+  if(!state.hand || state.hand.length === 0) return;
+  const handCopy = [...state.hand];
+
+  // R1 は 5 枚全部配置 (捨てなし)、R2-R5 は 1 枚捨て + 2 枚配置
+  const isR1 = state.round === 1 && state.hand.length === 5;
+  let discardCard = null;
+  if(!isR1){
+    // ランダムに 1 枚選んで捨て札
+    const discardIdx = Math.floor(Math.random() * handCopy.length);
+    discardCard = handCopy.splice(discardIdx, 1)[0];
+  }
+
+  // 残りカードを配置可能なスロットにランダム配置
+  for(const card of handCopy){
+    const availableRows = [];
+    if(state.playerBoard.top.length < 3) availableRows.push('top');
+    if(state.playerBoard.mid.length < 5) availableRows.push('mid');
+    if(state.playerBoard.bot.length < 5) availableRows.push('bot');
+    if(availableRows.length === 0) break;
+    const row = availableRows[Math.floor(Math.random() * availableRows.length)];
+    state.playerBoard[row].push(card);
+  }
+
+  // 捨て札と手札を反映
+  if(discardCard && Array.isArray(state.discard)) state.discard.push(discardCard);
+  state.hand = [];
+  state.selectedCard = null;
+
+  // ログ記録 (可能なら)
+  try{ if(typeof logR1PlayerPlacement === 'function' && state.round === 1) logR1PlayerPlacement(); }catch(e){}
+
+  // 通常の CONFIRM 相当処理
+  renderGame();
+  showToast('時間切れ: ランダム配置');
+  // ラウンドを進める (btnConfirm の click と同等処理)
+  setTimeout(function(){
+    try{
+      const btn = document.getElementById('btnConfirm');
+      if(btn && !btn.disabled) btn.click();
+      else {
+        // 強制次ラウンド
+        if(typeof dealNext === 'function') dealNext();
+      }
+    }catch(e){ console.error('[timer] auto confirm error:', e); }
+  }, 600);
+}
+
+// FL ランダム配置 + ランダム捨て
+function _autoPlaceRandomFl(){
+  if(!state.flMode || !state.hand || state.hand.length === 0) return;
+  const handCopy = [...state.hand];
+  const flDiscardNeeded = state.flCards - 13;
+
+  // まずランダムに flDiscardNeeded 枚を捨て札候補に
+  const shuffled = [...handCopy];
+  for(let i = shuffled.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  const discards = shuffled.slice(0, flDiscardNeeded);
+  const toPlace = shuffled.slice(flDiscardNeeded);
+
+  // 13 枚を配置可能なスロットにランダムで
+  for(const card of toPlace){
+    const availableRows = [];
+    if(state.playerBoard.top.length < 3) availableRows.push('top');
+    if(state.playerBoard.mid.length < 5) availableRows.push('mid');
+    if(state.playerBoard.bot.length < 5) availableRows.push('bot');
+    if(availableRows.length === 0) break;
+    const row = availableRows[Math.floor(Math.random() * availableRows.length)];
+    state.playerBoard[row].push(card);
+  }
+
+  state.flDiscard = discards;
+  state.hand = [];
+  state.selectedCard = null;
+
+  renderGame();
+  showToast('時間切れ: ランダム配置');
+  setTimeout(function(){
+    try{
+      const btn = document.getElementById('btnConfirm');
+      if(btn && !btn.disabled) btn.click();
+    }catch(e){ console.error('[timer] FL auto confirm error:', e); }
+  }, 600);
+}
+
+/* ===== END v28.17 タイマー ===== */
+
 
 function logStartGame(){
   try{
@@ -1989,6 +2463,305 @@ function distRest(cards,board){
     }
   }
 }
+
+/* ===== ROLLOUT v1 AI (v28.12) — Python ai_rollout_v1.py を JS 移植 ===== */
+const ROLLOUT_N_DEFAULT = 60;
+const ROLLOUT_CAPS = {top:3, mid:5, bot:5};
+
+function _rowFree(board){
+  return {top: ROLLOUT_CAPS.top - board.top.length, mid: ROLLOUT_CAPS.mid - board.mid.length, bot: ROLLOUT_CAPS.bot - board.bot.length};
+}
+
+function _canMakePairInRow(card, rowCards){
+  if(card.isJoker) return rowCards.length > 0;
+  for(const c of rowCards){
+    if(c.isJoker) return true;
+    if(c.r === card.r) return true;
+  }
+  return false;
+}
+
+function _innerGreedyDecide(board, hand, roundNum){
+  /* 軽量 greedy AI: 3 枚中 1 枚捨てて 2 枚配置する。
+     Rule:
+     1. A/K/JK は top (空き時)
+     2. ペア形成可能な行に置く
+     3. 高ランクは bot、低ランクは mid
+     4. A/K/JK を捨てるのはペナルティ
+  */
+  const free = _rowFree(board);
+  let bestDiscardIdx = -1;
+  let bestPlacements = null;
+  let bestLocalScore = -999;
+
+  for(let discardIdx=0; discardIdx<3; discardIdx++){
+    const toPlace = [];
+    for(let j=0; j<3; j++) if(j !== discardIdx) toPlace.push(hand[j]);
+    const discard = hand[discardIdx];
+
+    const tmpBoard = {top:[...board.top], mid:[...board.mid], bot:[...board.bot]};
+    const tmpFree = {...free};
+    const placements = [];
+    let localScore = 0;
+    let valid = true;
+
+    for(const card of toPlace){
+      const rowScore = {};
+      for(const row of ['top','mid','bot']){
+        if(tmpFree[row] <= 0){ rowScore[row] = -9999; continue; }
+        let score = 0;
+        const isA = card.r === 'A';
+        const isK = card.r === 'K';
+        const isJk = !!card.isJoker;
+        const isHigh = isA || isK || isJk;
+        const rv = rankVal(card.r || '2');
+        const isLow = !isHigh && rv <= 8;
+
+        if(row === 'top'){
+          if(isHigh) score += 10;
+          else score -= 5;
+        }
+        if(_canMakePairInRow(card, tmpBoard[row])) score += 6;
+        if(row === 'bot' && isHigh && !_canMakePairInRow(card, tmpBoard.top)) score += 3;
+        if(row === 'mid' && isLow) score += 2;
+        if(isJk && !_canMakePairInRow(card, tmpBoard.top)){
+          if(row === 'bot') score += 4;
+        }
+        rowScore[row] = score;
+      }
+
+      // 最高スコア行選択
+      let bestRow = null, bestSc = -99999;
+      for(const row of ['top','mid','bot']){
+        if(rowScore[row] > bestSc){ bestSc = rowScore[row]; bestRow = row; }
+      }
+      if(bestSc <= -9000){ valid = false; break; }
+      tmpBoard[bestRow].push(card);
+      tmpFree[bestRow]--;
+      placements.push({card, row: bestRow});
+      localScore += bestSc;
+    }
+
+    if(!valid) continue;
+
+    let discardPenalty = 0;
+    if(discard.isJoker) discardPenalty += 15;
+    else if(discard.r === 'A') discardPenalty += 8;
+    else if(discard.r === 'K') discardPenalty += 5;
+
+    const totalScore = localScore - discardPenalty;
+    if(totalScore > bestLocalScore){
+      bestLocalScore = totalScore;
+      bestDiscardIdx = discardIdx;
+      bestPlacements = placements;
+    }
+  }
+
+  if(bestPlacements === null) return null;
+  return {placements: bestPlacements, discard: hand[bestDiscardIdx]};
+}
+
+function _enumPlacements(board, hand){
+  /* 最大 27 通りの配置候補を返す */
+  const free = _rowFree(board);
+  const seen = new Set();
+  const results = [];
+
+  for(let discardIdx=0; discardIdx<3; discardIdx++){
+    const placementCards = [];
+    for(let j=0; j<3; j++) if(j !== discardIdx) placementCards.push(hand[j]);
+    const discardCard = hand[discardIdx];
+
+    // 2 枚の配置行の組み合わせ (3x3)
+    for(const r1 of ['top','mid','bot']){
+      for(const r2 of ['top','mid','bot']){
+        const rowCount = {top:0, mid:0, bot:0};
+        rowCount[r1]++;
+        rowCount[r2]++;
+        let valid = true;
+        for(const row of ['top','mid','bot']){
+          if(rowCount[row] > free[row]){ valid = false; break; }
+        }
+        if(!valid) continue;
+
+        // 重複防止キー
+        const pMap = [
+          [placementCards[0].id, r1],
+          [placementCards[1].id, r2],
+        ].sort((a,b)=>a[0].localeCompare(b[0]));
+        const key = pMap.map(p=>p[0]+':'+p[1]).join(',') + '|' + discardCard.id;
+        if(seen.has(key)) continue;
+        seen.add(key);
+
+        const newBoard = {top:[...board.top], mid:[...board.mid], bot:[...board.bot]};
+        newBoard[r1].push(placementCards[0]);
+        newBoard[r2].push(placementCards[1]);
+
+        results.push({
+          placements: [{card:placementCards[0], row:r1}, {card:placementCards[1], row:r2}],
+          discard: discardCard,
+          newBoard,
+        });
+      }
+    }
+  }
+  return results;
+}
+
+function _rolloutOne(boardStart, roundStart, deckRemaining){
+  /* 1 回のシミュレーション: boardStart から R5 まで greedy プレイ */
+  const deck = [...deckRemaining];
+  // Fisher-Yates shuffle
+  for(let i=deck.length-1; i>0; i--){
+    const j = Math.floor(Math.random() * (i+1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  const board = {top:[...boardStart.top], mid:[...boardStart.mid], bot:[...boardStart.bot]};
+  let deckIdx = 0;
+
+  for(let r = roundStart+1; r <= 5; r++){
+    if(deck.length - deckIdx < 3) break;
+    const hand = deck.slice(deckIdx, deckIdx+3);
+    deckIdx += 3;
+    const decision = _innerGreedyDecide(board, hand, r);
+    if(!decision){
+      return {flReached: false, foul: true, flCards: 0};
+    }
+    for(const p of decision.placements){
+      board[p.row].push(p.card);
+    }
+  }
+
+  const total = board.top.length + board.mid.length + board.bot.length;
+  if(total !== 13){
+    return {flReached: false, foul: true, flCards: 0};
+  }
+  const topE = eval3(board.top);
+  const foul = isFoulSimple(board);
+  const flCards = !foul ? (topE.flCards || 0) : 0;
+  const fl = flCards >= 15;
+  return {flReached: fl, foul: foul, flCards: flCards};
+}
+
+function _getRemainingCards(board, otherBoard, discardPile, currentHand){
+  /* 残りデッキを計算 (相手視点では見えない分は含む) */
+  const used = new Set();
+  for(const row of ['top','mid','bot']){
+    (board[row]||[]).forEach(c => used.add(c.id));
+    (otherBoard[row]||[]).forEach(c => used.add(c.id));
+  }
+  (discardPile||[]).forEach(c => used.add(c.id));
+  (currentHand||[]).forEach(c => used.add(c.id));
+  const fullDeck = makeDeck();
+  return fullDeck.filter(c => !used.has(c.id));
+}
+
+function aiPineappleRollout(hand, board, roundNum, deckRemaining, nRollouts){
+  /* Rollout v1: 配置候補を列挙し、各候補で N 回シミュレーションして
+     FL 率 × FL EV - ファウル率 × 5 が最高の候補を選ぶ */
+  nRollouts = nRollouts || ROLLOUT_N_DEFAULT;
+  const options = _enumPlacements(board, hand);
+  if(options.length === 0){
+    // フォールバック: 元の aiPineapple に委譲
+    return aiPineapple(hand, board);
+  }
+
+  let best = null;
+  let bestScore = -Infinity;
+
+  for(const opt of options){
+    const newBoard = opt.newBoard;
+    const usedHandIds = new Set(hand.map(c => c.id));
+    const rolloutDeck = deckRemaining.filter(c => !usedHandIds.has(c.id));
+    let score;
+
+    if(roundNum >= 5){
+      // R5 完了時: シミュ不要、確定値
+      const topE = eval3(newBoard.top);
+      const foul = isFoulSimple(newBoard);
+      const flCards = !foul ? (topE.flCards || 0) : 0;
+      const fl = flCards >= 15;
+      score = fl ? (FL_AI_EV[flCards] || 0) : 0;
+      if(foul) score -= 20;
+    } else {
+      // シミュ実行
+      let flCount = 0, foulCount = 0, flCardsSum = 0;
+      for(let i = 0; i < nRollouts; i++){
+        const res = _rolloutOne(newBoard, roundNum, rolloutDeck);
+        if(res.flReached){ flCount++; flCardsSum += res.flCards; }
+        if(res.foul) foulCount++;
+      }
+      const flRate = flCount / nRollouts;
+      const foulRate = foulCount / nRollouts;
+      const avgFlCards = flCount > 0 ? (flCardsSum / flCount) : 0;
+      const expectedFlEv = flRate * (FL_AI_EV[Math.round(avgFlCards)] || FL_AI_EV[15]);
+      score = expectedFlEv - foulRate * 5;
+    }
+
+    if(score > bestScore){
+      bestScore = score;
+      best = opt;
+    }
+  }
+
+  if(!best){
+    return aiPineapple(hand, board);  // フォールバック
+  }
+
+  // 既存 aiPineapple と同じ形式で返す
+  const place = {top:[], mid:[], bot:[]};
+  for(const p of best.placements){
+    place[p.row].push(p.card);
+  }
+  return {place: place, discard: best.discard, score: bestScore};
+}
+/* ===== END ROLLOUT v1 AI ===== */
+
+// v28.14: プレイヤー FL 中の相手平場 R2-R5 を非同期に実行する
+function _runOppFlatRounds(startRound){
+  // 相手は既に R1 の 5 枚配置済み
+  // state.deck から 3 枚ずつ引いて R2-R5 まで aiPineappleRollout で配置
+  state.oppPlayPending = true;
+  let round = startRound || 2;
+
+  function next(){
+    if(round > 5){
+      state.oppPlayPending = false;
+      console.log('[opp flat] R2-R5 完了');
+      if(typeof window._oppPlayCallback === 'function'){
+        const cb = window._oppPlayCallback;
+        window._oppPlayCallback = null;
+        cb();
+      }
+      return;
+    }
+    const d = state.deck;
+    if(d.length - state.deckIdx < 3){
+      state.oppPlayPending = false;
+      console.warn('[opp flat] デッキ不足');
+      return;
+    }
+    const oppHand = d.slice(state.deckIdx, state.deckIdx + 3);
+    state.deckIdx += 3;
+
+    try{
+      const deckRem = _getRemainingCards(state.oppBoard, state.playerBoard, state.discard, oppHand);
+      const decision = aiPineappleRollout(oppHand, state.oppBoard, round, deckRem, ROLLOUT_N_DEFAULT);
+      if(decision && decision.place){
+        for(const r of ['top','mid','bot']){
+          state.oppBoard[r].push(...(decision.place[r] || []));
+        }
+      }
+    }catch(e){
+      console.error('[opp flat] round ' + round + ' error:', e);
+    }
+    round++;
+    setTimeout(next, 0);  // 次ラウンドを setTimeout でキュー (UI ブロック回避)
+  }
+
+  setTimeout(next, 0);
+}
+
 function aiPineapple(cards,board){
   // 3枚から2枚配置+1枚捨て。配置できる組み合わせがない場合も必ず返す
   let best={score:-Infinity,place:null,discard:null};
@@ -2024,7 +2797,7 @@ function newGame(){
   updateButtonUI();
 
   const deck=shuffle(makeDeck());let idx=0;const deal=n=>deck.slice(idx,idx+=n);
-  state={phase:'place5',round:1,playerBoard:{top:[],mid:[],bot:[]},oppBoard:{top:[],mid:[],bot:[]},hand:[],discard:[],selectedCard:null,deck,deckIdx:idx,flMode:false,oppFlMode:false,flCards:0,flDiscard:[],gameOver:false,oppPendingBoard:null,oppPendingPlace:null,oppPlayedThisRound:false,wasFL:false,oppWasFL:false,oppSavedFlCards:0};
+  state={phase:'place5',round:1,playerBoard:{top:[],mid:[],bot:[]},oppBoard:{top:[],mid:[],bot:[]},hand:[],discard:[],selectedCard:null,deck,deckIdx:idx,flMode:false,oppFlMode:false,flCards:0,flDiscard:[],gameOver:false,oppPendingBoard:null,oppPendingPlace:null,oppPlayedThisRound:false,wasFL:false,oppWasFL:false,oppSavedFlCards:0,oppFlPending:false,oppFlHand:null,oppPlayPending:false};window._oppFlPendingCallback=null;window._oppPlayCallback=null;
   state.hand=deal(5);
 
   // Phase 4-A: 相手 FL 判定 (_nextOppFl > 0 なら相手は FL)
@@ -2032,14 +2805,37 @@ function newGame(){
   window._nextOppFl = 0;  // 消費
 
   if(oppFlCards >= 14){
-    // ===== 相手 FL: FL 枚数を配って一気に配置 =====
+    // ===== 相手 FL: 非同期で配置計算 (UI フリーズ防止) =====
     const oppFlHand = deal(oppFlCards);
-    const oFLB = aiFLPlace(oppFlHand);
-    state.oppBoard = {top:[...oFLB.top], mid:[...oFLB.mid], bot:[...oFLB.bot]};
+    state.oppBoard = {top:[], mid:[], bot:[]};  // 空のまま (face-down 表示)
     state.oppFlMode = true;
-    state.oppSavedFlCards = oppFlCards;  // 後で FL 継続判定に使う
+    state.oppFlPending = true;  // 計算中フラグ
+    state.oppFlHand = oppFlHand;  // 計算用に保存
+    state.oppSavedFlCards = oppFlCards;
     state.oppPlayedThisRound = true;
-    console.log('[opp FL] 相手 FL 開始 ('+oppFlCards+'枚) aiFLPlace 完了');
+    console.log('[opp FL] 相手 FL 開始 ('+oppFlCards+'枚) バックグラウンド計算中');
+    // 次の tick で aiFLPlace を実行 (UI ブロック回避)
+    setTimeout(function(){
+      try{
+        const oFLB = aiFLPlace(oppFlHand);
+        state.oppBoard = {top:[...oFLB.top], mid:[...oFLB.mid], bot:[...oFLB.bot]};
+        state.oppFlPending = false;
+        state.oppFlHand = null;
+        console.log('[opp FL] aiFLPlace 完了');
+        // プレイヤーが既に FL 確定済みで待機中なら完了コールバック呼ぶ
+        if(typeof window._oppFlPendingCallback === 'function'){
+          const cb = window._oppFlPendingCallback;
+          window._oppFlPendingCallback = null;
+          cb();
+        } else if(!state.flMode){
+          // プレイヤーが FL じゃないかつ確定前の場合は再描画のみ
+          renderGame();
+        }
+      }catch(e){
+        console.error('[opp FL] aiFLPlace error:', e);
+        state.oppFlPending = false;
+      }
+    }, 10);
   } else {
     // ===== 相手 平場: 通常の 5 枚配布 =====
     const oppH = deal(5);
@@ -2067,7 +2863,10 @@ function newGame(){
   resetScoreTransition();
   renderGame();showScreen('game');
   setTimeout(updateScoreBar, 50);
+  try{_stopChaipoTimer();}catch(e){}
   try{logStartGame();logR1OppPlacement();}catch(e){console.error('[log] newGame:',e);}
+  // v28.18: R1 タイマー起動 (プレイヤーが配置可能になった時点)
+  setTimeout(function(){ try{ startRoundTimerIfEnabled(); }catch(e){} }, 200);
 }
 function dealNext(){
   state.round++;if(state.round>5){endGame();return;}try{logMarkBoardBefore();}catch(e){console.error('[log] mark:',e);}
@@ -2086,18 +2885,27 @@ function dealNext(){
 
     if(isPlayerButton || state.flMode){
       // ボタン or FL中: AIが先に配置済み（全部見える）
-      const{place}=aiPineapple(oH,state.oppBoard);
+      // Rollout v1 AI を使用 (v28.12)
+      let deckRem_a = [];
+      try{ deckRem_a = _getRemainingCards(state.oppBoard, state.playerBoard, state.discard, oH); }catch(e){}
+      const decision_a = aiPineappleRollout(oH, state.oppBoard, state.round, deckRem_a, ROLLOUT_N_DEFAULT);
+      const place = decision_a.place;
       for(const r of['top','mid','bot'])state.oppBoard[r].push(...(place[r]||[]));
       try{logRoundOppDiff(state.round);}catch(e){console.error('[log] oppDiff:',e);}
       state.oppPlayedThisRound=true;
     } else {
       // ノンボタン（平場のみ）: AIの配置を保留
-      const{place}=aiPineapple(oH,state.oppBoard);
-      state.oppPendingPlace={place};
+      // Rollout v1 AI を使用 (v28.12)
+      let deckRem_b = [];
+      try{ deckRem_b = _getRemainingCards(state.oppBoard, state.playerBoard, state.discard, oH); }catch(e){}
+      const decision_b = aiPineappleRollout(oH, state.oppBoard, state.round, deckRem_b, ROLLOUT_N_DEFAULT);
+      state.oppPendingPlace={place: decision_b.place};
       state.oppPlayedThisRound=false;
     }
   }
   renderGame();
+  // v28.17: ラウンドタイマー起動
+  try{ startRoundTimerIfEnabled(); }catch(e){}
 }
 function endGame(){
   state.gameOver=true;
@@ -2153,8 +2961,9 @@ function renderGame(){
     document.getElementById('resultBand').classList.remove('show');
     if(!state.flMode) document.getElementById('flEntryBanner').classList.remove('show');
   }
-  const dots=document.getElementById('roundDots');dots.innerHTML='';
-  for(let i=1;i<=5;i++){const d=document.createElement('div');d.className='round-dot'+(i<state.round?' done':i===state.round?' active':'');dots.appendChild(d);}
+  // v28.19: ラウンドドット削除 (タイマーが代わりに表示される)
+  const dots=document.getElementById('roundDots');
+  if(dots){ dots.innerHTML=''; }
   renderSlots('slotsTop',state.playerBoard.top,3,'top');renderSlots('slotsMid',state.playerBoard.mid,5,'mid');renderSlots('slotsBot',state.playerBoard.bot,5,'bot');
   updateEvals();renderOpp();renderHand();
   const pa=document.getElementById('playerArea');const pl=document.getElementById('playerLabel');const ha=document.getElementById('handArea');
@@ -2292,6 +3101,11 @@ function renderOpp(){
   const cfg={top:[3,'oppTop'],mid:[5,'oppMid'],bot:[5,'oppBot']};
   const cols={s:'#1e293b',h:'#dc2626',d:'#1d4ed8',c:'#059669'};
 
+  // v28.15: プレイヤー FL 中 + 相手も FL の場合のみ相手ボード非表示
+  // (両者 FL 時のみスクープ判定に相手情報を使わせない)
+  // 相手平場時は R2-R5 の進行を含め表示する
+  const hideOppFl = state.flMode && state.oppFlMode && !state.gameOver;
+
   // 今ラウンドで相手が未配置の枚数（ノンボタン時の保留分）
   // R1: oppPendingBoard があれば今ラウンド未配置
   // R2-5: oppPendingPlace があれば今ラウンド未配置
@@ -2301,6 +3115,20 @@ function renderOpp(){
 
   for(const[row,[cnt,eId]]of Object.entries(cfg)){
     const el=document.getElementById(eId);if(!el)continue;el.innerHTML='';
+
+    // v28.13: プレイヤー FL 中 + 相手 FL なら face-down で固定枚数表示
+    if(hideOppFl){
+      for(let i=0;i<cnt;i++){
+        const sl=document.createElement('div');sl.className='opp-slot';
+        const fc=document.createElement('div');
+        fc.className='opp-card face-down';
+        fc.style.cssText='position:relative;';
+        sl.appendChild(fc);
+        el.appendChild(sl);
+      }
+      continue;
+    }
+
     const cards=state.oppBoard[row];
     // 今ラウンド前の配置枚数（表示済み分）
     const prevPlaced = state.round===1 ? 0 :
@@ -2470,7 +3298,7 @@ function placeCard(card,row){
   renderGame();
 }
 function autoDiscard(){const c=state.hand[0];state.hand=state.hand.filter(x=>x.id!==c.id);state.discard.push(c);state.discardedThisRound=true;showToast(`${c.isJoker?'JK':c.r+SUIT_SYMS[c.s]} を捨てました`);}
-document.getElementById('btnConfirm').addEventListener('click',()=>{
+document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopChaipoTimer();}catch(e){}
   if(state.gameOver){
     // ★ newGame()前にボード情報を保存する（newGame()でstateがリセットされるため）
     const wasFL = state.wasFL || (state.flCards > 0);
@@ -2607,13 +3435,37 @@ function startFL(flCards){
   state.gameOver=false;
   // Phase 4-A: 相手 FL は newGame 時点で既にセット済み (state.oppFlMode=true)
   // startFL 時点で重複処理しない
-  // 万一 newGame を経由せず startFL が呼ばれた場合のフォールバック判定
+  // 万一 newGame を経由せず startFL が呼ばれた場合のフォールバック判定 (非同期)
   if(!state.oppFlMode){
     const oFLE=checkFLEntry(state.oppBoard);
-    if(oFLE){const oFlC=getFLC(state.oppBoard);const oH=d.slice(i,i+=oFlC);state.deckIdx=i;const oFLB=aiFLPlace(oH);state.oppBoard={top:[...oFLB.top],mid:[...oFLB.mid],bot:[...oFLB.bot]};state.oppFlMode=true;state.oppSavedFlCards=oFlC;}
+    if(oFLE){
+      const oFlC=getFLC(state.oppBoard);const oH=d.slice(i,i+=oFlC);state.deckIdx=i;
+      state.oppFlMode=true;
+      state.oppFlPending=true;
+      state.oppFlHand=oH;
+      state.oppSavedFlCards=oFlC;
+      setTimeout(function(){
+        try{
+          const oFLB=aiFLPlace(oH);
+          state.oppBoard={top:[...oFLB.top],mid:[...oFLB.mid],bot:[...oFLB.bot]};
+          state.oppFlPending=false;
+          state.oppFlHand=null;
+          if(typeof window._oppFlPendingCallback==='function'){
+            const cb=window._oppFlPendingCallback;
+            window._oppFlPendingCallback=null;
+            cb();
+          }
+        }catch(e){ console.error('[opp FL] fallback error:',e); state.oppFlPending=false; }
+      },10);
+    } else {
+      // v28.14: 相手が平場 → R2-R5 を非同期で自動プレイ
+      // R1 配置は newGame で済んでるので R2 から開始
+      console.log('[opp flat] 相手平場 R2-R5 をバックグラウンドで実行');
+      _runOppFlatRounds(2);
+    }
   }
   document.getElementById('resultBand').classList.remove('show');document.getElementById('flEntryBanner').classList.remove('show');
-  showFLIntro(flCards, ()=>{ sortFlHand(); renderGame(); setTimeout(()=>{updateScoreBar();updateButtonUI();},50); });
+  showFLIntro(flCards, ()=>{ sortFlHand(); renderGame(); setTimeout(()=>{updateScoreBar();updateButtonUI();try{startFlTimerIfEnabled();}catch(e){}},50); });
 }
 document.getElementById('btnAdvice').addEventListener('click',()=>{
   const panel=document.getElementById('advicePanel');const ov=document.getElementById('adviceOverlay');const t=document.getElementById('adviceContent');
@@ -2634,9 +3486,25 @@ function openDrawer(){document.getElementById('drawerSheet').classList.add('open
 function closeDrawer(){document.getElementById('drawerSheet').classList.remove('open');document.getElementById('drawerBackdrop').classList.remove('open');}
 document.getElementById('btnMenu').addEventListener('click',openDrawer);
 document.getElementById('drawerBackdrop').addEventListener('click',closeDrawer);
+// v28.16: ドロワー 制限時間 / 初期点数 / スタッツ のハンドラ
+(function(){
+  function _closeDrawerV28(){
+    const dr = document.getElementById('drawerSheet');
+    const bd = document.getElementById('drawerBackdrop');
+    if(dr) dr.classList.remove('open');
+    if(bd) bd.classList.remove('open');
+  }
+  const tl = document.getElementById('drawerTimeLimit');
+  if(tl) tl.onclick = function(){ _closeDrawerV28(); setTimeout(showTimeLimitModal, 180); };
+  const ss = document.getElementById('drawerStartScore');
+  if(ss) ss.onclick = function(){ _closeDrawerV28(); setTimeout(showStartScoreModal, 180); };
+  const st = document.getElementById('drawerStats');
+  if(st) st.onclick = function(){ _closeDrawerV28(); setTimeout(showStatsModal, 180); };
+  try{ updateDrawerSettingLabels(); }catch(e){}
+})();
 document.getElementById('drawerNewGame').addEventListener('click',()=>{closeDrawer();try{flushCurrentGameLog('drawer_new_game');}catch(e){}newGame();});
 document.getElementById('drawerBackToTitle').addEventListener('click',()=>{closeDrawer();try{flushCurrentGameLog('drawer_back_to_title');}catch(e){}backToTitle();});
-function backToTitle(){showScreen('title');}
+function backToTitle(){try{_stopChaipoTimer();}catch(e){}showScreen('title');}
 function openOuts(){
   const table=document.getElementById('outsTable');
   const used=new Set();
@@ -3275,6 +4143,43 @@ function onFLHandTapForDiscard(card){
 
 // endGame のFL版: FL継続判定を含む
 function endGameFL(){
+  // v28.13/14: 相手 FL or 相手平場 R2-R5 のどちらか未完了なら待機
+  if(state.oppFlPending || state.oppPlayPending){
+    console.log('[endGameFL] 相手処理待機中... oppFlPending=' + state.oppFlPending + ' oppPlayPending=' + state.oppPlayPending);
+    _showOppFlThinking();
+    _waitForOppAndContinue();
+    return;
+  }
+  _endGameFLAfterOpp();
+}
+
+function _waitForOppAndContinue(){
+  // 両方 false になるまでポーリング
+  if(!state.oppFlPending && !state.oppPlayPending){
+    _hideOppFlThinking();
+    _endGameFLAfterOpp();
+    return;
+  }
+  setTimeout(_waitForOppAndContinue, 80);
+}
+
+function _showOppFlThinking(){
+  let el = document.getElementById('oppFlThinking');
+  if(el) return;
+  el = document.createElement('div');
+  el.id = 'oppFlThinking';
+  el.style.cssText = 'position:fixed;inset:0;z-index:3500;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;';
+  el.innerHTML = '<div style="width:48px;height:48px;border:4px solid rgba(200,160,48,0.2);border-top-color:#c8a030;border-radius:50%;animation:spin 0.9s linear infinite;"></div>' +
+    '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:14px;font-weight:600;color:#fff;letter-spacing:0.05em;">相手の配置を考えています...</div>';
+  document.body.appendChild(el);
+}
+
+function _hideOppFlThinking(){
+  const el = document.getElementById('oppFlThinking');
+  if(el) el.remove();
+}
+
+function _endGameFLAfterOpp(){
   state.gameOver=true;
   state.phase='ended';
 
@@ -3393,7 +4298,14 @@ function checkFLContinue(board){
 }
 
 // ===== 累計スコア管理 =====
-let sessionScore = {you: 100, opp: 100, games: 0};
+const _initialStartScore = (function(){
+  try{
+    const raw = localStorage.getItem('chaipo_settings');
+    if(raw){ const s = JSON.parse(raw); return s.startScore || 100; }
+  }catch(e){}
+  return 100;
+})();
+let sessionScore = {you: _initialStartScore, opp: _initialStartScore, games: 0};
 
 function updateScoreBar(){
   const yEl = document.getElementById('scoreYou');
@@ -3523,7 +4435,8 @@ function showMatchEndBanner(playerWon, draw){
 }
 
 function resetMatch(){
-  const INITIAL_SCORE = 100;
+  const settings = (typeof getChaipoSettings === 'function') ? getChaipoSettings() : {startScore: 100};
+  const INITIAL_SCORE = settings.startScore || 100;
   sessionScore.you = INITIAL_SCORE;
   sessionScore.opp = INITIAL_SCORE;
   sessionScore.games = 0;
@@ -3695,6 +4608,7 @@ function startFLPractice(){
   if(gt) gt.innerHTML = 'FL PRACTICE <span class="fl-badge">' + flPracticeCards + '</span>';
   
   var rd = document.getElementById('roundDots');
+  if(!rd) return;
   if(rd) rd.innerHTML = '';
   
   if(typeof clearGroupSel === 'function') clearGroupSel();
