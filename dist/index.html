@@ -2775,6 +2775,98 @@ function _runOppFlatRounds(startRound){
   setTimeout(next, 0);
 }
 
+
+/* ===== v28.24: 初手 5 枚 Rollout AI ===== */
+const ROLLOUT5_N_DEFAULT = 40;
+
+function _enumPlacements5(hand){
+  /* 5 枚の配置候補を全列挙。各カードを top/mid/bot のどれかに置く。
+     キャパ制約: top <= 3, mid <= 5, bot <= 5
+     → 5 枚なら mid/bot は常に収まる、top だけチェック
+  */
+  const results = [];
+  const seen = new Set();
+
+  // 3^5 = 243 通りだが対称性で削減可能。ただし簡単のため全列挙。
+  const rows = ['top', 'mid', 'bot'];
+  for(let a=0; a<3; a++) for(let b=0; b<3; b++) for(let c=0; c<3; c++)
+  for(let d=0; d<3; d++) for(let e=0; e<3; e++){
+    const assign = [rows[a], rows[b], rows[c], rows[d], rows[e]];
+    // top キャパチェック
+    const topCount = assign.filter(r => r === 'top').length;
+    if(topCount > 3) continue;
+
+    // 重複除去: 同じランクのカードを同じ行に置く場合、並び順違いは同一と扱う
+    // ここではカード ID 順を使う
+    const board = {top:[], mid:[], bot:[]};
+    for(let i = 0; i < 5; i++){
+      board[assign[i]].push(hand[i]);
+    }
+    // 正規化キー: 各行のカード ID をソートして結合
+    const key = ['top','mid','bot'].map(r =>
+      board[r].map(c => c.id).sort().join(',')
+    ).join('|');
+    if(seen.has(key)) continue;
+    seen.add(key);
+
+    results.push({
+      newBoard: board,
+      placements: assign.map((r, i) => ({card: hand[i], row: r})),
+    });
+  }
+  return results;
+}
+
+function aiPlace5Rollout(hand, deckRemaining, nRollouts){
+  /* R1 専用 Rollout AI: 5 枚を配置、残り R2-R5 を greedy シミュ */
+  nRollouts = nRollouts || ROLLOUT5_N_DEFAULT;
+  const options = _enumPlacements5(hand);
+  if(options.length === 0){
+    return aiPlace5(hand);  // フォールバック
+  }
+
+  // 残りデッキ (54 枚から手札 5 枚を除いたもの)
+  const handIds = new Set(hand.map(c => c.id));
+  let rolloutDeck;
+  if(Array.isArray(deckRemaining) && deckRemaining.length > 0){
+    rolloutDeck = deckRemaining.filter(c => !handIds.has(c.id));
+  } else {
+    const fullDeck = makeDeck();
+    rolloutDeck = fullDeck.filter(c => !handIds.has(c.id));
+  }
+
+  let best = null;
+  let bestScore = -Infinity;
+
+  for(const opt of options){
+    const newBoard = opt.newBoard;
+
+    // R1 の配置後、R2-R5 を greedy シミュレート
+    let flCount = 0, foulCount = 0, flCardsSum = 0;
+    for(let i = 0; i < nRollouts; i++){
+      const res = _rolloutOne(newBoard, 1, rolloutDeck);
+      if(res.flReached){ flCount++; flCardsSum += res.flCards; }
+      if(res.foul) foulCount++;
+    }
+    const flRate = flCount / nRollouts;
+    const foulRate = foulCount / nRollouts;
+    const avgFlCards = flCount > 0 ? (flCardsSum / flCount) : 0;
+    const expectedFlEv = flRate * (FL_AI_EV[Math.round(avgFlCards)] || FL_AI_EV[15]);
+    const score = expectedFlEv - foulRate * 5;
+
+    if(score > bestScore){
+      bestScore = score;
+      best = opt;
+    }
+  }
+
+  if(!best) return aiPlace5(hand);
+
+  // 返り値は aiPlace5 と同形式 ({top, mid, bot})
+  return best.newBoard;
+}
+/* ===== END 初手 Rollout AI ===== */
+
 function aiPineapple(cards,board){
   // 3枚から2枚配置+1枚捨て。配置できる組み合わせがない場合も必ず返す
   let best={score:-Infinity,place:null,discard:null};
@@ -2852,7 +2944,15 @@ function newGame(){
   } else {
     // ===== 相手 平場: 通常の 5 枚配布 =====
     const oppH = deal(5);
-    const oP = aiPlace5(oppH);
+    // v28.24: 初手 Rollout AI を使用 (フォールバック: aiPlace5)
+    let oP;
+    try{
+      const rollDeck = _getRemainingCards(state.oppBoard, state.playerBoard, state.discard, oppH);
+      oP = aiPlace5Rollout(oppH, rollDeck, ROLLOUT5_N_DEFAULT);
+    }catch(e){
+      console.error('[aiPlace5Rollout] error, fallback to aiPlace5:', e);
+      oP = aiPlace5(oppH);
+    }
     state.oppPlayedThisRound = false;
 
     if(isPlayerButton || state.flMode){
