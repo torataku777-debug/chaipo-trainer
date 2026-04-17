@@ -664,7 +664,8 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
     <div class="title-logo-white">チャイ<span>ポ</span></div>
     <div class="title-desc">OFCポーカートレーナー<br>ジョーカー・アルティメット</div>
     <button class="btn-start-white" id="btnStart">PLAY NOW</button>
-    <div class="title-version-white">v5.11 · iOS Edition</div>
+    <button id="btnExportLogs" style="width:100%;padding:12px;background:#fff;color:#111;border:1px solid #ddd;border-radius:10px;font-size:13px;cursor:pointer;margin-top:8px;font-family:var(--font-ui);">📤 プレイログをエクスポート</button>
+        <div class="title-version-white">v5.11 · iOS Edition</div>
   </div>
 </div>
 
@@ -847,6 +848,297 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 </div>
 
 <script>
+
+/* ===== CHAIPO PLAY LOGGER (Phase 1) ===== */
+const CHAIPO_LOG_VERSION = 'v28.0';
+const CHAIPO_LOG_KEY = 'chaipo_logs';
+
+function _logCardIds(cards){return (cards||[]).map(c=>c&&c.id?c.id:'?');}
+function _logBoard(b){return {top:_logCardIds(b&&b.top),mid:_logCardIds(b&&b.mid),bot:_logCardIds(b&&b.bot)};}
+
+window._currentGameLog = null;
+
+function logStartGame(){
+  try{
+    window._currentGameLog = {
+      id: new Date().toISOString().replace(/[:.]/g,'-'),
+      timestamp: new Date().toISOString(),
+      app_version: CHAIPO_LOG_VERSION,
+      mode: state.flMode ? 'fl_practice' : 'versus',
+      is_player_button: (typeof isPlayerButton !== 'undefined') ? !!isPlayerButton : null,
+      player_fl_start: !!state.flMode,
+      opp_fl_start: !!state.oppFlMode,
+      player: { rounds: [], r1_hand: _logCardIds(state.hand) },
+      opponent: { rounds: [] },
+    };
+  }catch(e){console.error('[log] logStartGame:',e);}
+}
+
+function logR1PlayerPlacement(){
+  if(!window._currentGameLog) return;
+  try{
+    const placements = [];
+    for(const row of ['top','mid','bot']){
+      for(const c of (state.playerBoard[row]||[])){
+        placements.push([c.id, row]);
+      }
+    }
+    window._currentGameLog.player.rounds.push({
+      round: 1,
+      hand: window._currentGameLog.player.r1_hand || [],
+      placement: placements,
+      discard: null,
+      board_after: _logBoard(state.playerBoard),
+    });
+  }catch(e){console.error('[log] logR1PlayerPlacement:',e);}
+}
+
+function logR1OppPlacement(){
+  if(!window._currentGameLog) return;
+  try{
+    const board = state.oppPendingBoard || state.oppBoard;
+    const placements = [];
+    for(const row of ['top','mid','bot']){
+      for(const c of (board[row]||[])){
+        placements.push([c.id, row]);
+      }
+    }
+    window._currentGameLog.opponent.rounds.push({
+      round: 1,
+      hand: placements.map(p=>p[0]),
+      placement: placements,
+      discard: null,
+      board_after: _logBoard(board),
+    });
+  }catch(e){console.error('[log] logR1OppPlacement:',e);}
+}
+
+function logRoundPlayer(roundNum, hand, placements, discard){
+  if(!window._currentGameLog) return;
+  try{
+    window._currentGameLog.player.rounds.push({
+      round: roundNum,
+      hand: _logCardIds(hand),
+      placement: placements.map(p=>[p.card ? p.card.id : p[0].id, p.row || p[1]]),
+      discard: discard ? discard.id : null,
+      board_after: _logBoard(state.playerBoard),
+    });
+  }catch(e){console.error('[log] logRoundPlayer:',e);}
+}
+
+function logRoundOpp(roundNum, hand, place, discard){
+  if(!window._currentGameLog) return;
+  try{
+    const placements = [];
+    for(const row of ['top','mid','bot']){
+      for(const c of (place[row]||[])){
+        placements.push([c.id, row]);
+      }
+    }
+    window._currentGameLog.opponent.rounds.push({
+      round: roundNum,
+      hand: _logCardIds(hand),
+      placement: placements,
+      discard: discard ? discard.id : null,
+      board_after: _logBoard(state.oppBoard),
+    });
+  }catch(e){console.error('[log] logRoundOpp:',e);}
+}
+
+function logEndGame(score){
+  if(!window._currentGameLog) return;
+  try{
+    window._currentGameLog.player.final_board = _logBoard(state.playerBoard);
+    window._currentGameLog.opponent.final_board = _logBoard(state.oppBoard);
+    if(score){
+      window._currentGameLog.match = {
+        player_total: score.pTotal||0,
+        opp_total: score.oTotal||0,
+        player_roy: score.pRoy||0,
+        opp_roy: score.oRoy||0,
+        net: (score.pTotal+score.pRoy)-(score.oTotal+score.oRoy),
+        player_foul: !!score.pFoul,
+        opp_foul: !!score.oFoul,
+      };
+    }
+    try{
+      const pRes = getBestValidEvals(state.playerBoard);
+      const oRes = getBestValidEvals(state.oppBoard);
+      window._currentGameLog.player.result = {
+        fl: !pRes.isFoul && (pRes.topEval.flCards||0) >= 15,
+        fl_cards: !pRes.isFoul ? (pRes.topEval.flCards||0) : 0,
+        foul: !!pRes.isFoul,
+      };
+      window._currentGameLog.opponent.result = {
+        fl: !oRes.isFoul && (oRes.topEval.flCards||0) >= 15,
+        fl_cards: !oRes.isFoul ? (oRes.topEval.flCards||0) : 0,
+        foul: !!oRes.isFoul,
+      };
+    }catch(e){}
+    
+    let logs = [];
+    try{ logs = JSON.parse(localStorage.getItem(CHAIPO_LOG_KEY) || '[]'); }catch(e){ logs = []; }
+    logs.push(window._currentGameLog);
+    if(logs.length > 500) logs = logs.slice(-500);
+    localStorage.setItem(CHAIPO_LOG_KEY, JSON.stringify(logs));
+    console.log('[chaipo_log] saved. total:', logs.length);
+  }catch(e){
+    console.error('[chaipo_log] save error:', e);
+  }
+  window._currentGameLog = null;
+}
+
+function exportChaipoLogs(){
+  let logs = [];
+  try{ logs = JSON.parse(localStorage.getItem(CHAIPO_LOG_KEY) || '[]'); }catch(e){ logs = []; }
+  if(logs.length === 0){
+    alert('ログがまだありません。対戦モードでプレイしてからエクスポートしてください。');
+    return;
+  }
+  const payload = {
+    exported_at: new Date().toISOString(),
+    app_version: CHAIPO_LOG_VERSION,
+    total_games: logs.length,
+    games: logs,
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const filename = 'chaipo_logs_' + new Date().toISOString().slice(0,10) + '_' + logs.length + 'games.json';
+  
+  if(navigator.share && navigator.canShare){
+    try{
+      const blob = new Blob([json], {type:'application/json'});
+      const file = new File([blob], filename, {type:'application/json'});
+      if(navigator.canShare({files:[file]})){
+        navigator.share({files:[file], title:'チャイポ ログ', text: logs.length + ' ゲームのプレイログ'}).catch(e=>console.log('share canceled'));
+        return;
+      }
+    }catch(e){}
+  }
+  _showLogExportModal(json, filename, logs.length);
+}
+
+function _showLogExportModal(json, filename, count){
+  const old = document.getElementById('logExportModal');
+  if(old) old.remove();
+  const modal = document.createElement('div');
+  modal.id = 'logExportModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = 
+    '<div style="background:#fff;border-radius:12px;padding:20px;max-width:90vw;max-height:80vh;display:flex;flex-direction:column;width:500px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
+        '<div style="font-weight:600;font-size:16px;">ログエクスポート</div>' +
+        '<button id="logModalClose" style="background:none;border:none;font-size:24px;cursor:pointer;color:#666;">×</button>' +
+      '</div>' +
+      '<div style="font-size:13px;color:#666;margin-bottom:12px;">' +
+        count + ' ゲーム / ' + (json.length/1024).toFixed(1) + ' KB<br>' +
+        '<span style="color:#888;font-size:11px;">下のテキストを全選択→コピーし、Claude 等に貼り付けてください</span>' +
+      '</div>' +
+      '<textarea id="logExportText" readonly style="flex:1;width:100%;min-height:200px;font-family:monospace;font-size:10px;padding:8px;border:1px solid #ddd;border-radius:6px;resize:vertical;background:#f9f9f9;">' + json.replace(/</g,'&lt;') + '</textarea>' +
+      '<div style="display:flex;gap:8px;margin-top:12px;">' +
+        '<button id="logCopyBtn" style="flex:1;padding:12px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;">📋 コピー</button>' +
+        '<button id="logClearBtn" style="padding:12px 16px;background:#fff;color:#c00;border:1px solid #c00;border-radius:8px;font-size:14px;cursor:pointer;">🗑 削除</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+  document.getElementById('logModalClose').onclick = function(){ modal.remove(); };
+  document.getElementById('logCopyBtn').onclick = async function(){
+    const ta = document.getElementById('logExportText');
+    ta.focus(); ta.select();
+    try{
+      await navigator.clipboard.writeText(json);
+      document.getElementById('logCopyBtn').textContent = '✓ コピー完了';
+      setTimeout(function(){ const b=document.getElementById('logCopyBtn'); if(b) b.textContent = '📋 コピー'; }, 2000);
+    }catch(e){
+      try{document.execCommand('copy');}catch(ee){}
+    }
+  };
+  document.getElementById('logClearBtn').onclick = function(){
+    if(confirm(count + ' ゲームのログを削除しますか?')){
+      localStorage.removeItem(CHAIPO_LOG_KEY);
+      modal.remove();
+      alert('ログを削除しました');
+    }
+  };
+}
+
+// Phase 1 addendum: 盤面差分ベースの配置記録ヘルパー
+function _logBoardDiffPlacements(prevBoard, nextBoard){
+  // prevBoard に対して nextBoard で追加されたカードを [card_id, row] で返す
+  const out = [];
+  for(const row of ['top','mid','bot']){
+    const prevIds = new Set((prevBoard[row]||[]).map(c=>c.id));
+    for(const c of (nextBoard[row]||[])){
+      if(!prevIds.has(c.id)) out.push([c.id, row]);
+    }
+  }
+  return out;
+}
+
+// 各ラウンド開始時に「配置前の盤面」を記録するために呼ぶ
+function logMarkBoardBefore(){
+  if(!window._currentGameLog) return;
+  try{
+    window._currentGameLog._playerBoardBefore = {
+      top: [...state.playerBoard.top],
+      mid: [...state.playerBoard.mid],
+      bot: [...state.playerBoard.bot],
+    };
+    window._currentGameLog._oppBoardBefore = {
+      top: [...state.oppBoard.top],
+      mid: [...state.oppBoard.mid],
+      bot: [...state.oppBoard.bot],
+    };
+    window._currentGameLog._handBefore = [...state.hand];
+    window._currentGameLog._discardLenBefore = (state.discard||[]).length;
+  }catch(e){console.error('[log] markBefore:', e);}
+}
+
+// R2-R5 のプレイヤー配置確定時に呼ぶ
+function logRoundPlayerDiff(roundNum){
+  if(!window._currentGameLog) return;
+  try{
+    const prev = window._currentGameLog._playerBoardBefore;
+    if(!prev) return;
+    const placements = _logBoardDiffPlacements(prev, state.playerBoard);
+    // 捨て札 = state.discard の末尾 (その回で追加されたもの)
+    const discLen = (state.discard||[]).length;
+    const dLenBefore = window._currentGameLog._discardLenBefore || 0;
+    let discardId = null;
+    if(discLen > dLenBefore){
+      const dc = state.discard[discLen-1];
+      discardId = dc ? dc.id : null;
+    }
+    const hand = window._currentGameLog._handBefore || [];
+    window._currentGameLog.player.rounds.push({
+      round: roundNum,
+      hand: hand.map(c=>c.id),
+      placement: placements,
+      discard: discardId,
+      board_after: _logBoard(state.playerBoard),
+    });
+  }catch(e){console.error('[log] logRoundPlayerDiff:', e);}
+}
+
+// R2-R5 の相手配置確定時 (ボード反映後) に呼ぶ
+function logRoundOppDiff(roundNum){
+  if(!window._currentGameLog) return;
+  try{
+    const prev = window._currentGameLog._oppBoardBefore;
+    if(!prev) return;
+    const placements = _logBoardDiffPlacements(prev, state.oppBoard);
+    window._currentGameLog.opponent.rounds.push({
+      round: roundNum,
+      hand: placements.map(p=>p[0]),  // 手札詳細は不明、配置から推定
+      placement: placements,
+      discard: null,  // AI の捨て札は state から追跡難、省略
+      board_after: _logBoard(state.oppBoard),
+    });
+  }catch(e){console.error('[log] logRoundOppDiff:', e);}
+}
+/* ===== END CHAIPO LOGGER ADDENDUM ===== */
+
+/* ===== END CHAIPO PLAY LOGGER ===== */
+
 const RANKS=['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
 const SUITS=['s','h','d','c'];
 const SUIT_SYMS={s:'♠',h:'♥',d:'♦',c:'♣'};
@@ -1350,9 +1642,10 @@ function newGame(){
   resetScoreTransition();
   renderGame();showScreen('game');
   setTimeout(updateScoreBar, 50);
+  try{logStartGame();logR1OppPlacement();}catch(e){console.error('[log] newGame:',e);}
 }
 function dealNext(){
-  state.round++;if(state.round>5){endGame();return;}
+  state.round++;if(state.round>5){endGame();return;}try{logMarkBoardBefore();}catch(e){console.error('[log] mark:',e);}
   const d=state.deck;let i=state.deckIdx;
   state.hand=d.slice(i,i+=3);state.deckIdx=i;
   state.selectedCard=null;state.phase='pineapple';state.placedThisRound=[];
@@ -1365,6 +1658,7 @@ function dealNext(){
     // ボタン or FL中: AIが先に配置済み（全部見える）
     const{place}=aiPineapple(oH,state.oppBoard);
     for(const r of['top','mid','bot'])state.oppBoard[r].push(...(place[r]||[]));
+    try{logRoundOppDiff(state.round);}catch(e){console.error('[log] oppDiff:',e);}
     state.oppPlayedThisRound=true;
   } else {
     // ノンボタン（平場のみ）: AIの配置を保留
@@ -1379,6 +1673,7 @@ function endGame(){
   state.phase='ended'; // transitioning を解除してCONFIRMを有効化
   const score=calcScore(state.playerBoard,state.oppBoard);
   showResultBand(score);
+  try{logEndGame(score);}catch(e){console.error('[log] endGame:',e);}
   // ゲーム終了後：JKの化け先を計算してボードを再描画
   renderBoardWithJokers();
   updateConfirm(); // ボタンを即更新
@@ -1796,17 +2091,18 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{
       state.oppPlayedThisRound=true;
       state.phase='transitioning'; // 遷移中フラグ（二重押し防止）
       renderGame();
-      setTimeout(()=>{ state.phase='done5'; dealNext(); }, 600);
+      setTimeout(()=>{ try{logR1PlayerPlacement();}catch(e){} state.phase='done5'; dealNext(); }, 600);
     } else {
       dealNext();
     }
   }else{
     const pl=state.placedThisRound||[];if(pl.length<2){showToast('2枚配置してください');return;}if(!state.discardedThisRound){showToast('1枚捨ててください');return;}
-    state.placedThisRound=[];state.discardedThisRound=false;
+    try{logRoundPlayerDiff(state.round);}catch(e){console.error('[log] playerDiff:',e);}state.placedThisRound=[];state.discardedThisRound=false;
     // ノンボタン: プレイヤー配置確定後にAIの保留配置を表示
     if(!isPlayerButton && state.oppPendingPlace){
       const{place}=state.oppPendingPlace;
       for(const r of['top','mid','bot'])state.oppBoard[r].push(...(place[r]||[]));
+      try{logRoundOppDiff(state.round);}catch(e){console.error('[log] oppDiff2:',e);}
       state.oppPendingPlace=null;
       state.oppPlayedThisRound=true;
       state.phase='transitioning'; // 遷移中フラグ（二重押し防止）
@@ -1876,6 +2172,7 @@ document.getElementById('btnOuts').addEventListener('click',openOuts);
 document.getElementById('btnCloseOuts').addEventListener('click',closeOuts);
 document.getElementById('outsBackdrop').addEventListener('click',closeOuts);
 // DISABLED: document.getElementById('btnStart').addEventListener('click',()=>newGame());
+try{var bel=document.getElementById('btnExportLogs');if(bel)bel.addEventListener('click',exportChaipoLogs);}catch(e){console.error('[log] bind:',e);}
 
 // ===== ドラッグ&ドロップ（手札 + ボード上カード移動対応）=====
 (function(){
