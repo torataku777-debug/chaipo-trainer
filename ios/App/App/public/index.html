@@ -2495,17 +2495,37 @@ function _canMakePairInRow(card, rowCards){
 }
 
 function _innerGreedyDecide(board, hand, roundNum){
-  /* 軽量 greedy AI: 3 枚中 1 枚捨てて 2 枚配置する。
-     Rule:
-     1. A/K/JK は top (空き時)
-     2. ペア形成可能な行に置く
-     3. 高ランクは bot、低ランクは mid
-     4. A/K/JK を捨てるのはペナルティ
+  /* v28.25: 強化 greedy AI v2 (虎谷 + Claude 知見統合)
+
+     ルール (優先順位):
+     [絶対] ペア絶対分割しない (-50 分割ペナルティ)
+     [S級] A/K → top 必須 (+20)
+     [S級] JK → top 優先 (+18)、top 満杯なら bot (+8)
+     [A級] フラドロ 4+ 枚 → bot にまとめる (+12)
+     [A級] 高ランク T/J/Q → bot 優先 (+6)
+     [B級] 低ランク 2-8 → mid 優先 (+4)
+     [B級] 同段ペア形成 → +8
+     [ペナルティ] JK 捨て: -30
+     [ペナルティ] A 捨て: -15
+     [ペナルティ] K 捨て: -10
   */
   const free = _rowFree(board);
   let bestDiscardIdx = -1;
   let bestPlacements = null;
-  let bestLocalScore = -999;
+  let bestLocalScore = -99999;
+
+  // 盤面全体のスーツ分布を計算 (フラドロ判定用)
+  const allCardsOnBoard = [...board.top, ...board.mid, ...board.bot];
+  const suitCount = {s:0, h:0, d:0, c:0};
+  const rowSuitCount = {top:{s:0,h:0,d:0,c:0}, mid:{s:0,h:0,d:0,c:0}, bot:{s:0,h:0,d:0,c:0}};
+  for(const r of ['top','mid','bot']){
+    for(const c of board[r]){
+      if(!c.isJoker && c.s){
+        suitCount[c.s]++;
+        rowSuitCount[r][c.s]++;
+      }
+    }
+  }
 
   for(let discardIdx=0; discardIdx<3; discardIdx++){
     const toPlace = [];
@@ -2514,32 +2534,80 @@ function _innerGreedyDecide(board, hand, roundNum){
 
     const tmpBoard = {top:[...board.top], mid:[...board.mid], bot:[...board.bot]};
     const tmpFree = {...free};
+    const tmpRowSuit = {top:{...rowSuitCount.top}, mid:{...rowSuitCount.mid}, bot:{...rowSuitCount.bot}};
     const placements = [];
     let localScore = 0;
     let valid = true;
 
     for(const card of toPlace){
       const rowScore = {};
+      const isA = card.r === 'A';
+      const isK = card.r === 'K';
+      const isJk = !!card.isJoker;
+      const isHigh_AK_JK = isA || isK || isJk;
+      const rv = rankVal(card.r || '2');
+      const isHighTJQ = !isHigh_AK_JK && rv >= 10 && rv <= 12;  // T/J/Q
+      const isLow = !isHigh_AK_JK && rv <= 8;
+
       for(const row of ['top','mid','bot']){
         if(tmpFree[row] <= 0){ rowScore[row] = -9999; continue; }
         let score = 0;
-        const isA = card.r === 'A';
-        const isK = card.r === 'K';
-        const isJk = !!card.isJoker;
-        const isHigh = isA || isK || isJk;
-        const rv = rankVal(card.r || '2');
-        const isLow = !isHigh && rv <= 8;
 
+        // ===== S級: A/K/JK の top 優先 =====
         if(row === 'top'){
-          if(isHigh) score += 10;
-          else score -= 5;
+          if(isA || isK) score += 20;  // 虎谷 100%
+          else if(isJk) score += 18;   // 虎谷 89%
+          else score -= 8;              // top に低ランク禁止
         }
-        if(_canMakePairInRow(card, tmpBoard[row])) score += 6;
-        if(row === 'bot' && isHigh && !_canMakePairInRow(card, tmpBoard.top)) score += 3;
-        if(row === 'mid' && isLow) score += 2;
-        if(isJk && !_canMakePairInRow(card, tmpBoard.top)){
-          if(row === 'bot') score += 4;
+        // JK が top に置けないなら bot
+        if(row === 'bot' && isJk && tmpFree.top === 0){
+          score += 8;
         }
+
+        // ===== A級: ペア分割禁止 / 同段ペア形成 =====
+        if(!isJk){
+          // 同ランクが他の段に既にあるか?
+          let sameRankInRow = 0;
+          let sameRankOtherRow = 0;
+          for(const r2 of ['top','mid','bot']){
+            for(const c of tmpBoard[r2]){
+              if(!c.isJoker && c.r === card.r){
+                if(r2 === row) sameRankInRow++;
+                else sameRankOtherRow++;
+              }
+            }
+          }
+          if(sameRankOtherRow > 0){
+            // 他の行に同ランクあるのに別の行に置くと分割 → 大ペナルティ
+            if(sameRankInRow === 0) score -= 50;
+          }
+          // 同じ行に同ランクあればボーナス (ペア形成/強化)
+          if(sameRankInRow > 0) score += 10;
+        }
+
+        // ===== A級: フラドロ 4+ 枚 bot まとめ =====
+        if(!isJk && card.s){
+          const boardSuitTotal = suitCount[card.s] + tmpRowSuit[row][card.s] - rowSuitCount[row][card.s];
+          if(row === 'bot' && (tmpRowSuit.bot[card.s] || 0) >= 3){
+            score += 12;  // bot に既に 3+ 枚あって 4+ 目を bot に → 強推奨
+          }
+          // 3 枚目のフラドロを bot へ
+          if(row === 'bot' && tmpRowSuit.bot[card.s] >= 2){
+            score += 4;
+          }
+        }
+
+        // ===== A級: 高ランク T/J/Q → bot =====
+        if(isHighTJQ && row === 'bot') score += 6;
+        if(isHighTJQ && row === 'top') score -= 5;  // T/J/Q は top に置かない
+
+        // ===== B級: 低ランク → mid =====
+        if(isLow && row === 'mid') score += 4;
+        if(isLow && row === 'bot') score += 1;  // bot もそこそこ
+
+        // ===== 既存のペア形成 (2-8 連番等) =====
+        if(_canMakePairInRow(card, tmpBoard[row])) score += 8;
+
         rowScore[row] = score;
       }
 
@@ -2551,16 +2619,20 @@ function _innerGreedyDecide(board, hand, roundNum){
       if(bestSc <= -9000){ valid = false; break; }
       tmpBoard[bestRow].push(card);
       tmpFree[bestRow]--;
+      if(!card.isJoker && card.s) tmpRowSuit[bestRow][card.s]++;
       placements.push({card, row: bestRow});
       localScore += bestSc;
     }
 
     if(!valid) continue;
 
+    // ===== 捨て札ペナルティ (強化) =====
     let discardPenalty = 0;
-    if(discard.isJoker) discardPenalty += 15;
-    else if(discard.r === 'A') discardPenalty += 8;
-    else if(discard.r === 'K') discardPenalty += 5;
+    if(discard.isJoker) discardPenalty += 30;    // v1: 15
+    else if(discard.r === 'A') discardPenalty += 15;  // v1: 8
+    else if(discard.r === 'K') discardPenalty += 10;  // v1: 5
+    else if(discard.r === 'Q') discardPenalty += 4;   // 新規
+    else if(discard.r === 'J') discardPenalty += 2;
 
     const totalScore = localScore - discardPenalty;
     if(totalScore > bestLocalScore){
@@ -2575,15 +2647,36 @@ function _innerGreedyDecide(board, hand, roundNum){
 }
 
 function _enumPlacements(board, hand){
-  /* 最大 27 通りの配置候補を返す */
+  /* v28.26: 厳格フィルタ付き R2-R5 配置候補
+     [F1] top に A/K/JK 以外置かない (既存ボード top が 2 未満の場合)
+     [F2] 同ランクペアを分割しない (新規配置 + 既存ボード考慮)
+     [F3] JK を捨てない (安全フォールバックあり)
+  */
   const free = _rowFree(board);
   const seen = new Set();
   const results = [];
+
+  // 既存ボードのランク→行マップ
+  const existingRank = {};
+  for(const row of ['top','mid','bot']){
+    for(const c of board[row]){
+      if(!c.isJoker){
+        if(!existingRank[c.r]) existingRank[c.r] = new Set();
+        existingRank[c.r].add(row);
+      }
+    }
+  }
 
   for(let discardIdx=0; discardIdx<3; discardIdx++){
     const placementCards = [];
     for(let j=0; j<3; j++) if(j !== discardIdx) placementCards.push(hand[j]);
     const discardCard = hand[discardIdx];
+
+    // [F3] JK を捨てるのは禁止 (3 枚とも JK でない限り)
+    if(discardCard.isJoker){
+      const allJk = hand.every(c => c.isJoker);
+      if(!allJk) continue;
+    }
 
     // 2 枚の配置行の組み合わせ (3x3)
     for(const r1 of ['top','mid','bot']){
@@ -2596,6 +2689,34 @@ function _enumPlacements(board, hand){
           if(rowCount[row] > free[row]){ valid = false; break; }
         }
         if(!valid) continue;
+
+        // [F1] top に A/K/JK 以外置かない (既存 top が空 or A/K/JK のみの場合)
+        const checkTopOnly = (card, row) => {
+          if(row !== 'top') return true;
+          const isHigh = card.isJoker || card.r === 'A' || card.r === 'K';
+          return isHigh;
+        };
+        if(!checkTopOnly(placementCards[0], r1) || !checkTopOnly(placementCards[1], r2)){
+          continue;
+        }
+
+        // [F2] 同ランクペアを分割しない
+        const checkPairSplit = (card, row) => {
+          if(card.isJoker) return true;
+          if(existingRank[card.r] && !existingRank[card.r].has(row)){
+            // 別の行に同ランクあるのに違う行に置こうとしてる → NG
+            return false;
+          }
+          return true;
+        };
+        if(!checkPairSplit(placementCards[0], r1) || !checkPairSplit(placementCards[1], r2)){
+          continue;
+        }
+        // 2 枚が同ランクなら同じ行に置く
+        if(!placementCards[0].isJoker && !placementCards[1].isJoker &&
+           placementCards[0].r === placementCards[1].r && r1 !== r2){
+          continue;
+        }
 
         // 重複防止キー
         const pMap = [
@@ -2618,6 +2739,40 @@ function _enumPlacements(board, hand){
       }
     }
   }
+
+  // フィルタで 0 件になったら制約を全部外して再列挙 (安全フォールバック)
+  if(results.length === 0){
+    for(let discardIdx=0; discardIdx<3; discardIdx++){
+      const placementCards = [];
+      for(let j=0; j<3; j++) if(j !== discardIdx) placementCards.push(hand[j]);
+      const discardCard = hand[discardIdx];
+      for(const r1 of ['top','mid','bot']){
+        for(const r2 of ['top','mid','bot']){
+          const rowCount = {top:0, mid:0, bot:0};
+          rowCount[r1]++;
+          rowCount[r2]++;
+          let valid = true;
+          for(const row of ['top','mid','bot']){
+            if(rowCount[row] > free[row]){ valid = false; break; }
+          }
+          if(!valid) continue;
+          const pMap = [[placementCards[0].id, r1],[placementCards[1].id, r2]].sort((a,b)=>a[0].localeCompare(b[0]));
+          const key = pMap.map(p=>p[0]+':'+p[1]).join(',') + '|' + discardCard.id;
+          if(seen.has(key)) continue;
+          seen.add(key);
+          const newBoard = {top:[...board.top], mid:[...board.mid], bot:[...board.bot]};
+          newBoard[r1].push(placementCards[0]);
+          newBoard[r2].push(placementCards[1]);
+          results.push({
+            placements: [{card:placementCards[0], row:r1}, {card:placementCards[1], row:r2}],
+            discard: discardCard,
+            newBoard,
+          });
+        }
+      }
+    }
+  }
+
   return results;
 }
 
@@ -2780,29 +2935,64 @@ function _runOppFlatRounds(startRound){
 const ROLLOUT5_N_DEFAULT = 40;
 
 function _enumPlacements5(hand){
-  /* 5 枚の配置候補を全列挙。各カードを top/mid/bot のどれかに置く。
-     キャパ制約: top <= 3, mid <= 5, bot <= 5
-     → 5 枚なら mid/bot は常に収まる、top だけチェック
+  /* v28.26: 厳格フィルタ付き 5 枚配置候補列挙
+     [F1] top に A/K/JK 以外置かない (虎谷データ 100%)
+     [F2] 同ランクペアは同じ行に置く (分割禁止)
   */
   const results = [];
   const seen = new Set();
 
-  // 3^5 = 243 通りだが対称性で削減可能。ただし簡単のため全列挙。
+  // カードの is_high (A/K/JK) を事前計算
+  const isHigh = hand.map(c => c.isJoker || c.r === 'A' || c.r === 'K');
+
+  // 同ランクペアの検出 (JK 除く)
+  const rankGroups = {};
+  for(let i = 0; i < 5; i++){
+    if(!hand[i].isJoker){
+      if(!rankGroups[hand[i].r]) rankGroups[hand[i].r] = [];
+      rankGroups[hand[i].r].push(i);
+    }
+  }
+  const pairedIndices = [];
+  for(const r in rankGroups){
+    if(rankGroups[r].length >= 2){
+      pairedIndices.push(rankGroups[r]);
+    }
+  }
+
   const rows = ['top', 'mid', 'bot'];
   for(let a=0; a<3; a++) for(let b=0; b<3; b++) for(let c=0; c<3; c++)
   for(let d=0; d<3; d++) for(let e=0; e<3; e++){
     const assign = [rows[a], rows[b], rows[c], rows[d], rows[e]];
+
+    // [F1] top に A/K/JK 以外置かない
+    let validF1 = true;
+    for(let i = 0; i < 5; i++){
+      if(assign[i] === 'top' && !isHigh[i]){
+        validF1 = false; break;
+      }
+    }
+    if(!validF1) continue;
+
+    // [F2] 同ランクペアは同じ行
+    let validF2 = true;
+    for(const group of pairedIndices){
+      const assignedRows = new Set(group.map(idx => assign[idx]));
+      if(assignedRows.size > 1){
+        validF2 = false; break;
+      }
+    }
+    if(!validF2) continue;
+
     // top キャパチェック
     const topCount = assign.filter(r => r === 'top').length;
     if(topCount > 3) continue;
 
-    // 重複除去: 同じランクのカードを同じ行に置く場合、並び順違いは同一と扱う
-    // ここではカード ID 順を使う
+    // 重複除去
     const board = {top:[], mid:[], bot:[]};
     for(let i = 0; i < 5; i++){
       board[assign[i]].push(hand[i]);
     }
-    // 正規化キー: 各行のカード ID をソートして結合
     const key = ['top','mid','bot'].map(r =>
       board[r].map(c => c.id).sort().join(',')
     ).join('|');
@@ -2814,6 +3004,28 @@ function _enumPlacements5(hand){
       placements: assign.map((r, i) => ({card: hand[i], row: r})),
     });
   }
+
+  // フィルタ後 0 件なら F2 だけ緩めて再列挙 (安全フォールバック)
+  if(results.length === 0){
+    for(let a=0; a<3; a++) for(let b=0; b<3; b++) for(let c=0; c<3; c++)
+    for(let d=0; d<3; d++) for(let e=0; e<3; e++){
+      const assign = [rows[a], rows[b], rows[c], rows[d], rows[e]];
+      let validF1 = true;
+      for(let i = 0; i < 5; i++){
+        if(assign[i] === 'top' && !isHigh[i]){ validF1 = false; break; }
+      }
+      if(!validF1) continue;
+      const topCount = assign.filter(r => r === 'top').length;
+      if(topCount > 3) continue;
+      const board = {top:[], mid:[], bot:[]};
+      for(let i = 0; i < 5; i++) board[assign[i]].push(hand[i]);
+      const key = ['top','mid','bot'].map(r => board[r].map(c => c.id).sort().join(',')).join('|');
+      if(seen.has(key)) continue;
+      seen.add(key);
+      results.push({newBoard: board, placements: assign.map((r, i) => ({card: hand[i], row: r}))});
+    }
+  }
+
   return results;
 }
 
