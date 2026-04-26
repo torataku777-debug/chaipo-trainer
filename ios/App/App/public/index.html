@@ -5595,6 +5595,120 @@ body.debug-interactive .vmode-btn::before {
   opacity: 1;
 }
 
+
+/* ============================================================
+   fix45: フレンド対戦サブメニュー(screen-friend-match)の画像オーバーレイUI
+   + fix44 ステッカー風アニメーション適用
+   ============================================================ */
+#screen-friend-match{
+  background:#000 !important;
+  padding:0 !important;
+  overflow:hidden;
+}
+
+/* 既存装飾を全部隠す */
+#screen-friend-match > .back-to-mode-select-btn,
+#screen-friend-match > .mode-neon-bg,
+#screen-friend-match > .select-deco-icon,
+#screen-friend-match > .mode-select-body{
+  display:none !important;
+}
+
+/* 背景画像レイヤー */
+#screen-friend-match .friend-bg-layer{
+  position:absolute;
+  inset:0;
+  background-image:url('assets/friend_match_bg.png');
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  z-index:0;
+}
+
+/* 各画像オーバーレイ */
+#screen-friend-match .friend-overlay-img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  pointer-events:none;
+  user-select:none;
+  z-index:1;
+}
+
+/* 透明クリック領域 */
+#screen-friend-match .friend-img-tap,
+#screen-friend-match .friend-tap-back-btn{
+  position:absolute;
+  background:transparent !important;
+  border:none !important;
+  padding:0 !important;
+  margin:0 !important;
+  box-shadow:none !important;
+  border-radius:0 !important;
+  display:block !important;
+  align-items:initial !important;
+  justify-content:initial !important;
+  flex-direction:initial !important;
+  cursor:pointer;
+  z-index:10;
+  transition:transform 0.12s ease, opacity 0.12s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+
+#screen-friend-match .friend-img-tap::before,
+#screen-friend-match .friend-img-tap::after{
+  display:none !important;
+  content:none !important;
+}
+
+/* === bbox 配置 === */
+#screen-friend-match #btnFriendMatchCreateRoom.friend-img-tap{ left:4.57%;  top:45.77%; width:92.61%; height:13.67%; }
+#screen-friend-match #btnFriendMatchFriends.friend-img-tap{    left:4.10%;  top:61.01%; width:92.61%; height:13.50%; }
+#screen-friend-match #btnFriendMatchProfile.friend-img-tap{    left:3.87%;  top:75.49%; width:92.38%; height:14.21%; }
+#screen-friend-match .friend-tap-back-btn{                     left:4.34%;  top:90.13%; width:35.87%; height:6.02%; background:transparent; border:none; cursor:pointer; }
+
+/* === ステッカー風アニメーション(fix44 のkeyframes 再利用)=== */
+#screen-friend-match.active .friend-overlay-img.friend-overlay-card-room {
+  animation:
+    stickerPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.20s backwards,
+    stickerFloat1 4.0s ease-in-out 0.80s infinite;
+  transform-origin: center center;
+}
+#screen-friend-match.active .friend-overlay-img.friend-overlay-card-friends {
+  animation:
+    stickerPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.30s backwards,
+    stickerFloat2 4.5s ease-in-out 0.95s infinite;
+  transform-origin: center center;
+}
+#screen-friend-match.active .friend-overlay-img.friend-overlay-card-profile {
+  animation:
+    stickerPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.40s backwards,
+    stickerFloat3 4.2s ease-in-out 1.05s infinite;
+  transform-origin: center center;
+}
+#screen-friend-match.active .friend-overlay-img.friend-overlay-back-btn {
+  animation: stickerPopMild 0.4s ease-out 0.55s backwards;
+  transform-origin: center center;
+}
+
+/* 透明クリック領域: シンプルフェード(揺れなし、タップ判定安定)*/
+#screen-friend-match.active .friend-img-tap {
+  animation: tapFadeInOnly 0.4s ease-out backwards;
+}
+#screen-friend-match.active #btnFriendMatchCreateRoom { animation-delay: 0.30s; }
+#screen-friend-match.active #btnFriendMatchFriends    { animation-delay: 0.40s; }
+#screen-friend-match.active #btnFriendMatchProfile    { animation-delay: 0.50s; }
+
+/* タップ反応強化 */
+#screen-friend-match .friend-img-tap:active,
+#screen-friend-match .friend-tap-back-btn:active {
+  transform: scale(0.93);
+  opacity: 0.85;
+}
+
 </style>
 <!-- v28.88: Supabase XHR+eval 方式 (script タグでの評価が効かない環境向け) -->
 <script>
@@ -6062,77 +6176,27 @@ body.debug-interactive .vmode-btn::before {
 
 <!-- fix35: フレンド対戦サブメニュー画面 -->
 <div class="screen" id="screen-friend-match">
+  <!-- fix45: 画像オーバーレイ方式に改修 -->
   <button class="back-to-mode-select-btn" type="button" onclick="backToModeSelect()">
     <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
     <span>モード選択</span>
   </button>
-  <div class="mode-neon-bg">
-    <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-      <g stroke="#E8B923" stroke-width="1.5" fill="none" stroke-linecap="round">
-        <path d="M 200 40 L 340 200 L 200 360 L 60 200 Z" opacity="0.35"/>
-        <path d="M 200 80 L 300 200 L 200 320 L 100 200 Z" opacity="0.5"/>
-        <path d="M 200 120 L 260 200 L 200 280 L 140 200 Z" opacity="0.65"/>
-      </g>
-    </svg>
-  </div>
-  <div class="mode-select-body">
-    <div class="select-content">
-      <div class="mode-select-title">フレンド対戦</div>
-      <div class="mode-select-desc">ルーム作成・フレンド一覧・プロフィール</div>
 
-      <!-- 新しい部屋を作る -->
-      <button class="mode-btn primary" id="btnFriendMatchCreateRoom" onclick="if(typeof showScreen==='function')showScreen('quickmatch');">
-        <div class="mode-btn-corners"></div>
-        <div class="mode-btn-inner-frame"></div>
-        <div class="mode-btn-inner-frame-2"></div>
-        <div class="mode-btn-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </div>
-        <div class="mode-btn-title">新しい部屋を作る</div>
-        <div class="mode-btn-sub">4桁コードを発行してフレンドと対戦</div>
-        <div class="mode-btn-stat">
-          <div class="mode-btn-stat-val">→</div>
-          <div class="mode-btn-stat-lbl">CREATE</div>
-        </div>
-      </button>
+  <!-- 背景画像レイヤー -->
+  <div class="friend-bg-layer" aria-hidden="true"></div>
 
-      <!-- フレンド一覧 -->
-      <button class="mode-btn" id="btnFriendMatchFriends" onclick="if(typeof showScreen==='function')showScreen('friends');">
-        <div class="mode-btn-corners"></div>
-        <div class="mode-btn-inner-frame"></div>
-        <div class="mode-btn-inner-frame-2"></div>
-        <div class="mode-btn-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        </div>
-        <div class="mode-btn-title">フレンド一覧</div>
-        <div class="mode-btn-sub">友達を追加・管理</div>
-        <div class="mode-btn-stat">
-          <div class="mode-btn-stat-val" id="friendMatchStatFriendsVal">—</div>
-          <div class="mode-btn-stat-lbl">FRIENDS</div>
-        </div>
-      </button>
+  <!-- 各画像オーバーレイ -->
+  <img class="friend-overlay-img friend-overlay-card-room" src="assets/friend_match_card_room.png" alt="" aria-hidden="true">
+  <img class="friend-overlay-img friend-overlay-card-friends" src="assets/friend_match_card_friends.png" alt="" aria-hidden="true">
+  <img class="friend-overlay-img friend-overlay-card-profile" src="assets/friend_match_card_profile.png" alt="" aria-hidden="true">
+  <img class="friend-overlay-img friend-overlay-back-btn" src="assets/friend_match_back_btn.png" alt="" aria-hidden="true">
 
-      <!-- プロフィール -->
-      <button class="mode-btn" id="btnFriendMatchProfile" onclick="if(typeof showScreen==='function')showScreen('online-profile');">
-        <div class="mode-btn-corners"></div>
-        <div class="mode-btn-inner-frame"></div>
-        <div class="mode-btn-inner-frame-2"></div>
-        <div class="mode-btn-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        </div>
-        <div class="mode-btn-title">プロフィール</div>
-        <div class="mode-btn-sub">表示名・フレンドコード</div>
-        <div class="mode-btn-stat">
-          <div class="mode-btn-stat-val" id="friendMatchStatCodeVal">----</div>
-          <div class="mode-btn-stat-lbl">CODE</div>
-        </div>
-      </button>
-    </div>
-    <!-- fix36: select-footer 削除(左下ボタンと役割重複) -->
-  </div>
+  <!-- 透明クリック領域(JS互換: 既存IDとonclickを維持)-->
+  <button class="friend-img-tap" id="btnFriendMatchCreateRoom" type="button" aria-label="新しい部屋を作る" onclick="if(typeof showScreen==='function')showScreen('quickmatch');"></button>
+  <button class="friend-img-tap" id="btnFriendMatchFriends" type="button" aria-label="フレンド一覧" onclick="if(typeof showScreen==='function')showScreen('friends');"></button>
+  <button class="friend-img-tap" id="btnFriendMatchProfile" type="button" aria-label="プロフィール" onclick="if(typeof showScreen==='function')showScreen('online-profile');"></button>
+  <button class="friend-tap-back-btn" type="button" onclick="backToModeSelect()" aria-label="モード選択に戻る"></button>
 </div>
-
-<!-- v28.89 M4: フレンドリスト画面 -->
 <div class="screen" id="screen-friends">
   <!-- fix24: モード選択へ戻るボタン -->
   <button class="back-to-mode-select-btn" type="button" onclick="backToModeSelect()">
