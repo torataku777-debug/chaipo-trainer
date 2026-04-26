@@ -13164,7 +13164,15 @@ function backToModeSelect(){
 
   if(titleScreen) titleScreen.classList.add('active');
   if(transitionLayer) transitionLayer.classList.add('is-active');
-  if(modeButtons) modeButtons.classList.add('is-active');
+  // fix48: モード選択ボタンの活性化を次フレームに遅延
+  // 戻ってすぐタップしてもclick発火しないバグの修正
+  // CSS transition (opacity 0.3s) と click 判定の競合を回避するため、
+  // DOMフレームを1つまたいでから pointer-events:auto を効かせる
+  if(modeButtons){
+    requestAnimationFrame(function(){
+      modeButtons.classList.add('is-active');
+    });
+  }
 
   // 遷移動画は不要(モード選択画面だけ見せればOK)なので隠す
   if(video){
