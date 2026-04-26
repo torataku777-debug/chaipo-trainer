@@ -5709,6 +5709,232 @@ body.debug-interactive .vmode-btn::before {
   opacity: 0.85;
 }
 
+
+/* ============================================================
+   fix46: データ画面(screen-stats)を世界観統一+可読性改善
+   ============================================================ */
+
+/* 背景: 深ネイビー + チャイポネイバーズ系の暖色ラジアル光 */
+#screen-stats{
+  background:
+    radial-gradient(ellipse at 25% 12%, rgba(255,184,77,0.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 88%, rgba(255,122,26,0.07) 0%, transparent 55%),
+    linear-gradient(180deg, #0a1224 0%, #131a2c 100%) !important;
+  padding:0 !important;
+  overflow:hidden;
+}
+
+#screen-stats .stats-body{
+  background: transparent !important;
+  position:relative;
+  z-index:1;
+}
+
+/* タイトル「スタッツ」: 看板風(白文字+黒影) */
+#screen-stats .stats-title{
+  font-family: var(--font-ui),'Noto Sans JP',sans-serif !important;
+  color: #fafaf0 !important;
+  text-shadow:
+    -1px -1px 0 #0a0a0a, 1px -1px 0 #0a0a0a,
+    -1px  1px 0 #0a0a0a, 1px  1px 0 #0a0a0a,
+    0 4px 0 rgba(0,0,0,0.5),
+    0 0 24px rgba(255,184,77,0.3) !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.02em !important;
+}
+#screen-stats .stats-title::before{
+  color: #ff7a1a !important;
+  text-shadow:
+    -1px -1px 0 #0a0a0a, 1px -1px 0 #0a0a0a,
+    -1px  1px 0 #0a0a0a, 1px  1px 0 #0a0a0a !important;
+  font-weight: 800 !important;
+}
+
+/* 期間切替セグメント: ネオンタブ風 */
+#screen-stats .stats-period-seg{
+  background: rgba(20,28,48,0.92) !important;
+  border: 2px solid #ff7a1a !important;
+  box-shadow:
+    0 2px 0 #0a0a0a,
+    0 4px 14px rgba(0,0,0,0.4),
+    inset 0 0 16px rgba(255,184,77,0.08) !important;
+  border-radius: 9999px !important;
+}
+#screen-stats .stats-period-btn{
+  color: #c8d4e8 !important;
+  font-weight: 700 !important;
+}
+#screen-stats .stats-period-btn.active{
+  background: linear-gradient(135deg, #ff7a1a 0%, #ffb84d 100%) !important;
+  color: #0a0a0a !important;
+  box-shadow:
+    0 0 12px rgba(255,184,77,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.4) !important;
+  text-shadow: none !important;
+}
+
+/* === ヒーローカード: 大看板風 === */
+#screen-stats .stats-hero{
+  background: linear-gradient(180deg, #fffaf0 0%, #fff5e1 100%) !important;
+  border: 3px solid #0a0a0a !important;
+  border-radius: 18px !important;
+  box-shadow:
+    0 5px 0 #0a0a0a,
+    0 0 0 1.5px #ff7a1a,
+    0 12px 32px rgba(255,122,26,0.2) !important;
+  position: relative;
+  overflow: hidden;
+}
+#screen-stats .stats-hero::before{
+  content:'';
+  position:absolute; inset:0;
+  background:
+    radial-gradient(circle at 88% 14%, rgba(255,184,77,0.25) 0%, transparent 45%),
+    radial-gradient(circle at 12% 86%, rgba(255,122,26,0.12) 0%, transparent 45%);
+  pointer-events:none;
+}
+#screen-stats .stats-hero-label{
+  color: #ff7a1a !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.22em !important;
+  font-size: 11px !important;
+}
+#screen-stats .stats-hero-val{
+  color: #ff7a1a !important;
+  font-weight: 900 !important;
+  text-shadow:
+    -2px -2px 0 #0a0a0a, 2px -2px 0 #0a0a0a,
+    -2px  2px 0 #0a0a0a, 2px  2px 0 #0a0a0a,
+    -2px 0 0 #0a0a0a, 2px 0 0 #0a0a0a,
+    0 -2px 0 #0a0a0a, 0 2px 0 #0a0a0a !important;
+  font-size: 60px !important;
+  line-height: 1 !important;
+}
+#screen-stats .stats-hero-val-unit{
+  color: #0a0a0a !important;
+  text-shadow: none !important;
+  font-size: 30px !important;
+  font-weight: 800 !important;
+  margin-left: 4px !important;
+}
+#screen-stats .stats-hero-detail{
+  color: #6b6b6b !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+}
+#screen-stats .stats-hero-detail .n{
+  color: #0a0a0a !important;
+  font-weight: 900 !important;
+  font-size: 16px !important;
+}
+#screen-stats .stats-hero-spark-bar{
+  background: linear-gradient(to top, #ff7a1a 0%, #ffb84d 100%) !important;
+  border-radius: 3px !important;
+}
+#screen-stats .stats-hero-spark-bar.recent{
+  box-shadow: 0 0 12px rgba(255,184,77,0.8), 0 -2px 4px rgba(255,122,26,0.4) !important;
+}
+
+/* === 3カラム KPI: 独立した小看板 === */
+#screen-stats .stats-kpi{
+  background: #fffaf0 !important;
+  border: 2.5px solid #0a0a0a !important;
+  border-radius: 12px !important;
+  box-shadow:
+    0 4px 0 #0a0a0a,
+    0 8px 18px rgba(0,0,0,0.35) !important;
+  padding: 16px 8px !important;
+}
+#screen-stats .stats-kpi-val{
+  color: #0a0a0a !important;
+  font-size: 26px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.02em !important;
+}
+#screen-stats .stats-kpi-val.gold{
+  color: #d49920 !important;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.1) !important;
+}
+#screen-stats .stats-kpi-val.red{
+  color: #dc2626 !important;
+}
+#screen-stats .stats-kpi-lbl{
+  color: #555 !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.15em !important;
+  font-size: 10px !important;
+}
+
+/* === セクション(FL BREAKDOWN / MATCHES): 看板風 === */
+#screen-stats .stats-section{
+  background: #fffaf0 !important;
+  border: 2.5px solid #0a0a0a !important;
+  border-radius: 12px !important;
+  padding: 16px 18px !important;
+  box-shadow:
+    0 4px 0 #0a0a0a,
+    0 8px 18px rgba(0,0,0,0.35) !important;
+}
+#screen-stats .stats-section-title{
+  color: #0a0a0a !important;
+  border-bottom: 2px solid #0a0a0a !important;
+  padding-bottom: 8px !important;
+  margin-bottom: 14px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.1em !important;
+  font-size: 12px !important;
+}
+#screen-stats .stats-section-title #statsMatchRate{
+  color: #ff7a1a !important;
+  font-weight: 900 !important;
+}
+
+/* FL内訳行 */
+#screen-stats .stats-fl-row{
+  margin-bottom: 10px !important;
+}
+#screen-stats .stats-fl-label{
+  color: #0a0a0a !important;
+  font-weight: 800 !important;
+}
+
+/* マッチ履歴(W/L)*/
+#screen-stats .stats-match-summary{
+  font-weight: 900 !important;
+}
+#screen-stats .stats-match-summary .win{
+  color: #16a34a !important;
+}
+#screen-stats .stats-match-summary .lose{
+  color: #dc2626 !important;
+}
+
+/* === アニメーション(fix44 keyframes流用) === */
+#screen-stats.active .stats-hero{
+  animation: stickerPop 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.20s backwards !important;
+  transform-origin: center center;
+}
+#screen-stats.active .stats-kpi{
+  animation: stickerPop 0.5s cubic-bezier(0.34,1.56,0.64,1) backwards !important;
+  transform-origin: center center;
+}
+#screen-stats.active .stats-kpi:nth-child(1){ animation-delay: 0.32s !important; }
+#screen-stats.active .stats-kpi:nth-child(2){ animation-delay: 0.40s !important; }
+#screen-stats.active .stats-kpi:nth-child(3){ animation-delay: 0.48s !important; }
+#screen-stats.active .stats-section:nth-of-type(1){
+  animation: stickerPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.58s backwards !important;
+  transform-origin: center center;
+}
+#screen-stats.active .stats-section:nth-of-type(2){
+  animation: stickerPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.66s backwards !important;
+  transform-origin: center center;
+}
+
+/* タイトル/期間切替の登場 */
+#screen-stats.active .stats-header{
+  animation: tapFadeInOnly 0.5s ease-out 0.10s backwards !important;
+}
+
 </style>
 <!-- v28.88: Supabase XHR+eval 方式 (script タグでの評価が効かない環境向け) -->
 <script>
