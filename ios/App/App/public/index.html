@@ -6532,6 +6532,107 @@ body.debug-interactive .vmode-btn::before {
 #screen-friends.active .friends-section:nth-of-type(1){ animation-delay: 0.22s !important; }
 #screen-friends.active .friends-section:nth-of-type(2){ animation-delay: 0.32s !important; }
 
+
+/* ============================================================
+   fix50: オンライン対戦サブメニュー(screen-online-match)の画像オーバーレイUI
+   + fix44 ステッカー風アニメーション適用
+   ============================================================ */
+#screen-online-match{
+  background:#000 !important;
+  padding:0 !important;
+  overflow:hidden;
+}
+
+/* fix49で当てた世界観統一CSSはほぼ無効化(画像で表現するため) */
+#screen-online-match > .back-to-mode-select-btn,
+#screen-online-match > .mode-neon-bg,
+#screen-online-match > .select-deco-icon,
+#screen-online-match > .mode-select-body{
+  display:none !important;
+}
+
+/* 背景画像レイヤー */
+#screen-online-match .online-bg-layer{
+  position:absolute;
+  inset:0;
+  background-image:url('assets/online_match_bg.png');
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  z-index:0;
+}
+
+#screen-online-match .online-overlay-img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  pointer-events:none;
+  user-select:none;
+  z-index:1;
+}
+
+#screen-online-match .online-img-tap,
+#screen-online-match .online-tap-back-btn{
+  position:absolute;
+  background:transparent !important;
+  border:none !important;
+  padding:0 !important;
+  margin:0 !important;
+  box-shadow:none !important;
+  border-radius:0 !important;
+  display:block !important;
+  align-items:initial !important;
+  justify-content:initial !important;
+  flex-direction:initial !important;
+  cursor:pointer;
+  z-index:10;
+  -webkit-tap-highlight-color:transparent;
+}
+
+#screen-online-match .online-img-tap::before,
+#screen-online-match .online-img-tap::after{
+  display:none !important;
+  content:none !important;
+}
+
+/* === bbox 配置 === */
+#screen-online-match #btnOnlineCasual.online-img-tap{ left:2.23%; top:50.05%; width:95.43%; height:14.86%; }
+#screen-online-match #btnOnlineRanked.online-img-tap{ left:2.34%; top:67.41%; width:96.13%; height:15.56%; }
+#screen-online-match .online-tap-back-btn{ left:4.34%; top:90.13%; width:35.87%; height:6.02%; background:transparent; border:none; cursor:pointer; }
+
+/* === ステッカー風アニメーション(fix44 流用)=== */
+#screen-online-match.active .online-overlay-img.online-overlay-card-casual {
+  animation:
+    stickerPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.20s backwards,
+    stickerFloat1 4.0s ease-in-out 0.80s infinite;
+  transform-origin: center center;
+}
+#screen-online-match.active .online-overlay-img.online-overlay-card-ranked {
+  animation:
+    stickerPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.30s backwards,
+    stickerFloat2 4.5s ease-in-out 0.95s infinite;
+  transform-origin: center center;
+}
+#screen-online-match.active .online-overlay-img.online-overlay-back-btn {
+  animation: stickerPopMild 0.4s ease-out 0.50s backwards;
+  transform-origin: center center;
+}
+
+#screen-online-match.active .online-img-tap {
+  animation: tapFadeInOnly 0.4s ease-out backwards;
+}
+#screen-online-match.active #btnOnlineCasual { animation-delay: 0.30s !important; }
+#screen-online-match.active #btnOnlineRanked { animation-delay: 0.40s !important; }
+
+#screen-online-match .online-img-tap:active,
+#screen-online-match .online-tap-back-btn:active {
+  transform: scale(0.93);
+  opacity: 0.85;
+}
+
 </style>
 <!-- v28.88: Supabase XHR+eval 方式 (script タグでの評価が効かない環境向け) -->
 <script>
@@ -6942,62 +7043,28 @@ body.debug-interactive .vmode-btn::before {
 
 <!-- v28.89 M4: オンライン対戦サブメニュー -->
 <div class="screen" id="screen-online-match">
-  <!-- fix24: モード選択へ戻るボタン -->
+  <!-- fix50: 画像オーバーレイ方式に改修 -->
   <button class="back-to-mode-select-btn" type="button" onclick="backToModeSelect()">
     <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
     <span>モード選択</span>
   </button>
-  <div class="mode-neon-bg">
-    <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-      <g stroke="#E8B923" stroke-width="1.5" fill="none" stroke-linecap="round">
-        <path d="M 200 40 L 340 200 L 200 360 L 60 200 Z" opacity="0.35"/>
-        <path d="M 200 80 L 300 200 L 200 320 L 100 200 Z" opacity="0.5"/>
-        <path d="M 200 120 L 260 200 L 200 280 L 140 200 Z" opacity="0.65"/>
-      </g>
-    </svg>
-  </div>
-  <div class="mode-select-body">
-    <div class="select-content">
-      <div class="mode-select-title">オンライン対戦</div>
-      <div class="mode-select-desc">全国のネイバーと対戦しよう</div>
 
-      <!-- fix35: カジュアル対戦 (実装予定) -->
-      <button class="mode-btn" id="btnOnlineCasual" onclick="if(typeof showToast==='function')showToast('カジュアル対戦は実装予定です');else alert('カジュアル対戦は実装予定です');">
-        <div class="mode-btn-corners"></div>
-        <div class="mode-btn-inner-frame"></div>
-        <div class="mode-btn-inner-frame-2"></div>
-        <div class="mode-btn-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-        </div>
-        <div class="mode-btn-title">カジュアル対戦</div>
-        <div class="mode-btn-sub">気軽に人と対戦・レート変動なし</div>
-        <div class="mode-btn-stat">
-          <div class="mode-btn-stat-val">SOON</div>
-          <div class="mode-btn-stat-lbl">予定</div>
-        </div>
-      </button>
+  <!-- 背景画像レイヤー -->
+  <div class="online-bg-layer" aria-hidden="true"></div>
 
-      <!-- fix35: ランキング対戦 (レート戦、実装予定) -->
-      <button class="mode-btn primary" id="btnOnlineRanked" onclick="if(typeof showToast==='function')showToast('ランキング対戦は実装予定です');else alert('ランキング対戦は実装予定です');">
-        <div class="mode-btn-corners"></div>
-        <div class="mode-btn-inner-frame"></div>
-        <div class="mode-btn-inner-frame-2"></div>
-        <div class="mode-btn-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
-        </div>
-        <div class="mode-btn-title">ランキング対戦</div>
-        <div class="mode-btn-sub">レート変動あり・シーズンランキングを計上</div>
-        <div class="mode-btn-stat">
-          <div class="mode-btn-stat-val">SOON</div>
-          <div class="mode-btn-stat-lbl">予定</div>
-        </div>
-      </button>
-    </div>
-    <!-- fix36: select-footer 削除(左下ボタンと役割重複) -->
-  </div>
+  <!-- 各画像オーバーレイ -->
+  <img class="online-overlay-img online-overlay-card-casual" src="assets/online_match_card_casual.png" alt="" aria-hidden="true">
+  <img class="online-overlay-img online-overlay-card-ranked" src="assets/online_match_card_ranked.png" alt="" aria-hidden="true">
+  <img class="online-overlay-img online-overlay-back-btn" src="assets/online_match_back_btn.png" alt="" aria-hidden="true">
+
+  <!-- 透明クリック領域(JS互換: 既存IDとonclickを維持)-->
+  <button class="online-img-tap" id="btnOnlineCasual" type="button" aria-label="カジュアル対戦"
+    onclick="if(typeof showToast==='function')showToast('カジュアル対戦は実装予定です');else alert('カジュアル対戦は実装予定です');"></button>
+  <button class="online-img-tap" id="btnOnlineRanked" type="button" aria-label="ランキング対戦"
+    onclick="if(typeof showToast==='function')showToast('ランキング対戦は実装予定です');else alert('ランキング対戦は実装予定です');"></button>
+  <button class="online-tap-back-btn" type="button" onclick="backToModeSelect()" aria-label="モード選択に戻る"></button>
 </div>
 
-<!-- fix35: フレンド対戦サブメニュー画面 -->
 <div class="screen" id="screen-friend-match">
   <!-- fix45: 画像オーバーレイ方式に改修 -->
   <button class="back-to-mode-select-btn" type="button" onclick="backToModeSelect()">
