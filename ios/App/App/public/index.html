@@ -5354,6 +5354,104 @@ body.debug-interactive .vmode-btn::before {
   to{   opacity:1; transform:translateY(0); }
 }
 
+
+/* ============================================================
+   fix43: AI対戦サブメニュー(screen-ai-select)の画像オーバーレイUI
+   ============================================================ */
+#screen-ai-select{
+  background:#000 !important;
+  padding:0 !important;
+  overflow:hidden;
+}
+
+/* 既存装飾を全部隠す */
+#screen-ai-select > .back-to-mode-select-btn,
+#screen-ai-select > .mode-neon-bg,
+#screen-ai-select > .select-deco-icon,
+#screen-ai-select > .mode-select-body{
+  display:none !important;
+}
+
+/* 背景画像レイヤー */
+#screen-ai-select .ai-bg-layer{
+  position:absolute;
+  inset:0;
+  background-image:url('assets/ai_select_bg.png');
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  z-index:0;
+}
+
+/* 各画像オーバーレイ */
+#screen-ai-select .ai-overlay-img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  pointer-events:none;
+  user-select:none;
+  z-index:1;
+}
+
+/* 透明クリック領域 */
+#screen-ai-select .ai-img-tap,
+#screen-ai-select .ai-tap-back-btn{
+  position:absolute;
+  background:transparent !important;
+  border:none !important;
+  padding:0 !important;
+  margin:0 !important;
+  box-shadow:none !important;
+  border-radius:0 !important;
+  display:block !important;
+  align-items:initial !important;
+  justify-content:initial !important;
+  flex-direction:initial !important;
+  cursor:pointer;
+  z-index:10;
+  transition:transform 0.12s ease, opacity 0.12s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+
+#screen-ai-select .ai-img-tap::before,
+#screen-ai-select .ai-img-tap::after{
+  display:none !important;
+  content:none !important;
+}
+
+#screen-ai-select .ai-img-tap:active,
+#screen-ai-select .ai-tap-back-btn:active{
+  transform:scale(0.97);
+  opacity:0.85;
+}
+
+#screen-ai-select .ai-img-tap:disabled{
+  cursor:not-allowed;
+  pointer-events:none;
+}
+
+/* === bbox解析結果に基づく位置 === */
+#screen-ai-select #btnAI2P.ai-img-tap{ left:11.37%; top:55.64%; width:79.95%; height:13.23%; }
+#screen-ai-select #btnAI3P.ai-img-tap{ left:10.55%; top:69.20%; width:80.30%; height:12.04%; }
+#screen-ai-select .ai-tap-back-btn{ left:4.34%; top:89.05%; width:35.87%; height:6.02%; background:transparent; border:none; cursor:pointer; }
+
+/* フェードインアニメーション(2枚スタガー) */
+#screen-ai-select.active .ai-img-tap{
+  animation:aiCardFadeIn 0.5s ease-out backwards;
+}
+#screen-ai-select.active #btnAI2P{ animation-delay:0.22s; }
+#screen-ai-select.active #btnAI3P{ animation-delay:0.30s; }
+#screen-ai-select.active .ai-overlay-img.ai-overlay-card-2p{ animation:aiCardFadeIn 0.5s ease-out 0.22s backwards; }
+#screen-ai-select.active .ai-overlay-img.ai-overlay-card-3p{ animation:aiCardFadeIn 0.5s ease-out 0.30s backwards; }
+
+@keyframes aiCardFadeIn{
+  from{ opacity:0; transform:translateY(8px); }
+  to{   opacity:1; transform:translateY(0); }
+}
+
 </style>
 <!-- v28.88: Supabase XHR+eval 方式 (script タグでの評価が効かない環境向け) -->
 <script>
@@ -5715,86 +5813,25 @@ body.debug-interactive .vmode-btn::before {
 
 
 <div class="screen" id="screen-ai-select">
-  <!-- fix24: モード選択へ戻るボタン -->
+  <!-- fix43: 画像オーバーレイ方式に改修 -->
   <button class="back-to-mode-select-btn" type="button" onclick="backToModeSelect()">
     <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
     <span>モード選択</span>
   </button>
-  <div class="mode-neon-bg">
-    <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-      <g stroke="#E8B923" stroke-width="1.5" fill="none" stroke-linecap="round">
-        <path d="M 200 40 L 340 200 L 200 360 L 60 200 Z" opacity="0.35"/>
-        <path d="M 200 80 L 300 200 L 200 320 L 100 200 Z" opacity="0.5"/>
-        <path d="M 200 120 L 260 200 L 200 280 L 140 200 Z" opacity="0.65"/>
-      </g>
-      <g stroke="#E8B923" stroke-width="1" fill="none" opacity="0.3">
-        <path d="M 200 -20 L 420 200 L 200 420 L -20 200 Z"/>
-      </g>
-    </svg>
-  </div>
-  <svg class="select-deco-icon" viewBox="0 0 280 380" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <g stroke="#E8B923" stroke-width="5" stroke-linecap="round" fill="none">
-      <path d="M 140 118 L 140 12"/>
-      <path d="M 140 118 L 102 28"/>
-      <path d="M 140 118 L 178 28"/>
-      <ellipse cx="140" cy="248" rx="85" ry="100" stroke-width="6"/>
-      <path d="M 55 200 L 225 200" stroke-width="3.5"/>
-      <path d="M 60 270 L 220 270" stroke-width="3.5"/>
-      <path d="M 100 160 L 100 340" stroke-width="3.5"/>
-      <path d="M 140 150 L 140 348" stroke-width="3.5"/>
-      <path d="M 180 160 L 180 340" stroke-width="3.5"/>
-    </g>
-  </svg>
-  <div class="mode-select-body">
-    <div class="select-content">
-      <div class="mode-select-title">AI対戦</div>
-      <div class="mode-select-desc">対戦人数を選んでください</div>
-      <button class="mode-btn primary" id="btnAI2P">
-                <div class="mode-btn-shimmer"></div>
-        <div class="mode-btn-corners"></div>
-        <div class="mode-btn-inner-frame"></div>
-        <div class="mode-btn-inner-frame-2"></div>
-        <div class="mode-btn-icon">
-          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="8" cy="10" r="3"/>
-            <circle cx="16" cy="10" r="3"/>
-            <path d="M4 20c0-2.2 1.8-4 4-4s4 1.8 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <path d="M12 20c0-2.2 1.8-4 4-4s4 1.8 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="mode-btn-title">2人対戦</div>
-        <div class="mode-btn-sub">AIと1対1で対戦</div>
-        <div class="mode-btn-stat">
-          <div class="mode-btn-stat-val">Rollout</div>
-          <div class="mode-btn-stat-lbl">AI v2</div>
-        </div>
-      </button>
-      <!-- v28.73: 3人対戦 — 実装予定 (統一デザイン) -->
-      <button class="mode-btn mode-btn-coming" id="btnAI3P" disabled aria-disabled="true">
-                <div class="mode-coming-ribbon">実装予定</div>
-        <div class="mode-btn-shimmer"></div>
-        <div class="mode-btn-corners"></div>
-        <div class="mode-btn-inner-frame"></div>
-        <div class="mode-btn-inner-frame-2"></div>
-        <div class="mode-btn-icon">
-          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="6" cy="10" r="2.5"/>
-            <circle cx="12" cy="10" r="2.5"/>
-            <circle cx="18" cy="10" r="2.5"/>
-          </svg>
-        </div>
-        <div class="mode-btn-title">3人対戦</div>
-        <div class="mode-btn-sub">AI 2体と対戦 (2v2)</div>
-        <div class="mode-btn-stat">
-          <div class="mode-btn-stat-val">—</div>
-          <div class="mode-btn-stat-lbl">SOON</div>
-        </div>
-      </button>
-    </div>
-    <!-- fix36: select-footer 削除(左下ボタンと役割重複) -->
-  </div>
-</div>
 
+  <!-- 背景画像レイヤー -->
+  <div class="ai-bg-layer" aria-hidden="true"></div>
+
+  <!-- 各画像オーバーレイ(全部同じキャンバスサイズ・位置情報入り)-->
+  <img class="ai-overlay-img ai-overlay-card-2p" src="assets/ai_select_card_2p.png" alt="" aria-hidden="true">
+  <img class="ai-overlay-img ai-overlay-card-3p" src="assets/ai_select_card_3p.png" alt="" aria-hidden="true">
+  <img class="ai-overlay-img ai-overlay-back-btn" src="assets/ai_select_back_btn.png" alt="" aria-hidden="true">
+
+  <!-- 透明クリック領域(JS互換: id="btnAI2P" / id="btnAI3P" を維持)-->
+  <button class="ai-img-tap" id="btnAI2P" type="button" aria-label="2人対戦"></button>
+  <button class="ai-img-tap" id="btnAI3P" disabled aria-disabled="true" type="button" aria-label="3人対戦(実装予定)"></button>
+  <button class="ai-tap-back-btn" type="button" onclick="backToModeSelect()" aria-label="モード選択に戻る"></button>
+</div>
 <div class="screen" id="screen-fl-select">
   <!-- fix41: 画像オーバーレイ方式に改修 -->
   <!-- 共通の戻るボタンは fix41 CSS で非表示にする(画像内のデザインを使用) -->
