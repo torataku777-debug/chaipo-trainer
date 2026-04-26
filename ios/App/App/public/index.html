@@ -11570,8 +11570,10 @@ function onModeClick(modeName){
   // fix19: モードごとのトランジション画像マッピング
   var transitionImageMap = {
     'AI対戦': 'assets/transition_ai.png',
-    'オンライン対戦': 'assets/transition_online.png'
-    // 他のモードは順次追加
+    'オンライン対戦': 'assets/transition_online.png',
+    'フレンド対戦': 'assets/transition_friend.png',
+    'ファンタジー練習': 'assets/transition_fantasy.png',
+    'データ': 'assets/transition_data.png'
   };
   var transitionImage = transitionImageMap[modeName];
 
@@ -11796,13 +11798,18 @@ function navigateToModeOnly(modeName){
       else if(typeof showScreen === 'function') showScreen('mode-select');
       break;
     case 'フレンド対戦':
-      if(typeof showToast === 'function') showToast('フレンド対戦は現在開発中です');
-      else alert('フレンド対戦は現在開発中です');
+      // fix32: 既存の screen-friends 画面へ遷移
+      if(typeof showScreen === 'function') showScreen('friends');
+      else if(typeof showToast === 'function') showToast('フレンド対戦は現在開発中です');
       break;
     case '設定':
-      var btnSettings = document.getElementById('btnSettings');
-      if(btnSettings){ btnSettings.click(); break; }
-      alert('設定画面(未実装)');
+      // fix32: 設定モーダルを開く(以前は btnSettings.click() だった)
+      if(typeof openSettingsModal === 'function') openSettingsModal();
+      else {
+        var btnSettings = document.getElementById('btnSettings');
+        if(btnSettings){ btnSettings.click(); break; }
+        alert('設定画面(未実装)');
+      }
       break;
   }
 }
