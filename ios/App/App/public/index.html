@@ -5364,6 +5364,13 @@ body.debug-interactive .vmode-btn::before {
    XHR で UMD を取得して (0, eval) でグローバル実行する。
    ================================================================ */
 (function(){
+  // ============================================================
+  // v1.0 OFFLINE MODE: Supabase 通信を完全停止する
+  //   - true  : 全てのオンライン機能を停止(v1.0リリース時)
+  //   - false : Supabase連携を有効化(v1.1以降)
+  // ============================================================
+  window.NEIGHBORS_OFFLINE_MODE = true;
+
   const SUPABASE_URL = 'https://orepjmjkelwsdezxewws.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_nJEk0FNdyZ3aSJfA-apqCA_Mviqb6US';
 
@@ -5377,6 +5384,11 @@ body.debug-interactive .vmode-btn::before {
 
   // UMD を XHR 同期取得 → グローバル eval
   function loadSupabaseSDK(){
+    // v1.0 OFFLINE MODE: SDK ロードをスキップ
+    if(window.NEIGHBORS_OFFLINE_MODE === true){
+      console.log('[supabase] OFFLINE MODE - SDK load skipped');
+      return null;
+    }
     try {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', 'supabase-umd.js?xhr=' + Date.now(), false);
@@ -5404,6 +5416,12 @@ body.debug-interactive .vmode-btn::before {
 
   async function initSupabase(){
     const O = window.chaipoOnline;
+    // v1.0 OFFLINE MODE: Supabase初期化を完全にスキップ
+    if(window.NEIGHBORS_OFFLINE_MODE === true){
+      console.log('[supabase] OFFLINE MODE - init skipped');
+      O.isReady = false;
+      return null;
+    }
     if(O.supabase) return O.supabase;
 
     const createClient = loadSupabaseSDK();
