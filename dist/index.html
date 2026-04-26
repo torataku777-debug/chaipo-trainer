@@ -5935,6 +5935,209 @@ body.debug-interactive .vmode-btn::before {
   animation: tapFadeInOnly 0.5s ease-out 0.10s backwards !important;
 }
 
+
+/* ============================================================
+   fix47: 設定画面(screen-settings)を世界観統一+可読性改善
+   ============================================================ */
+
+/* 背景 - データ画面(fix46)と統一 */
+#screen-settings{
+  background:
+    radial-gradient(ellipse at 25% 12%, rgba(255,184,77,0.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 88%, rgba(255,122,26,0.07) 0%, transparent 55%),
+    linear-gradient(180deg, #0a1224 0%, #131a2c 100%) !important;
+  padding:0 !important;
+  overflow:hidden;
+}
+
+#screen-settings .settings-screen-body{
+  background: transparent !important;
+  position:relative;
+  z-index:1;
+}
+
+/* タイトル「設定」 - ステッカー文字風 */
+#screen-settings .settings-screen-title{
+  color: #fafaf0 !important;
+  text-shadow:
+    -1px -1px 0 #0a0a0a, 1px -1px 0 #0a0a0a,
+    -1px  1px 0 #0a0a0a, 1px  1px 0 #0a0a0a,
+    0 4px 0 rgba(0,0,0,0.5),
+    0 0 24px rgba(255,184,77,0.3) !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.02em !important;
+  font-size: 26px !important;
+}
+#screen-settings .settings-screen-title::before{
+  content: 'SETTINGS · ' !important;
+  font-family: var(--font-mono),'Space Grotesk',sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  color: #ff7a1a !important;
+  letter-spacing: 0.2em !important;
+  display: block !important;
+  margin-bottom: 2px !important;
+  text-shadow:
+    -1px -1px 0 #0a0a0a, 1px -1px 0 #0a0a0a,
+    -1px  1px 0 #0a0a0a, 1px  1px 0 #0a0a0a !important;
+}
+
+/* セクション見出し(ゲーム/データ/その他/アプリ) - スタンプ風 */
+#screen-settings .settings-section-title{
+  color: #ff7a1a !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.18em !important;
+  font-size: 11px !important;
+  margin: 18px 8px 8px !important;
+  text-transform: uppercase !important;
+  text-shadow:
+    -1px -1px 0 #0a0a0a, 1px -1px 0 #0a0a0a,
+    -1px  1px 0 #0a0a0a, 1px  1px 0 #0a0a0a !important;
+}
+#screen-settings .settings-section-title:first-child{ margin-top: 4px !important; }
+
+/* settings-group - 看板風 */
+#screen-settings .settings-group{
+  background: #fffaf0 !important;
+  border: 2.5px solid #0a0a0a !important;
+  border-radius: 14px !important;
+  box-shadow:
+    0 4px 0 #0a0a0a,
+    0 8px 18px rgba(0,0,0,0.35) !important;
+  overflow: hidden !important;
+}
+
+/* settings-item - 個別項目 */
+#screen-settings .settings-item{
+  color: #0a0a0a !important;
+  background: transparent !important;
+  padding: 16px 16px !important;
+}
+#screen-settings .settings-item:not(:last-child)::after{
+  background: rgba(0,0,0,0.18) !important;
+  height: 1.5px !important;
+  left: 16px !important;
+  right: 16px !important;
+}
+#screen-settings .settings-item:active{
+  background: rgba(255,184,77,0.18) !important;
+}
+
+/* アイコン: オレンジ強調 */
+#screen-settings .settings-item-icon{
+  color: #ff7a1a !important;
+}
+
+/* ラベル */
+#screen-settings .settings-item-label{
+  color: #0a0a0a !important;
+  font-weight: 800 !important;
+  font-size: 15px !important;
+}
+#screen-settings .settings-item-sub{
+  color: #6b6b6b !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+}
+
+/* 値バッジ(右端) - 看板バッジ風 */
+#screen-settings .settings-item-right{
+  background: rgba(10,10,10,0.06) !important;
+  color: #0a0a0a !important;
+  font-weight: 800 !important;
+  border: 1.5px solid #0a0a0a !important;
+  border-radius: 8px !important;
+  padding: 4px 10px !important;
+  font-size: 12px !important;
+  letter-spacing: 0.05em !important;
+}
+#screen-settings .settings-item-right.gold{
+  background: linear-gradient(135deg, #ffeec0 0%, #ffd96b 100%) !important;
+  color: #0a0a0a !important;
+  border-color: #d49920 !important;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.15) !important;
+}
+
+/* 実装予定アイテム */
+#screen-settings .settings-item-coming{
+  opacity: 0.65 !important;
+}
+#screen-settings .settings-item-coming .settings-item-icon{
+  color: #888 !important;
+}
+#screen-settings .settings-item-coming .settings-item-label{
+  color: #555 !important;
+}
+#screen-settings .settings-item-coming .settings-item-sub{
+  color: #999 !important;
+}
+#screen-settings .settings-coming-ribbon{
+  background: linear-gradient(135deg, #d4d4d4 0%, #a3a3a3 100%) !important;
+  color: #0a0a0a !important;
+  font-weight: 800 !important;
+  border: 1.5px solid #0a0a0a !important;
+  text-shadow: none !important;
+  letter-spacing: 0.1em !important;
+  font-size: 10px !important;
+}
+
+/* 危険ゾーン: タイトルへ戻る */
+#screen-settings .settings-item-danger{
+  background: rgba(220, 38, 38, 0.05) !important;
+}
+#screen-settings .settings-item-danger .settings-item-icon{
+  color: #dc2626 !important;
+}
+#screen-settings .settings-item-danger .settings-item-label{
+  color: #dc2626 !important;
+  font-weight: 800 !important;
+}
+#screen-settings .settings-item-danger .settings-item-sub{
+  color: #6b3030 !important;
+}
+#screen-settings .settings-item-danger:active{
+  background: rgba(220, 38, 38, 0.15) !important;
+}
+
+/* バージョン表示 */
+#screen-settings .settings-version{
+  color: rgba(255,255,255,0.45) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.15em !important;
+  margin-top: 24px !important;
+}
+
+/* === アニメーション === */
+#screen-settings.active .settings-screen-header{
+  animation: tapFadeInOnly 0.5s ease-out 0.10s backwards !important;
+}
+#screen-settings.active .settings-screen-content > *{
+  animation: tapFadeInOnly 0.4s ease-out backwards !important;
+}
+#screen-settings.active .settings-screen-content > *:nth-child(1){ animation-delay: 0.15s !important; }
+#screen-settings.active .settings-screen-content > *:nth-child(2){
+  animation: stickerPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.20s backwards !important;
+  transform-origin: center center;
+}
+#screen-settings.active .settings-screen-content > *:nth-child(3){ animation-delay: 0.28s !important; }
+#screen-settings.active .settings-screen-content > *:nth-child(4){
+  animation: stickerPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.33s backwards !important;
+  transform-origin: center center;
+}
+#screen-settings.active .settings-screen-content > *:nth-child(5){ animation-delay: 0.41s !important; }
+#screen-settings.active .settings-screen-content > *:nth-child(6){
+  animation: stickerPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.46s backwards !important;
+  transform-origin: center center;
+}
+#screen-settings.active .settings-screen-content > *:nth-child(7){ animation-delay: 0.54s !important; }
+#screen-settings.active .settings-screen-content > *:nth-child(8){
+  animation: stickerPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.59s backwards !important;
+  transform-origin: center center;
+}
+#screen-settings.active .settings-version{
+  animation: tapFadeInOnly 0.5s ease-out 0.80s backwards !important;
+}
+
 </style>
 <!-- v28.88: Supabase XHR+eval 方式 (script タグでの評価が効かない環境向け) -->
 <script>
