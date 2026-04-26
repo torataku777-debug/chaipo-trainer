@@ -4758,7 +4758,7 @@ body.debug-interactive .vmode-btn::before {
 /* === fix24: モード選択への「戻る」ボタン (各モード画面の左下に配置) === */
 .back-to-mode-select-btn {
   position: fixed;
-  bottom: max(20px, env(safe-area-inset-bottom));
+  bottom: calc(max(20px, env(safe-area-inset-bottom)) + 20px); /* fix38: 下部余白追加 */
   left: 16px;
   z-index: 100;
   display: flex;
@@ -4846,6 +4846,409 @@ body.debug-interactive .vmode-btn::before {
   font-size: 14px !important;
   font-weight: bold !important;
 }
+
+
+/* === fix37: 設定画面(screen-settings) スタイル === */
+#screen-settings {
+  background: linear-gradient(180deg, #f8f8fb 0%, #e8e8ee 100%);
+  overflow-y: auto;
+}
+/* fix38: モード画面の下部余白を確保(左下「モード選択」ボタンとの間隔確保) */
+#screen-ai-select .mode-select-body,
+#screen-fl-select .fl-select-body,
+#screen-online-match .mode-select-body,
+#screen-friend-match .mode-select-body,
+#screen-quickmatch .mode-select-body,
+#screen-online-profile .mode-select-body,
+#screen-friends .friends-body,
+#screen-stats .stats-body {
+  padding-bottom: 160px !important; /* fix39: 左下ボタンとの間隔をしっかり確保 */
+}
+
+.settings-screen-body {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: max(40px, env(safe-area-inset-top)) 16px 100px;
+}
+.settings-screen-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 16px;
+}
+.settings-screen-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: #111;
+  letter-spacing: 0.02em;
+}
+.settings-screen-content {
+  padding: 8px 4px;
+}
+
+/* === fix37: 全ボタンにリップル(波紋)エフェクト === */
+.ripple-effect {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(232, 185, 35, 0.45); /* ゴールド */
+  pointer-events: none;
+  transform: scale(0);
+  animation: ripple-spread 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  z-index: 9999;
+  mix-blend-mode: screen;
+}
+
+@keyframes ripple-spread {
+  0% {
+    transform: scale(0);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+/* リップル親要素は overflow:hidden 必要だが、既存ボタンの構造を壊さないため
+   要素ごとに対応せず、Document 全体に重ねる方式を採用 */
+
+/* === fix39: 各モード画面の世界観統一 === */
+/* 共通: 街並み背景 + 装飾SVG非表示 */
+#screen-ai-select,
+#screen-fl-select,
+#screen-friend-match,
+#screen-quickmatch,
+#screen-online-profile {
+  background-color: #1a3a5e !important;
+  background-image: url('assets/bg_cityscape.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+#screen-ai-select .mode-neon-bg,
+#screen-ai-select .select-deco-icon,
+#screen-fl-select .mode-neon-bg,
+#screen-fl-select .select-deco-icon,
+#screen-friend-match .mode-neon-bg,
+#screen-friend-match .select-deco-icon,
+#screen-quickmatch .mode-neon-bg,
+#screen-online-profile .mode-neon-bg {
+  display: none !important;
+}
+
+/* AI対戦: オレンジテーマ */
+#screen-ai-select .mode-select-body {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 133, 48, 0.4) 0%,
+    rgba(232, 101, 26, 0.85) 50%,
+    rgba(120, 50, 10, 0.95) 100%
+  ) !important;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+#screen-ai-select .mode-select-title {
+  font-family: var(--font-jp), 'Noto Sans JP', sans-serif !important;
+  font-size: 38px !important;
+  font-weight: 900 !important;
+  color: #fff !important;
+  letter-spacing: 0.02em !important;
+  text-shadow:
+    -2px -2px 0 #000, 2px -2px 0 #000,
+    -2px 2px 0 #000, 2px 2px 0 #000,
+    0 6px 0 #783210, 0 8px 12px rgba(0, 0, 0, 0.5) !important;
+  transform: rotate(-2deg);
+  margin-top: 8px !important;
+  margin-bottom: 4px !important;
+}
+#screen-ai-select .mode-select-desc {
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.05em !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+  margin-bottom: 24px !important;
+}
+#screen-ai-select .mode-btn {
+  background: linear-gradient(180deg, #FF8530 0%, #E8651A 100%) !important;
+  border: 3px solid #fff !important;
+  border-radius: 18px !important;
+  box-shadow:
+    0 0 0 4px rgba(0, 0, 0, 0.3),
+    0 6px 0 #783210,
+    0 10px 20px rgba(0, 0, 0, 0.4) !important;
+  padding: 18px 20px !important;
+  margin-bottom: 22px !important;
+  position: relative !important;
+  overflow: visible !important;
+  transition: transform 0.12s ease-out, box-shadow 0.12s ease-out !important;
+}
+#screen-ai-select .mode-btn:active {
+  transform: translateY(4px) !important;
+  box-shadow:
+    0 0 0 4px rgba(0, 0, 0, 0.3), 0 2px 0 #783210,
+    0 4px 8px rgba(0, 0, 0, 0.4) !important;
+}
+#screen-ai-select .mode-btn-corners,
+#screen-ai-select .mode-btn-inner-frame,
+#screen-ai-select .mode-btn-inner-frame-2,
+#screen-ai-select .mode-btn-shimmer {
+  display: none !important;
+}
+
+/* FL練習: 金テーマ */
+#screen-fl-select .fl-select-body {
+  background: linear-gradient(
+    180deg,
+    rgba(244, 196, 48, 0.4) 0%,
+    rgba(212, 155, 0, 0.85) 50%,
+    rgba(80, 60, 0, 0.95) 100%
+  ) !important;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+#screen-fl-select .fl-select-title {
+  font-family: var(--font-jp), 'Noto Sans JP', sans-serif !important;
+  font-size: 38px !important;
+  font-weight: 900 !important;
+  color: #fff !important;
+  letter-spacing: 0.02em !important;
+  text-shadow:
+    -2px -2px 0 #000, 2px -2px 0 #000,
+    -2px 2px 0 #000, 2px 2px 0 #000,
+    0 6px 0 #503c00, 0 8px 12px rgba(0, 0, 0, 0.5) !important;
+  transform: rotate(-2deg);
+  margin-top: 8px !important;
+  margin-bottom: 4px !important;
+}
+#screen-fl-select .fl-select-desc {
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.05em !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+  margin-bottom: 24px !important;
+}
+#screen-fl-select .fl-card-btn {
+  background: linear-gradient(180deg, #FFD45A 0%, #D49B00 100%) !important;
+  border: 3px solid #fff !important;
+  border-radius: 18px !important;
+  box-shadow:
+    0 0 0 4px rgba(0, 0, 0, 0.3),
+    0 6px 0 #503c00,
+    0 10px 20px rgba(0, 0, 0, 0.4) !important;
+}
+#screen-fl-select .fl-card-btn:active {
+  transform: translateY(4px) !important;
+  box-shadow:
+    0 0 0 4px rgba(0, 0, 0, 0.3), 0 2px 0 #503c00,
+    0 4px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* フレンド対戦サブメニュー: ターコイズテーマ */
+#screen-friend-match .mode-select-body {
+  background: linear-gradient(
+    180deg,
+    rgba(43, 184, 163, 0.4) 0%,
+    rgba(31, 160, 136, 0.85) 50%,
+    rgba(10, 70, 60, 0.95) 100%
+  ) !important;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+#screen-friend-match .mode-select-title {
+  font-family: var(--font-jp), 'Noto Sans JP', sans-serif !important;
+  font-size: 38px !important;
+  font-weight: 900 !important;
+  color: #fff !important;
+  letter-spacing: 0.02em !important;
+  text-shadow:
+    -2px -2px 0 #000, 2px -2px 0 #000,
+    -2px 2px 0 #000, 2px 2px 0 #000,
+    0 6px 0 #0a463c, 0 8px 12px rgba(0, 0, 0, 0.5) !important;
+  transform: rotate(-2deg);
+  margin-top: 8px !important;
+  margin-bottom: 4px !important;
+}
+#screen-friend-match .mode-select-desc {
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.05em !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+  margin-bottom: 24px !important;
+}
+#screen-friend-match .mode-btn {
+  background: linear-gradient(180deg, #4ED4BD 0%, #2BB8A3 100%) !important;
+  border: 3px solid #fff !important;
+  border-radius: 18px !important;
+  box-shadow:
+    0 0 0 4px rgba(0, 0, 0, 0.3),
+    0 6px 0 #0a463c,
+    0 10px 20px rgba(0, 0, 0, 0.4) !important;
+  padding: 18px 20px !important;
+  margin-bottom: 22px !important;
+  position: relative !important;
+  overflow: visible !important;
+  transition: transform 0.12s ease-out, box-shadow 0.12s ease-out !important;
+}
+#screen-friend-match .mode-btn:active {
+  transform: translateY(4px) !important;
+  box-shadow:
+    0 0 0 4px rgba(0, 0, 0, 0.3), 0 2px 0 #0a463c,
+    0 4px 8px rgba(0, 0, 0, 0.4) !important;
+}
+#screen-friend-match .mode-btn.primary {
+  background: linear-gradient(180deg, #FFD45A 0%, #D49B00 100%) !important;
+  box-shadow:
+    0 0 0 4px rgba(0, 0, 0, 0.3),
+    0 6px 0 #503c00,
+    0 10px 20px rgba(0, 0, 0, 0.4) !important;
+}
+#screen-friend-match .mode-btn-corners,
+#screen-friend-match .mode-btn-inner-frame,
+#screen-friend-match .mode-btn-inner-frame-2,
+#screen-friend-match .mode-btn-shimmer {
+  display: none !important;
+}
+
+/* クイックマッチ: ターコイズ(フレンド対戦と同系統) */
+#screen-quickmatch .mode-select-body {
+  background: linear-gradient(
+    180deg,
+    rgba(43, 184, 163, 0.4) 0%,
+    rgba(31, 160, 136, 0.85) 50%,
+    rgba(10, 70, 60, 0.95) 100%
+  ) !important;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+#screen-quickmatch .mode-select-title {
+  font-family: var(--font-jp), 'Noto Sans JP', sans-serif !important;
+  font-size: 32px !important;
+  font-weight: 900 !important;
+  color: #fff !important;
+  letter-spacing: 0.02em !important;
+  text-shadow:
+    -2px -2px 0 #000, 2px -2px 0 #000,
+    -2px 2px 0 #000, 2px 2px 0 #000,
+    0 6px 0 #0a463c, 0 8px 12px rgba(0, 0, 0, 0.5) !important;
+  transform: rotate(-2deg);
+  margin-top: 8px !important;
+  margin-bottom: 4px !important;
+}
+#screen-quickmatch .mode-select-desc {
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+  margin-bottom: 24px !important;
+}
+#screen-quickmatch .mode-btn {
+  background: linear-gradient(180deg, #4ED4BD 0%, #2BB8A3 100%) !important;
+  border: 3px solid #fff !important;
+  border-radius: 18px !important;
+  box-shadow:
+    0 0 0 4px rgba(0, 0, 0, 0.3),
+    0 6px 0 #0a463c,
+    0 10px 20px rgba(0, 0, 0, 0.4) !important;
+  padding: 18px 20px !important;
+  margin-bottom: 22px !important;
+  position: relative !important;
+  overflow: visible !important;
+}
+#screen-quickmatch .mode-btn:active {
+  transform: translateY(4px) !important;
+}
+#screen-quickmatch .mode-btn-corners,
+#screen-quickmatch .mode-btn-inner-frame,
+#screen-quickmatch .mode-btn-inner-frame-2,
+#screen-quickmatch .mode-btn-shimmer {
+  display: none !important;
+}
+#screen-quickmatch .qm-join-block {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 18px !important;
+  border: 3px solid #fff !important;
+  box-shadow: 0 6px 0 #0a463c, 0 10px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* プロフィール: ターコイズ */
+#screen-online-profile .mode-select-body {
+  background: linear-gradient(
+    180deg,
+    rgba(43, 184, 163, 0.3) 0%,
+    rgba(31, 160, 136, 0.85) 50%,
+    rgba(10, 70, 60, 0.95) 100%
+  ) !important;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* データ画面: ネイビーテーマ */
+#screen-stats {
+  background: linear-gradient(180deg, #1a2b4a 0%, #0a1428 100%) !important;
+}
+#screen-stats .stats-body {
+  background: linear-gradient(
+    180deg,
+    rgba(58, 184, 230, 0.15) 0%,
+    rgba(26, 43, 74, 0.7) 100%
+  ) !important;
+}
+#screen-stats .stats-title {
+  color: #fff !important;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* フレンド一覧: ターコイズ */
+#screen-friends {
+  background-color: #1a3a5e !important;
+  background-image: url('assets/bg_cityscape.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+#screen-friends .friends-body {
+  background: linear-gradient(
+    180deg,
+    rgba(43, 184, 163, 0.4) 0%,
+    rgba(31, 160, 136, 0.9) 50%,
+    rgba(10, 70, 60, 0.95) 100%
+  ) !important;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+#screen-friends .friends-title {
+  color: #fff !important;
+  text-shadow:
+    -2px -2px 0 #000, 2px -2px 0 #000,
+    -2px 2px 0 #000, 2px 2px 0 #000,
+    0 4px 0 #0a463c !important;
+}
+
+
+/* fix38: 危険ゾーン (タイトル戻る等) スタイル */
+.settings-item-danger {
+  background: linear-gradient(180deg, #fef2f2 0%, #fee2e2 100%) !important;
+  border: 1px solid rgba(220, 38, 38, 0.2) !important;
+}
+.settings-item-danger .settings-item-icon {
+  background: rgba(220, 38, 38, 0.1) !important;
+  color: #dc2626 !important;
+}
+.settings-item-danger .settings-item-icon svg {
+  stroke: #dc2626 !important;
+}
+.settings-item-danger .settings-item-label {
+  color: #dc2626 !important;
+}
+
 
 </style>
 <!-- v28.88: Supabase XHR+eval 方式 (script タグでの評価が効かない環境向け) -->
@@ -5266,9 +5669,7 @@ body.debug-interactive .vmode-btn::before {
         </div>
       </button>
     </div>
-    <div class="select-footer">
-      <button class="btn-back" id="btnBackToModeFromAI">← モード選択に戻る</button>
-    </div>
+    <!-- fix36: select-footer 削除(左下ボタンと役割重複) -->
   </div>
 </div>
 
@@ -5334,9 +5735,7 @@ body.debug-interactive .vmode-btn::before {
         </button>
       </div>
     </div>
-    <div class="select-footer">
-      <button class="btn-back" id="btnBackToMode">← モード選択に戻る</button>
-    </div>
+    <!-- fix36: select-footer 削除(左下ボタンと役割重複) -->
   </div>
 </div>
 
@@ -5360,42 +5759,98 @@ body.debug-interactive .vmode-btn::before {
   <div class="mode-select-body">
     <div class="select-content">
       <div class="mode-select-title">オンライン対戦</div>
-      <div class="mode-select-desc">対戦方法を選んでください</div>
+      <div class="mode-select-desc">全国のネイバーと対戦しよう</div>
 
-      <!-- v28.91 M5: クイックマッチ (アクティブ) -->
-      <button class="mode-btn" id="btnOnlineQuickMatch">
+      <!-- fix35: カジュアル対戦 (実装予定) -->
+      <button class="mode-btn" id="btnOnlineCasual" onclick="if(typeof showToast==='function')showToast('カジュアル対戦は実装予定です');else alert('カジュアル対戦は実装予定です');">
         <div class="mode-btn-corners"></div>
         <div class="mode-btn-inner-frame"></div>
         <div class="mode-btn-inner-frame-2"></div>
         <div class="mode-btn-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
         </div>
-        <div class="mode-btn-title">クイックマッチ</div>
-        <div class="mode-btn-sub">4桁コードで部屋を作成・参加</div>
+        <div class="mode-btn-title">カジュアル対戦</div>
+        <div class="mode-btn-sub">気軽に人と対戦・レート変動なし</div>
         <div class="mode-btn-stat">
-          <div class="mode-btn-stat-val">NEW</div>
-          <div class="mode-btn-stat-lbl">β</div>
+          <div class="mode-btn-stat-val">SOON</div>
+          <div class="mode-btn-stat-lbl">予定</div>
         </div>
       </button>
 
-      <!-- フレンドリスト -->
-      <button class="mode-btn primary" id="btnOnlineFriends">
+      <!-- fix35: ランキング対戦 (レート戦、実装予定) -->
+      <button class="mode-btn primary" id="btnOnlineRanked" onclick="if(typeof showToast==='function')showToast('ランキング対戦は実装予定です');else alert('ランキング対戦は実装予定です');">
+        <div class="mode-btn-corners"></div>
+        <div class="mode-btn-inner-frame"></div>
+        <div class="mode-btn-inner-frame-2"></div>
+        <div class="mode-btn-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+        </div>
+        <div class="mode-btn-title">ランキング対戦</div>
+        <div class="mode-btn-sub">レート変動あり・シーズンランキングを計上</div>
+        <div class="mode-btn-stat">
+          <div class="mode-btn-stat-val">SOON</div>
+          <div class="mode-btn-stat-lbl">予定</div>
+        </div>
+      </button>
+    </div>
+    <!-- fix36: select-footer 削除(左下ボタンと役割重複) -->
+  </div>
+</div>
+
+<!-- fix35: フレンド対戦サブメニュー画面 -->
+<div class="screen" id="screen-friend-match">
+  <button class="back-to-mode-select-btn" type="button" onclick="backToModeSelect()">
+    <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+    <span>モード選択</span>
+  </button>
+  <div class="mode-neon-bg">
+    <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+      <g stroke="#E8B923" stroke-width="1.5" fill="none" stroke-linecap="round">
+        <path d="M 200 40 L 340 200 L 200 360 L 60 200 Z" opacity="0.35"/>
+        <path d="M 200 80 L 300 200 L 200 320 L 100 200 Z" opacity="0.5"/>
+        <path d="M 200 120 L 260 200 L 200 280 L 140 200 Z" opacity="0.65"/>
+      </g>
+    </svg>
+  </div>
+  <div class="mode-select-body">
+    <div class="select-content">
+      <div class="mode-select-title">フレンド対戦</div>
+      <div class="mode-select-desc">ルーム作成・フレンド一覧・プロフィール</div>
+
+      <!-- 新しい部屋を作る -->
+      <button class="mode-btn primary" id="btnFriendMatchCreateRoom" onclick="if(typeof showScreen==='function')showScreen('quickmatch');">
+        <div class="mode-btn-corners"></div>
+        <div class="mode-btn-inner-frame"></div>
+        <div class="mode-btn-inner-frame-2"></div>
+        <div class="mode-btn-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <div class="mode-btn-title">新しい部屋を作る</div>
+        <div class="mode-btn-sub">4桁コードを発行してフレンドと対戦</div>
+        <div class="mode-btn-stat">
+          <div class="mode-btn-stat-val">→</div>
+          <div class="mode-btn-stat-lbl">CREATE</div>
+        </div>
+      </button>
+
+      <!-- フレンド一覧 -->
+      <button class="mode-btn" id="btnFriendMatchFriends" onclick="if(typeof showScreen==='function')showScreen('friends');">
         <div class="mode-btn-corners"></div>
         <div class="mode-btn-inner-frame"></div>
         <div class="mode-btn-inner-frame-2"></div>
         <div class="mode-btn-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
-        <div class="mode-btn-title">フレンドリスト</div>
+        <div class="mode-btn-title">フレンド一覧</div>
         <div class="mode-btn-sub">友達を追加・管理</div>
         <div class="mode-btn-stat">
-          <div class="mode-btn-stat-val" id="onlineStatFriendsVal">—</div>
+          <div class="mode-btn-stat-val" id="friendMatchStatFriendsVal">—</div>
           <div class="mode-btn-stat-lbl">FRIENDS</div>
         </div>
       </button>
 
-      <!-- v28.90 M4: プロフィール (設定モーダルから移設) -->
-      <button class="mode-btn" id="btnOnlineProfile">
+      <!-- プロフィール -->
+      <button class="mode-btn" id="btnFriendMatchProfile" onclick="if(typeof showScreen==='function')showScreen('online-profile');">
         <div class="mode-btn-corners"></div>
         <div class="mode-btn-inner-frame"></div>
         <div class="mode-btn-inner-frame-2"></div>
@@ -5405,14 +5860,12 @@ body.debug-interactive .vmode-btn::before {
         <div class="mode-btn-title">プロフィール</div>
         <div class="mode-btn-sub">表示名・フレンドコード</div>
         <div class="mode-btn-stat">
-          <div class="mode-btn-stat-val" id="onlineStatCodeVal">----</div>
+          <div class="mode-btn-stat-val" id="friendMatchStatCodeVal">----</div>
           <div class="mode-btn-stat-lbl">CODE</div>
         </div>
       </button>
     </div>
-    <div class="select-footer">
-      <button class="btn-back" id="btnBackToModeFromOnline">← モード選択に戻る</button>
-    </div>
+    <!-- fix36: select-footer 削除(左下ボタンと役割重複) -->
   </div>
 </div>
 
@@ -5465,6 +5918,11 @@ body.debug-interactive .vmode-btn::before {
 
 <!-- v28.91 M5: クイックマッチ エントリ画面 -->
 <div class="screen" id="screen-quickmatch">
+  <!-- fix36: モード選択へ戻るボタン -->
+  <button class="back-to-mode-select-btn" type="button" onclick="backToModeSelect()">
+    <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+    <span>モード選択</span>
+  </button>
   <div class="mode-neon-bg">
     <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
       <g stroke="#E8B923" stroke-width="1.5" fill="none" stroke-linecap="round">
@@ -5507,9 +5965,7 @@ body.debug-interactive .vmode-btn::before {
         <div class="qm-error" id="qmError" style="display:none"></div>
       </div>
     </div>
-    <div class="select-footer">
-      <button class="btn-back" id="btnBackFromQuickmatch">← オンライン対戦に戻る</button>
-    </div>
+    <!-- fix36: select-footer 削除(左下ボタンと役割重複) -->
   </div>
 </div>
 
@@ -5606,6 +6062,11 @@ body.debug-interactive .vmode-btn::before {
 
 <!-- v28.90 M4: オンライン対戦 > プロフィール画面 (設定モーダルから移設) -->
 <div class="screen" id="screen-online-profile">
+  <!-- fix36: モード選択へ戻るボタン -->
+  <button class="back-to-mode-select-btn" type="button" onclick="backToModeSelect()">
+    <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+    <span>モード選択</span>
+  </button>
   <div class="mode-neon-bg">
     <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
       <g stroke="#E8B923" stroke-width="1.5" fill="none" stroke-linecap="round">
@@ -5644,6 +6105,11 @@ body.debug-interactive .vmode-btn::before {
 
 <!-- v28.33B スタッツ画面 -->
 <div class="screen" id="screen-stats">
+  <!-- fix33: モード選択へ戻るボタン -->
+  <button class="back-to-mode-select-btn" type="button" onclick="backToModeSelect()">
+    <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+    <span>モード選択</span>
+  </button>
   <div class="stats-body">
     <div class="stats-header">
       <div class="stats-title">スタッツ</div>
@@ -5709,9 +6175,7 @@ body.debug-interactive .vmode-btn::before {
     <div class="stats-reset-wrap" id="statsResetWrap" style="display:none;margin-top:8px;">
       <button class="stats-reset-btn" id="statsResetSeasonBtn">新しいシーズンを開始</button>
     </div>
-    <div class="stats-back-wrap">
-      <button class="btn-back" id="btnStatsBack">← 戻る</button>
-    </div>
+    <!-- fix36: btnStatsBack 削除(左下ボタンと役割重複) -->
   </div>
 </div>
 
@@ -5763,6 +6227,100 @@ body.debug-interactive .vmode-btn::before {
   <div class="landscape-warning-text">縦画面でプレイしてください</div>
 </div>
 <div class="toast" id="toast"></div>
+
+<!-- fix37: 設定画面(モーダルから昇格) -->
+<div class="screen" id="screen-settings">
+  <!-- 左下「モード選択」戻るボタン -->
+  <button class="back-to-mode-select-btn" type="button" onclick="backToModeSelect()">
+    <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+    <span>モード選択</span>
+  </button>
+  <div class="settings-screen-body">
+    <div class="settings-screen-header">
+      <div class="settings-screen-title">設定</div>
+    </div>
+    <div class="settings-screen-content">
+      <div class="settings-section-title">ゲーム</div>
+      <div class="settings-group">
+        <button class="settings-item" id="settingsTimeLimit_screen">
+          <div class="settings-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="settings-item-main">
+            <div class="settings-item-label">制限時間</div>
+            <div class="settings-item-sub">1ラウンドあたりの時間</div>
+          </div>
+          <div class="settings-item-right" id="settingsTimeLimitSub_screen">OFF</div>
+        </button>
+        <button class="settings-item" id="settingsStartScore_screen">
+          <div class="settings-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div class="settings-item-main">
+            <div class="settings-item-label">初期点数</div>
+            <div class="settings-item-sub">マッチ開始時のポイント</div>
+          </div>
+          <div class="settings-item-right gold" id="settingsStartScoreSub_screen">100</div>
+        </button>
+      </div>
+
+      <div class="settings-section-title">データ</div>
+      <div class="settings-group">
+        <button class="settings-item" id="settingsExport_screen">
+          <div class="settings-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </div>
+          <div class="settings-item-main">
+            <div class="settings-item-label">プレイログをエクスポート</div>
+            <div class="settings-item-sub">JSON形式で保存</div>
+          </div>
+          <div class="settings-item-right"></div>
+        </button>
+      </div>
+
+      <div class="settings-section-title">その他</div>
+      <div class="settings-group">
+        <div class="settings-item settings-item-coming">
+          <div class="settings-coming-ribbon">実装予定</div>
+          <div class="settings-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          </div>
+          <div class="settings-item-main">
+            <div class="settings-item-label">音量</div>
+            <div class="settings-item-sub">効果音・BGMの音量調整</div>
+          </div>
+        </div>
+        <div class="settings-item settings-item-coming">
+          <div class="settings-coming-ribbon">実装予定</div>
+          <div class="settings-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 5v14"/><path d="M16 5v14"/></svg>
+          </div>
+          <div class="settings-item-main">
+            <div class="settings-item-label">カードデザイン</div>
+            <div class="settings-item-sub">カードの絵柄を変更</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- fix38: タイトルへ戻るボタン (危険ゾーン扱い) -->
+      <div class="settings-section-title">アプリ</div>
+      <div class="settings-group">
+        <button class="settings-item settings-item-danger" id="settingsBackToTitle" onclick="backToTitleFromSettings()">
+          <div class="settings-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </div>
+          <div class="settings-item-main">
+            <div class="settings-item-label">タイトル画面へ戻る</div>
+            <div class="settings-item-sub">PLAY NOW のタイトル画面に戻ります</div>
+          </div>
+          <div class="settings-item-right"></div>
+        </button>
+      </div>
+
+      <div class="settings-version">v28.91</div>
+    </div>
+  </div>
+</div>
 
 <div class="screen active" id="screen-title">
   <!-- v3a_clean: チャイポネイバーズ タイトル画面 -->
@@ -11270,6 +11828,98 @@ function neighborsPreloadVideos(){
   // setTimeout(initDebugInteractive, 500);
 }
 
+// fix37: 全ボタンにリップル(波紋)エフェクト追加
+(function setupRipple(){
+  function createRipple(ev){
+    var target = ev.target.closest('button, .vmode-btn, .mode-btn, .settings-item, .back-to-mode-select-btn, .btn-back, .qm-join-btn, [role="button"]');
+    if(!target) return;
+    if(target.disabled) return;
+
+    // タップ位置取得
+    var rect = target.getBoundingClientRect();
+    var x, y;
+    if(ev.touches && ev.touches[0]){
+      x = ev.touches[0].clientX;
+      y = ev.touches[0].clientY;
+    } else {
+      x = ev.clientX;
+      y = ev.clientY;
+    }
+
+    // 画面全体をオーバーレイの親としてリップルを生成
+    var ripple = document.createElement('span');
+    ripple.className = 'ripple-effect';
+    var size = Math.max(rect.width, rect.height) * 1.2;
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (x - size / 2) + 'px';
+    ripple.style.top = (y - size / 2) + 'px';
+    document.body.appendChild(ripple);
+
+    setTimeout(function(){
+      if(ripple.parentNode) ripple.parentNode.removeChild(ripple);
+    }, 700);
+  }
+
+  // pointerdown と touchstart の両方をフックして即座に反応
+  document.addEventListener('pointerdown', createRipple, { passive: true });
+})();
+
+// fix37: screen-settings の各項目クリックを既存モーダル項目にプロキシ
+(function setupSettingsScreenProxy(){
+  var proxyMap = {
+    'settingsTimeLimit_screen': 'settingsTimeLimit',
+    'settingsStartScore_screen': 'settingsStartScore',
+    'settingsExport_screen': 'settingsExport'
+  };
+
+  document.addEventListener('click', function(ev){
+    var btn = ev.target.closest('[id$="_screen"]');
+    if(!btn) return;
+    var srcId = btn.id;
+    var targetId = proxyMap[srcId];
+    if(!targetId) return;
+    var target = document.getElementById(targetId);
+    if(target) target.click();
+  });
+
+  // 値表示の同期(モーダル側の表示が変わったら screen 側も更新)
+  function syncSettingsValues(){
+    var pairs = [
+      ['settingsTimeLimitSub', 'settingsTimeLimitSub_screen'],
+      ['settingsStartScoreSub', 'settingsStartScoreSub_screen']
+    ];
+    pairs.forEach(function(p){
+      var src = document.getElementById(p[0]);
+      var dst = document.getElementById(p[1]);
+      if(src && dst){
+        dst.textContent = src.textContent;
+        dst.className = src.className.replace(/^settings-item-right/, dst.className.split(' ')[0] === 'settings-item-right' ? 'settings-item-right' : dst.className.split(' ')[0]);
+      }
+    });
+  }
+
+  // screen-settings が active になった時、または定期的に同期
+  var observer = new MutationObserver(function(){
+    var s = document.getElementById('screen-settings');
+    if(s && s.classList.contains('active')) syncSettingsValues();
+  });
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){
+      var s = document.getElementById('screen-settings');
+      if(s) observer.observe(s, {attributes:true, attributeFilter:['class']});
+    });
+  } else {
+    var s = document.getElementById('screen-settings');
+    if(s) observer.observe(s, {attributes:true, attributeFilter:['class']});
+  }
+
+  // モーダル側で値が変わった時も同期
+  setInterval(syncSettingsValues, 1500);
+})();
+
+
+
+
 // fix22: ボタンをドラッグ・リサイズでインタラクティブに調整できるモード
 function initDebugInteractive(){
   document.body.classList.add('debug-interactive');
@@ -11700,13 +12350,50 @@ function navigateToMode(modeName){
   navigateToModeOnly(modeName);
 }
 
+// fix38: 設定画面からタイトル画面に戻る(設定 → タイトル)
+function backToTitleFromSettings(){
+  if(window.navigator && window.navigator.vibrate) window.navigator.vibrate(15);
+  console.log('[NEIGHBORS] タイトルへ戻る (from 設定)');
+
+  // 全モード画面非active
+  var allScreens = ['ai-select', 'fl-select', 'online-match', 'friend-match', 'friends', 'quickmatch', 'room-waiting', 'online-profile', 'stats', 'settings'];
+  allScreens.forEach(function(id){
+    var el = document.getElementById('screen-' + id);
+    if(el) el.classList.remove('active');
+  });
+
+  // モード選択画面の動画レイヤーも閉じる(タイトル画面に戻すため)
+  var transitionLayer = document.getElementById('transitionLayer');
+  var modeButtons = document.getElementById('modeSelectButtons');
+  var video = document.getElementById('transitionVideo');
+  var loopVideo = document.getElementById('transitionLoopVideo');
+
+  if(transitionLayer) transitionLayer.classList.remove('is-active');
+  if(modeButtons) modeButtons.classList.remove('is-active');
+  if(video){
+    video.classList.remove('video-ready');
+    try { video.pause(); video.currentTime = 0; } catch(e){}
+  }
+  if(loopVideo){
+    loopVideo.classList.remove('video-ready');
+    try { loopVideo.pause(); loopVideo.currentTime = 0; } catch(e){}
+  }
+
+  // タイトル画面 active 化
+  var titleScreen = document.getElementById('screen-title');
+  if(titleScreen){
+    titleScreen.classList.add('active');
+    titleScreen.classList.remove('is-transitioning-out');
+  }
+}
+
 // fix24: モード画面からモード選択へ戻る関数
 function backToModeSelect(){
   if(window.navigator && window.navigator.vibrate) window.navigator.vibrate(15);
   console.log('[NEIGHBORS] モード選択へ戻る');
 
   // 現在のモード画面を全クリーンアップ
-  var allScreens = ['ai-select', 'fl-select', 'online-match', 'friends', 'quickmatch', 'room-waiting', 'online-profile'];
+  var allScreens = ['ai-select', 'fl-select', 'online-match', 'friend-match', 'friends', 'quickmatch', 'room-waiting', 'online-profile', 'stats', 'settings'];
   allScreens.forEach(function(id){
     var el = document.getElementById('screen-' + id);
     if(el) el.classList.remove('active');
@@ -11794,22 +12481,19 @@ function navigateToModeOnly(modeName){
       if(typeof showScreen === 'function') showScreen('online-match');
       break;
     case 'データ':
-      if(typeof showStatsModal === 'function') showStatsModal();
-      else if(typeof showScreen === 'function') showScreen('mode-select');
+      // fix33: モーダル → 専用画面(screen-stats)に升格
+      if(typeof showScreen === 'function') showScreen('stats');
+      else if(typeof showStatsModal === 'function') showStatsModal();
       break;
     case 'フレンド対戦':
-      // fix32: 既存の screen-friends 画面へ遷移
-      if(typeof showScreen === 'function') showScreen('friends');
+      // fix35: フレンド対戦サブメニュー画面(ルーム作成・フレンド一覧・プロフィール)
+      if(typeof showScreen === 'function') showScreen('friend-match');
       else if(typeof showToast === 'function') showToast('フレンド対戦は現在開発中です');
       break;
     case '設定':
-      // fix32: 設定モーダルを開く(以前は btnSettings.click() だった)
-      if(typeof openSettingsModal === 'function') openSettingsModal();
-      else {
-        var btnSettings = document.getElementById('btnSettings');
-        if(btnSettings){ btnSettings.click(); break; }
-        alert('設定画面(未実装)');
-      }
+      // fix37: 設定画面(専用画面に升格)
+      if(typeof showScreen === 'function') showScreen('settings');
+      else if(typeof openSettingsModal === 'function') openSettingsModal();
       break;
   }
 }
