@@ -5250,6 +5250,110 @@ body.debug-interactive .vmode-btn::before {
 }
 
 
+
+/* ============================================================
+   fix41: ファンタジー練習(FL選択)画面の画像オーバーレイUI
+   ============================================================ */
+#screen-fl-select{
+  /* 既存スタイルの上書き */
+  background:#000 !important;
+  padding:0 !important;
+  overflow:hidden;
+}
+
+/* 既存装飾を全部隠す(画像レイヤーで世界観を統一) */
+#screen-fl-select > .back-to-mode-select-btn,
+#screen-fl-select > .mode-neon-bg,
+#screen-fl-select > .select-deco-icon,
+#screen-fl-select > .fl-select-body{
+  display:none !important;
+}
+
+/* 背景画像レイヤー(画面いっぱいに) */
+#screen-fl-select .fl-bg-layer{
+  position:absolute;
+  inset:0;
+  background-image:url('assets/fl_select_bg.png');
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  z-index:0;
+}
+
+/* 各画像オーバーレイ - 元素材は背景と同じキャンバスサイズで作られているため
+   そのまま inset:0; object-fit:cover で重ねれば位置情報が保たれる */
+#screen-fl-select .fl-overlay-img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  pointer-events:none;
+  user-select:none;
+  z-index:1;
+}
+
+/* 透明クリック領域 - 既存の .fl-card-btn スタイルをすべて上書き */
+#screen-fl-select .fl-card-btn.fl-img-tap,
+#screen-fl-select .fl-tap-back-btn{
+  position:absolute;
+  background:transparent !important;
+  border:none !important;
+  padding:0 !important;
+  margin:0 !important;
+  box-shadow:none !important;
+  border-radius:0 !important;
+  display:block !important;
+  align-items:initial !important;
+  justify-content:initial !important;
+  flex-direction:initial !important;
+  cursor:pointer;
+  z-index:10;
+  transition:transform 0.12s ease, opacity 0.12s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* 既存の擬似要素(::before, ::after)も無効化 */
+#screen-fl-select .fl-card-btn.fl-img-tap::before,
+#screen-fl-select .fl-card-btn.fl-img-tap::after{
+  display:none !important;
+  content:none !important;
+}
+
+/* タップ時のフィードバック */
+#screen-fl-select .fl-card-btn.fl-img-tap:active,
+#screen-fl-select .fl-tap-back-btn:active{
+  transform:scale(0.97);
+  opacity:0.85;
+}
+
+/* === bbox解析結果に基づく位置 === */
+#screen-fl-select .fl-card-btn.fl-img-tap[data-fl="14"]{ left:7.15%;  top:38.12%; width:42.09%; height:24.08%; }
+#screen-fl-select .fl-card-btn.fl-img-tap[data-fl="15"]{ left:51.23%; top:38.39%; width:41.50%; height:24.19%; }
+#screen-fl-select .fl-card-btn.fl-img-tap[data-fl="16"]{ left:6.45%;  top:62.69%; width:41.85%; height:23.97%; }
+#screen-fl-select .fl-card-btn.fl-img-tap[data-fl="17"]{ left:51.35%; top:62.96%; width:40.56%; height:23.97%; }
+#screen-fl-select .fl-tap-back-btn{ left:4.34%; top:89.05%; width:35.87%; height:6.02%; background:transparent; border:none; cursor:pointer; }
+
+/* 既存のスクリーンインアニメーション(.fl-card-btn:nth-child のフェードイン)を
+   新クラスにも適用 - スタガーで4枚が順番に登場 */
+#screen-fl-select.active .fl-card-btn.fl-img-tap{
+  animation:flCardFadeIn 0.5s ease-out backwards;
+}
+#screen-fl-select.active .fl-card-btn.fl-img-tap[data-fl="14"]{ animation-delay:0.22s; }
+#screen-fl-select.active .fl-card-btn.fl-img-tap[data-fl="15"]{ animation-delay:0.28s; }
+#screen-fl-select.active .fl-card-btn.fl-img-tap[data-fl="16"]{ animation-delay:0.34s; }
+#screen-fl-select.active .fl-card-btn.fl-img-tap[data-fl="17"]{ animation-delay:0.40s; }
+#screen-fl-select.active .fl-overlay-img.fl-overlay-card14{ animation:flCardFadeIn 0.5s ease-out 0.22s backwards; }
+#screen-fl-select.active .fl-overlay-img.fl-overlay-card15{ animation:flCardFadeIn 0.5s ease-out 0.28s backwards; }
+#screen-fl-select.active .fl-overlay-img.fl-overlay-card16{ animation:flCardFadeIn 0.5s ease-out 0.34s backwards; }
+#screen-fl-select.active .fl-overlay-img.fl-overlay-card17{ animation:flCardFadeIn 0.5s ease-out 0.40s backwards; }
+
+@keyframes flCardFadeIn{
+  from{ opacity:0; transform:translateY(8px); }
+  to{   opacity:1; transform:translateY(0); }
+}
+
 </style>
 <!-- v28.88: Supabase XHR+eval 方式 (script タグでの評価が効かない環境向け) -->
 <script>
@@ -5674,69 +5778,30 @@ body.debug-interactive .vmode-btn::before {
 </div>
 
 <div class="screen" id="screen-fl-select">
-  <!-- fix24: モード選択へ戻るボタン -->
+  <!-- fix41: 画像オーバーレイ方式に改修 -->
+  <!-- 共通の戻るボタンは fix41 CSS で非表示にする(画像内のデザインを使用) -->
   <button class="back-to-mode-select-btn" type="button" onclick="backToModeSelect()">
     <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
     <span>モード選択</span>
   </button>
-  <div class="mode-neon-bg">
-    <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-      <g stroke="#E8B923" stroke-width="1.5" fill="none" stroke-linecap="round">
-        <path d="M 200 40 L 340 200 L 200 360 L 60 200 Z" opacity="0.35"/>
-        <path d="M 200 80 L 300 200 L 200 320 L 100 200 Z" opacity="0.5"/>
-        <path d="M 200 120 L 260 200 L 200 280 L 140 200 Z" opacity="0.65"/>
-      </g>
-      <g stroke="#E8B923" stroke-width="1" fill="none" opacity="0.3">
-        <path d="M 200 -20 L 420 200 L 200 420 L -20 200 Z"/>
-      </g>
-    </svg>
-  </div>
-  <svg class="select-deco-icon" viewBox="0 0 280 380" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <g stroke="#E8B923" stroke-width="5" stroke-linecap="round" fill="none">
-      <path d="M 140 118 L 140 12"/>
-      <path d="M 140 118 L 102 28"/>
-      <path d="M 140 118 L 178 28"/>
-      <ellipse cx="140" cy="248" rx="85" ry="100" stroke-width="6"/>
-      <path d="M 55 200 L 225 200" stroke-width="3.5"/>
-      <path d="M 60 270 L 220 270" stroke-width="3.5"/>
-      <path d="M 100 160 L 100 340" stroke-width="3.5"/>
-      <path d="M 140 150 L 140 348" stroke-width="3.5"/>
-      <path d="M 180 160 L 180 340" stroke-width="3.5"/>
-    </g>
-  </svg>
-  <div class="fl-select-body">
-    <div class="select-content">
-      <div class="fl-select-title">FL練習</div>
-      <div class="fl-select-desc">練習するファンタジーランドの枚数を選んでください</div>
-      <div class="fl-card-grid">
-        <button class="fl-card-btn" data-fl="14">
-          <div class="fl-card-num">14</div>
-          <div class="fl-card-bar"><div class="fl-card-bar-seg filled"></div><div class="fl-card-bar-seg filled"></div><div class="fl-card-bar-seg"></div><div class="fl-card-bar-seg"></div><div class="fl-card-bar-seg"></div></div>
-          <div class="fl-card-label">QQ FANTASY</div>
-          <div class="fl-card-ev">EV: 25pt</div>
-        </button>
-        <button class="fl-card-btn" data-fl="15">
-          <div class="fl-card-num">15</div>
-          <div class="fl-card-bar"><div class="fl-card-bar-seg filled"></div><div class="fl-card-bar-seg filled"></div><div class="fl-card-bar-seg filled"></div><div class="fl-card-bar-seg"></div><div class="fl-card-bar-seg"></div></div>
-          <div class="fl-card-label">KK FANTASY</div>
-          <div class="fl-card-ev">EV: 40pt</div>
-        </button>
-        <button class="fl-card-btn" data-fl="16">
-          <div class="fl-card-num">16</div>
-          <div class="fl-card-bar"><div class="fl-card-bar-seg filled"></div><div class="fl-card-bar-seg filled"></div><div class="fl-card-bar-seg filled"></div><div class="fl-card-bar-seg filled"></div><div class="fl-card-bar-seg"></div></div>
-          <div class="fl-card-label">AA FANTASY</div>
-          <div class="fl-card-ev">EV: 69pt</div>
-        </button>
-        <button class="fl-card-btn" data-fl="17">
-          <div class="fl-card-num">17</div>
-          <div class="fl-card-bar"><div class="fl-card-bar-seg filled"></div><div class="fl-card-bar-seg filled"></div><div class="fl-card-bar-seg filled"></div><div class="fl-card-bar-seg filled"></div><div class="fl-card-bar-seg filled"></div></div>
-          <div class="fl-card-label">TRIPS FANTASY</div>
-          <div class="fl-card-ev">EV: 133pt</div>
-        </button>
-      </div>
-    </div>
-    <!-- fix36: select-footer 削除(左下ボタンと役割重複) -->
-  </div>
+
+  <!-- 背景画像レイヤー -->
+  <div class="fl-bg-layer" aria-hidden="true"></div>
+
+  <!-- 各画像オーバーレイ(全部同じキャンバスサイズ・位置情報入り)-->
+  <img class="fl-overlay-img fl-overlay-card14" src="assets/fl_select_card14.png" alt="" aria-hidden="true">
+  <img class="fl-overlay-img fl-overlay-card15" src="assets/fl_select_card15.png" alt="" aria-hidden="true">
+  <img class="fl-overlay-img fl-overlay-card16" src="assets/fl_select_card16.png" alt="" aria-hidden="true">
+  <img class="fl-overlay-img fl-overlay-card17" src="assets/fl_select_card17.png" alt="" aria-hidden="true">
+  <img class="fl-overlay-img fl-overlay-back-btn" src="assets/fl_select_back_btn.png" alt="" aria-hidden="true">
+  <img class="fl-overlay-img fl-overlay-pom" src="assets/fl_select_pom.png" alt="" aria-hidden="true">
+
+  <!-- 透明クリック領域(JS互換のため class="fl-card-btn" + data-fl を維持)-->
+  <button class="fl-card-btn fl-img-tap" data-fl="14" type="button" aria-label="FL14 QQ Fantasy"></button>
+  <button class="fl-card-btn fl-img-tap" data-fl="15" type="button" aria-label="FL15 KK Fantasy"></button>
+  <button class="fl-card-btn fl-img-tap" data-fl="16" type="button" aria-label="FL16 AA Fantasy"></button>
+  <button class="fl-card-btn fl-img-tap" data-fl="17" type="button" aria-label="FL17 Trips Fantasy"></button>
+  <button class="fl-tap-back-btn" type="button" onclick="backToModeSelect()" aria-label="モード選択に戻る"></button>
 </div>
 
 
