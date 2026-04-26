@@ -6138,6 +6138,400 @@ body.debug-interactive .vmode-btn::before {
   animation: tapFadeInOnly 0.5s ease-out 0.80s backwards !important;
 }
 
+
+/* ============================================================
+   fix49: 残り5画面の世界観統一
+   対象: screen-online-match, screen-quickmatch, screen-friends,
+         screen-online-profile, screen-room-waiting
+   ============================================================ */
+
+/* === 共通: 5画面の背景 === */
+#screen-online-match,
+#screen-quickmatch,
+#screen-friends,
+#screen-online-profile,
+#screen-room-waiting{
+  background:
+    radial-gradient(ellipse at 25% 12%, rgba(255,184,77,0.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 88%, rgba(255,122,26,0.07) 0%, transparent 55%),
+    linear-gradient(180deg, #0a1224 0%, #131a2c 100%) !important;
+  padding:0 !important;
+  overflow:hidden;
+}
+
+/* 既存装飾(ネオンSVG)を薄く残す */
+#screen-online-match .mode-neon-bg,
+#screen-quickmatch .mode-neon-bg,
+#screen-online-profile .mode-neon-bg,
+#screen-room-waiting .mode-neon-bg{
+  opacity: 0.18 !important;
+}
+#screen-online-match .select-deco-icon,
+#screen-quickmatch .select-deco-icon,
+#screen-online-profile .select-deco-icon,
+#screen-room-waiting .select-deco-icon{
+  opacity: 0.12 !important;
+}
+
+/* === タイトル「オンライン対戦」「プロフィール」等 - ステッカー文字風 === */
+#screen-online-match .mode-select-title,
+#screen-quickmatch .mode-select-title,
+#screen-online-profile .mode-select-title,
+#screen-room-waiting .mode-select-title{
+  color: #fafaf0 !important;
+  text-shadow:
+    -1px -1px 0 #0a0a0a, 1px -1px 0 #0a0a0a,
+    -1px  1px 0 #0a0a0a, 1px  1px 0 #0a0a0a,
+    0 4px 0 rgba(0,0,0,0.5),
+    0 0 24px rgba(255,184,77,0.3) !important;
+  font-weight: 900 !important;
+}
+#screen-online-match .mode-select-desc,
+#screen-quickmatch .mode-select-desc,
+#screen-online-profile .mode-select-desc,
+#screen-room-waiting .mode-select-desc{
+  color: #c8d4e8 !important;
+  font-weight: 600 !important;
+}
+
+/* === mode-btn 共通: 看板風 === */
+#screen-online-match .mode-btn,
+#screen-quickmatch .mode-btn{
+  background: #fffaf0 !important;
+  border: 2.5px solid #0a0a0a !important;
+  box-shadow:
+    0 4px 0 #0a0a0a,
+    0 8px 18px rgba(0,0,0,0.35) !important;
+  color: #0a0a0a !important;
+  border-radius: 14px !important;
+}
+#screen-online-match .mode-btn-title,
+#screen-quickmatch .mode-btn-title{
+  color: #0a0a0a !important;
+  font-weight: 900 !important;
+}
+#screen-online-match .mode-btn-sub,
+#screen-quickmatch .mode-btn-sub{
+  color: #6b6b6b !important;
+  font-weight: 600 !important;
+}
+#screen-online-match .mode-btn-icon,
+#screen-quickmatch .mode-btn-icon{
+  color: #ff7a1a !important;
+}
+#screen-online-match .mode-btn-stat-val,
+#screen-quickmatch .mode-btn-stat-val{
+  color: #ff7a1a !important;
+  font-weight: 900 !important;
+}
+#screen-online-match .mode-btn-stat-lbl,
+#screen-quickmatch .mode-btn-stat-lbl{
+  color: #6b6b6b !important;
+  font-weight: 700 !important;
+}
+#screen-online-match .mode-btn.primary,
+#screen-quickmatch .mode-btn.primary{
+  background: linear-gradient(180deg, #fffaf0 0%, #fff5e1 100%) !important;
+}
+/* 内部装飾(corners/inner-frame/shimmer)は隠す */
+#screen-online-match .mode-btn-corners,
+#screen-online-match .mode-btn-inner-frame,
+#screen-online-match .mode-btn-inner-frame-2,
+#screen-online-match .mode-btn-shimmer,
+#screen-quickmatch .mode-btn-corners,
+#screen-quickmatch .mode-btn-inner-frame,
+#screen-quickmatch .mode-btn-inner-frame-2,
+#screen-quickmatch .mode-btn-shimmer{
+  display: none !important;
+}
+
+/* === screen-quickmatch 専用 === */
+#screen-quickmatch .qm-join-block{
+  background: #fffaf0 !important;
+  border: 2.5px solid #0a0a0a !important;
+  box-shadow:
+    0 4px 0 #0a0a0a,
+    0 8px 18px rgba(0,0,0,0.35) !important;
+  border-radius: 14px !important;
+  padding: 18px !important;
+  margin-top: 16px !important;
+}
+#screen-quickmatch .qm-join-label{
+  color: #0a0a0a !important;
+  font-weight: 800 !important;
+}
+#screen-quickmatch .qm-pad{
+  margin: 12px 0 !important;
+  display: flex !important;
+  justify-content: center !important;
+  gap: 10px !important;
+}
+#screen-quickmatch .qm-digit{
+  background: #fff !important;
+  border: 2.5px solid #0a0a0a !important;
+  color: #0a0a0a !important;
+  font-weight: 900 !important;
+  border-radius: 10px !important;
+  width: 50px !important;
+  height: 60px !important;
+  font-size: 24px !important;
+  text-align: center !important;
+  transition: border-color 0.15s, box-shadow 0.15s !important;
+}
+#screen-quickmatch .qm-digit:focus{
+  border-color: #ff7a1a !important;
+  box-shadow: 0 0 0 3px rgba(255,184,77,0.4) !important;
+  outline: none !important;
+}
+#screen-quickmatch .qm-join-btn{
+  background: linear-gradient(135deg, #ff7a1a 0%, #ffb84d 100%) !important;
+  color: #0a0a0a !important;
+  border: 2.5px solid #0a0a0a !important;
+  font-weight: 900 !important;
+  box-shadow: 0 3px 0 #0a0a0a, 0 6px 14px rgba(255,122,26,0.4) !important;
+  border-radius: 12px !important;
+  padding: 12px 20px !important;
+  width: 100% !important;
+  cursor: pointer !important;
+}
+#screen-quickmatch .qm-join-btn:disabled{
+  background: linear-gradient(135deg, #c0c4cc 0%, #a3a8b3 100%) !important;
+  color: #6b6b6b !important;
+  box-shadow: 0 3px 0 #0a0a0a !important;
+  opacity: 0.65 !important;
+  cursor: not-allowed !important;
+}
+#screen-quickmatch .qm-error{
+  color: #dc2626 !important;
+  font-weight: 800 !important;
+  margin-top: 8px !important;
+}
+
+/* === screen-friends === */
+#screen-friends .friends-body{
+  background: transparent !important;
+}
+#screen-friends .friends-title{
+  color: #fafaf0 !important;
+  text-shadow:
+    -1px -1px 0 #0a0a0a, 1px -1px 0 #0a0a0a,
+    -1px  1px 0 #0a0a0a, 1px  1px 0 #0a0a0a,
+    0 0 20px rgba(255,184,77,0.3) !important;
+  font-weight: 900 !important;
+}
+#screen-friends .friends-back-btn,
+#screen-friends .friends-refresh-btn{
+  color: #ff7a1a !important;
+  background: rgba(20,28,48,0.6) !important;
+  border: 2px solid #ff7a1a !important;
+  border-radius: 10px !important;
+}
+#screen-friends .friends-section{
+  background: #fffaf0 !important;
+  border: 2.5px solid #0a0a0a !important;
+  border-radius: 14px !important;
+  box-shadow:
+    0 4px 0 #0a0a0a,
+    0 8px 18px rgba(0,0,0,0.35) !important;
+  padding: 14px !important;
+  margin-bottom: 14px !important;
+}
+#screen-friends .friends-section-title{
+  color: #0a0a0a !important;
+  border-bottom: 2px solid #0a0a0a !important;
+  padding-bottom: 6px !important;
+  margin-bottom: 12px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.05em !important;
+}
+#screen-friends .friends-count-badge{
+  background: linear-gradient(135deg, #ff7a1a, #ffb84d) !important;
+  color: #0a0a0a !important;
+  border: 1.5px solid #0a0a0a !important;
+  font-weight: 900 !important;
+  border-radius: 9999px !important;
+  padding: 1px 8px !important;
+  font-size: 11px !important;
+  margin-left: 6px !important;
+}
+#screen-friends .friends-empty-text{
+  color: #0a0a0a !important;
+  font-weight: 800 !important;
+}
+#screen-friends .friends-empty-sub{
+  color: #6b6b6b !important;
+}
+#screen-friends .friends-footer{
+  padding: 12px !important;
+}
+#screen-friends .friends-add-btn{
+  background: linear-gradient(135deg, #ff7a1a 0%, #ffb84d 100%) !important;
+  color: #0a0a0a !important;
+  border: 2.5px solid #0a0a0a !important;
+  font-weight: 900 !important;
+  box-shadow: 0 3px 0 #0a0a0a, 0 6px 14px rgba(255,122,26,0.4) !important;
+  border-radius: 12px !important;
+  width: 100% !important;
+  padding: 14px !important;
+  cursor: pointer !important;
+}
+
+/* === screen-online-profile === */
+#screen-online-profile .online-profile-card{
+  background: #fffaf0 !important;
+  border: 2.5px solid #0a0a0a !important;
+  box-shadow:
+    0 4px 0 #0a0a0a,
+    0 8px 18px rgba(0,0,0,0.35) !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+}
+#screen-online-profile .online-profile-row{
+  background: transparent !important;
+  color: #0a0a0a !important;
+  border-bottom: 1.5px solid rgba(0,0,0,0.15) !important;
+}
+#screen-online-profile .online-profile-row:last-child{
+  border-bottom: none !important;
+}
+#screen-online-profile .online-profile-row:active{
+  background: rgba(255,184,77,0.18) !important;
+}
+#screen-online-profile .online-profile-lbl{
+  color: #6b6b6b !important;
+  font-weight: 700 !important;
+}
+#screen-online-profile .online-profile-val{
+  color: #0a0a0a !important;
+  font-weight: 800 !important;
+}
+#screen-online-profile .online-profile-chev{
+  color: #ff7a1a !important;
+  font-weight: 800 !important;
+}
+#screen-online-profile .online-profile-hint{
+  color: #c8d4e8 !important;
+  font-weight: 600 !important;
+}
+#screen-online-profile .friend-code-display{
+  background: linear-gradient(135deg, #ffeec0 0%, #ffd96b 100%) !important;
+  color: #0a0a0a !important;
+  border: 1.5px solid #d49920 !important;
+  font-weight: 900 !important;
+  font-family: var(--font-mono),'Space Grotesk',sans-serif !important;
+  letter-spacing: 0.15em !important;
+  padding: 4px 10px !important;
+  border-radius: 8px !important;
+}
+
+/* === screen-room-waiting === */
+#screen-room-waiting .rw-code-card{
+  background: #fffaf0 !important;
+  border: 3px solid #0a0a0a !important;
+  box-shadow:
+    0 5px 0 #0a0a0a,
+    0 10px 24px rgba(0,0,0,0.4) !important;
+  border-radius: 16px !important;
+  padding: 22px !important;
+  text-align: center !important;
+}
+#screen-room-waiting .rw-code-label{
+  color: #ff7a1a !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  font-size: 11px !important;
+}
+#screen-room-waiting .rw-code-value{
+  color: #0a0a0a !important;
+  font-weight: 900 !important;
+  font-family: var(--font-mono),'Space Grotesk',sans-serif !important;
+  font-size: 48px !important;
+  letter-spacing: 0.18em !important;
+  margin: 12px 0 !important;
+  text-shadow: 0 2px 0 rgba(0,0,0,0.15) !important;
+}
+#screen-room-waiting .rw-copy-btn{
+  background: linear-gradient(135deg, #ff7a1a 0%, #ffb84d 100%) !important;
+  color: #0a0a0a !important;
+  border: 2px solid #0a0a0a !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 0 #0a0a0a !important;
+  border-radius: 9999px !important;
+  padding: 8px 16px !important;
+}
+#screen-room-waiting .rw-status{
+  margin-top: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+#screen-room-waiting .rw-status-dot{
+  background: #16a34a !important;
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 12px rgba(22,163,74,0.6) !important;
+  animation: pulse-dot 1.5s ease-in-out infinite !important;
+}
+@keyframes pulse-dot{
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.6; transform: scale(0.85); }
+}
+#screen-room-waiting .rw-status-text{
+  color: #c8d4e8 !important;
+  font-weight: 600 !important;
+}
+#screen-room-waiting .rw-timer{
+  color: #ff7a1a !important;
+  font-weight: 900 !important;
+  font-size: 32px !important;
+  font-family: var(--font-mono),'Space Grotesk',sans-serif !important;
+  text-shadow:
+    -1px -1px 0 #0a0a0a, 1px -1px 0 #0a0a0a,
+    -1px  1px 0 #0a0a0a, 1px  1px 0 #0a0a0a !important;
+  margin-top: 16px !important;
+  letter-spacing: 0.05em !important;
+}
+
+/* === select-footer の btn-back を世界観統一 === */
+#screen-online-match .select-footer .btn-back,
+#screen-quickmatch .select-footer .btn-back,
+#screen-online-profile .select-footer .btn-back,
+#screen-room-waiting .select-footer .btn-back{
+  color: #c8d4e8 !important;
+  background: rgba(20, 28, 48, 0.6) !important;
+  border: 1.5px solid #ff7a1a !important;
+  font-weight: 700 !important;
+}
+
+/* === アニメーション === */
+#screen-online-match.active .mode-select-title,
+#screen-quickmatch.active .mode-select-title,
+#screen-online-profile.active .mode-select-title,
+#screen-room-waiting.active .mode-select-title,
+#screen-friends.active .friends-title{
+  animation: tapFadeInOnly 0.5s ease-out 0.10s backwards !important;
+}
+#screen-online-match.active .mode-btn,
+#screen-quickmatch.active .mode-btn,
+#screen-quickmatch.active .qm-join-block,
+#screen-online-profile.active .online-profile-card,
+#screen-room-waiting.active .rw-code-card,
+#screen-friends.active .friends-section{
+  animation: stickerPop 0.5s cubic-bezier(0.34,1.56,0.64,1) backwards !important;
+  transform-origin: center center;
+}
+#screen-online-match.active .mode-btn:nth-of-type(1){ animation-delay: 0.22s !important; }
+#screen-online-match.active .mode-btn:nth-of-type(2){ animation-delay: 0.32s !important; }
+#screen-quickmatch.active .mode-btn{ animation-delay: 0.22s !important; }
+#screen-quickmatch.active .qm-join-block{ animation-delay: 0.32s !important; }
+#screen-online-profile.active .online-profile-card{ animation-delay: 0.22s !important; }
+#screen-room-waiting.active .rw-code-card{ animation-delay: 0.22s !important; }
+#screen-friends.active .friends-section:nth-of-type(1){ animation-delay: 0.22s !important; }
+#screen-friends.active .friends-section:nth-of-type(2){ animation-delay: 0.32s !important; }
+
 </style>
 <!-- v28.88: Supabase XHR+eval 方式 (script タグでの評価が効かない環境向け) -->
 <script>
