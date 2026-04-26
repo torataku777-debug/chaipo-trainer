@@ -5452,6 +5452,149 @@ body.debug-interactive .vmode-btn::before {
   to{   opacity:1; transform:translateY(0); }
 }
 
+
+/* ============================================================
+   fix44: ステッカー風アニメーション
+   - ステッカーポップ登場(scale + rotate + bounce)
+   - ふわふわ揺れ(常時、各カードで位相ずらし)
+   - タップ反応強化
+   ============================================================ */
+
+/* === Keyframes === */
+@keyframes stickerPop {
+  0%   { opacity: 0; transform: scale(0.5) rotate(-15deg); }
+  60%  { opacity: 1; transform: scale(1.08) rotate(2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+@keyframes stickerPopMild {
+  0%   { opacity: 0; transform: scale(0.7); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* 4種類のフロート(各カードで位相をずらすため) */
+@keyframes stickerFloat1 {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50%      { transform: translateY(-4px) rotate(0.4deg); }
+}
+@keyframes stickerFloat2 {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50%      { transform: translateY(-5px) rotate(-0.4deg); }
+}
+@keyframes stickerFloat3 {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50%      { transform: translateY(-3px) rotate(0.3deg); }
+}
+@keyframes stickerFloat4 {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50%      { transform: translateY(-4px) rotate(-0.3deg); }
+}
+
+@keyframes tapFadeInOnly {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ========================================================
+   FL選択画面(4枚カード)
+   ======================================================== */
+
+/* 画像レイヤー: ステッカーポップ + ふわふわ揺れ */
+#screen-fl-select.active .fl-overlay-img.fl-overlay-card14 {
+  animation:
+    stickerPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.20s backwards,
+    stickerFloat1 4.0s ease-in-out 0.80s infinite;
+  transform-origin: center center;
+}
+#screen-fl-select.active .fl-overlay-img.fl-overlay-card15 {
+  animation:
+    stickerPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.30s backwards,
+    stickerFloat2 4.5s ease-in-out 0.95s infinite;
+  transform-origin: center center;
+}
+#screen-fl-select.active .fl-overlay-img.fl-overlay-card16 {
+  animation:
+    stickerPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.40s backwards,
+    stickerFloat3 4.2s ease-in-out 1.05s infinite;
+  transform-origin: center center;
+}
+#screen-fl-select.active .fl-overlay-img.fl-overlay-card17 {
+  animation:
+    stickerPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.50s backwards,
+    stickerFloat4 4.7s ease-in-out 1.15s infinite;
+  transform-origin: center center;
+}
+
+/* 戻るボタン画像: ミニマルポップで登場、揺れなし(操作対象なので落ち着いた挙動) */
+#screen-fl-select.active .fl-overlay-img.fl-overlay-back-btn {
+  animation: stickerPopMild 0.4s ease-out 0.65s backwards;
+  transform-origin: center center;
+}
+/* ポム(装飾): 軽くポップ + ゆるくフロート */
+#screen-fl-select.active .fl-overlay-img.fl-overlay-pom {
+  animation:
+    stickerPopMild 0.5s ease-out 0.55s backwards,
+    stickerFloat3 5.0s ease-in-out 1.10s infinite;
+  transform-origin: center center;
+}
+
+/* 透明クリック領域: シンプルにフェードイン(揺れなし、タップ判定安定) */
+#screen-fl-select.active .fl-card-btn.fl-img-tap {
+  animation: tapFadeInOnly 0.4s ease-out backwards;
+}
+#screen-fl-select.active .fl-card-btn.fl-img-tap[data-fl="14"] { animation-delay: 0.30s; }
+#screen-fl-select.active .fl-card-btn.fl-img-tap[data-fl="15"] { animation-delay: 0.40s; }
+#screen-fl-select.active .fl-card-btn.fl-img-tap[data-fl="16"] { animation-delay: 0.50s; }
+#screen-fl-select.active .fl-card-btn.fl-img-tap[data-fl="17"] { animation-delay: 0.60s; }
+
+/* タップ反応強化(押し込み感) */
+#screen-fl-select .fl-card-btn.fl-img-tap:active,
+#screen-fl-select .fl-tap-back-btn:active {
+  transform: scale(0.93);
+  opacity: 0.85;
+}
+
+/* ========================================================
+   AI対戦画面(2枚カード)
+   ======================================================== */
+
+#screen-ai-select.active .ai-overlay-img.ai-overlay-card-2p {
+  animation:
+    stickerPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.22s backwards,
+    stickerFloat1 4.0s ease-in-out 0.85s infinite;
+  transform-origin: center center;
+}
+#screen-ai-select.active .ai-overlay-img.ai-overlay-card-3p {
+  animation:
+    stickerPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.32s backwards,
+    stickerFloat2 4.5s ease-in-out 1.00s infinite;
+  transform-origin: center center;
+}
+#screen-ai-select.active .ai-overlay-img.ai-overlay-back-btn {
+  animation: stickerPopMild 0.4s ease-out 0.50s backwards;
+  transform-origin: center center;
+}
+
+/* 透明クリック領域: シンプルにフェードイン */
+#screen-ai-select.active .ai-img-tap {
+  animation: tapFadeInOnly 0.4s ease-out backwards;
+}
+#screen-ai-select.active #btnAI2P { animation-delay: 0.32s; }
+#screen-ai-select.active #btnAI3P { animation-delay: 0.42s; }
+
+/* タップ反応強化 */
+#screen-ai-select .ai-img-tap:active,
+#screen-ai-select .ai-tap-back-btn:active {
+  transform: scale(0.93);
+  opacity: 0.85;
+}
+
+/* disabled時はタップ反応も無効 */
+#screen-ai-select .ai-img-tap:disabled:active {
+  transform: none;
+  opacity: 1;
+}
+
 </style>
 <!-- v28.88: Supabase XHR+eval 方式 (script タグでの評価が効かない環境向け) -->
 <script>
