@@ -6745,7 +6745,64 @@ body.debug-interactive .vmode-btn::before {
 
     O.isReady = true;
     console.log('[supabase] ready. user record:', O.userRecord);
+    
+    // fix54: 進行中マッチの検知 → 中断モーダル表示
+    // 起動時に status='playing' のマッチがある場合（たとえば iPhone アプリを
+    // バックグラウンドにしてタイトルに戻ってしまったケース）、中断するかどうかをユーザーに確認させる。
+    // 本格的な「復帰」機能（state 復元）は次セッションで実装予定。
+    if(O.userId){
+      setTimeout(function(){ checkInProgressMatch(O); }, 1500);
+    }
+    
     return O.supabase;
+  }
+
+  // fix54: 進行中マッチの検知・中断モーダル表示
+  async function checkInProgressMatch(O){
+    try{
+      if(!O || !O.supabase || !O.userId) return;
+      const { data, error } = await O.supabase
+        .from('matches')
+        .select('id,room_code,player1_id,player2_id,status,current_round,player1_display,player2_display,created_at')
+        .or('player1_id.eq.' + O.userId + ',player2_id.eq.' + O.userId)
+        .eq('status', 'playing')
+        .order('created_at', { ascending: false })
+        .limit(1);
+      
+      if(error){ console.error('[fix54] checkInProgressMatch error:', error); return; }
+      if(!data || data.length === 0){ console.log('[fix54] no in-progress match'); return; }
+      
+      const m = data[0];
+      const oppDisplay = (m.player1_id === O.userId) ? m.player2_display : m.player1_display;
+      console.log('[fix54] in-progress match found:', m.room_code, 'round=' + m.current_round);
+      
+      const msg = '進行中のマッチがあります\n\n' +
+                  '部屋コード: ' + (m.room_code || '?') + '\n' +
+                  '対戦相手: ' + (oppDisplay || '不明') + '\n' +
+                  'ラウンド: R' + (m.current_round || 1) + '\n\n' +
+                  '※ 「復帰して続きから」機能は現在実装中です。\n' +
+                  '今は「中断してロビーに戻る」のみ選べます。\n\n' +
+                  'このマッチを中断しますか？';
+      
+      if(window.confirm(msg)){
+        const { error: updErr } = await O.supabase
+          .from('matches')
+          .update({ status: 'abandoned', finished_at: new Date().toISOString() })
+          .eq('id', m.id);
+        if(updErr){
+          console.error('[fix54] abandon update error:', updErr);
+          if(typeof showToast === 'function') showToast('中断処理に失敗しました');
+        } else {
+          console.log('[fix54] match abandoned:', m.id);
+          if(typeof showToast === 'function') showToast('マッチを中断しました');
+        }
+      } else {
+        console.log('[fix54] user kept the in-progress match (no recovery yet)');
+        if(typeof showToast === 'function') showToast('復帰機能は次回アップデートで実装予定です');
+      }
+    }catch(e){
+      console.error('[fix54] checkInProgressMatch exception:', e);
+    }
   }
 
   async function ensureUserRecord(){
@@ -11961,11 +12018,26 @@ document.getElementById('drawerNewGame').addEventListener('click',()=>{closeDraw
   }
 
   // backToTitle を wrap
+  // fix54: オンライン中の誤タップ防止のために確認ダイアログを追加
   const _origBackToTitle = window.backToTitle;
   if(typeof _origBackToTitle === 'function'){
     window.backToTitle = function(){
       const args = arguments;
       const self = this;
+      
+      // fix54: online 中かつゲーム未終了なら確認ダイアログを表示
+      if(typeof state !== 'undefined' && state && state.onlineMode && !state.gameOver){
+        const ok = window.confirm(
+          '進行中のオンラインマッチを中断します。\n' +
+          '中断するとマッチは終了し、続けられません。\n\n' +
+          '本当に中断しますか？'
+        );
+        if(!ok){
+          console.log('[fix54] backToTitle cancelled by user');
+          return;
+        }
+      }
+      
       _ensureOnlineLeaveBeforeAction('back_to_title').then(() => {
         return _origBackToTitle.apply(self, args);
       }).catch(e => {
