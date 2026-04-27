@@ -6643,6 +6643,9 @@ body.debug-interactive .vmode-btn::before {
    XHR で UMD を取得して (0, eval) でグローバル実行する。
    ================================================================ */
 (function(){
+  // fix57: IIFE 再評価ガード（btnStart.click() で SDK が再ロードされるバグの対症療法）
+  if(window.__chaipoSupabaseIIFEDone) return;
+  window.__chaipoSupabaseIIFEDone = true;
   // ============================================================
   // v1.1 ONLINE MODE: Supabase 通信を有効化
   //   - true  : 全てのオンライン機能を停止(v1.0リリース時)
@@ -16192,6 +16195,9 @@ function updateModeBtnStats(){
    =================================================================== */
 (function(){
   'use strict';
+  // fix57: IIFE 再評価ガード
+  if(window.__chaipoM3IIFEDone) return;
+  window.__chaipoM3IIFEDone = true;
 
   function formatFriendCode(code){
     if(!code) return '----';
@@ -16396,6 +16402,9 @@ function updateModeBtnStats(){
    =================================================================== */
 (function(){
   'use strict';
+  // fix57: IIFE 再評価ガード
+  if(window.__chaipoM4IIFEDone) return;
+  window.__chaipoM4IIFEDone = true;
 
   // -----------------------------------------------------------------
   // ユーティリティ
@@ -17056,6 +17065,9 @@ function updateModeBtnStats(){
    =================================================================== */
 (function(){
   'use strict';
+  // fix57: IIFE 再評価ガード
+  if(window.__chaipoM5IIFEDone) return;
+  window.__chaipoM5IIFEDone = true;
 
   // 内部状態
   var M5 = {
