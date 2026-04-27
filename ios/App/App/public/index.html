@@ -11204,13 +11204,17 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
       oppNextFlCards = getFLC(savedOppBoard);
       console.log('相手 FL 初入り判定: '+oppShouldStartFL+' cards='+oppNextFlCards);
     }
-    // v29.0: online マッチ終了後は自動で次マッチを開始しない (ロビーに戻る)
+    // fix52: フレンド対戦FL突入バグの修正
+    // 旧: if(state.onlineMode){ ... returnToOnlineLobby(); return; }
+    // 問題点: マッチ未終了でもロビーに戻されFL突入できなかった
+    // 修正: マッチ終了判定は上の sessionScore.you <= 0 || opp <= 0 で実施済みなので、
+    //       ここでは通常通り次ゲームに進める(オンラインも同じフロー)
+    // v29.0: online モードでは相手 FL は無効化(MVP スコープ外)、プレイヤー FL は許可
     if(state.onlineMode){
-      window._nextOppFl = 0;
-      try{ returnToOnlineLobby(); }catch(e){ console.error('[online] lobby:', e); }
-      return;
+      window._nextOppFl = 0;  // 相手 FL は無効化のみ
+    } else {
+      window._nextOppFl = (oppShouldStartFL && oppNextFlCards >= 14) ? oppNextFlCards : 0;
     }
-    window._nextOppFl = (oppShouldStartFL && oppNextFlCards >= 14) ? oppNextFlCards : 0;
 
     // v29.4: 両方FLフラグ設定 (ペアデータから即時取得するため)
     var _playerWillFL = (shouldStartFL && nextFlCards >= 14);
