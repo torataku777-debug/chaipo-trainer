@@ -15628,6 +15628,25 @@ function handleConfirmFL(){
         }
       }
     }catch(e){ console.error('[fix61] ready detect error:', e); }
+    // fix79: 相手の fl_active 状態を Realtime で検出 → state.oppFlMode を同期
+    try{
+      if(typeof state !== 'undefined' && state && state.onlineMode && !state.gameOver){
+        const oppFlField = (os.myNum === 0) ? 'player2_fl_active' : 'player1_fl_active';
+        const oppFlCardsField = (os.myNum === 0) ? 'player2_fl_cards' : 'player1_fl_cards';
+        const newOppFlMode = !!m[oppFlField];
+        if(newOppFlMode !== state.oppFlMode){
+          state.oppFlMode = newOppFlMode;
+          state.oppSavedFlCards = m[oppFlCardsField] || 0;
+          console.log('[fix79] state.oppFlMode を ' + newOppFlMode + ' に同期 (cards=' + state.oppSavedFlCards + ')');
+          if(newOppFlMode && !state.flMode){
+            // 自分が平場、 相手が FL に入った → ボタン側でも待機不要 (fix64+ と同じ)
+            state.onlineMustWait = false;
+          }
+          if(typeof renderGame === 'function') renderGame();
+          if(typeof updateConfirm === 'function') updateConfirm();
+        }
+      }
+    }catch(e){ console.error('[fix79] oppFlMode sync error:', e); }
 
     if(m.status === 'abandoned' || m.status === 'finished'){
       console.log('[online] opp state change: status='+m.status);
