@@ -10907,7 +10907,7 @@ async function newGame(onlineConfig){
     idx  = 0;
   }
   const deal = n => deck.slice(idx, idx += n);
-  state={phase:'place5',round:1,playerBoard:{top:[],mid:[],bot:[]},oppBoard:{top:[],mid:[],bot:[]},hand:[],discard:[],selectedCard:null,deck,deckIdx:idx,flMode:false,oppFlMode:false,flCards:0,flDiscard:[],gameOver:false,oppPendingBoard:null,oppPendingPlace:null,oppPlayedThisRound:false,wasFL:false,oppWasFL:false,oppSavedFlCards:0,oppFlPending:false,oppFlHand:null,oppPlayPending:false,oppFlPendingBoard:null,onlineMode:_isOnline,onlineMatch:_isOnline?onlineConfig.match:null,asHost:_isOnline?!!onlineConfig.asHost:false,myPlayerNum:_isOnline?(onlineConfig.asHost?0:1):null,onlineMustWait:(_isOnline && isPlayerButton),oppBoardPrefilledForRound:null};window._oppFlPendingCallback=null;window._oppPlayCallback=null;
+  state={phase:'place5',round:1,playerBoard:{top:[],mid:[],bot:[]},oppBoard:{top:[],mid:[],bot:[]},hand:[],discard:[],selectedCard:null,deck,deckIdx:idx,flMode:false,oppFlMode:false,flCards:0,flDiscard:[],gameOver:false,oppPendingBoard:null,oppPendingPlace:null,oppPlayedThisRound:false,wasFL:false,oppWasFL:false,oppSavedFlCards:0,oppFlPending:false,oppFlHand:null,oppPlayPending:false,oppFlPendingBoard:null,oppPendingFinalBoard:null,onlineMode:_isOnline,onlineMatch:_isOnline?onlineConfig.match:null,asHost:_isOnline?!!onlineConfig.asHost:false,myPlayerNum:_isOnline?(onlineConfig.asHost?0:1):null,onlineMustWait:(_isOnline && isPlayerButton),oppBoardPrefilledForRound:null};window._oppFlPendingCallback=null;window._oppPlayCallback=null;
   if(_isOnline){
     const myStart = state.asHost ? 0 : 5;
     state.hand = deck.slice(myStart, myStart + 5);
@@ -11811,6 +11811,17 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
               try{
                 await waitForOpponentPineapple(5);
               }catch(e){ console.error('[fix64] wait opp R5:', e); }
+            }
+            // fix77: 保留していた平場ボードをここで一括で oppBoard に反映
+            if(state.oppPendingFinalBoard){
+              state.oppBoard = {
+                top: state.oppPendingFinalBoard.top.slice(),
+                mid: state.oppPendingFinalBoard.mid.slice(),
+                bot: state.oppPendingFinalBoard.bot.slice(),
+              };
+              state.oppPendingFinalBoard = null;
+              if(typeof renderGame === 'function') renderGame();
+              console.log('[fix77] 平場ボードを R5完了後に oppBoard へ一括反映');
             }
           }
           state.flMode = false;
@@ -13399,8 +13410,17 @@ function _endGameFLAfterOpp(){
         bot: state.oppFlPendingBoard.bot.slice()
       };
       state.oppFlPendingBoard = null;
+    } else if(oppCount !== 13 && state.oppPendingFinalBoard){
+      // fix77: 平場相手のボード保留からもフォールバック
+      console.log('[fix77 FL] oppBoard が ' + oppCount + '枚 → oppPendingFinalBoard から反映');
+      state.oppBoard = {
+        top: state.oppPendingFinalBoard.top.slice(),
+        mid: state.oppPendingFinalBoard.mid.slice(),
+        bot: state.oppPendingFinalBoard.bot.slice()
+      };
+      state.oppPendingFinalBoard = null;
     } else if(oppCount !== 13){
-      console.warn('[fix71 FL] oppBoard が ' + oppCount + '枚、 oppFlPendingBoard もなし → 点数計算不整合の可能性');
+      console.warn('[fix71 FL] oppBoard が ' + oppCount + '枚、 oppFlPendingBoard / oppPendingFinalBoard もなし → 点数計算不整合の可能性');
     }
   }catch(e){ console.error('[fix71 FL] guard:', e); }
 
@@ -15423,6 +15443,24 @@ function handleConfirmFL(){
         }
         return;
       }
+      // fix77: 自分がFL の間は 平場相手の place5 も oppBoard 反映を保留 (FLプレイヤーは途中状態を見ず、 平場の R5完了時にまとめて反映)
+      if(typeof state !== 'undefined' && state && state.flMode){
+        console.log('[fix77] place5 反映保留 (自分 FL 中, R5完了まで見せない)');
+        // 保留ボードに保存
+        state.oppPendingFinalBoard = state.oppPendingFinalBoard || { top:[], mid:[], bot:[] };
+        state.oppPendingFinalBoard.top = placement.top.slice();
+        state.oppPendingFinalBoard.mid = placement.mid.slice();
+        state.oppPendingFinalBoard.bot = placement.bot.slice();
+        // resolver は通常通り解決
+        if(os.resolvers.r1){
+          const w = os.resolvers.r1; os.resolvers.r1 = null;
+          try{ clearTimeout(w.timerId); }catch(e){}
+          w.resolve(placement);
+        } else {
+          os.buffered.r1 = placement;
+        }
+        return;
+      }
       // v29.1-B ストリクト: ボタン側は即座に画面反映
       try{
         if(typeof state !== 'undefined' && state && state.onlineMode &&
@@ -15465,6 +15503,24 @@ function handleConfirmFL(){
       // fix71+: 自分が平場+相手FL の場合、 pineapple_place の oppBoard 反映をスキップ
       if(typeof state !== 'undefined' && state && state.oppFlMode && !state.flMode){
         console.log('[fix71+] pineapple_place R' + r + ' 受信 skip (相手 FL 中)');
+        if(os.resolvers.pineapple[r]){
+          const w = os.resolvers.pineapple[r];
+          os.resolvers.pineapple[r] = null;
+          try{ clearTimeout(w.timerId); }catch(e){}
+          w.resolve(placement);
+        } else {
+          os.buffered.pineapple[r] = placement;
+        }
+        return;
+      }
+      // fix77: 自分がFL の間は 平場相手の pineapple_place も oppBoard 反映を保留
+      if(typeof state !== 'undefined' && state && state.flMode){
+        console.log('[fix77] pineapple_place R' + r + ' 反映保留 (自分 FL 中)');
+        // 保留ボードにこの R までの配置を累積 (event_type='place5' は 上でセットされ、 ここは push)
+        state.oppPendingFinalBoard = state.oppPendingFinalBoard || { top:[], mid:[], bot:[] };
+        for(const row of ['top','mid','bot']){
+          (placement[row] || []).forEach(function(c){ state.oppPendingFinalBoard[row].push(c); });
+        }
         if(os.resolvers.pineapple[r]){
           const w = os.resolvers.pineapple[r];
           os.resolvers.pineapple[r] = null;
