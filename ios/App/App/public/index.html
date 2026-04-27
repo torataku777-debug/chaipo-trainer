@@ -7159,7 +7159,10 @@ body.debug-interactive .vmode-btn::before {
           // FL 手札の計算は ゲームロジックとして newGame の flowmalカスタムだが、 ただシンプルに deck.slice(0, flCards) としておく
           // (厳密には deck 描画と一致しない、 ユーザーに「FL 中の復帰は試験的です」と伝える)
           if(state.deck){
-            state.hand = state.deck.slice(0, flCards);
+            // fix80: FL 手札は deck_seed から 正確に計算 (host=0スタート, guest=flCardsスタート)
+            const flStart = asHost ? 0 : flCards;
+            state.hand = state.deck.slice(flStart, flStart + flCards);
+            console.log('[fix80] FL hand restored: start=' + flStart + ' count=' + flCards);
           }
           console.log('[restore fl] FL 途中で復帰: cards=' + flCards);
           if(typeof showToast === 'function') showToast('FL途中の復帰は試験的なため、手札が一致しない可能性があります');
