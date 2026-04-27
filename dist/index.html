@@ -6941,6 +6941,19 @@ body.debug-interactive .vmode-btn::before {
       state.onlineMustWait = false;
     }
     
+    // fix56: score 復元 — matches.player1_score / player2_score を sessionScore に反映
+    // (startGameOnline 内で initial_score にリセットされているため、ここで上書き)
+    try{
+      if(typeof sessionScore !== 'undefined'){
+        const myScore  = (asHost ? match.player1_score : match.player2_score);
+        const oppScore = (asHost ? match.player2_score : match.player1_score);
+        if(typeof myScore === 'number')  sessionScore.you = myScore;
+        if(typeof oppScore === 'number') sessionScore.opp = oppScore;
+        console.log('[restore] sessionScore restored: you=' + sessionScore.you + ' opp=' + sessionScore.opp);
+        if(typeof updateScoreBar === 'function') updateScoreBar();
+      }
+    }catch(e){ console.error('[restore] sessionScore error:', e); }
+    
     // UI 再描画
     if(typeof renderGame === 'function'){
       try{ renderGame(); }catch(e){ console.error('[restore] renderGame error:', e); }
