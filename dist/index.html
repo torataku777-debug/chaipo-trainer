@@ -6710,6 +6710,109 @@ body.debug-interactive .vmode-btn::before {
         await window._p2sim.client.from('matches').update({ player2_ready_for_next: false }).eq('id', window._p2sim.match.id);
       };
       console.log('[p2sim] all functions registered: p2_joinRoom, p2_getRoundHand, p2_sendR1, p2_sendPineapple, p2_sendFL, p2_setFLActive, p2_markReadyForNext, p2_clearReady');
+
+      // fix80: E2E 検証ヘルパーも同時登録 (DevTools 手動コピペ不要)
+      window.p1_smartR1 = function(){
+        var hand = state.hand.slice();
+        var rOrder = '23456789TJQKA';
+        var sorted = hand.slice().sort(function(a,b){return rOrder.indexOf(a.r) - rOrder.indexOf(b.r);});
+        var rankCount = {};
+        hand.forEach(function(c){ rankCount[c.r] = (rankCount[c.r]||0) + 1; });
+        var pairRank = null;
+        for(var rk of Object.keys(rankCount)){ if(rankCount[rk] === 2) pairRank = rk; }
+        var topCards = [], midCards = [], botCards = [];
+        if(pairRank && (pairRank === 'K' || pairRank === 'A' || pairRank === 'Q')){
+          hand.forEach(function(c){ if(c.r === pairRank) topCards.push(c); });
+          var rest = hand.filter(function(c){return c.r !== pairRank;});
+          var restSorted = rest.sort(function(a,b){return rOrder.indexOf(b.r) - rOrder.indexOf(a.r);});
+          botCards = [restSorted[0], restSorted[1]];
+          midCards = [restSorted[2]];
+        } else {
+          topCards = [sorted[0]]; midCards = [sorted[1], sorted[2]]; botCards = [sorted[3], sorted[4]];
+        }
+        topCards.forEach(function(c){ placeCard(c, 'top'); });
+        midCards.forEach(function(c){ placeCard(c, 'mid'); });
+        botCards.forEach(function(c){ placeCard(c, 'bot'); });
+        return { top: topCards.map(c=>c.id), mid: midCards.map(c=>c.id), bot: botCards.map(c=>c.id) };
+      };
+      window.p1_smartPineapple = function(){
+        var hand = state.hand.slice();
+        var rOrder = '23456789TJQKA';
+        var sorted = hand.slice().sort(function(a,b){return rOrder.indexOf(b.r) - rOrder.indexOf(a.r);});
+        var place1 = sorted[0], place2 = sorted[1];
+        var placed = [];
+        [place1, place2].forEach(function(c){
+          if(state.playerBoard.bot.length < 5){ placeCard(c, 'bot'); placed.push({card: c.id, row:'bot'}); }
+          else if(state.playerBoard.mid.length < 5){ placeCard(c, 'mid'); placed.push({card: c.id, row:'mid'}); }
+          else if(state.playerBoard.top.length < 3){ placeCard(c, 'top'); placed.push({card: c.id, row:'top'}); }
+        });
+        return placed;
+      };
+      window.p2_smartR1 = async function(){
+        var hand = window.p2_getRoundHand(1);
+        var rOrder = '23456789TJQKA';
+        var sorted = hand.slice().sort(function(a,b){return rOrder.indexOf(a.r) - rOrder.indexOf(b.r);});
+        var board = { top: [sorted[0]], mid: [sorted[1], sorted[2]], bot: [sorted[3], sorted[4]] };
+        await window.p2_sendR1(board);
+        return board;
+      };
+      window.p2_smartPineapple = async function(round, currentBoardP2){
+        var hand = window.p2_getRoundHand(round);
+        var rOrder = '23456789TJQKA';
+        var sorted = hand.slice().sort(function(a,b){return rOrder.indexOf(b.r) - rOrder.indexOf(a.r);});
+        var place1 = sorted[0], place2 = sorted[1], discard = sorted[2];
+        var placedByRow = { top: [], mid: [], bot: [] };
+        var newBoard = { top: currentBoardP2.top.slice(), mid: currentBoardP2.mid.slice(), bot: currentBoardP2.bot.slice() };
+        [place1, place2].forEach(function(c){
+          if(newBoard.bot.length < 5){ placedByRow.bot.push(c); newBoard.bot.push(c); }
+          else if(newBoard.mid.length < 5){ placedByRow.mid.push(c); newBoard.mid.push(c); }
+          else if(newBoard.top.length < 3){ placedByRow.top.push(c); newBoard.top.push(c); }
+        });
+        await window.p2_sendPineapple(round, placedByRow, discard);
+        return { placedByRow: placedByRow, discard: discard.id, newBoard: newBoard };
+      };
+      console.log('[p2sim fix80] e2e helpers registered: p1_smartR1, p1_smartPineapple, p2_smartR1, p2_smartPineapple');
+      
+      // fix81: FL Aware 配置 + FL 状態強制ヘルパー
+      window.p1_smartPineapple_FLAware = function(){
+        var hand = state.hand.slice();
+        var rOrder = '23456789TJQKA';
+        var sorted = hand.slice().sort(function(a,b){return rOrder.indexOf(b.r) - rOrder.indexOf(a.r);});
+        var place1 = sorted[0], place2 = sorted[1];
+        var placed = [];
+        // 上段限界付き (KK上段状態を崩さない) 、 mid 優先
+        [place1, place2].forEach(function(c){
+          // top はもう2枚あるなら追加しない
+          if(state.playerBoard.top.length >= 2){
+            // mid 、 満杯なら bot
+            if(state.playerBoard.mid.length < 5){ placeCard(c, 'mid'); placed.push({card:c.id,row:'mid'}); }
+            else if(state.playerBoard.bot.length < 5){ placeCard(c, 'bot'); placed.push({card:c.id,row:'bot'}); }
+          } else {
+            // top に余裕あり、 高ランクなら mid/bot 優先以外同じ
+            if(state.playerBoard.mid.length < 5){ placeCard(c, 'mid'); placed.push({card:c.id,row:'mid'}); }
+            else if(state.playerBoard.bot.length < 5){ placeCard(c, 'bot'); placed.push({card:c.id,row:'bot'}); }
+          }
+        });
+        return placed;
+      };
+      // FL シナリオ検証用: p1 を強制で FL 状態にする
+      window.p1_forceFL = function(cards){
+        cards = cards || 16;
+        // state を FL モードに強制 (検証デバッグ用)
+        if(typeof startFL === 'function'){
+          state.flMode = true;
+          state.flCards = cards;
+          startFL(cards);
+          return { ok: true, flMode: state.flMode, flCards: state.flCards };
+        }
+        return { error: 'startFL not available' };
+      };
+      window.p2_forceFL = async function(cards){
+        cards = cards || 16;
+        await window.p2_setFLActive(cards);
+        return { ok: true };
+      };
+      console.log('[p2sim fix81] FL helpers: p1_smartPineapple_FLAware, p1_forceFL, p2_forceFL');
     })();
   }
   if(document.readyState === 'loading'){
