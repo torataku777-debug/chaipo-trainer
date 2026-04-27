@@ -10796,7 +10796,7 @@ async function newGame(onlineConfig){
     idx  = 0;
   }
   const deal = n => deck.slice(idx, idx += n);
-  state={phase:'place5',round:1,playerBoard:{top:[],mid:[],bot:[]},oppBoard:{top:[],mid:[],bot:[]},hand:[],discard:[],selectedCard:null,deck,deckIdx:idx,flMode:false,oppFlMode:false,flCards:0,flDiscard:[],gameOver:false,oppPendingBoard:null,oppPendingPlace:null,oppPlayedThisRound:false,wasFL:false,oppWasFL:false,oppSavedFlCards:0,oppFlPending:false,oppFlHand:null,oppPlayPending:false,onlineMode:_isOnline,onlineMatch:_isOnline?onlineConfig.match:null,asHost:_isOnline?!!onlineConfig.asHost:false,myPlayerNum:_isOnline?(onlineConfig.asHost?0:1):null,onlineMustWait:(_isOnline && isPlayerButton),oppBoardPrefilledForRound:null};window._oppFlPendingCallback=null;window._oppPlayCallback=null;
+  state={phase:'place5',round:1,playerBoard:{top:[],mid:[],bot:[]},oppBoard:{top:[],mid:[],bot:[]},hand:[],discard:[],selectedCard:null,deck,deckIdx:idx,flMode:false,oppFlMode:false,flCards:0,flDiscard:[],gameOver:false,oppPendingBoard:null,oppPendingPlace:null,oppPlayedThisRound:false,wasFL:false,oppWasFL:false,oppSavedFlCards:0,oppFlPending:false,oppFlHand:null,oppPlayPending:false,oppFlPendingBoard:null,onlineMode:_isOnline,onlineMatch:_isOnline?onlineConfig.match:null,asHost:_isOnline?!!onlineConfig.asHost:false,myPlayerNum:_isOnline?(onlineConfig.asHost?0:1):null,onlineMustWait:(_isOnline && isPlayerButton),oppBoardPrefilledForRound:null};window._oppFlPendingCallback=null;window._oppPlayCallback=null;
   if(_isOnline){
     const myStart = state.asHost ? 0 : 5;
     state.hand = deck.slice(myStart, myStart + 5);
@@ -11061,6 +11061,21 @@ async function dealNext(){
 function endGame(){
   state.gameOver=true;
   state.phase='ended';
+  // fix71: 点数計算前に oppBoard が 13枚揃っていない場合、 oppFlPendingBoard を反映
+  try{
+    const oppCount = state.oppBoard.top.length + state.oppBoard.mid.length + state.oppBoard.bot.length;
+    if(oppCount !== 13 && state.oppFlPendingBoard){
+      console.log('[fix71] oppBoard が ' + oppCount + '枚 → oppFlPendingBoard から反映');
+      state.oppBoard = {
+        top: state.oppFlPendingBoard.top.slice(),
+        mid: state.oppFlPendingBoard.mid.slice(),
+        bot: state.oppFlPendingBoard.bot.slice()
+      };
+      state.oppFlPendingBoard = null;
+    } else if(oppCount !== 13){
+      console.warn('[fix71] oppBoard が ' + oppCount + '枚、 oppFlPendingBoard もなし → 点数計算不整合の可能性');
+    }
+  }catch(e){ console.error('[fix71] endGame oppBoard guard:', e); }
   const score=calcScore(state.playerBoard,state.oppBoard);
   showResultBand(score);
   try{logEndGame(score);}catch(e){console.error('[log] endGame:',e);}
@@ -13262,6 +13277,22 @@ function _endGameFLAfterOpp(){
   state.flMode=false;
   state.oppFlMode=false;
 
+  // fix71: 点数計算前に oppBoard が 13枚揃っていない場合、 oppFlPendingBoard を反映
+  try{
+    const oppCount = state.oppBoard.top.length + state.oppBoard.mid.length + state.oppBoard.bot.length;
+    if(oppCount !== 13 && state.oppFlPendingBoard){
+      console.log('[fix71 FL] oppBoard が ' + oppCount + '枚 → oppFlPendingBoard から反映');
+      state.oppBoard = {
+        top: state.oppFlPendingBoard.top.slice(),
+        mid: state.oppFlPendingBoard.mid.slice(),
+        bot: state.oppFlPendingBoard.bot.slice()
+      };
+      state.oppFlPendingBoard = null;
+    } else if(oppCount !== 13){
+      console.warn('[fix71 FL] oppBoard が ' + oppCount + '枚、 oppFlPendingBoard もなし → 点数計算不整合の可能性');
+    }
+  }catch(e){ console.error('[fix71 FL] guard:', e); }
+
   // 点数計算・結果表示
   const score=calcScore(state.playerBoard,state.oppBoard);
   try{recordBoardHistory(score);}catch(e){console.error('[bh] endGameFL:',e);}
@@ -15268,6 +15299,19 @@ function handleConfirmFL(){
     let placement;
     if(ev.event_type === 'place5'){
       placement = boardFromPlain(ev.placed_cards || {});
+      // fix71+: 自分が平場+相手FL の場合、 place5 の oppBoard 反映をスキップ (相手は FL 中で fl_place のみ送ってくるはずだが、 古いイベント受信代として防御)
+      if(typeof state !== 'undefined' && state && state.oppFlMode && !state.flMode){
+        console.log('[fix71+] place5 受信 skip (相手 FL 中)');
+        // resolver は通常通り解決 (下流処理を止めない)
+        if(os.resolvers.r1){
+          const w = os.resolvers.r1; os.resolvers.r1 = null;
+          try{ clearTimeout(w.timerId); }catch(e){}
+          w.resolve(placement);
+        } else {
+          os.buffered.r1 = placement;
+        }
+        return;
+      }
       // v29.1-B ストリクト: ボタン側は即座に画面反映
       try{
         if(typeof state !== 'undefined' && state && state.onlineMode &&
@@ -15307,6 +15351,19 @@ function handleConfirmFL(){
       const body = ev.placed_cards || {};
       const placedObj = body.placed || body;
       placement = boardFromPlain(placedObj);
+      // fix71+: 自分が平場+相手FL の場合、 pineapple_place の oppBoard 反映をスキップ
+      if(typeof state !== 'undefined' && state && state.oppFlMode && !state.flMode){
+        console.log('[fix71+] pineapple_place R' + r + ' 受信 skip (相手 FL 中)');
+        if(os.resolvers.pineapple[r]){
+          const w = os.resolvers.pineapple[r];
+          os.resolvers.pineapple[r] = null;
+          try{ clearTimeout(w.timerId); }catch(e){}
+          w.resolve(placement);
+        } else {
+          os.buffered.pineapple[r] = placement;
+        }
+        return;
+      }
       // v29.1-B ストリクト: ボタン側は即座に画面反映 (push で追加)
       try{
         if(typeof state !== 'undefined' && state && state.onlineMode &&
