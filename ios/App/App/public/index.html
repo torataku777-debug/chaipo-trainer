@@ -6763,7 +6763,7 @@ body.debug-interactive .vmode-btn::before {
       if(!O || !O.supabase || !O.userId) return;
       const { data, error } = await O.supabase
         .from('matches')
-        .select('id,room_code,player1_id,player2_id,status,current_round,player1_display,player2_display,created_at')
+        .select('*')
         .or('player1_id.eq.' + O.userId + ',player2_id.eq.' + O.userId)
         .eq('status', 'playing')
         .order('created_at', { ascending: false })
@@ -6780,11 +6780,30 @@ body.debug-interactive .vmode-btn::before {
                   '部屋コード: ' + (m.room_code || '?') + '\n' +
                   '対戦相手: ' + (oppDisplay || '不明') + '\n' +
                   'ラウンド: R' + (m.current_round || 1) + '\n\n' +
-                  '※ 「復帰して続きから」機能は現在実装中です。\n' +
-                  '今は「中断してロビーに戻る」のみ選べます。\n\n' +
-                  'このマッチを中断しますか？';
+                  '「続きから」ボタンでマッチに復帰します。\n' +
+                  '中断したい場合はキャンセルしてください。\n\n' +
+                  'このマッチに復帰しますか？';
       
+      // fix55: 1段階目 — 「復帰する」を使うか確認
       if(window.confirm(msg)){
+        // 「復帰する」を選択 → restoreOnlineMatch を起動
+        try{
+          const ok = await restoreOnlineMatch(m);
+          if(!ok){
+            if(typeof showToast === 'function') showToast('復帰に失敗しました');
+          }
+        }catch(e){
+          console.error('[fix55] restore error:', e);
+          if(typeof showToast === 'function') showToast('復帰中にエラーが発生しました');
+        }
+        return;
+      }
+      
+      // fix55: 2段階目 — 「中断する　か」を確認
+      const abandonMsg = '復帰しませんでした。\n\n' +
+                         'このマッチを「中断」してロビーに戻りますか？\n' +
+                         '(キャンセルを選ぶとマッチはそのまま残ります)';
+      if(window.confirm(abandonMsg)){
         const { error: updErr } = await O.supabase
           .from('matches')
           .update({ status: 'abandoned', finished_at: new Date().toISOString() })
@@ -6797,13 +6816,145 @@ body.debug-interactive .vmode-btn::before {
           if(typeof showToast === 'function') showToast('マッチを中断しました');
         }
       } else {
-        console.log('[fix54] user kept the in-progress match (no recovery yet)');
-        if(typeof showToast === 'function') showToast('復帰機能は次回アップデートで実装予定です');
+        console.log('[fix54] user kept the in-progress match');
+        if(typeof showToast === 'function') showToast('マッチはそのまま残してあります');
       }
     }catch(e){
       console.error('[fix54] checkInProgressMatch exception:', e);
     }
   }
+
+  // fix55: 進行中マッチの state 復元 (ラウンド境界復元)
+  // match_events の place5 / pineapple_place イベントを順次再生して
+  // playerBoard / oppBoard / round / hand を復元し、次ラウンドの最初から再開させる。
+  // 、 ラウンド途中の置きかけは現状スキーマでは復元不可 (データ未保存)。
+  async function restoreOnlineMatch(match){
+    const O = window.chaipoOnline;
+    if(!O || !O.supabase || !O.userId) return false;
+    
+    const asHost = (match.player1_id === O.userId);
+    console.log('[restore] start: match=' + match.id + ' asHost=' + asHost);
+    
+    // match_events を取得 (時系列順)
+    const { data: events, error: evErr } = await O.supabase
+      .from('match_events')
+      .select('*')
+      .eq('match_id', match.id)
+      .order('round_num', { ascending: true })
+      .order('player_num', { ascending: true });
+    
+    if(evErr){
+      console.error('[restore] events fetch error:', evErr);
+      if(typeof showToast === 'function') showToast('復帰に失敗しました');
+      return false;
+    }
+    
+    // ラウンド毎にイベントをグループ化
+    const eventsByRound = {};
+    (events || []).forEach(e => {
+      if(!eventsByRound[e.round_num]) eventsByRound[e.round_num] = {};
+      eventsByRound[e.round_num][e.player_num] = e;
+    });
+    
+    // 両プレイヤーの配置が揃ったラウンド = 完了済ラウンド
+    let lastCompletedRound = 0;
+    for(let r = 1; r <= 5; r++){
+      const re = eventsByRound[r];
+      if(re && re[0] && re[1]) lastCompletedRound = r;
+      else break;
+    }
+    console.log('[restore] lastCompletedRound=' + lastCompletedRound);
+    
+    // startGameOnline を呼んで R1 状態にセット (Realtime 購読も再開)
+    if(typeof window.startGameOnline === 'function'){
+      await window.startGameOnline(match, asHost);
+    } else {
+      console.error('[restore] startGameOnline not exported');
+      return false;
+    }
+    
+    // この時点で newGame() が走り、 state は R1 初期化済み (state.round=1, state.phase='place5', state.hand=R1の5枚)
+    if(typeof state === 'undefined' || !state){
+      console.error('[restore] state undefined after startGameOnline');
+      return false;
+    }
+    
+    if(lastCompletedRound === 0){
+      console.log('[restore] no completed rounds, R1 fresh start');
+      if(typeof showToast === 'function') showToast('マッチに復帰しました (R1から)');
+      return true;
+    }
+    
+    // 各完了ラウンドの配置を順次適用
+    for(let r = 1; r <= lastCompletedRound; r++){
+      const myEvent  = eventsByRound[r][asHost ? 0 : 1];
+      const oppEvent = eventsByRound[r][asHost ? 1 : 0];
+      
+      if(myEvent && myEvent.placed_cards){
+        for(const row of ['top','mid','bot']){
+          (myEvent.placed_cards[row] || []).forEach(c => state.playerBoard[row].push(c));
+        }
+      }
+      if(myEvent && myEvent.discarded_card){
+        state.discard.push(myEvent.discarded_card);
+      }
+      if(oppEvent && oppEvent.placed_cards){
+        for(const row of ['top','mid','bot']){
+          (oppEvent.placed_cards[row] || []).forEach(c => state.oppBoard[row].push(c));
+        }
+      }
+    }
+    
+    // 次ラウンドへ
+    state.round = lastCompletedRound + 1;
+    
+    if(state.round > 5){
+      // 全ラウンド完了 → エンドゲーム処理 (本実装では未サポート、 endGame に代行依頼)
+      console.log('[restore] all rounds completed; delegating to endGame()');
+      state.phase = 'ended';
+      if(typeof endGame === 'function'){
+        try{ endGame(); }catch(e){ console.error('[restore] endGame error:', e); }
+      }
+      return true;
+    }
+    
+    // 次ラウンドの手札を deck から計算
+    // R2-R5: base=10+(round-2)*6, host=base..base+2, guest=base+3..base+5
+    const deck = state.deck;
+    const base = 10 + (state.round - 2) * 6;
+    const myStart = base + (asHost ? 0 : 3);
+    state.hand = deck.slice(myStart, myStart + 3);
+    state.deckIdx = myStart + 3;
+    state.phase = 'pineapple';
+    state.placedThisRound = [];
+    state.discardedThisRound = false;
+    state.selectedCard = null;
+    state.oppPlayedThisRound = false;
+    state.oppPendingPlace = null;
+    
+    // ボタン側は相手待機
+    if(typeof isPlayerButton !== 'undefined' && isPlayerButton){
+      state.onlineMustWait = true;
+      state.oppBoardPrefilledForRound = null;
+      console.log('[restore strict] R' + state.round + ': button side must wait for opponent');
+    } else {
+      state.onlineMustWait = false;
+    }
+    
+    // UI 再描画
+    if(typeof renderGame === 'function'){
+      try{ renderGame(); }catch(e){ console.error('[restore] renderGame error:', e); }
+    }
+    if(typeof showScreen === 'function') showScreen('game');
+    
+    console.log('[restore] complete, restored to R' + state.round);
+    if(typeof showToast === 'function') showToast('R' + state.round + 'から再開します');
+    return true;
+  }
+
+  // fix55: デバッグ・テスト用に window に公開
+  window.restoreOnlineMatch = restoreOnlineMatch;
+  window.checkInProgressMatch = function(){ return checkInProgressMatch(window.chaipoOnline); };
 
   async function ensureUserRecord(){
     const O = window.chaipoOnline;
