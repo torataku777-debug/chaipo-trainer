@@ -7047,6 +7047,26 @@ body.debug-interactive .vmode-btn::before {
     if(typeof renderGame === 'function'){
       try{ renderGame(); }catch(e){ console.error('[restore] renderGame error:', e); }
     }
+    // fix60: 復帰時に screen-title 上の overlay を全て強制クリア (fix59 強化版)
+    // iOS WebView 環境では showScreen('game') 後も transitionLayer / modeSelectButtons / loopVideo が
+    // 残ってモード選択画面が表示されてしまう (PLAY NOW タップ後の復帰時に顕著)
+    try{
+      var __tl = document.getElementById('transitionLayer');
+      if(__tl) __tl.classList.remove('is-active');
+      var __mb = document.getElementById('modeSelectButtons');
+      if(__mb) __mb.classList.remove('is-active');
+      var __vd = document.getElementById('transitionVideo');
+      if(__vd){
+        __vd.classList.remove('video-ready');
+        try { __vd.pause(); __vd.currentTime = 0; } catch(e){}
+      }
+      var __lv = document.getElementById('transitionLoopVideo');
+      if(__lv){
+        __lv.classList.remove('video-ready');
+        try { __lv.pause(); __lv.currentTime = 0; } catch(e){}
+      }
+      console.log('[restore fix60] cleared all title overlays (transitionLayer, modeSelectButtons, video, loopVideo)');
+    }catch(e){ console.error('[restore fix60] overlay clear error:', e); }
     if(typeof showScreen === 'function') showScreen('game');
     
     console.log('[restore] complete, restored to R' + state.round);
