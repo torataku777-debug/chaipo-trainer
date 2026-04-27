@@ -6634,6 +6634,91 @@ body.debug-interactive .vmode-btn::before {
 }
 
 </style>
+<!-- fix76: デバッグ用 player2 シミュレーション (URL に ?debug=p2sim がある時のみ有効) -->
+<script>
+(function(){
+  if(!location.search.match(/debug=p2sim/)) return;
+  // SDK ロード完了を待つ (chaipoOnline IIFE の後)
+  function setup(){
+    if(!window.supabase || !window.supabase.createClient){ setTimeout(setup, 200); return; }
+    if(window._p2sim){ console.log('[p2sim] already setup userId=' + window._p2sim.userId); return; }
+    (async function(){
+      const { createClient } = window.supabase;
+      const client2 = createClient(
+        'https://orepjmjkelwsdezxewws.supabase.co',
+        'sb_publishable_nJEk0FNdyZ3aSJfA-apqCA_Mviqb6US',
+        { auth: { storageKey: 'sb-player2-sim', persistSession: true, autoRefreshToken: true } }
+      );
+      let { data: { session } } = await client2.auth.getSession();
+      if(!session){
+        const { data, error } = await client2.auth.signInAnonymously();
+        if(error){ console.error('[p2sim] signIn err:', error); return; }
+        session = data.session;
+      }
+      const userId = session.user.id;
+      const displayName = 'P2-' + userId.slice(0,6);
+      try{ await client2.from('users').upsert({ id: userId, display_name: displayName }); }catch(e){}
+      window._p2sim = { client: client2, userId: userId, displayName: displayName };
+      console.log('[p2sim] ready userId=' + userId);
+      // 関数群登録
+      window.p2_joinRoom = async function(code){
+        const p2 = window._p2sim;
+        const find = await p2.client.from('matches').select('*').eq('room_code', code).eq('status', 'waiting').maybeSingle();
+        if(find.error || !find.data) throw new Error('no waiting match for ' + code);
+        const upd = await p2.client.from('matches').update({
+          player2_id: p2.userId, player2_display: p2.displayName,
+          status: 'playing', started_at: new Date().toISOString()
+        }).eq('id', find.data.id).eq('status', 'waiting').select().single();
+        if(upd.error) throw new Error(upd.error.message);
+        p2.match = upd.data;
+        return upd.data;
+      };
+      window.p2_getRoundHand = function(round){
+        const p2 = window._p2sim;
+        if(!p2.match) throw new Error('p2 not in match');
+        const deck = window.generateDeterministicDeck(p2.match.deck_seed);
+        if(round === 1) return deck.slice(5, 10);
+        const base = 10 + (round - 2) * 6;
+        return deck.slice(base + 3, base + 6);
+      };
+      window.p2_sendR1 = async function(board){
+        const p2 = window._p2sim;
+        const ins = await p2.client.from('match_events').insert({ match_id: p2.match.id, event_type:'place5', round_num:1, player_num:1, placed_cards: board });
+        if(ins.error) throw new Error('R1: ' + ins.error.message);
+        await p2.client.from('matches').update({ current_round: 1 }).eq('id', p2.match.id);
+      };
+      window.p2_sendPineapple = async function(round, placedByRow, discardedCard){
+        const p2 = window._p2sim;
+        const discardedStr = discardedCard ? (discardedCard.isJoker ? discardedCard.id : (discardedCard.r + discardedCard.s)) : null;
+        const ins = await p2.client.from('match_events').insert({ match_id: p2.match.id, event_type:'pineapple_place', round_num: round, player_num: 1, placed_cards: { placed: placedByRow, discarded: discardedCard }, discarded_card: discardedStr });
+        if(ins.error) throw new Error('R' + round + ': ' + ins.error.message);
+        await p2.client.from('matches').update({ current_round: round }).eq('id', p2.match.id);
+      };
+      window.p2_sendFL = async function(board){
+        const p2 = window._p2sim;
+        const ins = await p2.client.from('match_events').insert({ match_id: p2.match.id, event_type:'fl_place', round_num:6, player_num:1, placed_cards: board });
+        if(ins.error) throw new Error('fl_place: ' + ins.error.message);
+        await p2.client.from('matches').update({ player2_fl_active:false, player2_fl_cards:null }).eq('id', p2.match.id);
+      };
+      window.p2_setFLActive = async function(cards){
+        await window._p2sim.client.from('matches').update({ player2_fl_active:true, player2_fl_cards: cards }).eq('id', window._p2sim.match.id);
+      };
+      window.p2_markReadyForNext = async function(){
+        await window._p2sim.client.from('matches').update({ player2_ready_for_next: true }).eq('id', window._p2sim.match.id);
+      };
+      window.p2_clearReady = async function(){
+        await window._p2sim.client.from('matches').update({ player2_ready_for_next: false }).eq('id', window._p2sim.match.id);
+      };
+      console.log('[p2sim] all functions registered: p2_joinRoom, p2_getRoundHand, p2_sendR1, p2_sendPineapple, p2_sendFL, p2_setFLActive, p2_markReadyForNext, p2_clearReady');
+    })();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', setup);
+  } else {
+    setup();
+  }
+})();
+</script>
 <!-- v28.88: Supabase XHR+eval 方式 (script タグでの評価が効かない環境向け) -->
 <script>
 /* ================================================================
@@ -7034,10 +7119,14 @@ body.debug-interactive .vmode-btn::before {
           state.hand = (state.hand || []).filter(c => !pendingIds.has(c.id));
           
           // R2-R5 で placedInThisRound===2 なら 自動捨ても起こったはず (手札が1枚減る)
-          // しかし、 discard は match_events に記録されていないため、厳密には推測不可
-          // pending だけでは 捨て未取り状態がわからない → 現状、 手札は そのまま表示
-          
-          state.discardedThisRound = false;
+          // fix75 (F-2): pending と hand から推測して discardedThisRound を復元
+          state.discardedThisRound = (state.round !== 1 && placedInThisRound === 2);
+          if(state.discardedThisRound && state.hand.length > 0){
+            // 実際に捨てられたカードは不明だが、 余分な hand の先頭を discard に移して処理進行
+            const dc = state.hand.shift();
+            state.discard.push(dc);
+            console.log('[fix75] 推測捨て：' + dc.id + ' (実際の捨てカードと違う可能性あり)');
+          }
           
           console.log('[restore pending] R' + state.round + ' placed=' + placedInThisRound + '/' + (state.round===1?5:2));
         }
