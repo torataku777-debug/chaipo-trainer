@@ -6998,13 +6998,35 @@ body.debug-interactive .vmode-btn::before {
           for(const row of ['top','mid','bot']){
             const completed = (row === 'top' ? state.playerBoard.top.slice(0, completedCount > 0 ? Math.min(3, state.playerBoard.top.length) : 0) : state.playerBoard[row]);
           }
-          // シンプル化: placedThisRound に row 別は不要、 単に card だけ含める
-          // 現ラウンドに配置された 枚数だけダミーで push
-          state.placedThisRound = [];
-          for(let k = 0; k < placedInThisRound; k++){
-            // 何を push しても枚数だけ見られるので ダミーでOK
-            state.placedThisRound.push({ id: '__restored_' + k });
+          // fix74 (F-1): events から完成ボードを再構築 → pending との差分で 現ラウンドの実カードを得る
+          // (擬似 ID '__restored_X' だと sendMyPineapplePlacement で boardAfter マッチしず送信から脱落するバグ修正)
+          const completedBoardBefore = { top: [], mid: [], bot: [] };
+          for(let r = 1; r <= lastCompletedRound; r++){
+            const myEv = eventsByRound[r] && eventsByRound[r][asHost ? 0 : 1];
+            if(myEv && myEv.placed_cards){
+              if(myEv.event_type === 'place5'){
+                completedBoardBefore.top = (myEv.placed_cards.top || []).slice();
+                completedBoardBefore.mid = (myEv.placed_cards.mid || []).slice();
+                completedBoardBefore.bot = (myEv.placed_cards.bot || []).slice();
+              } else {
+                const placed = (myEv.placed_cards.placed || myEv.placed_cards) || {};
+                for(const row of ['top','mid','bot']){
+                  (placed[row] || []).forEach(c => completedBoardBefore[row].push(c));
+                }
+              }
+            }
           }
+          const completedIds = new Set();
+          ['top','mid','bot'].forEach(row => completedBoardBefore[row].forEach(c => completedIds.add(c.id)));
+          state.placedThisRound = [];
+          ['top','mid','bot'].forEach(row => {
+            const pendingRow = (row === 'top') ? pTop : (row === 'mid' ? pMid : pBot);
+            pendingRow.forEach(c => {
+              if(!completedIds.has(c.id)){
+                state.placedThisRound.push(c);  // 実カードオブジェクト
+              }
+            });
+          });
           
           // 手札から、 pending に含まれるカードを除く
           const pendingIds = new Set();
@@ -15865,6 +15887,10 @@ function handleConfirmFL(){
       placed_cards: boardToPlain(board),
     });
     if(error) throw new Error('insert place5: ' + error.message);
+    // fix73 (B-X): matches.current_round も更新 (復帰モーダルの R表示ケア)
+    try{
+      await O.supabase.from('matches').update({ current_round: 1 }).eq('id', os.match.id);
+    }catch(e){ console.warn('[fix73] current_round update R1:', e); }
   }
 
   async function sendMyPineapplePlacement(round, placed2, discardedCard, boardAfter){
@@ -15891,6 +15917,10 @@ function handleConfirmFL(){
       discarded_card: discardedStr,
     });
     if(error) throw new Error('insert pineapple: ' + error.message);
+    // fix73 (B-X): matches.current_round も更新 (復帰モーダルの R表示ケア)
+    try{
+      await O.supabase.from('matches').update({ current_round: round }).eq('id', os.match.id);
+    }catch(e){ console.warn('[fix73] current_round update R' + round + ':', e); }
   }
 
   async function finalizeOnlineMatch(){
