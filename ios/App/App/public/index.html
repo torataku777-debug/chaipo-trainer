@@ -6944,6 +6944,92 @@ body.debug-interactive .vmode-btn::before {
       state.onlineMustWait = false;
     }
     
+    // fix58: ラウンド途中の置きかけ復元（R-5）
+    // matches.player{N}_pending_round が 現在の state.round と一致し、
+    // pending_top/mid/bot があれば、 そのスナップショットを state に適用。
+    // pending は playerBoard 全体 (完了済ラウンド + 現ラウンド途中) のスナップショット。
+    try{
+      const pendingPrefix = 'player' + (asHost ? 1 : 2);
+      const pRound = match[pendingPrefix + '_pending_round'];
+      if(typeof pRound === 'number' && pRound === state.round){
+        const pTop = match[pendingPrefix + '_pending_top'] || [];
+        const pMid = match[pendingPrefix + '_pending_mid'] || [];
+        const pBot = match[pendingPrefix + '_pending_bot'] || [];
+        // pending は playerBoard 全体 → state.playerBoard を上書き
+        state.playerBoard = { top: pTop.slice(), mid: pMid.slice(), bot: pBot.slice() };
+        
+        // 現ラウンドで配置されたカード数を計算して state.placedThisRound に記録
+        // 完了済ラウンドまでの累積枚数 = R1の5 + R2-R5 の2*x
+        const completedCount = (lastCompletedRound >= 1 ? 5 : 0) + Math.max(0, lastCompletedRound - 1) * 2;
+        const totalNow = pTop.length + pMid.length + pBot.length;
+        const placedInThisRound = totalNow - completedCount;
+        if(placedInThisRound > 0){
+          // pending の 現ラウンド分を placedThisRound にコピー
+          // カードを row 別に拾い出し、 手札からは除く
+          const placedNow = [];
+          // それぞれの row の末尾から placedInThisRound 枚を placedThisRoundに入れる
+          // （正確には 順序不明だが、 R2-R5 の CONFIRM判定は 枚数のみ見ているため OK）
+          for(const row of ['top','mid','bot']){
+            const completed = (row === 'top' ? state.playerBoard.top.slice(0, completedCount > 0 ? Math.min(3, state.playerBoard.top.length) : 0) : state.playerBoard[row]);
+          }
+          // シンプル化: placedThisRound に row 別は不要、 単に card だけ含める
+          // 現ラウンドに配置された 枚数だけダミーで push
+          state.placedThisRound = [];
+          for(let k = 0; k < placedInThisRound; k++){
+            // 何を push しても枚数だけ見られるので ダミーでOK
+            state.placedThisRound.push({ id: '__restored_' + k });
+          }
+          
+          // 手札から、 pending に含まれるカードを除く
+          const pendingIds = new Set();
+          [pTop, pMid, pBot].forEach(arr => arr.forEach(c => pendingIds.add(c.id)));
+          state.hand = (state.hand || []).filter(c => !pendingIds.has(c.id));
+          
+          // R2-R5 で placedInThisRound===2 なら 自動捨ても起こったはず (手札が1枚減る)
+          // しかし、 discard は match_events に記録されていないため、厳密には推測不可
+          // pending だけでは 捨て未取り状態がわからない → 現状、 手札は そのまま表示
+          
+          state.discardedThisRound = false;
+          
+          console.log('[restore pending] R' + state.round + ' placed=' + placedInThisRound + '/' + (state.round===1?5:2));
+        }
+      }
+    }catch(e){ console.error('[restore pending] error:', e); }
+    
+    // fix58: FL 状態復元（R-4）
+    // matches.player{N}_fl_active === true なら FL 中だったという事。 
+    // match_events に fl_place イベントがあれば 13枚配置済み → ゲーム終了と同等。
+    // そうでなければ FL 途中 → FL モードでゲーム画面を開く。
+    try{
+      const flPrefix = 'player' + (asHost ? 1 : 2);
+      const flActive = match[flPrefix + '_fl_active'];
+      const flCards  = match[flPrefix + '_fl_cards'];
+      
+      if(flActive && typeof flCards === 'number' && flCards >= 14){
+        // FL イベント（自分のもの）を探す
+        const myFlEvent = (events || []).find(e => e.event_type === 'fl_place' && e.player_num === (asHost ? 0 : 1));
+        if(myFlEvent && myFlEvent.placed_cards){
+          // FL 配置完了済み→ 何もしない（ゲーム終了状態と同等、 他ロジックに委んる）
+          console.log('[restore fl] fl_place イベント済み、 ゲーム終了と同等処理');
+        } else {
+          // FL 途中 → FL モードでゲーム画面を起動
+          state.flMode = true;
+          state.flCards = flCards;
+          state.playerBoard = { top:[], mid:[], bot:[] };
+          state.flDiscard = [];
+          state.phase = 'fl';
+          // 手札は deck から FL枚数分取る
+          // FL 手札の計算は ゲームロジックとして newGame の flowmalカスタムだが、 ただシンプルに deck.slice(0, flCards) としておく
+          // (厳密には deck 描画と一致しない、 ユーザーに「FL 中の復帰は試験的です」と伝える)
+          if(state.deck){
+            state.hand = state.deck.slice(0, flCards);
+          }
+          console.log('[restore fl] FL 途中で復帰: cards=' + flCards);
+          if(typeof showToast === 'function') showToast('FL途中の復帰は試験的なため、手札が一致しない可能性があります');
+        }
+      }
+    }catch(e){ console.error('[restore fl] error:', e); }
+    
     // fix56: score 復元 — matches.player1_score / player2_score を sessionScore に反映
     // (startGameOnline 内で initial_score にリセットされているため、ここで上書き)
     try{
@@ -11349,6 +11435,7 @@ function retCard(card,row,idx){
   state.selectedCard=null;
   /* v28.45: FL中は手札に戻したらランク順にソート */
   if(state.flMode && typeof sortFlHand==='function') sortFlHand();
+  if(typeof schedulePendingPush==='function') schedulePendingPush(); // fix58: pending update
   renderGame();
 }
 function placeCard(card,row){
@@ -11369,9 +11456,10 @@ function placeCard(card,row){
     renderFLDiscardSlots();
   }
   if(!state.flMode&&state.phase==='pineapple'&&state.placedThisRound.length>=2&&!state.discardedThisRound&&state.hand.length>0)autoDiscard();
+  if(typeof schedulePendingPush==='function') schedulePendingPush(); // fix58: pending update
   renderGame();
 }
-function autoDiscard(){const c=state.hand[0];state.hand=state.hand.filter(x=>x.id!==c.id);state.discard.push(c);state.discardedThisRound=true;showToast(`${c.isJoker?'JK':c.r+SUIT_SYMS[c.s]} を捨てました`);}
+function autoDiscard(){const c=state.hand[0];state.hand=state.hand.filter(x=>x.id!==c.id);state.discard.push(c);state.discardedThisRound=true;showToast(`${c.isJoker?'JK':c.r+SUIT_SYMS[c.s]} を捨てました`);if(typeof schedulePendingPush==='function') schedulePendingPush();}
 document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopChaipoTimer();}catch(e){}
   if(state.gameOver){
     // ★ newGame()前にボード情報を保存する（newGame()でstateがリセットされるため）
@@ -11482,6 +11570,7 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
       (async () => {
         try{
           await sendMyR1Placement(state.playerBoard);
+          if(typeof clearPendingPlacement === 'function') clearPendingPlacement(); // fix58: pending clear
           showToast('相手の配置を待っています...');
           const oppPlace = await waitForOpponentR1();
           // v29.1-B: R1 は代入なので冪等 (ボタン側は既に反映済みでも同じ値で上書き)
@@ -11524,6 +11613,7 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
       (async () => {
         try{
           await sendMyPineapplePlacement(roundSnapshot, placedForSend, discardForSend, state.playerBoard);
+          if(typeof clearPendingPlacement === 'function') clearPendingPlacement(); // fix58: pending clear
           showToast('相手の配置を待っています...');
           const oppPlace = await waitForOpponentPineapple(roundSnapshot);
           // v29.1-B ストリクト: ボタン側は handleOnlineEvent で既に oppBoard に反映済みなら push をスキップ
@@ -11569,6 +11659,10 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
 function startFL(flCards){
   console.log('startFL called with', flCards, 'cards, deckIdx='+state.deckIdx);
   state.flMode=true;state.flCards=flCards;
+  // fix58: オンラインモードなら Supabase に FL 状態を反映
+  if(state.onlineMode && typeof setFLActiveSupabase === 'function'){
+    setFLActiveSupabase(flCards);
+  }
   // v29.4: プレイヤーFL 即時化 — 800手プールから抽選 (相手平場時のみ)
   window.__aiPlayerFlSolution = null;
   window.__aiPlayerFlMeta = null;
@@ -15189,6 +15283,130 @@ function handleConfirmFL(){
     });
   }
 
+  // fix58: pending placement 関連関数（R-5: ラウンド途中の置きかけ保存）
+  // 【仕様】配置/取消のたび throttle、50 0ms 以内に複数回起これば 1回だけ送信。
+  // 【状態】 state.playerBoard.{top,mid,bot} をそのまま保存。
+  let _pendingPushTimer = null;
+  function schedulePendingPush(){
+    if(typeof state === 'undefined' || !state || !state.onlineMode) return;
+    if(state.flMode) return; // FL 中は別の送信パス
+    if(_pendingPushTimer) clearTimeout(_pendingPushTimer);
+    _pendingPushTimer = setTimeout(function(){ pushPendingToSupabase(); }, 500);
+  }
+  
+  async function pushPendingToSupabase(){
+    if(typeof state === 'undefined' || !state || !state.onlineMode) return;
+    if(state.flMode) return;
+    const O = window.chaipoOnline;
+    const os = window.__onlineState;
+    if(!O || !O.supabase || !os || !os.match) return;
+    
+    function plain(c){
+      const o = { r: c.r, s: c.s, id: c.id };
+      if(c.isJoker) o.isJoker = true;
+      return o;
+    }
+    
+    const myNum = os.myNum;
+    const prefix = 'player' + (myNum + 1);
+    const update = {};
+    update[prefix + '_pending_top']   = (state.playerBoard.top || []).map(plain);
+    update[prefix + '_pending_mid']   = (state.playerBoard.mid || []).map(plain);
+    update[prefix + '_pending_bot']   = (state.playerBoard.bot || []).map(plain);
+    update[prefix + '_pending_round'] = state.round;
+    
+    try{
+      const { error } = await O.supabase.from('matches').update(update).eq('id', os.match.id);
+      if(error) console.error('[pending] update error:', error);
+      // else console.log('[pending] saved R' + state.round + ' player' + (myNum+1));
+    }catch(e){ console.error('[pending] exception:', e); }
+  }
+  
+  async function clearPendingPlacement(){
+    if(typeof state === 'undefined' || !state || !state.onlineMode) return;
+    const O = window.chaipoOnline;
+    const os = window.__onlineState;
+    if(!O || !O.supabase || !os || !os.match) return;
+    
+    if(_pendingPushTimer){ clearTimeout(_pendingPushTimer); _pendingPushTimer = null; }
+    
+    const myNum = os.myNum;
+    const prefix = 'player' + (myNum + 1);
+    const update = {};
+    update[prefix + '_pending_top']   = null;
+    update[prefix + '_pending_mid']   = null;
+    update[prefix + '_pending_bot']   = null;
+    update[prefix + '_pending_round'] = null;
+    
+    try{
+      await O.supabase.from('matches').update(update).eq('id', os.match.id);
+      // console.log('[pending] cleared player' + (myNum+1));
+    }catch(e){ console.error('[pending clear] exception:', e); }
+  }
+  
+  // fix58: FL 状態関連関数（R-4）
+  async function setFLActiveSupabase(flCards){
+    if(typeof state === 'undefined' || !state || !state.onlineMode) return;
+    const O = window.chaipoOnline;
+    const os = window.__onlineState;
+    if(!O || !O.supabase || !os || !os.match) return;
+    
+    const prefix = 'player' + (os.myNum + 1);
+    const update = {};
+    update[prefix + '_fl_active'] = true;
+    update[prefix + '_fl_cards']  = flCards;
+    try{
+      await O.supabase.from('matches').update(update).eq('id', os.match.id);
+      console.log('[fl] active set: cards=' + flCards);
+    }catch(e){ console.error('[fl active] exception:', e); }
+  }
+  
+  async function clearFLActiveSupabase(){
+    if(typeof state === 'undefined' || !state || !state.onlineMode) return;
+    const O = window.chaipoOnline;
+    const os = window.__onlineState;
+    if(!O || !O.supabase || !os || !os.match) return;
+    
+    const prefix = 'player' + (os.myNum + 1);
+    const update = {};
+    update[prefix + '_fl_active'] = false;
+    update[prefix + '_fl_cards']  = null;
+    try{
+      await O.supabase.from('matches').update(update).eq('id', os.match.id);
+      console.log('[fl] active cleared');
+    }catch(e){ console.error('[fl clear] exception:', e); }
+  }
+  
+  async function sendMyFlPlacement(board){
+    const O = window.chaipoOnline;
+    const os = window.__onlineState;
+    if(!O || !os) throw new Error('online not initialized');
+    
+    function plain(c){
+      const o = { r: c.r, s: c.s, id: c.id };
+      if(c.isJoker) o.isJoker = true;
+      return o;
+    }
+    
+    const placedByRow = {
+      top: (board.top || []).map(plain),
+      mid: (board.mid || []).map(plain),
+      bot: (board.bot || []).map(plain)
+    };
+    
+    const { error } = await O.supabase.from('match_events').insert({
+      match_id:     os.match.id,
+      event_type:   'fl_place',
+      round_num:    6, // FL を表す特別の round_num
+      player_num:   os.myNum,
+      placed_cards: placedByRow,
+    });
+    if(error) throw new Error('insert fl_place: ' + error.message);
+    
+    // FL フラグもクリア
+    await clearFLActiveSupabase();
+  }
+  
   async function sendMyR1Placement(board){
     const O = window.chaipoOnline;
     const os = window.__onlineState;
@@ -15317,6 +15535,12 @@ function handleConfirmFL(){
   window.mulberry32                  = mulberry32;
   window.sendMyR1Placement           = sendMyR1Placement;
   window.sendMyPineapplePlacement    = sendMyPineapplePlacement;
+  // fix58: pending / FL 関連を公開
+  window.schedulePendingPush         = schedulePendingPush;
+  window.clearPendingPlacement       = clearPendingPlacement;
+  window.setFLActiveSupabase         = setFLActiveSupabase;
+  window.clearFLActiveSupabase       = clearFLActiveSupabase;
+  window.sendMyFlPlacement           = sendMyFlPlacement;
   window.waitForOpponentR1           = waitForOpponentR1;
   window.waitForOpponentPineapple    = waitForOpponentPineapple;
   window.finalizeOnlineMatch         = finalizeOnlineMatch;
