@@ -6644,11 +6644,12 @@ body.debug-interactive .vmode-btn::before {
    ================================================================ */
 (function(){
   // ============================================================
-  // v1.0 OFFLINE MODE: Supabase 通信を完全停止する
+  // v1.1 ONLINE MODE: Supabase 通信を有効化
   //   - true  : 全てのオンライン機能を停止(v1.0リリース時)
   //   - false : Supabase連携を有効化(v1.1以降)
+  // fix53: v1.1 オンライン本実装フェーズへ移行(fix42 を逆適用)
   // ============================================================
-  window.NEIGHBORS_OFFLINE_MODE = true;
+  window.NEIGHBORS_OFFLINE_MODE = false;
 
   const SUPABASE_URL = 'https://orepjmjkelwsdezxewws.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_nJEk0FNdyZ3aSJfA-apqCA_Mviqb6US';
