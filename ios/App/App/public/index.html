@@ -6940,6 +6940,32 @@ body.debug-interactive .vmode-btn::before {
       state.onlineMustWait = true;
       state.oppBoardPrefilledForRound = null;
       console.log('[restore strict] R' + state.round + ': button side must wait for opponent');
+      // fix67: 現ラウンドで相手がもう配置完了済みなら mustWait=false に上書き
+      try{
+        const oppPlayerNum = asHost ? 1 : 0;
+        const oppEventInCurrent = (events || []).find(function(e){
+          return e.round_num === state.round && e.player_num === oppPlayerNum;
+        });
+        if(oppEventInCurrent){
+          state.onlineMustWait = false;
+          // 相手の board を反映 (現ラウンドの配置を oppBoard に追加)
+          if(oppEventInCurrent.event_type === 'pineapple_place'){
+            const body = oppEventInCurrent.placed_cards || {};
+            const placedObj = body.placed || body;
+            for(const row of ['top','mid','bot']){
+              if(placedObj[row]){
+                placedObj[row].forEach(function(c){ state.oppBoard[row].push(c); });
+              }
+            }
+          } else if(oppEventInCurrent.event_type === 'place5'){
+            // R1: 代入で上書き
+            const body = oppEventInCurrent.placed_cards || {};
+            state.oppBoard = { top: (body.top||[]).slice(), mid: (body.mid||[]).slice(), bot: (body.bot||[]).slice() };
+          }
+          state.oppPlayedThisRound = true;
+          console.log('[fix67] 相手は現 R' + state.round + ' 配置完了済み → mustWait=false, oppBoard 反映');
+        }
+      }catch(e){ console.error('[fix67] opp completed check err:', e); }
     } else {
       state.onlineMustWait = false;
     }
@@ -10781,8 +10807,7 @@ async function newGame(onlineConfig){
   }
 
   // Phase 4-A: 相手 FL 判定 (_nextOppFl > 0 なら相手は FL)
-  // v29.0: online モードでは FL を無効化 (MVP スコープ外)
-  if(_isOnline){ window._nextOppFl = 0; }
+  // fix64: オンラインモードでも相手 FL を判定 (fl_place イベントで反映)
   const oppFlCards = window._nextOppFl || 0;
   window._nextOppFl = 0;  // 消費
 
@@ -10791,6 +10816,19 @@ async function newGame(onlineConfig){
     state.oppFlMode = true;
     state.oppSavedFlCards = oppFlCards;
     state.oppPlayedThisRound = true;
+
+    // fix64: オンラインモードでは fl_place 受信を待つだけ (AI/事前計算不要)
+    if(_isOnline){
+      state.oppFlPending = true;
+      state.oppFlHand = null;
+      state.oppBoard = { top:[], mid:[], bot:[] };
+      window._nextBothFL = null;
+      // fix64+: 相手 FL の間はボタン側でも onlineMustWait をクリア
+      // (相手は R1 place5 を送り、 fl_place のみ送ってくるため)
+      state.onlineMustWait = false;
+      state.oppBoardPrefilledForRound = null;
+      console.log('[fix64] online opp FL: cards=' + oppFlCards + ', waiting for fl_place, mustWait cleared');
+    }
 
     // v29.4: 両方FL ペアデータ抽出 (両方FL時のみ、相手+プレイヤー分をペアから取る)
     var _usedBothFl = false;
@@ -10891,7 +10929,7 @@ async function newGame(onlineConfig){
       console.error('[opp FL] precomputed access error:', e);
     }
 
-    if(!_usedPrecomputed){
+    if(!_usedPrecomputed && !_isOnline){
       // ===== フォールバック: 従来の aiFLPlace 非同期計算 =====
       const oppFlHand = deal(oppFlCards);
       state.oppBoard = {top:[], mid:[], bot:[]};  // 空のまま (face-down 表示)
@@ -11366,7 +11404,16 @@ function updateEvals(){
 function updateConfirm(){
   const btn=document.getElementById('btnConfirm');
   // ゲーム終了: 常に有効（transitioning より優先）
-  if(state.gameOver&&!state.flMode){btn.disabled=false;btn.textContent='次のゲームへ →';btn.className='btn-confirm';return;}
+  if(state.gameOver&&!state.flMode){
+    // fix61: オンラインモードで ready 済みなら 「相手を待っています…」 (AI対戦と UX 一致)
+    if(state.onlineMode && state.__nextGameMyReady){
+      // fix68: 30秒タイマー削除 (両者押すまで無限待機)
+      btn.disabled=true; btn.textContent='相手を待っています...'; btn.className='btn-confirm';
+      return;
+    }
+    btn.disabled=false; btn.textContent='次のゲームへ →'; btn.className='btn-confirm';
+    return;
+  }
   // v29.1-B ストリクト: ボタン側で相手の配置受信待ち
   if(state.onlineMustWait){
     btn.disabled=true;
@@ -11444,6 +11491,18 @@ function onSlot(row,idx){
     if(state.flMode){rC.splice(idx,1);state.hand.push(card);state.selectedCard=null;if(typeof sortFlHand==='function')sortFlHand();renderGame();return;}
     if(state.phase==='pineapple'){if((state.placedThisRound||[]).find(c=>c.id===card.id))retCard(card,row,idx);else showToast('このカードは戻せません');}
     else if(state.phase==='place5')retCard(card,row,idx);
+    return;
+  }
+  // fix69: FL モードで click フロー (タップ選択→スロットタップ) をサポート — PCブラウザで配置できないバグ修正
+  if(state.flMode){
+    var tapCards = (typeof getFLTapSelCards === 'function') ? getFLTapSelCards() : [];
+    if(tapCards.length === 0) return;
+    for(var i=0; i<tapCards.length; i++){
+      if(rC.length >= lim[row]) break;
+      placeCard(tapCards[i], row);
+    }
+    if(typeof clearFLTapSel === 'function') clearFLTapSel();
+    renderGame();
     return;
   }
   if(!state.selectedCard)return;if(rC.length<lim[row])placeCard(state.selectedCard,row);
@@ -11559,6 +11618,25 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
       window._nextBothFL = null;
     }
 
+    // fix61: オンラインモードでは両者同期のため markReady で待機 (AI対戦と UX 一致)
+    if(state.onlineMode){
+      window.__nextGameCtx = {
+        shouldStartFL: shouldStartFL,
+        nextFlCards: nextFlCards,
+        // fix64: 相手の FL 状態も保存 (triggerNextGame で window._nextOppFl に反映)
+        oppShouldStartFL: oppShouldStartFL,
+        oppNextFlCards: oppNextFlCards
+      };
+      // 楽観的更新: 押した瞬間に UI を「相手を待っています...」に切り替え
+      state.__nextGameMyReady = true;
+      // fix68: deadline 不要 (両者押すまで無限待機)
+      state.__nextGameDeadlineAt = null;
+      Promise.resolve(markReadyForNext()).catch(function(e){ console.error('[fix61] markReady err:', e); });
+      // fix68: 30秒タイマー起動しない (両者押すまで無限待機 / abandoned は status で検知)
+      // if(typeof startNextGameTimer === 'function') startNextGameTimer();
+      if(typeof updateConfirm === 'function') updateConfirm();
+      return;
+    }
     newGame();
     if(shouldStartFL && nextFlCards>=14){
       setTimeout(()=>startFL(nextFlCards), 100);
@@ -11573,6 +11651,50 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
     // FL練習モードの場合は専用の結果画面を表示
     if(typeof flPracticeMode !== 'undefined' && flPracticeMode){
       confirmFLPractice();
+      return;
+    }
+    // fix64: オンラインモードでは sendMyFlPlacement → 相手のR5完了 → endGame
+    if(state.onlineMode){
+      state.phase = 'transitioning';
+      renderGame();
+      (async () => {
+        try{
+          await sendMyFlPlacement(state.playerBoard);
+          // fix70: 両者FL or 自分FL+相手平場 で待機方式を切り替え
+          const oppTotal = state.oppBoard.top.length + state.oppBoard.mid.length + state.oppBoard.bot.length;
+          if(state.oppFlMode){
+            // 両者FL: 相手の fl_place を待つ
+            if(oppTotal < 13){
+              showToast('相手のFL完成を待っています...');
+              try{
+                await waitForOpponentFL();
+                if(state.oppFlPendingBoard){
+                  state.oppBoard = {
+                    top: state.oppFlPendingBoard.top.slice(),
+                    mid: state.oppFlPendingBoard.mid.slice(),
+                    bot: state.oppFlPendingBoard.bot.slice()
+                  };
+                  state.oppFlPendingBoard = null;
+                }
+              }catch(e){ console.error('[fix70] wait opp FL:', e); }
+            }
+          } else {
+            // 自分FL + 相手平場: 相手の pineapple_place R5 を待つ
+            if(oppTotal < 13){
+              showToast('相手のR5完成を待っています...');
+              try{
+                await waitForOpponentPineapple(5);
+              }catch(e){ console.error('[fix64] wait opp R5:', e); }
+            }
+          }
+          state.flMode = false;
+          endGameFL();
+        }catch(e){
+          console.error('[online FL confirm] error:', e);
+          showToast('通信エラー: ' + (e.message || e));
+          state.phase = 'fl';
+        }
+      })();
       return;
     }
     state.flMode=false;
@@ -11591,11 +11713,14 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
         try{
           await sendMyR1Placement(state.playerBoard);
           if(typeof clearPendingPlacement === 'function') clearPendingPlacement(); // fix58: pending clear
-          showToast('相手の配置を待っています...');
-          const oppPlace = await waitForOpponentR1();
-          // v29.1-B: R1 は代入なので冪等 (ボタン側は既に反映済みでも同じ値で上書き)
-          state.oppBoard = {top:[...oppPlace.top], mid:[...oppPlace.mid], bot:[...oppPlace.bot]};
-          state.oppBoardPrefilledForRound = null;
+          // fix64: 相手 FL なら R1 受信を待たず進む (相手は FL 配置中)
+          if(!state.oppFlMode){
+            showToast('相手の配置を待っています...');
+            const oppPlace = await waitForOpponentR1();
+            // v29.1-B: R1 は代入なので冪等 (ボタン側は既に反映済みでも同じ値で上書き)
+            state.oppBoard = {top:[...oppPlace.top], mid:[...oppPlace.mid], bot:[...oppPlace.bot]};
+            state.oppBoardPrefilledForRound = null;
+          }
           state.oppPlayedThisRound = true;
           renderGame();
           try{logR1PlayerPlacement();}catch(e){}
@@ -11634,6 +11759,33 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
         try{
           await sendMyPineapplePlacement(roundSnapshot, placedForSend, discardForSend, state.playerBoard);
           if(typeof clearPendingPlacement === 'function') clearPendingPlacement(); // fix58: pending clear
+          // fix64: 相手 FL の場合、 R5 完了で fl_place を待ち、 R2-R4 はそのまま進む
+          if(state.oppFlMode){
+            if(roundSnapshot >= 5){
+              showToast('相手のFL完成を待っています...');
+              try{
+                await waitForOpponentFL();
+                // fix64++: 保留していた相手のFLボードをここで反映
+                if(state.oppFlPendingBoard){
+                  state.oppBoard = {
+                    top: state.oppFlPendingBoard.top.slice(),
+                    mid: state.oppFlPendingBoard.mid.slice(),
+                    bot: state.oppFlPendingBoard.bot.slice()
+                  };
+                  state.oppFlPendingBoard = null;
+                  if(typeof renderGame === 'function') renderGame();
+                  console.log('[fix64++] 保留していた相手 FL ボードを反映 (R5完了後)');
+                }
+                // handleOnlineEvent で state.oppBoard が反映済み
+              }catch(e){ console.error('[fix64] FL wait err:', e); }
+            }
+            try{logRoundOppDiff(state.round);}catch(e){console.error('[log] oppDiff2:',e);}
+            state.oppPlayedThisRound = true;
+            renderGame();
+            if(state.round>=5){ setTimeout(()=>endGame(), 600); return; }
+            setTimeout(()=>dealNext(), 600);
+            return;
+          }
           showToast('相手の配置を待っています...');
           const oppPlace = await waitForOpponentPineapple(roundSnapshot);
           // v29.1-B ストリクト: ボタン側は handleOnlineEvent で既に oppBoard に反映済みなら push をスキップ
@@ -15068,8 +15220,8 @@ function handleConfirmFL(){
       myNum: asHost ? 0 : 1,
       eventsChannel: null,
       matchChannel: null,
-      resolvers: { r1: null, pineapple: {2:null, 3:null, 4:null, 5:null} },
-      buffered:  { r1: null, pineapple: {} },
+      resolvers: { r1: null, pineapple: {2:null, 3:null, 4:null, 5:null}, fl: null },
+      buffered:  { r1: null, pineapple: {}, fl: null },
       finalized: false,
     };
   }
@@ -15189,6 +15341,41 @@ function handleConfirmFL(){
       } else {
         os.buffered.pineapple[r] = placement;
       }
+    } else if(ev.event_type === 'fl_place'){
+      // fix64: 相手の FL 完成通知を受信
+      const body = ev.placed_cards || {};
+      placement = boardFromPlain(body);
+      try{
+        if(typeof state !== 'undefined' && state && state.onlineMode){
+          // fix64++: OFC ルール — 平場プレイヤーは R5 完了まで相手 FL ボードを見ず保留
+          const myR5Done = (state.round > 5) || state.gameOver;
+          const iAmInFL = !!state.flMode;
+          if(!iAmInFL && !myR5Done){
+            state.oppFlPendingBoard = {
+              top: placement.top.slice(),
+              mid: placement.mid.slice(),
+              bot: placement.bot.slice(),
+            };
+            console.log('[fix64++] fl_place 保留 (平場R5未完了, round=' + state.round + ')');
+          } else {
+            state.oppBoard = {
+              top: placement.top.slice(),
+              mid: placement.mid.slice(),
+              bot: placement.bot.slice(),
+            };
+            state.oppFlMode = true;
+            if(typeof renderGame === 'function') renderGame();
+            console.log('[fix64] fl_place opponent board reflected');
+          }
+        }
+      }catch(e){ console.error('[fix64 fl_place reflect]', e); }
+      if(os.resolvers.fl){
+        const w = os.resolvers.fl; os.resolvers.fl = null;
+        try{ clearTimeout(w.timerId); }catch(e){}
+        w.resolve(placement);
+      } else {
+        os.buffered.fl = placement;
+      }
     }
   }
 
@@ -15200,6 +15387,23 @@ function handleConfirmFL(){
     if(os.finalized) return;
     // 自分が host で finished 状態を書いた結果は自分の操作なので無視
     if(m.status === 'finished' && os.asHost) return;
+
+    // fix61: ready_for_next 同期検出 (AI対戦と UX 一致)
+    try{
+      if(typeof state !== 'undefined' && state && state.gameOver && state.onlineMode){
+        const myField  = (os.myNum === 0) ? 'player1_ready_for_next' : 'player2_ready_for_next';
+        const oppField = (os.myNum === 0) ? 'player2_ready_for_next' : 'player1_ready_for_next';
+        state.__nextGameMyReady  = !!m[myField];
+        state.__nextGameOppReady = !!m[oppField];
+        state.__nextGameDeadlineAt = m.next_game_deadline_at;
+        if(m.player1_ready_for_next && m.player2_ready_for_next){
+          console.log('[fix61] both ready → triggerNextGame');
+          if(typeof triggerNextGame === 'function') triggerNextGame();
+        } else {
+          if(typeof updateConfirm === 'function') updateConfirm();
+        }
+      }
+    }catch(e){ console.error('[fix61] ready detect error:', e); }
 
     if(m.status === 'abandoned' || m.status === 'finished'){
       console.log('[online] opp state change: status='+m.status);
@@ -15230,6 +15434,12 @@ function handleConfirmFL(){
         try{ clearTimeout(w.timerId); }catch(e){}
         try{ w.reject(err); }catch(e){ console.error('[rejectAll] pineapple R'+r+':', e); }
       }
+    }
+    // fix64: FL waiter
+    if(os.resolvers.fl){
+      const w = os.resolvers.fl; os.resolvers.fl = null;
+      try{ clearTimeout(w.timerId); }catch(e){}
+      try{ w.reject(err); }catch(e){ console.error('[rejectAll] fl:', e); }
     }
   }
 
@@ -15300,6 +15510,25 @@ function handleConfirmFL(){
         }
       }, 60000);
       os.resolvers.pineapple[round] = waiter;
+    });
+  }
+
+  // fix64: 相手の FL 完成を待つ (最大10分タイムアウト)
+  function waitForOpponentFL(){
+    return new Promise((resolve, reject) => {
+      const os = window.__onlineState;
+      if(!os){ reject(new Error('no online state')); return; }
+      if(os.buffered.fl){
+        const p = os.buffered.fl; os.buffered.fl = null; resolve(p); return;
+      }
+      const waiter = { resolve, reject, timerId: null };
+      waiter.timerId = setTimeout(() => {
+        if(os.resolvers.fl === waiter){
+          os.resolvers.fl = null;
+          reject(new Error('opp FL timeout'));
+        }
+      }, 600000); // FL は時間がかかるので 10分
+      os.resolvers.fl = waiter;
     });
   }
 
@@ -15427,6 +15656,146 @@ function handleConfirmFL(){
     await clearFLActiveSupabase();
   }
   
+  // fix61: ゲーム終了後の「次のゲームへ」同期 (AI対戦 UX と一致させる)
+  // 両者が押すまで待機、 30秒のデッドラインで強制次ゲーム。
+  async function markReadyForNext(){
+    const O = window.chaipoOnline;
+    const os = window.__onlineState;
+    if(!O || !os || !os.match) throw new Error('online not initialized');
+    const prefix = (os.myNum === 0) ? 'player1' : 'player2';
+    const update = {};
+    update[prefix + '_ready_for_next'] = true;
+    // fix68: deadline_at はセットしない (両者押すまで無限待機)
+    const r = await O.supabase.from('matches').update(update).eq('id', os.match.id);
+    if(r.error) console.error('[fix61] markReadyForNext error:', r.error);
+    else console.log('[fix61] markReadyForNext: ' + prefix + '=true');
+  }
+  async function clearReadyForNext(){
+    const O = window.chaipoOnline;
+    const os = window.__onlineState;
+    if(!O || !os || !os.match) return;
+    try{
+      await O.supabase.from('matches').update({
+        player1_ready_for_next: false,
+        player2_ready_for_next: false,
+        next_game_deadline_at: null,
+      }).eq('id', os.match.id);
+      console.log('[fix61] clearReadyForNext done');
+    }catch(e){ console.error('[fix61] clearReadyForNext error:', e); }
+  }
+  window.markReadyForNext = markReadyForNext;
+  window.clearReadyForNext = clearReadyForNext;
+
+  // fix61: 次ゲーム同期のトリガー処理 + クライアントタイマー
+  async function triggerNextGame(){
+    if(typeof state === 'undefined' || !state){ console.warn('[fix61] triggerNextGame: no state'); return; }
+    if(!state.gameOver){
+      console.log('[fix61] triggerNextGame: state.gameOver=false, skip (already triggered)');
+      return;
+    }
+    stopNextGameTimer();
+    const ctx = window.__nextGameCtx || {};
+    console.log('[fix61] triggerNextGame: ctx=', ctx);
+    // fix63: dedup キャッシュクリア (前ゲームの place5-R1 キーが残ると次ゲームの R1 反映が skip される)
+    try{ window.__reflectedEventKeys = null; }catch(e){}
+    // fix62: newGame() に onlineConfig を渡さないと onlineMode が切れて status='abandoned' を引き起こす
+    let onlineCfg = null;
+    if(state.onlineMode && state.onlineMatch){
+      const O = window.chaipoOnline;
+      // fix65: Supabase を source-of-truth にして両端で deck_seed/dealer を同期
+      if(state.asHost && O && O.supabase){
+        // host: 新 deck_seed と dealer を Supabase に update (guest は Realtime で受信)
+        try{
+          const oldSeed = state.onlineMatch.deck_seed;
+          const newSeed = Number((BigInt(oldSeed) * 31n + 17n) % 1000000000000000n);
+          const newDealer = 1 - (state.onlineMatch.dealer || 0);
+          await O.supabase.from('matches').update({
+            deck_seed: newSeed,
+            dealer: newDealer,
+            current_round: 1,
+            player1_ready_for_next: false,
+            player2_ready_for_next: false,
+            next_game_deadline_at: null,
+            player1_fl_active: false,
+            player1_fl_cards: null,
+            player2_fl_active: false,
+            player2_fl_cards: null,
+            player1_pending_round: null,
+            player1_pending_top: null,
+            player1_pending_mid: null,
+            player1_pending_bot: null,
+            player2_pending_round: null,
+            player2_pending_top: null,
+            player2_pending_mid: null,
+            player2_pending_bot: null,
+          }).eq('id', state.onlineMatch.id);
+          state.onlineMatch = Object.assign({}, state.onlineMatch, { deck_seed: newSeed, dealer: newDealer });
+          console.log('[fix65 host] updated seed=' + newSeed + ' dealer=' + newDealer);
+        }catch(e){ console.error('[fix65 host] update err:', e); }
+      } else if(O && O.supabase){
+        // guest: 最新 matches を fetch (Realtime が届かないケースを補償)
+        try{
+          await new Promise(function(r){ setTimeout(r, 800); });  // host の update を待つ
+          const r = await O.supabase.from('matches').select('*').eq('id', state.onlineMatch.id).single();
+          if(r.data){
+            state.onlineMatch = r.data;
+            console.log('[fix65 guest] fetched seed=' + r.data.deck_seed + ' dealer=' + r.data.dealer);
+          }
+        }catch(e){ console.error('[fix65 guest] fetch err:', e); }
+      }
+      onlineCfg = { match: state.onlineMatch, asHost: state.asHost };
+    }
+    // fix64: 相手 FL を window._nextOppFl にセット (newGame 内で state.oppFlMode セットに使われる)
+    if(ctx.oppShouldStartFL && ctx.oppNextFlCards >= 14){
+      window._nextOppFl = ctx.oppNextFlCards;
+      console.log('[fix64] next game opp FL: cards=' + ctx.oppNextFlCards);
+    } else {
+      window._nextOppFl = 0;
+    }
+    // newGame + 必要なら startFL
+    try{
+      newGame(onlineCfg);
+      if(ctx.shouldStartFL && ctx.nextFlCards >= 14){
+        setTimeout(function(){
+          try{ startFL(ctx.nextFlCards); }catch(e){ console.error('[fix61] startFL error:', e); }
+        }, 100);
+      }
+    }catch(e){ console.error('[fix61] newGame error:', e); }
+    window.__nextGameCtx = null;
+  }
+
+  let __nextGameTimerHandle = null;
+  function startNextGameTimer(){
+    if(__nextGameTimerHandle) return;
+    __nextGameTimerHandle = setInterval(function(){
+      try{
+        if(typeof state === 'undefined' || !state || !state.gameOver || !state.onlineMode){
+          stopNextGameTimer();
+          return;
+        }
+        const dl = state.__nextGameDeadlineAt;
+        if(dl){
+          const remaining = new Date(dl).getTime() - Date.now();
+          if(remaining <= 0){
+            console.log('[fix61] deadline reached → triggerNextGame');
+            triggerNextGame();
+            return;
+          }
+        }
+        if(typeof updateConfirm === 'function') updateConfirm();
+      }catch(e){ console.error('[fix61] timer error:', e); }
+    }, 500);
+  }
+  function stopNextGameTimer(){
+    if(__nextGameTimerHandle){
+      clearInterval(__nextGameTimerHandle);
+      __nextGameTimerHandle = null;
+    }
+  }
+  window.triggerNextGame = triggerNextGame;
+  window.startNextGameTimer = startNextGameTimer;
+  window.stopNextGameTimer = stopNextGameTimer;
+
   async function sendMyR1Placement(board){
     const O = window.chaipoOnline;
     const os = window.__onlineState;
