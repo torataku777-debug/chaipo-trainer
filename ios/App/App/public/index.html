@@ -6813,6 +6813,58 @@ body.debug-interactive .vmode-btn::before {
         return { ok: true };
       };
       console.log('[p2sim fix81] FL helpers: p1_smartPineapple_FLAware, p1_forceFL, p2_forceFL');
+      
+      // fix82: 自動シナリオランナー (URL ?autotest=full で 1ゲーム自動完走)
+      window.runScenario_FullGame = async function(opts){
+        opts = opts || {};
+        var O = window.chaipoOnline;
+        await O.supabase.from('matches').update({status:'abandoned',finished_at:new Date().toISOString()})
+          .or('player1_id.eq.'+O.userId+',player2_id.eq.'+O.userId).eq('status','playing');
+        var code = opts.code || String(Math.floor(1000+Math.random()*9000));
+        var deckSeed = opts.deckSeed || Math.floor(Math.random()*1e15);
+        var r = await O.supabase.from('matches').insert({
+          room_code: code, player1_id: O.userId, player1_display: 'P1-'+O.userId.slice(0,6),
+          status: 'waiting', current_round: 1, dealer: 0, deck_seed: deckSeed,
+          timer_seconds: 60, initial_score: 100, player1_score: 100, player2_score: 100
+        }).select().single();
+        if(r.error) throw new Error(r.error.message);
+        await window.p2_joinRoom(code);
+        await window.startGameOnline(window._p2sim.match, true);
+        await new Promise(rs => setTimeout(rs, 1500));
+        var p2BoardCum = await window.p2_smartR1();
+        await new Promise(rs => setTimeout(rs, 1500));
+        var p1Method = opts.flAware ? 'p1_smartR1' : 'p1_smartR1';
+        window[p1Method]();
+        document.getElementById('btnConfirm').click();
+        await new Promise(rs => setTimeout(rs, 2000));
+        var log = [];
+        for(var round = 2; round <= 5; round++){
+          var p2res = await window.p2_smartPineapple(round, p2BoardCum);
+          p2BoardCum = p2res.newBoard;
+          await new Promise(rs => setTimeout(rs, 1500));
+          var pineMethod = opts.flAware ? 'p1_smartPineapple_FLAware' : 'p1_smartPineapple';
+          window[pineMethod]();
+          document.getElementById('btnConfirm').click();
+          await new Promise(rs => setTimeout(rs, 2000));
+          log.push({ round: round, gameOver: state.gameOver });
+          if(state.gameOver) break;
+        }
+        return { code: code, deckSeed: deckSeed, log: log, final: { round: state.round, phase: state.phase, gameOver: state.gameOver, isFoul: typeof isFoul === 'function' ? isFoul(state.playerBoard) : null } };
+      };
+      
+      // URL に ?autotest=full があれば 起動時に自動実行
+      if(location.search.match(/autotest=full/)){
+        setTimeout(async function(){
+          console.log('[p2sim autotest] starting runScenario_FullGame...');
+          try{
+            var res = await window.runScenario_FullGame();
+            console.log('[p2sim autotest] result:', res);
+            window._lastAutoTestResult = res;
+          }catch(e){
+            console.error('[p2sim autotest] err:', e);
+          }
+        }, 1500);
+      }
     })();
   }
   if(document.readyState === 'loading'){
