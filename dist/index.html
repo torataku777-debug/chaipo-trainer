@@ -461,46 +461,58 @@ html body.ui-v2 #screen-game .phase-label{
   align-self:center;
 }
 
-/* fix111 (UI v2): DLR ボタンを score-bar 内の YOU/相手 の隣に表示 */
+/* fix111 + fix118 (UI v2): DLR ボタンを VS の左右に絶対配置 (VS位置維持) */
 /* ボード上の元 DLR マーク (board-dealer-mark) を非表示 */
 html body.ui-v2 #screen-game .board-dealer-mark{
   display:none !important;
 }
-/* score-bar 内の btn-chip を DLR ボタンとして表示 */
+/* score-bar を relative にして DLR を絶対配置の基準にする */
+html body.ui-v2 #screen-game .score-bar{
+  position:relative !important;
+}
+/* DLR ボタン (btn-chip) - 大きめ + 絶対配置 */
 html body.ui-v2 #screen-game .score-bar .btn-chip{
-  display:inline-flex !important;
+  display:none;
+  position:absolute !important;
+  top:50% !important;
   align-items:center;
   justify-content:center;
-  min-width:34px;
-  height:18px;
-  padding:0 7px;
-  margin:0 4px;
-  border-radius:9px;
+  min-width:42px;
+  height:24px;
+  padding:0 9px;
+  border-radius:12px;
   background:linear-gradient(135deg,#1a1a1a 0%,#0a0a0a 100%);
   color:#FFD94A;
   font-family:'Space Grotesk',monospace;
-  font-size:9px;
+  font-size:0 !important;
   font-weight:900;
   letter-spacing:0.12em;
   line-height:1;
-  box-shadow:0 0 0 1px #E8B923, 0 1px 4px rgba(0,0,0,0.4);
-  vertical-align:middle;
+  box-shadow:0 0 0 1.5px #E8B923, 0 2px 6px rgba(0,0,0,0.45), 0 0 12px rgba(232,185,35,0.4);
+  white-space:nowrap;
+  z-index:5;
 }
-/* 表示制御: chip-show クラスのある時だけ表示 */
-html body.ui-v2 #screen-game .score-bar .btn-chip:not(.show){
-  display:none !important;
-}
-/* "B" → "DLR" に置換するため: 文字を不可視化して ::before で DLR を表示 */
-html body.ui-v2 #screen-game .score-bar .btn-chip{
-  font-size:0 !important;
+/* show クラスのある時だけ表示 */
+html body.ui-v2 #screen-game .score-bar .btn-chip.show{
+  display:flex !important;
 }
 html body.ui-v2 #screen-game .score-bar .btn-chip::before{
   content:'DLR';
-  font-size:9px;
+  font-size:11px;
   font-weight:900;
   letter-spacing:0.12em;
 }
-/* score-label-wrap を flex で並べる (YOU + DLR 横並び) */
+/* YOU が button = btnChipYou → VS の左に配置 (left:50% から DLR 幅分左へ) */
+html body.ui-v2 #screen-game #btnChipYou.show{
+  left:50% !important;
+  transform:translate(calc(-100% - 28px), -50%) !important;
+}
+/* 相手が button = btnChipOpp → VS の右に配置 (left:50% から右へ) */
+html body.ui-v2 #screen-game #btnChipOpp.show{
+  left:50% !important;
+  transform:translate(28px, -50%) !important;
+}
+/* score-label-wrap は元に戻す (chip 持たないシンプル構造) */
 html body.ui-v2 #screen-game .score-label-wrap{
   display:flex !important;
   align-items:center;
@@ -12788,7 +12800,10 @@ document.getElementById('btnHandsheet').addEventListener('click',()=>{
 });
 function openDrawer(){document.getElementById('drawerSheet').classList.add('open');document.getElementById('drawerBackdrop').classList.add('open');}
 function closeDrawer(){document.getElementById('drawerSheet').classList.remove('open');document.getElementById('drawerBackdrop').classList.remove('open');}
-document.getElementById('btnMenu').addEventListener('click',openDrawer);
+// fix116: window.openDrawer に明示的に登録 (後で wrap できるように)
+window.openDrawer = openDrawer;
+window.closeDrawer = closeDrawer;
+document.getElementById('btnMenu').addEventListener('click', function(){ window.openDrawer(); });
 document.getElementById('drawerBackdrop').addEventListener('click',closeDrawer);
 // v28.16: ドロワー 制限時間 / 初期点数 / スタッツ のハンドラ
 (function(){
@@ -13207,9 +13222,9 @@ document.getElementById('drawerNewGame').addEventListener('click',()=>{closeDraw
         if(sub2) sub2.textContent = 'FL練習メニューに戻る';
       }
     } else {
-      // AI対戦: 新しいゲーム + 「ゲーム終了」 (AI対戦サブメニューへ)
+      // AI対戦: 「ゲーム終了」 のみ (AI対戦サブメニューへ)
       if(onlineBtn) onlineBtn.style.display = 'none';
-      if(newGameBtn) newGameBtn.style.display = '';
+      if(newGameBtn) newGameBtn.style.display = 'none';  // fix117: 「新しいゲーム」 削除
       if(titleBtn){
         titleBtn.style.display = '';
         var lbl3 = titleBtn.querySelector('.drawer-item-label');
@@ -14319,11 +14334,25 @@ function updateButtonUI(){
   const markOpp = document.getElementById('dealerMarkOpp');
   if(markYou) markYou.classList.toggle('show', !!isPlayerButton);
   if(markOpp) markOpp.classList.toggle('show', !isPlayerButton);
-  // fix111: ui-v2 では score-bar 内の chip を表示 (ボード上 DLR は非表示)
   const chipYou = document.getElementById('btnChipYou');
   const chipOpp = document.getElementById('btnChipOpp');
   const isV2 = document.body.classList.contains('ui-v2');
   if(isV2){
+    // fix118: chip を VS (score-sep) の左右に DOM 移動
+    const sep = document.querySelector('.score-bar .score-sep');
+    if(sep && chipYou && chipYou.parentNode !== sep.parentNode){
+      sep.parentNode.insertBefore(chipYou, sep);  // VS の左に chipYou
+    } else if(sep && chipYou && chipYou.nextSibling !== sep){
+      sep.parentNode.insertBefore(chipYou, sep);
+    }
+    if(sep && chipOpp && chipOpp.previousSibling !== sep){
+      // VS の右に chipOpp (sep の次)
+      if(sep.nextSibling){
+        sep.parentNode.insertBefore(chipOpp, sep.nextSibling);
+      } else {
+        sep.parentNode.appendChild(chipOpp);
+      }
+    }
     if(chipYou){ chipYou.style.display = ''; chipYou.classList.toggle('show', !!isPlayerButton); }
     if(chipOpp){ chipOpp.style.display = ''; chipOpp.classList.toggle('show', !isPlayerButton); }
   } else {
@@ -16321,14 +16350,28 @@ function handleConfirmFL(){
     }catch(e){ console.error('[fix79] oppFlMode sync error:', e); }
 
     if(m.status === 'abandoned' || m.status === 'finished'){
-      console.log('[online] opp state change: status='+m.status);
-      // 相手が退出 or 相手 host が勝手に finalize した
+      console.log('[online] opp state change: status='+m.status, 'winner=', m.winner_player_num);
       rejectAllWaiters(new Error('opponent left'));
       teardownOnlineChannels();
       window.__onlineState = null;
-      const msg = (m.status === 'abandoned') ? '相手が退出しました' : '対戦が終了しました';
+      // fix119: winner_player_num が自分なら 相手が降参した
+      const myNum = os.myNum;
+      const conceded = (m.status === 'abandoned' &&
+                        typeof m.winner_player_num === 'number' &&
+                        m.winner_player_num === myNum);
+      let msg;
+      if(conceded){
+        msg = '相手が降参しました';
+      } else if(m.status === 'abandoned'){
+        msg = '相手が退出しました';
+      } else {
+        msg = '対戦が終了しました';
+      }
       if(typeof showToast === 'function') showToast(msg);
-      if(typeof showScreen === 'function') showScreen('online-match');
+      // 降参なら quickmatch (フレンド対戦サブ) へ、 それ以外は online-match
+      if(typeof showScreen === 'function'){
+        showScreen(conceded ? 'quickmatch' : 'online-match');
+      }
     }
   }
 
@@ -16372,10 +16415,13 @@ function handleConfirmFL(){
     const O = window.chaipoOnline;
     try{
       if(O && O.supabase && os.match && os.match.id){
-        await O.supabase.from('matches').update({
-          status: 'abandoned',
-          finished_at: new Date().toISOString(),
-        }).eq('id', os.match.id);
+        // fix119: 降参の場合は winner_player_num を相手にセット
+        const _isConcede = (reason === 'drawer_concede');
+        const _upd = { status: 'abandoned', finished_at: new Date().toISOString() };
+        if(_isConcede && typeof os.myNum === 'number'){
+          _upd.winner_player_num = (os.myNum === 0) ? 1 : 0;
+        }
+        await O.supabase.from('matches').update(_upd).eq('id', os.match.id);
       }
     }catch(e){ console.error('[leave] update matches failed:', e); }
 
@@ -16384,9 +16430,11 @@ function handleConfirmFL(){
     // チャンネル解除
     teardownOnlineChannels();
     window.__onlineState = null;
-    // 画面遷移
-    if(typeof showToast === 'function') showToast('オンライン対戦を終了しました');
-    if(typeof showScreen === 'function') showScreen('online-match');
+    // fix119: 降参 (drawer_concede) は呼び出し側で showScreen するためスキップ
+    if(reason !== 'drawer_concede'){
+      if(typeof showToast === 'function') showToast('オンライン対戦を終了しました');
+      if(typeof showScreen === 'function') showScreen('online-match');
+    }
   }
 
 
