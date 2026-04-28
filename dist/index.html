@@ -216,130 +216,358 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
     radial-gradient(ellipse at 80% 90%, rgba(232,185,35,0.03) 0%, transparent 50%),
     #FDFBF5;
 }
-/* fix90 (UI v2): 対戦画面デザインリニューアル. body.ui-v2 クラスで有効化 */
+/* fix90 (UI v2): 対戦画面デザインリニューアル - 背景画像＋絶対配置 */
 body.ui-v2 #screen-game{
   background:
-    url('assets/game/bg.jpg') center top / cover no-repeat,
-    #87CEEB;
+    url('assets/game/bg.jpg?v=2') center top / cover no-repeat,
+    #2a2a2a;
 }
-/* fix90: 背景画像に枚を描いた枠を使うため、既存のボード枠装飾を透明化 */
-body.ui-v2 .game-header{
-  background:rgba(255,255,255,0.92);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
-}
-body.ui-v2 .score-bar{
-  background:rgba(255,255,255,0.88);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
+/* ヘッダー / score-bar (画面上部) */
+body.ui-v2 .game-header{ background:rgba(255,255,255,0.85) !important; border-bottom:none !important; }
+body.ui-v2 .score-bar{ background:rgba(255,255,255,0.78) !important; border:none !important; }
+
+/* fix95 (UI v2): 相手ボード - 元レイアウト維持で位置のみ絶対配置 (確定値 v2) */
+body.ui-v2 .opp-area{
+  position:absolute !important;
+  top:16.9% !important;
+  left:0.9% !important;
+  width:55.2% !important;
+  height:15.1% !important;
+  right:auto !important;
+  background:transparent !important;
+  z-index:5;
 }
 body.ui-v2 .opp-area-inner{
-  background:rgba(255,255,255,0.85);
-  backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);
-  border:1px solid rgba(0,0,0,0.08);
-}
-body.ui-v2 .player-area{
-  background:rgba(255,255,255,0.85) !important;
-  backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);
-}
-body.ui-v2 .opp-slot,
-body.ui-v2 .player-slot{
-  background:rgba(255,255,255,0.5);
-  border-color:rgba(232,185,35,0.5);
-}
-
-/* fix91 (UI v2): タイマーバーを黒背景にして背景画像に揃える */
-body.ui-v2 .online-timer-bar{
-  background:#1a1a1a;
-  color:#fff;
-  border-radius:0;
-  border:none;
-  padding:8px 16px;
-  margin:6px 0;
-  display:flex !important;
-  align-items:center;
-  justify-content:flex-end;
-}
-body.ui-v2 .online-timer-bar .otb-icon{display:none;}
-body.ui-v2 .online-timer-bar .otb-label{
-  background:rgba(255,255,255,0.95);
-  color:#1a1a1a;
-  padding:4px 14px;
-  border-radius:4px;
-  font-weight:700;
-  font-size:14px;
-  border:1px solid #fff;
-}
-
-/* fix91 (UI v2): 「相手のボード」「あなたのボード」 縦書きサイドバーを強調 */
-body.ui-v2 .opp-area-inner{
-  border-left:8px solid #4a4a4a;
-  padding-left:12px;
-}
-body.ui-v2 .opp-area-inner::before{
-  content:'相手のボード';
-  position:absolute;
-  left:-22px;
-  top:50%;
-  transform:translateY(-50%);
-  writing-mode:vertical-rl;
-  text-orientation:mixed;
-  font-size:9px;
-  color:#fff;
-  font-weight:700;
-  letter-spacing:0.05em;
-  pointer-events:none;
-}
-body.ui-v2 .opp-area{position:relative;padding-left:32px;}
-body.ui-v2 .player-area{
-  border-left:8px solid #f0a020 !important;
-  padding-left:12px !important;
-  position:relative;
-}
-body.ui-v2 .player-area::after{
-  content:'あなたのボード';
-  position:absolute;
-  left:-26px;
-  top:50%;
-  transform:translateY(-50%);
-  writing-mode:vertical-rl;
-  text-orientation:mixed;
-  font-size:9px;
-  color:#fff;
-  font-weight:700;
-  letter-spacing:0.05em;
-  pointer-events:none;
-}
-
-/* fix91 (UI v2): ADVICE ボタンを黄色ピル形、点数表・アウツを スクエアボタン に */
-body.ui-v2 .btn-advice{
-  background:#1a1a1a !important;
-  color:#ffc83d !important;
-  border:2px solid #ffc83d !important;
-  border-radius:24px !important;
-  padding:6px 14px !important;
-  font-size:11px !important;
-  font-weight:700 !important;
-  box-shadow:0 2px 8px rgba(0,0,0,0.3) !important;
-}
-
-/* fix91 (UI v2): CONFIRM ボタンをオレンジ多色背景グラデに */
-body.ui-v2 .btn-confirm{
-  background:linear-gradient(180deg,#e89015 0%,#c46d0a 100%) !important;
-  color:#fff !important;
-  border:2px solid #fff !important;
-  border-radius:8px !important;
-  font-weight:800 !important;
-  text-shadow:0 1px 2px rgba(0,0,0,0.3) !important;
-  box-shadow:0 4px 12px rgba(196,109,10,0.4) !important;
-}
-body.ui-v2 .btn-confirm:disabled{
-  background:#888 !important;
-  border-color:#aaa !important;
+  background:transparent !important;
+  border:none !important;
   box-shadow:none !important;
 }
+/* fix103 (UI v2): 自分ボード - 元レイアウト維持で位置のみ絶対配置 (確定値) */
+body.ui-v2 .player-area{
+  position:absolute !important;
+  top:42.6% !important;
+  left:18.2% !important;
+  width:75.3% !important;
+  height:31.1% !important;
+  right:auto !important;
+  background:transparent !important;
+  border:none !important;
+  box-shadow:none !important;
+  z-index:5;
+}
+
+/* fix104 (UI v2): 下部の白背景を完全透明化 (詳細度極大) */
+html body.ui-v2 #screen-game .hand-area,
+html body.ui-v2 #screen-game .hand-area.fl-mode,
+html body.ui-v2 #screen-game div.hand-area,
+html body.ui-v2 #screen-game .game-layout .hand-area{
+  background:none !important;
+  background-color:transparent !important;
+  background-image:none !important;
+  border:none !important;
+  border-top:none !important;
+  box-shadow:none !important;
+}
+html body.ui-v2 #screen-game .hand-area::before,
+html body.ui-v2 #screen-game .hand-area::after{
+  display:none !important;
+  content:none !important;
+}
+html body.ui-v2 #screen-game .action-bar,
+html body.ui-v2 #screen-game div.action-bar{
+  background:transparent !important;
+  background-color:transparent !important;
+  border:none !important;
+  box-shadow:none !important;
+}
+html body.ui-v2 #screen-game .phase-label{
+  background:transparent !important;
+  background-color:transparent !important;
+  color:#fff !important;
+  text-shadow:0 1px 3px rgba(0,0,0,0.8);
+}
+html body.ui-v2 #screen-game .phase-label.fl{
+  color:#ffd94a !important;
+  text-shadow:0 1px 3px rgba(0,0,0,0.8);
+}
+
+
+
+/* 各ボタンを bbox に基づき絶対配置 + ボタン画像を背景に */
+
+
+
+
+
+
+
+
+
+
+/* fix106 (UI v2): score-bar (YOU 100 vs 相手 100) の白背景を透明化 */
+html body.ui-v2 #screen-game .score-bar{
+  background:transparent !important;
+  background-color:transparent !important;
+  background-image:none !important;
+  border:none !important;
+  box-shadow:none !important;
+}
+html body.ui-v2 #screen-game .score-bar::before,
+html body.ui-v2 #screen-game .score-bar::after{
+  display:none !important;
+}
+html body.ui-v2 #screen-game .game-header{
+  background:transparent !important;
+  background-color:transparent !important;
+  border:none !important;
+  border-bottom:none !important;
+  box-shadow:none !important;
+}
+/* fix108 (UI v2): score-bar 背景は透明のまま、 文字色だけ黒で視認性確保 */
+html body.ui-v2 #screen-game .score-label,
+html body.ui-v2 #screen-game .score-val,
+html body.ui-v2 #screen-game .score-sep{
+  color:#000 !important;
+  text-shadow:none !important;
+}
+
+/* fix109 (UI v2): 下部ボタンの世界観統一 - グランジペイント風 */
+/* ボタンエリア全体 */
+html body.ui-v2 #screen-game .action-bar{
+  padding:6px 10px 4px !important;
+  gap:8px !important;
+}
+
+/* ADVICE ボタン - 黄色ピル, 視認性向上 */
+html body.ui-v2 #screen-game .btn-advice{
+  background:linear-gradient(180deg, #ffd94a 0%, #f5a623 100%) !important;
+  color:#1a1a1a !important;
+  border:2px solid #1a1a1a !important;
+  border-radius:24px !important;
+  font-weight:900 !important;
+  font-size:12px !important;
+  letter-spacing:0.08em !important;
+  text-shadow:0 1px 0 rgba(255,255,255,0.4) !important;
+  box-shadow:
+    0 2px 0 rgba(0,0,0,0.6),
+    0 4px 12px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.4) !important;
+  padding:10px 12px !important;
+  flex:0 0 76px !important;
+  height:44px !important;
+  transition:transform 0.08s ease, box-shadow 0.08s ease !important;
+}
+html body.ui-v2 #screen-game .btn-advice:active{
+  transform:translateY(2px);
+  box-shadow:
+    0 0 0 rgba(0,0,0,0.6),
+    0 2px 6px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.4) !important;
+}
+
+/* 点数表 / アウツ ボタン - 黒角丸 */
+html body.ui-v2 #screen-game .btn-outs{
+  background:linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%) !important;
+  border:2px solid rgba(255,217,74,0.5) !important;
+  border-radius:10px !important;
+  width:42px !important;
+  height:44px !important;
+  flex:0 0 42px !important;
+  padding:0 !important;
+  box-shadow:
+    0 2px 0 rgba(0,0,0,0.6),
+    0 4px 10px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.15) !important;
+  transition:transform 0.08s ease, box-shadow 0.08s ease !important;
+}
+html body.ui-v2 #screen-game .btn-outs:active{
+  transform:translateY(2px);
+  box-shadow:
+    0 0 0 rgba(0,0,0,0.6),
+    0 2px 4px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.15) !important;
+}
+html body.ui-v2 #screen-game .btn-outs svg{
+  filter:drop-shadow(0 0 4px rgba(255,217,74,0.4));
+}
+/* 点数表/アウツ の SVG 線色を金色寄りに */
+html body.ui-v2 #screen-game .btn-outs svg path,
+html body.ui-v2 #screen-game .btn-outs svg rect,
+html body.ui-v2 #screen-game .btn-outs svg line{
+  stroke:#ffd94a !important;
+}
+html body.ui-v2 #screen-game .btn-outs svg rect[fill]{
+  fill:rgba(255,217,74,0.15) !important;
+}
+
+/* CONFIRM (配置) ボタン - オレンジ大ボタン、 強い押下感 */
+html body.ui-v2 #screen-game .btn-confirm{
+  background:linear-gradient(180deg, #ff8c1a 0%, #e0670a 100%) !important;
+  color:#fff !important;
+  border:2px solid #1a1a1a !important;
+  border-radius:10px !important;
+  font-weight:900 !important;
+  font-size:14px !important;
+  letter-spacing:0.05em !important;
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.5),
+    0 2px 4px rgba(0,0,0,0.6) !important;
+  box-shadow:
+    0 3px 0 rgba(0,0,0,0.7),
+    0 5px 14px rgba(255,140,26,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.4),
+    inset 0 -2px 0 rgba(0,0,0,0.2) !important;
+  padding:12px 16px !important;
+  height:48px !important;
+  flex:1 !important;
+  min-height:48px !important;
+  transition:transform 0.08s ease, box-shadow 0.08s ease !important;
+}
+html body.ui-v2 #screen-game .btn-confirm:active{
+  transform:translateY(3px);
+  box-shadow:
+    0 0 0 rgba(0,0,0,0.7),
+    0 2px 6px rgba(255,140,26,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.4),
+    inset 0 -2px 0 rgba(0,0,0,0.2) !important;
+}
+html body.ui-v2 #screen-game .btn-confirm:disabled{
+  background:linear-gradient(180deg, #888 0%, #666 100%) !important;
+  border-color:#444 !important;
+  color:rgba(255,255,255,0.7) !important;
+  box-shadow:
+    0 2px 0 rgba(0,0,0,0.5),
+    0 3px 8px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.2) !important;
+  cursor:default;
+  text-shadow:none !important;
+}
+html body.ui-v2 #screen-game .btn-confirm:disabled:active{
+  transform:none;
+}
+
+/* phase-label (R1 5枚配置 0/5 など) を読みやすく */
+html body.ui-v2 #screen-game .phase-label{
+  background:rgba(0,0,0,0.5) !important;
+  color:#fff !important;
+  font-size:10px !important;
+  letter-spacing:0.05em !important;
+  padding:4px 12px !important;
+  border-radius:12px !important;
+  display:inline-block !important;
+  margin:0 auto 4px !important;
+  text-shadow:0 1px 2px rgba(0,0,0,0.8) !important;
+  border:1px solid rgba(255,255,255,0.15);
+  align-self:center;
+}
+
+/* fix111 (UI v2): DLR ボタンを score-bar 内の YOU/相手 の隣に表示 */
+/* ボード上の元 DLR マーク (board-dealer-mark) を非表示 */
+html body.ui-v2 #screen-game .board-dealer-mark{
+  display:none !important;
+}
+/* score-bar 内の btn-chip を DLR ボタンとして表示 */
+html body.ui-v2 #screen-game .score-bar .btn-chip{
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  min-width:34px;
+  height:18px;
+  padding:0 7px;
+  margin:0 4px;
+  border-radius:9px;
+  background:linear-gradient(135deg,#1a1a1a 0%,#0a0a0a 100%);
+  color:#FFD94A;
+  font-family:'Space Grotesk',monospace;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:0.12em;
+  line-height:1;
+  box-shadow:0 0 0 1px #E8B923, 0 1px 4px rgba(0,0,0,0.4);
+  vertical-align:middle;
+}
+/* 表示制御: chip-show クラスのある時だけ表示 */
+html body.ui-v2 #screen-game .score-bar .btn-chip:not(.show){
+  display:none !important;
+}
+/* "B" → "DLR" に置換するため: 文字を不可視化して ::before で DLR を表示 */
+html body.ui-v2 #screen-game .score-bar .btn-chip{
+  font-size:0 !important;
+}
+html body.ui-v2 #screen-game .score-bar .btn-chip::before{
+  content:'DLR';
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:0.12em;
+}
+/* score-label-wrap を flex で並べる (YOU + DLR 横並び) */
+html body.ui-v2 #screen-game .score-label-wrap{
+  display:flex !important;
+  align-items:center;
+  gap:0;
+}
+
+/* fix112 (UI v2): TOP/MID/BOT ラベルを大きく */
+html body.ui-v2 #screen-game .opp-row-tag,
+html body.ui-v2 #screen-game .row-label,
+html body.ui-v2 #screen-game .row-tag{
+  font-size:11px !important;
+  font-weight:800 !important;
+  letter-spacing:0.1em !important;
+  color:#1a1a1a !important;
+  width:auto !important;
+  min-width:32px;
+}
+
+/* fix113 (UI v2): アウツアイコンを虫眼鏡に変更 */
+html body.ui-v2 #screen-game #btnOuts{
+  position:relative;
+}
+html body.ui-v2 #screen-game #btnOuts svg{
+  display:none !important;
+}
+html body.ui-v2 #screen-game #btnOuts::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffd94a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><circle cx='10.5' cy='10.5' r='6.5'/><line x1='15.5' y1='15.5' x2='21' y2='21'/></svg>") center/55% no-repeat;
+  filter:drop-shadow(0 0 4px rgba(255,217,74,0.4));
+}
+
+/* fix114 (UI v2): 点数表アイコンを枠なし表アイコンに */
+html body.ui-v2 #screen-game #btnHandsheet{
+  background:transparent !important;
+  border:none !important;
+  box-shadow:none !important;
+  position:relative;
+}
+html body.ui-v2 #screen-game #btnHandsheet svg{
+  display:none !important;
+}
+html body.ui-v2 #screen-game #btnHandsheet::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='4' width='18' height='16' rx='1.5'/><line x1='3' y1='9' x2='21' y2='9'/><line x1='3' y1='14' x2='21' y2='14'/><line x1='9' y1='4' x2='9' y2='20'/><line x1='15' y1='4' x2='15' y2='20'/></svg>") center/72% no-repeat;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,0.6));
+}
+
+
+
+
+/* fix96: 手札エリアを画面最下部に絶対配置 */
+body.ui-v2 .hand-area{
+  position:absolute !important;
+  bottom:0 !important;
+  left:0 !important;
+  right:0 !important;
+  z-index:6;
+  background:rgba(255,255,255,0.85) !important;
+  border-top:none !important;
+  padding:6px 10px calc(var(--safe-bottom) + 6px) !important;
+}
+
+
 .game-layout{width:100%;height:100%;display:flex;flex-direction:column;padding-top:calc(var(--safe-top) + 4px);padding-bottom:calc(var(--safe-bottom) + 2px);gap:0}
 
 /* --- HEADER: ロゴ強化 --- */
@@ -6998,12 +7226,11 @@ body.debug-interactive .vmode-btn::before {
   }
 })();
 </script>
-<!-- fix90: UI v2 デザインリニューアル (?ui=v2 で有効化) -->
+<!-- fix90: UI v2 デザインリニューアル (デフォルト ON、 ?ui=v1 でオフ) -->
 <script>
 (function(){
-  // fix91: でフォルトで ui-v2 有効 (?ui=v1 で旧UIにフォールバック可能)
   if(location.search.match(/ui=v1/)){
-    return;  // 旧UIを明示指定時は何もしない
+    return;  // v1 明示指定時は何もしない
   }
   function apply(){ if(document.body) document.body.classList.add('ui-v2'); }
   if(document.readyState === 'loading'){
@@ -7011,6 +7238,7 @@ body.debug-interactive .vmode-btn::before {
   } else { apply(); }
 })();
 </script>
+
 <!-- v28.88: Supabase XHR+eval 方式 (script タグでの評価が効かない環境向け) -->
 <script>
 /* ================================================================
@@ -11514,12 +11742,27 @@ function showResultBand(score){
   const band=document.getElementById('resultBand');const title=document.getElementById('resultBandTitle');const netEl=document.getElementById('resultBandNet');const rowsEl=document.getElementById('resultBandRows');
   title.textContent=net>0?'WIN':net<0?'LOSE':'DRAW';title.className='result-band-title '+(net>0?'win':net<0?'lose':'draw');
   netEl.textContent=net>0?`+${net}pt`:net<0?`${net}pt`:'±0pt';netEl.className='result-band-net'+(net>0?' positive':net<0?' negative':'');
-  const rn={top:'TOP',mid:'MID',bot:'BOT'};
-  let g=`<div class="rbc lbl"></div><div class="rbc you" style="font-size:8px">YOU</div><div class="rbc opp" style="font-size:8px">相手</div>`;
-  for(const d of det){const pw=d.pWin>0,ow=d.oWin>0;g+=`<div class="rbc lbl">${rn[d.row]}</div><div class="rbc ${pw?'w':ow?'l':''}">${pw?'✓':ow?'✗':'='} ${d.pEval.desc}</div><div class="rbc ${ow?'w':pw?'l':''}">${ow?'✓':pw?'✗':'='} ${d.oEval.desc}</div>`;}
-  g+=`<div class="rbc lbl">列計</div><div class="rbc you">${pTotal}</div><div class="rbc opp">${oTotal}</div>`;
-  g+=`<div class="rbc lbl">役</div><div class="rbc you ${pFoul?'l':''}">${pFoul?'FOUL':pRoy>0?'+'+pRoy:'0'}</div><div class="rbc opp ${oFoul?'l':''}">${oFoul?'FOUL':oRoy>0?'+'+oRoy:'0'}</div>`;
-  g+=`<div class="rbc lbl" style="font-weight:600">合計</div><div class="rbc you tot">${pTotal+pRoy}</div><div class="rbc opp tot">${oTotal+oRoy}</div>`;
+  // fix110: 役判定表示を簡略化 (列勝敗削除 / 合計+スクープ/ファウル+増減)
+  // スクープ判定: det の中で 自分が3列全勝 / 相手が3列全勝
+  const pAllWin = det && det.length === 3 && det.every(d => d.pWin > 0);
+  const oAllWin = det && det.length === 3 && det.every(d => d.oWin > 0);
+  let pStatus = pFoul ? 'FOUL' : (pAllWin ? 'SCOOP!' : '');
+  let oStatus = oFoul ? 'FOUL' : (oAllWin ? 'SCOOP!' : '');
+  const pTotalScore = pTotal + pRoy;
+  const oTotalScore = oTotal + oRoy;
+  let g = `<div class="rbc lbl"></div><div class="rbc you" style="font-size:9px;font-weight:700">YOU</div><div class="rbc opp" style="font-size:9px;font-weight:700">相手</div>`;
+  // 合計
+  g += `<div class="rbc lbl">合計</div><div class="rbc you tot">${pTotalScore}</div><div class="rbc opp tot">${oTotalScore}</div>`;
+  // スクープ/ファウル (どちらかに状態がある時のみ表示)
+  if(pStatus || oStatus){
+    g += `<div class="rbc lbl">状態</div>`;
+    g += `<div class="rbc you ${pFoul?'l':pAllWin?'w':''}">${pStatus||'-'}</div>`;
+    g += `<div class="rbc opp ${oFoul?'l':oAllWin?'w':''}">${oStatus||'-'}</div>`;
+  }
+  // 増減
+  g += `<div class="rbc lbl" style="font-weight:700">増減</div>`;
+  g += `<div class="rbc you ${net>0?'w':net<0?'l':''}" style="font-weight:800">${net>0?'+'+net:net}</div>`;
+  g += `<div class="rbc opp ${net<0?'w':net>0?'l':''}" style="font-weight:800">${net<0?'+'+(-net):net===0?'0':-net}</div>`;
   rowsEl.innerHTML=g;band.classList.add('show');
   // 累計スコアに反映
   applyScoreResult(net);
@@ -12913,31 +13156,69 @@ document.getElementById('drawerNewGame').addEventListener('click',()=>{closeDraw
     btn._onlineHooked = true;
     btn.addEventListener('click', async () => {
       closeDrawer();
-      // 確認ダイアログ (シンプル confirm)
-      if(!confirm('ロビーに戻りますか？ 現在のマッチは終了されます。')) return;
+      // fix115: 「降参する」 → 確認後にフレンド対戦サブメニュー (screen-quickmatch) へ
+      if(!confirm('降参してフレンド対戦メニューに戻りますか？\n現在のマッチは終了されます。')) return;
       if(typeof leaveOnlineMatch === 'function'){
-        try{ await leaveOnlineMatch('drawer_leave'); }
-        catch(e){ console.error('[drawer leave]', e); }
+        try{ await leaveOnlineMatch('drawer_concede'); }
+        catch(e){ console.error('[drawer concede]', e); }
       }
+      // フレンド対戦サブメニューに直接遷移
+      setTimeout(function(){
+        if(typeof showScreen === 'function') showScreen('quickmatch');
+      }, 200);
     });
   }
-  // openDrawer をフックして online モード判定
+  // openDrawer をフックしてモード別表示切替
   const _origOpenDrawer = window.openDrawer;
   window.openDrawer = function(){
     const isOnline = !!(typeof state !== 'undefined' && state && state.onlineMode);
-    // online 中: 「ロビーに戻る」を表示
+    const isFl = !!(typeof flPracticeMode !== 'undefined' && flPracticeMode);
+    const isAi = !isOnline && !isFl;
+
     const onlineBtn = document.getElementById('drawerLeaveOnline');
-    if(onlineBtn){ onlineBtn.style.display = isOnline ? '' : 'none'; }
-    // online 中: 「新しいゲーム」(AI対戦リスタート) を隠す
-    //   online 対局中に誤って新規 AI 対戦を開始することを防止
     const newGameBtn = document.getElementById('drawerNewGame');
-    if(newGameBtn){ newGameBtn.style.display = isOnline ? 'none' : ''; }
-    // タイマー設定はハンバーガーから除外 (AI / online いずれも非表示)
-    const timerBtn = document.getElementById('drawerTimerSetting');
-    if(timerBtn){ timerBtn.style.display = 'none'; }
-    // online 中: タイトルに戻るも非表示 (ロビー戻りで足りる)
     const titleBtn = document.getElementById('drawerBackToTitle');
-    if(titleBtn){ titleBtn.style.display = isOnline ? 'none' : ''; }
+    const timerBtn = document.getElementById('drawerTimerSetting');
+
+    // タイマー設定は常に非表示
+    if(timerBtn) timerBtn.style.display = 'none';
+
+    if(isOnline){
+      // フレンド対戦: ハンド履歴(drawerHistory 既存) + 降参する のみ
+      if(onlineBtn){
+        onlineBtn.style.display = '';
+        // ラベルを「降参する」に変更
+        var lbl = onlineBtn.querySelector('.drawer-item-label');
+        var sub = onlineBtn.querySelector('.drawer-item-sub');
+        if(lbl) lbl.textContent = '降参する';
+        if(sub) sub.textContent = 'フレンド対戦メニューに戻る';
+      }
+      if(newGameBtn) newGameBtn.style.display = 'none';
+      if(titleBtn) titleBtn.style.display = 'none';
+    } else if(isFl){
+      // FL練習: 「新しい手札」 削除、 「ゲーム終了」 のみ
+      if(onlineBtn) onlineBtn.style.display = 'none';
+      if(newGameBtn) newGameBtn.style.display = 'none';  // 「新しい手札を引く」 削除
+      if(titleBtn){
+        titleBtn.style.display = '';
+        var lbl2 = titleBtn.querySelector('.drawer-item-label');
+        var sub2 = titleBtn.querySelector('.drawer-item-sub');
+        if(lbl2) lbl2.textContent = 'ゲーム終了';
+        if(sub2) sub2.textContent = 'FL練習メニューに戻る';
+      }
+    } else {
+      // AI対戦: 新しいゲーム + 「ゲーム終了」 (AI対戦サブメニューへ)
+      if(onlineBtn) onlineBtn.style.display = 'none';
+      if(newGameBtn) newGameBtn.style.display = '';
+      if(titleBtn){
+        titleBtn.style.display = '';
+        var lbl3 = titleBtn.querySelector('.drawer-item-label');
+        var sub3 = titleBtn.querySelector('.drawer-item-sub');
+        if(lbl3) lbl3.textContent = 'ゲーム終了';
+        if(sub3) sub3.textContent = 'AI対戦メニューに戻る';
+      }
+    }
+
     if(typeof _origOpenDrawer === 'function') return _origOpenDrawer.apply(this, arguments);
   };
 
@@ -13002,7 +13283,22 @@ document.getElementById('drawerNewGame').addEventListener('click',()=>{closeDraw
     };
   }
 })();
-document.getElementById('drawerBackToTitle').addEventListener('click',()=>{closeDrawer();try{flushCurrentGameLog('drawer_back_to_title');}catch(e){}backToTitle();});
+document.getElementById('drawerBackToTitle').addEventListener('click',()=>{
+  closeDrawer();
+  try{flushCurrentGameLog('drawer_back_to_title');}catch(e){}
+  // fix115: モードに応じて適切なサブメニューに戻る (タイトルではない)
+  const isFl = !!(typeof flPracticeMode !== 'undefined' && flPracticeMode);
+  if(isFl){
+    // FL練習サブメニューへ
+    if(typeof state !== 'undefined' && state){ state.gameOver = true; }
+    if(typeof flPracticeMode !== 'undefined'){ flPracticeMode = false; }
+    showScreen('fl-select');
+  } else {
+    // AI対戦サブメニューへ
+    if(typeof state !== 'undefined' && state){ state.gameOver = true; }
+    showScreen('ai-select');
+  }
+});
 function backToTitle(){try{_stopChaipoTimer();}catch(e){}showScreen('title');}
 function openOuts(){
   const table=document.getElementById('outsTable');
@@ -14023,11 +14319,17 @@ function updateButtonUI(){
   const markOpp = document.getElementById('dealerMarkOpp');
   if(markYou) markYou.classList.toggle('show', !!isPlayerButton);
   if(markOpp) markOpp.classList.toggle('show', !isPlayerButton);
-  // 旧スコアバー横の chip は CSS で非表示になっている
+  // fix111: ui-v2 では score-bar 内の chip を表示 (ボード上 DLR は非表示)
   const chipYou = document.getElementById('btnChipYou');
   const chipOpp = document.getElementById('btnChipOpp');
-  if(chipYou) chipYou.style.display = 'none';
-  if(chipOpp) chipOpp.style.display = 'none';
+  const isV2 = document.body.classList.contains('ui-v2');
+  if(isV2){
+    if(chipYou){ chipYou.style.display = ''; chipYou.classList.toggle('show', !!isPlayerButton); }
+    if(chipOpp){ chipOpp.style.display = ''; chipOpp.classList.toggle('show', !isPlayerButton); }
+  } else {
+    if(chipYou) chipYou.style.display = 'none';
+    if(chipOpp) chipOpp.style.display = 'none';
+  }
 }
 
 // 相手カードの表示判定
