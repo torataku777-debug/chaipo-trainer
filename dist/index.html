@@ -11077,8 +11077,17 @@ async function newGame(onlineConfig){
 
   // Phase 4-A: 相手 FL 判定 (_nextOppFl > 0 なら相手は FL)
   // fix64: オンラインモードでも相手 FL を判定 (fl_place イベントで反映)
-  const oppFlCards = window._nextOppFl || 0;
+  let oppFlCards = window._nextOppFl || 0;
   window._nextOppFl = 0;  // 消費
+  // fix85: 初回ゲームで 相手が FL 中 (matches.player{opp}_fl_active=true) ならそちらも反映
+  if(_isOnline && oppFlCards === 0 && onlineConfig && onlineConfig.match){
+    const m = onlineConfig.match;
+    const oppPrefix = onlineConfig.asHost ? 'player2' : 'player1';
+    if(m[oppPrefix + '_fl_active'] && m[oppPrefix + '_fl_cards'] >= 14){
+      oppFlCards = m[oppPrefix + '_fl_cards'];
+      console.log('[fix85] newGame initial opp FL detected from match.' + oppPrefix + '_fl_active: cards=' + oppFlCards);
+    }
+  }
 
   if(oppFlCards >= 14){
     // ===== 相手 FL: v29.3-step2 事前計算データから即時取得 =====
@@ -11155,7 +11164,7 @@ async function newGame(onlineConfig){
     // ペアデータ (window.__flAiPair) は両方 FL 時専用。相手のみ FL の場合は:
     //   - 事前計算プールから FL 手札を引く
     //   - 相手の FL カードを full 54-deck から「除外」したデッキでプレイヤー配布
-    var _usedPrecomputed = _usedBothFl;  // v29.4: 両方FL適用済みなら skip
+    var _usedPrecomputed = _usedBothFl || _isOnline;  // v29.4: 両方FL適用済みなら skip / fix86: オンラインも skip (fl_place 受信待ち)
     try {
       if(!_usedPrecomputed && window.__flPrecomputed && window.__flPrecomputed.hands){
         var _pool = window.__flPrecomputed.hands[String(oppFlCards)];
@@ -12084,7 +12093,26 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
             try{logRoundOppDiff(state.round);}catch(e){console.error('[log] oppDiff2:',e);}
             state.oppPlayedThisRound = true;
             renderGame();
-            if(state.round>=5){ setTimeout(()=>endGame(), 600); return; }
+            if(state.round>=5){
+              // fix87: R5完了時、 相手が FL 中なら fl_place 受信を待ってから endGame
+              if(state.oppFlMode && state.oppFlPending){
+                showToast('相手のFL完成を待っています...');
+                (async function(){
+                  try{
+                    await waitForOpponentFL();
+                    if(state.oppFlPendingBoard){
+                      state.oppBoard = { top: state.oppFlPendingBoard.top.slice(), mid: state.oppFlPendingBoard.mid.slice(), bot: state.oppFlPendingBoard.bot.slice() };
+                      state.oppFlPendingBoard = null;
+                      state.oppFlPending = false;
+                      if(typeof renderGame === 'function') renderGame();
+                    }
+                  }catch(e){ console.error('[fix87] wait opp FL after R5:', e); }
+                  setTimeout(()=>endGame(), 300);
+                })();
+                return;
+              }
+              setTimeout(()=>endGame(), 600); return;
+            }
             setTimeout(()=>dealNext(), 600);
             return;
           }
@@ -12106,7 +12134,26 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
           try{logRoundOppDiff(state.round);}catch(e){console.error('[log] oppDiff2:',e);}
           state.oppPlayedThisRound = true;
           renderGame();
-          if(state.round>=5){ setTimeout(()=>endGame(), 600); return; }
+          if(state.round>=5){
+            // fix87: R5完了時、 相手が FL 中なら fl_place 受信を待ってから endGame
+            if(state.oppFlMode && state.oppFlPending){
+              showToast('相手のFL完成を待っています...');
+              (async function(){
+                try{
+                  await waitForOpponentFL();
+                  if(state.oppFlPendingBoard){
+                    state.oppBoard = { top: state.oppFlPendingBoard.top.slice(), mid: state.oppFlPendingBoard.mid.slice(), bot: state.oppFlPendingBoard.bot.slice() };
+                    state.oppFlPendingBoard = null;
+                    state.oppFlPending = false;
+                    if(typeof renderGame === 'function') renderGame();
+                  }
+                }catch(e){ console.error('[fix87] wait opp FL after R5 (b):', e); }
+                setTimeout(()=>endGame(), 300);
+              })();
+              return;
+            }
+            setTimeout(()=>endGame(), 600); return;
+          }
           setTimeout(()=>dealNext(), 600);
         }catch(e){
           console.error('[online pineapple] error:', e);
@@ -15755,6 +15802,8 @@ function handleConfirmFL(){
               mid: placement.mid.slice(),
               bot: placement.bot.slice(),
             };
+            // fix87: 保留しても oppFlPending は false に (受信はしたので待ち勝ち不要)
+            state.oppFlPending = false;
             console.log('[fix64++] fl_place 保留 (平場R5未完了, round=' + state.round + ')');
           } else {
             state.oppBoard = {
