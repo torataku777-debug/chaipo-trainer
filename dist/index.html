@@ -16391,6 +16391,15 @@ function handleConfirmFL(){
     }catch(e){ console.error('[startGameOnline] apply config:', e); }
     try{
       await newGame({ match: match, asHost: asHost });
+      // fix88: 初回ゲームで自分が FL 中なら startFL を呼ぶ (matches.player{my}_fl_active=true の場合)
+      try{
+        const myPrefix = asHost ? 'player1' : 'player2';
+        if(match[myPrefix + '_fl_active'] && match[myPrefix + '_fl_cards'] >= 14 && !state.flMode){
+          const myFlCards = match[myPrefix + '_fl_cards'];
+          console.log('[fix88] startGameOnline initial my FL detected: cards=' + myFlCards);
+          if(typeof startFL === 'function') startFL(myFlCards);
+        }
+      }catch(e){ console.error('[fix88] my FL init err:', e); }
     }catch(e){
       console.error('[startGameOnline] newGame error:', e);
       if(typeof showToast === 'function') showToast('ゲーム開始に失敗しました');
