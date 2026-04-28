@@ -11961,7 +11961,9 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
             if(oppTotal < 13){
               showToast('相手のFL完成を待っています...');
               try{
-                await waitForOpponentFL();
+                if(typeof window.waitForOpponentFL === 'function'){
+                  await window.waitForOpponentFL();
+                }
                 if(state.oppFlPendingBoard){
                   state.oppBoard = {
                     top: state.oppFlPendingBoard.top.slice(),
@@ -15818,6 +15820,7 @@ function handleConfirmFL(){
               bot: placement.bot.slice(),
             };
             state.oppFlMode = true;
+            state.oppFlPending = false;  // fix87+: 受信済みフラグ
             if(typeof renderGame === 'function') renderGame();
             console.log('[fix64] fl_place opponent board reflected');
           }
