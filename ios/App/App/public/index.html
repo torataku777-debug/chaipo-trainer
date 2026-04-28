@@ -11699,7 +11699,8 @@ function updateConfirm(){
     return;
   }
   // v29.1-B ストリクト: ボタン側で相手の配置受信待ち
-  if(state.onlineMustWait){
+  // fix84: FL モードは独自進行なので mustWait チェックをスキップ
+  if(state.onlineMustWait && !state.flMode){
     btn.disabled=true;
     btn.textContent='相手の配置を待っています...';
     btn.className='btn-confirm';
@@ -12009,12 +12010,18 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
           await sendMyR1Placement(state.playerBoard);
           if(typeof clearPendingPlacement === 'function') clearPendingPlacement(); // fix58: pending clear
           // fix64: 相手 FL なら R1 受信を待たず進む (相手は FL 配置中)
-          if(!state.oppFlMode){
+          // fix84: 自分 FL なら R1 受信しても oppBoard に代入しない (FLプレイヤーは平場途中を見ず、 R5完了時まとめて反映)
+          if(!state.oppFlMode && !state.flMode){
             showToast('相手の配置を待っています...');
             const oppPlace = await waitForOpponentR1();
             // v29.1-B: R1 は代入なので冪等 (ボタン側は既に反映済みでも同じ値で上書き)
             state.oppBoard = {top:[...oppPlace.top], mid:[...oppPlace.mid], bot:[...oppPlace.bot]};
             state.oppBoardPrefilledForRound = null;
+          } else if(state.flMode){
+            // fix84: 自分FL 中 — R1 受信だけして oppBoard 反映しない
+            showToast('平場プレイヤーの配置進行中...');
+            try{ await waitForOpponentR1(); }catch(e){ console.error('[fix84] R1 wait err:', e); }
+            console.log('[fix84] R1 受信したが oppBoard 代入をスキップ (自分FL)');
           }
           state.oppPlayedThisRound = true;
           renderGame();
@@ -12083,6 +12090,10 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
           }
           showToast('相手の配置を待っています...');
           const oppPlace = await waitForOpponentPineapple(roundSnapshot);
+          // fix84: 自分FL なら R2-R4 の受信だけして oppBoard.push しない
+          if(state.flMode){
+            console.log('[fix84] R' + roundSnapshot + ' 受信したが oppBoard.push をスキップ (自分FL)');
+          } else {
           // v29.1-B ストリクト: ボタン側は handleOnlineEvent で既に oppBoard に反映済みなら push をスキップ
           const _prefilled = (state.oppBoardPrefilledForRound === roundSnapshot);
           if(!_prefilled){
@@ -12091,6 +12102,7 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
             }
           }
           state.oppBoardPrefilledForRound = null;
+          }
           try{logRoundOppDiff(state.round);}catch(e){console.error('[log] oppDiff2:',e);}
           state.oppPlayedThisRound = true;
           renderGame();
@@ -12224,8 +12236,13 @@ function startFL(flCards){
     } else {
       // v28.14: 相手が平場 → R2-R5 を非同期で自動プレイ
       // R1 配置は newGame で済んでるので R2 から開始
-      console.log('[opp flat] 相手平場 R2-R5 をバックグラウンドで実行');
-      _runOppFlatRounds(2);
+      // fix83: オンラインモードでは相手は実プレイヤーなので AI 自動プレイをスキップ
+      if(state.onlineMode){
+        console.log('[fix83] online mode → _runOppFlatRounds skip');
+      } else {
+        console.log('[opp flat] 相手平場 R2-R5 をバックグラウンドで実行');
+        _runOppFlatRounds(2);
+      }
     }
   }
   document.getElementById('resultBand').classList.remove('show');document.getElementById('flEntryBanner').classList.remove('show');
