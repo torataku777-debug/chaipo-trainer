@@ -12075,7 +12075,9 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
             if(roundSnapshot >= 5){
               showToast('相手のFL完成を待っています...');
               try{
-                await waitForOpponentFL();
+                if(typeof window.waitForOpponentFL === 'function'){
+                  await window.waitForOpponentFL();
+                }
                 // fix64++: 保留していた相手のFLボードをここで反映
                 if(state.oppFlPendingBoard){
                   state.oppBoard = {
@@ -12099,7 +12101,9 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
                 showToast('相手のFL完成を待っています...');
                 (async function(){
                   try{
-                    await waitForOpponentFL();
+                    if(typeof window.waitForOpponentFL === 'function'){
+                      await window.waitForOpponentFL();
+                    }
                     if(state.oppFlPendingBoard){
                       state.oppBoard = { top: state.oppFlPendingBoard.top.slice(), mid: state.oppFlPendingBoard.mid.slice(), bot: state.oppFlPendingBoard.bot.slice() };
                       state.oppFlPendingBoard = null;
@@ -12140,7 +12144,9 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
               showToast('相手のFL完成を待っています...');
               (async function(){
                 try{
-                  await waitForOpponentFL();
+                  if(typeof window.waitForOpponentFL === 'function'){
+                    await window.waitForOpponentFL();
+                  }
                   if(state.oppFlPendingBoard){
                     state.oppBoard = { top: state.oppFlPendingBoard.top.slice(), mid: state.oppFlPendingBoard.mid.slice(), bot: state.oppFlPendingBoard.bot.slice() };
                     state.oppFlPendingBoard = null;
@@ -16407,6 +16413,7 @@ function handleConfirmFL(){
   window.sendMyFlPlacement           = sendMyFlPlacement;
   window.waitForOpponentR1           = waitForOpponentR1;
   window.waitForOpponentPineapple    = waitForOpponentPineapple;
+  window.waitForOpponentFL           = waitForOpponentFL;  // fix87: 公開して closure 外からも使えるように
   window.finalizeOnlineMatch         = finalizeOnlineMatch;
   window.returnToOnlineLobby         = returnToOnlineLobby;
   window.subscribeOnlineEvents       = subscribeOnlineEvents;
