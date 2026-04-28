@@ -216,6 +216,130 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
     radial-gradient(ellipse at 80% 90%, rgba(232,185,35,0.03) 0%, transparent 50%),
     #FDFBF5;
 }
+/* fix90 (UI v2): 対戦画面デザインリニューアル. body.ui-v2 クラスで有効化 */
+body.ui-v2 #screen-game{
+  background:
+    url('assets/game/bg.jpg') center top / cover no-repeat,
+    #87CEEB;
+}
+/* fix90: 背景画像に枚を描いた枠を使うため、既存のボード枠装飾を透明化 */
+body.ui-v2 .game-header{
+  background:rgba(255,255,255,0.92);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+body.ui-v2 .score-bar{
+  background:rgba(255,255,255,0.88);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+body.ui-v2 .opp-area-inner{
+  background:rgba(255,255,255,0.85);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  border:1px solid rgba(0,0,0,0.08);
+}
+body.ui-v2 .player-area{
+  background:rgba(255,255,255,0.85) !important;
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+}
+body.ui-v2 .opp-slot,
+body.ui-v2 .player-slot{
+  background:rgba(255,255,255,0.5);
+  border-color:rgba(232,185,35,0.5);
+}
+
+/* fix91 (UI v2): タイマーバーを黒背景にして背景画像に揃える */
+body.ui-v2 .online-timer-bar{
+  background:#1a1a1a;
+  color:#fff;
+  border-radius:0;
+  border:none;
+  padding:8px 16px;
+  margin:6px 0;
+  display:flex !important;
+  align-items:center;
+  justify-content:flex-end;
+}
+body.ui-v2 .online-timer-bar .otb-icon{display:none;}
+body.ui-v2 .online-timer-bar .otb-label{
+  background:rgba(255,255,255,0.95);
+  color:#1a1a1a;
+  padding:4px 14px;
+  border-radius:4px;
+  font-weight:700;
+  font-size:14px;
+  border:1px solid #fff;
+}
+
+/* fix91 (UI v2): 「相手のボード」「あなたのボード」 縦書きサイドバーを強調 */
+body.ui-v2 .opp-area-inner{
+  border-left:8px solid #4a4a4a;
+  padding-left:12px;
+}
+body.ui-v2 .opp-area-inner::before{
+  content:'相手のボード';
+  position:absolute;
+  left:-22px;
+  top:50%;
+  transform:translateY(-50%);
+  writing-mode:vertical-rl;
+  text-orientation:mixed;
+  font-size:9px;
+  color:#fff;
+  font-weight:700;
+  letter-spacing:0.05em;
+  pointer-events:none;
+}
+body.ui-v2 .opp-area{position:relative;padding-left:32px;}
+body.ui-v2 .player-area{
+  border-left:8px solid #f0a020 !important;
+  padding-left:12px !important;
+  position:relative;
+}
+body.ui-v2 .player-area::after{
+  content:'あなたのボード';
+  position:absolute;
+  left:-26px;
+  top:50%;
+  transform:translateY(-50%);
+  writing-mode:vertical-rl;
+  text-orientation:mixed;
+  font-size:9px;
+  color:#fff;
+  font-weight:700;
+  letter-spacing:0.05em;
+  pointer-events:none;
+}
+
+/* fix91 (UI v2): ADVICE ボタンを黄色ピル形、点数表・アウツを スクエアボタン に */
+body.ui-v2 .btn-advice{
+  background:#1a1a1a !important;
+  color:#ffc83d !important;
+  border:2px solid #ffc83d !important;
+  border-radius:24px !important;
+  padding:6px 14px !important;
+  font-size:11px !important;
+  font-weight:700 !important;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3) !important;
+}
+
+/* fix91 (UI v2): CONFIRM ボタンをオレンジ多色背景グラデに */
+body.ui-v2 .btn-confirm{
+  background:linear-gradient(180deg,#e89015 0%,#c46d0a 100%) !important;
+  color:#fff !important;
+  border:2px solid #fff !important;
+  border-radius:8px !important;
+  font-weight:800 !important;
+  text-shadow:0 1px 2px rgba(0,0,0,0.3) !important;
+  box-shadow:0 4px 12px rgba(196,109,10,0.4) !important;
+}
+body.ui-v2 .btn-confirm:disabled{
+  background:#888 !important;
+  border-color:#aaa !important;
+  box-shadow:none !important;
+}
 .game-layout{width:100%;height:100%;display:flex;flex-direction:column;padding-top:calc(var(--safe-top) + 4px);padding-bottom:calc(var(--safe-bottom) + 2px);gap:0}
 
 /* --- HEADER: ロゴ強化 --- */
@@ -6872,6 +6996,19 @@ body.debug-interactive .vmode-btn::before {
   } else {
     setup();
   }
+})();
+</script>
+<!-- fix90: UI v2 デザインリニューアル (?ui=v2 で有効化) -->
+<script>
+(function(){
+  // fix91: でフォルトで ui-v2 有効 (?ui=v1 で旧UIにフォールバック可能)
+  if(location.search.match(/ui=v1/)){
+    return;  // 旧UIを明示指定時は何もしない
+  }
+  function apply(){ if(document.body) document.body.classList.add('ui-v2'); }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', apply);
+  } else { apply(); }
 })();
 </script>
 <!-- v28.88: Supabase XHR+eval 方式 (script タグでの評価が効かない環境向け) -->
