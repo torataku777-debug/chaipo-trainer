@@ -222,6 +222,16 @@ body.ui-v2 #screen-game{
     url('assets/game/bg.jpg?v=2') center top / cover no-repeat,
     #2a2a2a;
 }
+/* v1.3 Session21: FL中だけFL専用背景に切り替え */
+body.ui-v2.fl-mode #screen-game{
+  background:
+    url('assets/game/bg_fl.png?v=1') center top / cover no-repeat,
+    #0a1530;
+}
+/* v1.3 Session21: FL中のボード位置調整 (開発者ツールで決定した値) */
+html body.ui-v2.fl-mode .player-area{
+  transform: translate(0px, -41px) !important;
+}
 /* ヘッダー / score-bar (画面上部) */
 body.ui-v2 .game-header{ background:rgba(255,255,255,0.85) !important; border-bottom:none !important; }
 body.ui-v2 .score-bar{ background:rgba(255,255,255,0.78) !important; border:none !important; }
@@ -289,6 +299,184 @@ html body.ui-v2 #screen-game .phase-label{
 html body.ui-v2 #screen-game .phase-label.fl{
   color:#ffd94a !important;
   text-shadow:0 1px 3px rgba(0,0,0,0.8);
+}
+/* v1.3 fix128: FL中の phase-label (FANTASY LAND - X/13枚配置) を非表示 */
+html body.ui-v2 #screen-game .phase-label.fl{
+  display:none !important;
+}
+/* v1.3 fix140: 評価パネル (点数ガイド) を一旦非表示 */
+html body.ui-v2 #flEvalPanel,
+html body.ui-v2 .fl-eval-panel{
+  display:none !important;
+}
+/* v1.3 fix144: FL中の player-label (YOU FANTASY LAND の黄バッジ) を非表示 */
+html body.ui-v2 .player-area.fl-mode .player-label{
+  /* v1.3 Session21 fix: display:none → visibility:hidden で高さを保つ
+     → 平場とFLでボード位置がズレないようにする */
+  visibility:hidden !important;
+}
+/* v1.3 fix146: 平場中の phase-label (R5 配置 2/2 ・ 2枚置くと自動捨 etc) を非表示 */
+/* v1.3 fix147: 詳細度を上げて line 598 の display:inline-block を上書き */
+html body.ui-v2 #screen-game .phase-label,
+html body.ui-v2 #screen-game #phaseLabel{
+  display:none !important;
+}
+/* v1.3 fix146: 役名+点数を読みやすく → サイズ拡大 + 強調色 + ラベルの左隣に掰える */
+/* v1.3 fix148: TOP/MID/BOT ラベルを非表示にして、 その位置に役名+点数を表示 */
+/* v1.3 fix149: 役表示有無でボード間隔が変わらないよう row-header に高さを固定 */
+html body.ui-v2 .row-header{
+  gap:6px !important;
+  padding:0 6px !important;
+  min-height:18px !important;
+  height:18px !important;
+}
+html body.ui-v2 .row-label{
+  display:none !important;
+}
+html body.ui-v2 .row-eval{
+  font-size:13px !important;
+  font-weight:800 !important;
+  color:#1a1a1a !important;
+  text-shadow:0 0 6px rgba(255,255,255,0.85), 0 1px 2px rgba(255,255,255,0.7) !important;
+  letter-spacing:0.02em !important;
+  max-width:none !important;
+  text-align:right !important;
+  line-height:18px !important;
+}
+html body.ui-v2 .row-eval.foul{
+  color:#dc2626 !important;
+}
+html body.ui-v2 .row-eval.fl{
+  color:#B8890F !important;
+  text-shadow:0 0 6px rgba(255,255,255,0.85), 0 1px 2px rgba(255,217,74,0.5) !important;
+}
+/* v1.3 fix130: FL中の役ボタンバーをチューナーで調整した位置で固定 (高さは24pxに拡張) */
+/* v1.3 fix131: チューナー有効時 (html.ui-v2-tuner) はこちらを無効化 */
+/* v1.3 fix133: チューナーで確定した位置を本実装 */
+/* v1.3 fix140: 画面右端、下揃え (一番下のボタンがボードの底辺と同じ高さ) */
+/* v1.3 fix150: 画面左端に変更 */
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter{
+  position:fixed !important;
+  top:auto !important;
+  /* v1.3 Session21: 横並びレイアウト — 画面下部、手札の上 */
+  left:50% !important;
+  right:auto !important;
+  bottom:24vh !important;
+  transform:translateX(-50%) !important;
+  width:auto !important;
+  height:auto !important;
+  max-height:none !important;
+  padding:4px !important;
+  margin:0 !important;
+  z-index:8;
+  background:rgba(0,0,0,0.55) !important;
+  border-radius:6px !important;
+}
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-bar{
+  display:flex !important;
+  /* v1.3 Session21: 横並び */
+  flex-direction:row !important;
+  height:auto !important;
+  width:auto !important;
+  gap:3px !important;
+  justify-content:flex-start !important;
+}
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn{
+  /* v1.3 Session21: ボタン横幅 1.5倍 (48x32) + テキスト横書き */
+  width:48px !important;
+  height:32px !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  padding:2px 3px !important;
+  font-size:11px !important;
+  font-weight:900 !important;  /* 視認性UPのためフォントをさらに太く */
+  border-radius:5px !important;
+  letter-spacing:-0.02em !important;  /* 詰めて読みやすさも保つ */
+  border:1px solid rgba(0,0,0,0.25) !important;  /* ボーダーをより明確に */
+  /* 横書き (縦書き解除) */
+  writing-mode:horizontal-tb !important;
+  -webkit-writing-mode:horizontal-tb !important;
+  text-orientation:mixed !important;
+  -webkit-text-orientation:mixed !important;
+  white-space:nowrap !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  line-height:1.0 !important;
+  text-overflow:clip !important;
+  overflow:hidden !important;
+  /* v1.3 Session21: テキストシャドウを見えなくしてクリアに */
+  text-shadow:none !important;
+}
+/* v1.3 fix138: テキスト長さと高さを見てサイズ調整 (枠に収める) */
+/* v1.3 Session21: 48px幅に確実に収まるサイズに再調整 */
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="pair"]      {font-size:14px !important;}  /* ペア (2文字) */
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="twopair"]   {font-size:12px !important;}  /* 2ペア (3文字) */
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="trips"]     {font-size:10px !important;}  /* 3カード (4文字) */
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="quads"]     {font-size:10px !important;}  /* 4カード (4文字) */
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="strflush"]  {font-size:10px !important;}  /* ストフラ (4文字) */
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="straight"]  {font-size:8.5px !important;letter-spacing:-0.04em !important;}  /* ストレート (5文字) */
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="flush"]     {font-size:8.5px !important;letter-spacing:-0.04em !important;}  /* フラッシュ (5文字) */
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="fullhouse"] {font-size:8.5px !important;letter-spacing:-0.04em !important;}  /* フルハウス (5文字) */
+/* v1.3 fix135: 作れない役 (.unavail) は非表示 (flexで下に詰める) */
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn.unavail{
+  /* v1.3 Session21: 作れない役もグレーで表示に戻す (display:none → opacity スタイルのみ) */
+  /* opacity は line 1968 の .fl-role-btn.unavail で設定される */
+}
+/* v1.3 fix138: 役別に色分け (元の鮮やかパレット、グラデーションはゆるめ - 180deg 上下 + 明度差小) */
+/* v1.3 fix150: 色分けを削除して一色 (黄色系) に統一 */
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="pair"],
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="twopair"],
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="trips"],
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="straight"],
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="flush"],
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="fullhouse"],
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="quads"],
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="strflush"]  {background:linear-gradient(180deg,#fff5d6,#ffe89c) !important;color:#1a1a1a !important;text-shadow:none !important;border-color:rgba(0,0,0,0.18) !important;}
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn.active{
+  outline:2px solid #c8a030 !important;
+  outline-offset:1px !important;
+  filter:brightness(1.05) !important;
+  box-shadow:0 0 10px rgba(200,160,48,0.6) !important;
+  background:linear-gradient(180deg,#ffd94a,#e8b923) !important;
+}
+/* v1.3 fix136: FL中のボードスロット枠線を視認性アップ */
+/* v1.3 fix152: 平場もFLも同じ「くぼみ」スタイルに統一 (点線廃止 → inset shadow で凹んだ見た目) */
+html body.ui-v2 .slot,
+html body.ui-v2 .player-area.fl-mode .slot{
+  border:1px solid rgba(0,0,0,0.18) !important;
+  background:rgba(0,0,0,0.04) !important;
+  box-shadow:
+    inset 0 2px 4px rgba(0,0,0,0.18),
+    inset 0 -1px 1px rgba(255,255,255,0.45),
+    0 1px 0 rgba(255,255,255,0.5) !important;
+  border-radius:8px !important;
+}
+html body.ui-v2 .slot.valid-target,
+html body.ui-v2 .player-area.fl-mode .slot.valid-target{
+  border:1px solid #ff8c00 !important;
+  background:rgba(255,200,90,0.35) !important;
+  box-shadow:
+    inset 0 2px 4px rgba(0,0,0,0.12),
+    inset 0 0 0 2px rgba(255,140,0,0.65),
+    0 0 14px rgba(255,140,0,0.45) !important;
+}
+/* v1.3 fix151: 平場手札を中央揃え (FL中はそのまま・.fl-flat は別スタイル) */
+html body.ui-v2 .hand-cards:not(.fl):not(.fl-flat){
+  justify-content:center !important;
+  padding-right:0 !important;
+}
+html body.ui-v2 #flRoleBarOuter .fl-role-bar{
+  height:100% !important;
+  gap:3px !important;
+}
+html body.ui-v2 #flRoleBarOuter .fl-role-btn{
+  min-height:0 !important;
+  height:100% !important;
+  font-size:10px !important;
+  padding:0 1px !important;
+  border-radius:6px !important;
+  letter-spacing:-0.05em !important;
 }
 
 
@@ -447,6 +635,7 @@ html body.ui-v2 #screen-game .btn-confirm:disabled:active{
 }
 
 /* phase-label (R1 5枚配置 0/5 など) を読みやすく */
+/* v1.3 fix147: phase-label は全部非表示にしたため、 表示スタイルは実際には適用されない */
 html body.ui-v2 #screen-game .phase-label{
   background:rgba(0,0,0,0.5) !important;
   color:#fff !important;
@@ -454,7 +643,7 @@ html body.ui-v2 #screen-game .phase-label{
   letter-spacing:0.05em !important;
   padding:4px 12px !important;
   border-radius:12px !important;
-  display:inline-block !important;
+  display:none !important;  /* fix147: inline-block → none に変更 */
   margin:0 auto 4px !important;
   text-shadow:0 1px 2px rgba(0,0,0,0.8) !important;
   border:1px solid rgba(255,255,255,0.15);
@@ -577,6 +766,19 @@ body.ui-v2 .hand-area{
   background:rgba(255,255,255,0.85) !important;
   border-top:none !important;
   padding:6px 10px calc(var(--safe-bottom) + 6px) !important;
+}
+/* v1.3 fix124: トランプの枠線視認性アップ (都市夜景背景に対して枠をもっと明確に) */
+html body.ui-v2 .card{
+  border:1.8px solid rgba(0,0,0,0.65) !important;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.55) inset, 0 2px 6px rgba(0,0,0,0.45), 0 4px 12px rgba(0,0,0,0.25) !important;
+}
+html body.ui-v2 .card.in-hand{
+  border:1.8px solid rgba(0,0,0,0.7) !important;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.6) inset, 0 3px 8px rgba(0,0,0,0.5), 0 5px 14px rgba(0,0,0,0.3) !important;
+}
+html body.ui-v2 .opp-card{
+  border:1.5px solid rgba(0,0,0,0.55) !important;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.5) inset, 0 2px 5px rgba(0,0,0,0.4) !important;
 }
 
 
@@ -702,7 +904,14 @@ body.ui-v2 .hand-area{
   box-shadow:0 1px 3px rgba(0,0,0,0.06);
 }
 /* 結果画面時に相手エリアを非表示 */
-.opp-area.hide-on-result{display:none!important;}
+/* v1.3 Session21 fix: 結果バンド表示時に自分のボードを動かさない */
+/* 旧: display:none（高さが消えるためボードが上に動く） */
+/* 新: visibility:hidden で高さを維持 + 中身を非表示、result-band だけ表示 */
+.opp-area.hide-on-result{visibility:hidden!important;}
+.opp-area.hide-on-result > *{visibility:hidden;}
+.opp-area.hide-on-result .result-band{visibility:visible!important;}
+/* result-band が opp-area の中にある時 (showResultBand で DOM 移動済み) は絶対配置 */
+.opp-area .result-band{position:absolute;top:0;left:0;right:0;z-index:5;}
 /* v28.36 結果バンド */
 .result-band{display:none;flex-shrink:0;padding:6px 10px}
 .result-band.show{display:block;animation:resultBandIn 0.5s cubic-bezier(0.16,1,0.3,1) both;}
@@ -814,7 +1023,8 @@ body.ui-v2 .hand-area{
 .fl-entry-sub{font-size:10px;color:#78716c;margin-top:2px}
 .player-area{
   flex:1;
-  padding:10px 12px 8px;
+  /* v1.3 Session21 fix: 平場時もFL時と同じ padding-left:62px でボード位置を統一 */
+  padding:10px 12px 8px 62px;
   display:flex;
   flex-direction:column;
   gap:6px;
@@ -1586,7 +1796,48 @@ body.ui-v2 .hand-area{
 
 
 /* ===== FL突入演出 ===== */
-.fl-intro-overlay{position:fixed;inset:0;z-index:2000;background:radial-gradient(ellipse at center,#1a1200 0%,#000 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;opacity:0;pointer-events:none;transition:opacity 0.35s;}
+/* v1.3 fix120: FL突入演出を動画オーバーレイに置き換え (背景透過) */.fl-intro-overlay{position:fixed;inset:0;z-index:2000;background:transparent;display:block;opacity:0;pointer-events:none;transition:opacity 0.18s ease;}.fl-intro-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:transparent;}
+/* v1.3 fix121: チラ見え防止用の黒ローダー (canplayまで見せる) */.fl-intro-loader{position:absolute;inset:0;background:#000;opacity:1;transition:opacity 0.15s ease;z-index:2;}.fl-intro-loader.hidden{opacity:0;}.fl-intro-video{z-index:1;}
+/* v1.3 fix122: ファンタジー確定演出 - 「ぱん」と現れるポップ型 (スライド無し、グリッチ控えめ) */.fl-confirm-overlay{position:fixed;inset:0;z-index:1900;pointer-events:none;opacity:0;background:transparent;}.fl-confirm-overlay.show{opacity:1;}.fl-confirm-img-wrap{position:absolute;inset:0;width:100%;height:100%;opacity:0;transform:scale(0.92);}.fl-confirm-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}.fl-confirm-img.fl-rgb-r{mix-blend-mode:screen;filter:hue-rotate(155deg) saturate(2.2);opacity:0;transform:translate(2px,-1px);}.fl-confirm-img.fl-rgb-b{mix-blend-mode:screen;filter:hue-rotate(45deg) saturate(2.2);opacity:0;transform:translate(-2px,1px);}.fl-confirm-noise{position:absolute;inset:0;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='3' seed='5'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.4 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");mix-blend-mode:overlay;opacity:0;pointer-events:none;}
+.fl-confirm-overlay.run .fl-confirm-img-wrap{animation:flConfPop 1.6s cubic-bezier(0.18,0.89,0.32,1.28) forwards;}
+.fl-confirm-overlay.run .fl-confirm-img.fl-rgb-r{animation:flConfRgbR 1.6s linear forwards;}
+.fl-confirm-overlay.run .fl-confirm-img.fl-rgb-b{animation:flConfRgbB 1.6s linear forwards;}
+.fl-confirm-overlay.run .fl-confirm-noise{animation:flConfNoise 1.6s steps(6) forwards;}
+@keyframes flConfPop{
+  0%{opacity:0;transform:translateY(-25%) scale(0.86);filter:blur(2px);}
+  3%{opacity:1;transform:translateY(-25%) scale(1.06);filter:blur(0);}
+  8%{transform:translateY(-25%) scale(0.97);}
+  13%{transform:translateY(-25%) scale(1.01);}
+  18%{transform:translateY(-25%) scale(1);}
+  82%{opacity:1;transform:translateY(-25%) scale(1);filter:none;}
+  90%{opacity:1;transform:translateY(-25%) scale(1.02);filter:contrast(1.15);}
+  100%{opacity:0;transform:translateY(-25%) scale(1.06);filter:blur(2px);}
+}
+@keyframes flConfRgbR{
+  0%,2%{opacity:0;}
+  3%,8%{opacity:0.6;transform:translate(3px,-1px);}
+  13%{opacity:0.25;transform:translate(5px,1px);}
+  18%,86%{opacity:0;}
+  90%{opacity:0.55;transform:translate(4px,-1px);}
+  100%{opacity:0;}
+}
+@keyframes flConfRgbB{
+  0%,2%{opacity:0;}
+  3%,8%{opacity:0.6;transform:translate(-3px,1px);}
+  13%{opacity:0.25;transform:translate(-5px,-1px);}
+  18%,86%{opacity:0;}
+  90%{opacity:0.55;transform:translate(-4px,1px);}
+  100%{opacity:0;}
+}
+@keyframes flConfNoise{
+  0%,2%{opacity:0;}
+  3%,8%{opacity:0.35;}
+  13%{opacity:0.15;}
+  18%,86%{opacity:0;}
+  90%{opacity:0.3;}
+  100%{opacity:0;}
+}
+.fl-intro-overlay-LEGACY{position:fixed;inset:0;z-index:2000;background:radial-gradient(ellipse at center,#1a1200 0%,#000 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;opacity:0;pointer-events:none;transition:opacity 0.35s;}
 .fl-intro-overlay.show{opacity:1;pointer-events:all;}
 .fl-intro-ring{width:190px;height:190px;border-radius:50%;border:3px solid #c8a030;box-shadow:0 0 40px rgba(200,160,48,0.5),inset 0 0 30px rgba(200,160,48,0.15);display:flex;align-items:center;justify-content:center;animation:flRingIn 0.7s cubic-bezier(0.34,1.56,0.64,1);}
 @keyframes flRingIn{0%{transform:scale(0.2);opacity:0;}100%{transform:scale(1);opacity:1;}}
@@ -7843,33 +8094,16 @@ body.debug-interactive .vmode-btn::before {
 
 
 <div class="fl-intro-overlay" id="flIntroOverlay">
-  <div class="fl-intro-ring">
-    <div class="fl-intro-content">
-      <svg class="fl-intro-pine-svg" viewBox="0 0 280 380" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:58px;height:78px;">
-      <g stroke="#E8B923" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#flIntroGlow)">
-        <path d="M 140 118 L 140 8"/>
-        <path d="M 140 118 L 100 22"/>
-        <path d="M 140 118 L 180 22"/>
-        <path d="M 140 118 L 62 42"/>
-        <path d="M 140 118 L 218 42"/>
-        <ellipse cx="140" cy="248" rx="100" ry="110" stroke-width="7"/>
-        <path d="M 45 200 L 235 200" stroke-width="4"/>
-        <path d="M 45 260 L 235 260" stroke-width="4"/>
-        <path d="M 95 150 L 95 345" stroke-width="4"/>
-        <path d="M 140 145 L 140 350" stroke-width="4.5"/>
-        <path d="M 185 150 L 185 345" stroke-width="4"/>
-      </g>
-      <defs>
-        <filter id="flIntroGlow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="1.5"/>
-        </filter>
-      </defs>
-    </svg>
-      <div class="fl-intro-cards" id="flIntroCards">16</div><!-- FL_TYPE_MOVED -->
-    </div>
+  <div class="fl-intro-loader" id="flIntroLoader"></div>
+  <video class="fl-intro-video" id="flIntroVideo" muted playsinline preload="auto"></video>
+</div>
+<div class="fl-confirm-overlay" id="flConfirmOverlay">
+  <div class="fl-confirm-img-wrap">
+    <img class="fl-confirm-img" src="assets/game/fl_next.png" alt="" draggable="false">
+    <img class="fl-confirm-img fl-rgb-r" src="assets/game/fl_next.png" alt="" draggable="false" aria-hidden="true">
+    <img class="fl-confirm-img fl-rgb-b" src="assets/game/fl_next.png" alt="" draggable="false" aria-hidden="true">
   </div>
-  <div class="fl-intro-type" id="flIntroType">AA FANTASY</div>
-  
+  <div class="fl-confirm-noise"></div>
 </div>
 
 <div class="screen" id="screen-mode-select">
@@ -8482,6 +8716,26 @@ body.debug-interactive .vmode-btn::before {
           </div>
           <div class="settings-item-right gold" id="settingsStartScoreSub_screen">100</div>
         </button>
+        <button class="settings-item" id="settingsHaptic_screen" type="button">
+          <div class="settings-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M5 6h14"/><path d="M5 18h14"/><circle cx="2.5" cy="6" r="0.7" fill="currentColor"/><circle cx="2.5" cy="12" r="0.7" fill="currentColor"/><circle cx="2.5" cy="18" r="0.7" fill="currentColor"/></svg>
+          </div>
+          <div class="settings-item-main">
+            <div class="settings-item-label">ハプティック</div>
+            <div class="settings-item-sub">操作時の振動フィードバック</div>
+          </div>
+          <div class="settings-item-right gold" id="settingsHapticSub_screen">ON</div>
+        </button>
+        <button class="settings-item" id="settingsDevMode_screen" type="button">
+          <div class="settings-item-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </div>
+          <div class="settings-item-main">
+            <div class="settings-item-label">開発者モード</div>
+            <div class="settings-item-sub">ボード位置調整ツールを表示</div>
+          </div>
+          <div class="settings-item-right" id="settingsDevModeSub_screen">OFF</div>
+        </button>
       </div>
 
       <div class="settings-section-title">データ</div>
@@ -8714,7 +8968,7 @@ body.debug-interactive .vmode-btn::before {
           <button class="fl-role-btn" data-role="strflush">ストフラ</button>
         </div>
       </div>
-      <div class="fl-discard-bar" id="flDiscardBar" style="display:none;gap:4px;padding:0 8px;align-items:center;flex-shrink:0;">
+      <div class="fl-discard-bar" id="flDiscardBar" style="display:none !important;gap:4px;padding:0 8px;align-items:center;flex-shrink:0;">
         <span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#9a6e10;letter-spacing:0.1em;flex-shrink:0">捨て:</span>
         <div id="flDiscardSlots" style="display:flex;gap:3px;flex-wrap:wrap;"></div>
       </div>
@@ -8858,6 +9112,26 @@ body.debug-interactive .vmode-btn::before {
           <div class="settings-item-sub">マッチ開始時のポイント</div>
         </div>
         <div class="settings-item-right gold" id="settingsStartScoreSub">100</div>
+      </button>
+      <button class="settings-item" id="settingsHaptic" type="button">
+        <div class="settings-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M5 6h14"/><path d="M5 18h14"/><circle cx="2.5" cy="6" r="0.7" fill="currentColor"/><circle cx="2.5" cy="12" r="0.7" fill="currentColor"/><circle cx="2.5" cy="18" r="0.7" fill="currentColor"/></svg>
+        </div>
+        <div class="settings-item-main">
+          <div class="settings-item-label">ハプティック</div>
+          <div class="settings-item-sub">操作時の振動フィードバック</div>
+        </div>
+        <div class="settings-item-right gold" id="settingsHapticSub">ON</div>
+      </button>
+      <button class="settings-item" id="settingsDevMode" type="button">
+        <div class="settings-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </div>
+        <div class="settings-item-main">
+          <div class="settings-item-label">開発者モード</div>
+          <div class="settings-item-sub">ボード位置調整ツールを表示</div>
+        </div>
+        <div class="settings-item-right" id="settingsDevModeSub">OFF</div>
       </button>
     </div>
 
@@ -9772,20 +10046,22 @@ function showHandsheetModal(){
   ];
 
   // リスト→HTML 行列挙ヘルパー
+  // v1.3 Session21: 視認性向上 (フォント拡大 + ゴールド色をより濃く)
   var listToHtml = function(arr){
     return arr.map(function(it){
-      return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:2px 4px;font-family:\'JetBrains Mono\',monospace;font-size:11px;line-height:1.5;">' +
-        '<span style="color:#111;font-weight:600;">' + it[0] + '</span>' +
-        '<span style="color:#c8a030;font-weight:700;margin-left:8px;">+' + it[1] + '</span>' +
+      return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:4px 6px;font-family:\'JetBrains Mono\',monospace;font-size:13px;line-height:1.4;">' +
+        '<span style="color:#0a0a0a;font-weight:700;">' + it[0] + '</span>' +
+        '<span style="color:#a67e1a;font-weight:800;margin-left:8px;font-size:13.5px;">+' + it[1] + '</span>' +
       '</div>';
     }).join('');
   };
 
   // 列ヘッダ生成
+  // v1.3 Session21: ヘッダもサイズアップ
   var colHeader = function(jp, en){
-    return '<div style="background:#e5e7eb;padding:6px 8px;text-align:center;border-radius:6px 6px 0 0;">' +
-      '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:13px;font-weight:700;color:#111;">' + jp + '</div>' +
-      '<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#666;letter-spacing:0.1em;margin-top:1px;">' + en + '</div>' +
+    return '<div style="background:#e5e7eb;padding:8px 8px;text-align:center;border-radius:6px 6px 0 0;">' +
+      '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:15px;font-weight:800;color:#0a0a0a;">' + jp + '</div>' +
+      '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#555;letter-spacing:0.1em;margin-top:2px;">' + en + '</div>' +
     '</div>';
   };
 
@@ -9801,8 +10077,9 @@ function showHandsheetModal(){
         '<button id="handsheetClose" style="background:none;border:none;font-size:22px;cursor:pointer;color:#666;line-height:1;padding:0 4px;">×</button>' +
       '</div>' +
 
-      // 3列グリッド
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">' +
+      // v1.3 Session21: 2カラムレイアウト (上段は22行と長いため、右側に中段/下段/FL条件を縦並びで詰める)
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">' +
+        // 左: 上段 (長い)
         '<div>' +
           colHeader('上段', 'TOP') +
           '<div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 6px 6px;padding:4px 2px;">' +
@@ -9816,48 +10093,51 @@ function showHandsheetModal(){
             '</div>' +
           '</div>' +
         '</div>' +
-        '<div>' +
-          colHeader('中段', 'MIDDLE') +
-          '<div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 6px 6px;padding:4px 2px;">' +
-            listToHtml(midList) +
-          '</div>' +
-        '</div>' +
-        '<div>' +
-          colHeader('下段', 'BOTTOM') +
-          '<div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 6px 6px;padding:4px 2px;">' +
-            listToHtml(botList) +
-          '</div>' +
-        '</div>' +
-      '</div>' +
-
-      // ファンタジー条件 (2列)
-      '<div style="margin-top:4px;">' +
-        '<div style="background:#e5e7eb;padding:6px 8px;text-align:center;border-radius:6px 6px 0 0;">' +
-          '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:13px;font-weight:700;color:#111;">ファンタジー条件</div>' +
-        '</div>' +
-        '<div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 6px 6px;padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
+        // 右: 中段 + 下段 + ファンタジー条件 + FL枚数 (縦に詰めて上段の高さに揃える)
+        '<div style="display:flex;flex-direction:column;gap:6px;">' +
+          // 中段
           '<div>' +
-            '<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#2563eb;letter-spacing:0.1em;font-weight:700;margin-bottom:3px;">突入</div>' +
-            '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:11px;color:#111;line-height:1.5;">' +
-              '上段 <b>QQ以上</b><br>(ファウルなし)' +
+            colHeader('中段', 'MIDDLE') +
+            '<div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 6px 6px;padding:4px 2px;">' +
+              listToHtml(midList) +
             '</div>' +
           '</div>' +
+          // 下段
           '<div>' +
-            '<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#2563eb;letter-spacing:0.1em;font-weight:700;margin-bottom:3px;">継続</div>' +
-            '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:11px;color:#111;line-height:1.5;">' +
-              '上段 <b>222以上</b><br>or 下段 <b>4カード以上</b>' +
+            colHeader('下段', 'BOTTOM') +
+            '<div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 6px 6px;padding:4px 2px;">' +
+              listToHtml(botList) +
             '</div>' +
           '</div>' +
+          // ファンタジー条件 (右側に組み込み)
+          '<div>' +
+            '<div style="background:#e5e7eb;padding:6px 6px;text-align:center;border-radius:6px 6px 0 0;">' +
+              '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:13px;font-weight:800;color:#0a0a0a;">ファンタジー条件</div>' +
+            '</div>' +
+            '<div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 6px 6px;padding:8px;display:flex;flex-direction:column;gap:8px;">' +
+              '<div>' +
+                '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#1d4ed8;letter-spacing:0.1em;font-weight:800;margin-bottom:3px;">突入</div>' +
+                '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:12px;color:#0a0a0a;line-height:1.5;font-weight:500;">' +
+                  '上段 <b style="font-weight:800;">QQ以上</b><br>(ファウルなし)' +
+                '</div>' +
+              '</div>' +
+              '<div>' +
+                '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#1d4ed8;letter-spacing:0.1em;font-weight:800;margin-bottom:3px;">継続</div>' +
+                '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:12px;color:#0a0a0a;line-height:1.5;font-weight:500;">' +
+                  '上段 <b style="font-weight:800;">222以上</b><br>or 下段 <b style="font-weight:800;">4カード以上</b>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          // FL枚数 (補足) - 右側下部
+          '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#444;text-align:center;padding:4px;font-weight:600;line-height:1.5;">' +
+            'FL枚数<br>QQ=14 / KK=15<br>AA=16 / トリップス=17' +
+          '</div>' +
         '</div>' +
-      '</div>' +
-
-      // FL枚数(補足)
-      '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#666;text-align:center;padding:2px;">' +
-        'FL枚数: QQ=14 / KK=15 / AA=16 / トリップス=17' +
       '</div>' +
 
       // 閉じるボタン
-      '<button id="handsheetOk" style="padding:10px;background:#111;color:#fff;border:none;border-radius:10px;font-family:\'Space Grotesk\',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">閉じる</button>' +
+      '<button id="handsheetOk" style="padding:12px;background:#111;color:#fff;border:none;border-radius:10px;font-family:\'Space Grotesk\',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">閉じる</button>' +
     '</div>';
 
   document.body.appendChild(modal);
@@ -11413,6 +11693,11 @@ async function newGame(onlineConfig){
   if(hcEl){ hcEl.classList.remove('fl-flat'); hcEl.classList.remove('fl'); }
   const fdbEl = document.getElementById('flDiscardBar');
   if(fdbEl) fdbEl.style.display = 'none';
+  // v1.3 Session21 fix: 前ゲームの FL 役ボタン選択をリセット (カード増殖バグ防止)
+  //   旧: flGroupSel/flTapSel は startFL 内でしかクリアされず、平場に戻っても前ゲームの選択状態が残り
+  //        ジョーカーなど同一 ID カードでグループドラッグが誤発動し、groupCards 中身がボードに増殖
+  if(typeof flGroupSel !== 'undefined') flGroupSel = {role:null, combos:[], idx:0};
+  if(typeof flTapSel !== 'undefined') flTapSel = [];
   if(typeof flPracticeMode !== 'undefined') flPracticeMode = false;
   // v29.1-A: online モードは matches.dealer からボタン判定 (両クライアントで一致)
   if(_isOnline){
@@ -11747,12 +12032,37 @@ function renderBoardWithJokers(){
   renderSlots('slotsBot',state.playerBoard.bot,5,'bot',result.botJkMap);
 }
 function showResultBand(score){
+  // v1.3 Session21 fix: result-band を opp-area の中に DOM 移動し、absolute で重ねる
+  //   → 自分のボード位置が動かないようにする
+  //   ただし相手FL時は相手のFLボードと重なるため、元の位置 (opp-area の外) に戻す
+  const _band = document.getElementById('resultBand');
+  const _oppArea = document.querySelector('.opp-area');
+  if(_band && _oppArea){
+    const _layoutEl = _oppArea.parentElement;
+    if(state.oppFlMode){
+      // 相手FL時: opp-area の直後に戻す (元の位置)
+      if(_layoutEl && _band.parentElement !== _layoutEl){
+        _layoutEl.insertBefore(_band, _oppArea.nextSibling);
+      }
+    } else {
+      // 通常時: opp-area の中に移動
+      if(_band.parentElement !== _oppArea){
+        _oppArea.appendChild(_band);
+      }
+    }
+  }
   // 結果表示時は相手エリアを非表示（相手FL時は除く）
   const oppArea = document.querySelector('.opp-area');
   if(oppArea && !state.oppFlMode) oppArea.classList.add('hide-on-result');
   const{pTotal,oTotal,pRoy,oRoy,det,pFoul,oFoul}=score;const net=(pTotal+pRoy)-(oTotal+oRoy);
   const band=document.getElementById('resultBand');const title=document.getElementById('resultBandTitle');const netEl=document.getElementById('resultBandNet');const rowsEl=document.getElementById('resultBandRows');
   title.textContent=net>0?'WIN':net<0?'LOSE':'DRAW';title.className='result-band-title '+(net>0?'win':net<0?'lose':'draw');
+  // v1.3 Session21 haptic: 結果バンド表示時 (WIN: HEAVY / LOSE: MEDIUM-LIGHT / DRAW: LIGHT)
+  if(typeof window.haptic === "function"){
+    if(net>0) window.haptic(25);
+    else if(net<0) window.haptic(15);
+    else window.haptic(10);
+  }
   netEl.textContent=net>0?`+${net}pt`:net<0?`${net}pt`:'±0pt';netEl.className='result-band-net'+(net>0?' positive':net<0?' negative':'');
   // fix110: 役判定表示を簡略化 (列勝敗削除 / 合計+スクープ/ファウル+増減)
   // スクープ判定: det の中で 自分が3列全勝 / 相手が3列全勝
@@ -11779,13 +12089,26 @@ function showResultBand(score){
   // 累計スコアに反映
   applyScoreResult(net);
   if(!state.flMode){
-    // 平場ゲーム終了: FL初入り判定（getBestValidEvalsベースで正確に判定）
-    const flE=checkFLEntry(state.playerBoard);
-    if(flE){
-      const flC=getFLC(state.playerBoard);
-      document.getElementById('flEntryText').textContent='🌟 FANTASY LAND! ('+flC+'枚)';
-      document.getElementById('flEntrySub').textContent='次のゲームへ → でFLへ！';
-      document.getElementById('flEntryBanner').classList.add('show');
+    // v1.3 Session21 fix: 「次回ファンタジー」演出は次回FL確定時のみ表示
+    //   - 平場終了 → checkFLEntry (FL初入り判定: KK以上ペア or トリップス)
+    //   - FL終了   → checkFLContinue (FL継続判定: 上段トリップス OR 下段クワッズ以上)
+    //   旧版は state.wasFL を見ずに常に checkFLEntry を使っていたため、
+    //   AAペアでFL継続できないケースでも演出が出てしまうバグがあった
+    let flWillStart, flC;
+    if(state.wasFL){
+      // FL終了: 継続できる時のみ演出
+      flWillStart = checkFLContinue(state.playerBoard);
+      flC = state.savedFlCards || getFLC(state.playerBoard);
+    } else {
+      // 平場終了: FL初入り判定
+      flWillStart = checkFLEntry(state.playerBoard);
+      flC = getFLC(state.playerBoard);
+    }
+    if(flWillStart){
+      // v1.3 fix125: テキストバナー (🌟 FANTASY LAND! / 次のゲームへ) を削除
+      // 画像演出 (showFLConfirmAnim) が代替するため、テキスト表示は不要
+      // v1.3 fix121: ファンタジー確定演出 (画像スライド + 動画事前ロード)
+      try{ if(typeof showFLConfirmAnim === 'function') showFLConfirmAnim(flC); }catch(e){ console.warn('[FL confirm anim]', e); }
     }
   }
 }
@@ -11807,18 +12130,21 @@ function renderGame(){
   const pa=document.getElementById('playerArea');const pl=document.getElementById('playerLabel');const ha=document.getElementById('handArea');
   if(state.flMode){
     pa.classList.add('fl-mode');pl.innerHTML='YOU <span class="fl-badge">FANTASY LAND</span>';ha.classList.add('fl-mode');
+    document.body.classList.add('fl-mode'); // v1.3 Session21: FL専用背景切り替え用
     document.getElementById('flEvalPanel').classList.add('show');
     document.getElementById('flHandWrap').classList.add('show');
     document.getElementById('flRoleBarOuter').classList.add('show');
     document.getElementById('handCards').classList.add('fl-flat');
     document.getElementById('handCards').classList.remove('fl');
-    document.getElementById('flDiscardBar').style.display=state.flCards>13?'flex':'none';
+    // v1.3 fix130: 捨て札バーは常に非表示 (手札に残ったカードを自動的に捨て札扱い)
+    document.getElementById('flDiscardBar').style.display='none';
     updateFLEvalPanel();
     updateRoleButtons();
     renderFLDiscardSlots();
     setTimeout(applyOverlapLayout, 30);
   }else{
     pa.classList.remove('fl-mode');pl.innerHTML='YOU';ha.classList.remove('fl-mode');
+    document.body.classList.remove('fl-mode'); // v1.3 Session21: 平場背景に戻す
     document.getElementById('flEvalPanel').classList.remove('show');
     document.getElementById('flHandWrap').classList.remove('show');
     const rbo=document.getElementById('flRoleBarOuter');if(rbo)rbo.classList.remove('show');
@@ -11836,10 +12162,10 @@ function renderGame(){
   else if(state.flMode){
     const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
     const discardNeeded=state.flCards-13;
-    const discarded=state.flDiscard?state.flDiscard.length:0;
+    // v1.3 fix130: 捨て札表記を phase-label から削除 (手札残しが自動で捨て札となる)
     let phTxt;
-    if(tot<13){phTxt='FANTASY LAND - '+tot+'/13枚配置 (残'+(13-tot)+'枚)'+(discardNeeded>0?' - 捨て'+discarded+'/'+discardNeeded:'');}
-    else{phTxt='FANTASY LAND - 配置完了'+(discardNeeded>0?' - 捨て'+discarded+'/'+discardNeeded+' (残カードをタップ)':'');}
+    if(tot<13){phTxt='FANTASY LAND - '+tot+'/13枚配置 (残'+(13-tot)+'枚)';}
+    else{phTxt='FANTASY LAND - 配置完了 → CONFIRMへ';}
     ph.textContent=phTxt;ph.className='phase-label fl';}
   else if(state.phase==='place5'){
     const n=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
@@ -11975,6 +12301,8 @@ function renderOpp(){
   //   - 相手 FL 計算中: UIの一貫性保持
   const hideOppFl = state.oppFlMode && !state.gameOver && (
     state.flMode ||
+    // v1.3 fix153: 自分が平場 + 相手FL のときは、 R5の配置が完了するまで すべてのラウンドで 相手のボードを隠す
+    (!state.flMode && state.oppFlMode) ||
     (state.round === 1 && (state.phase === 'place5' || state.phase === 'transitioning')) ||
     state.oppFlPending
   );
@@ -12076,6 +12404,13 @@ function updateEvals(){
   const allFilled=state.playerBoard.top.length===3&&state.playerBoard.mid.length===5&&state.playerBoard.bot.length===5;
   const result=allFilled?getBestValidEvals(state.playerBoard):null;
   const foul=result?result.isFoul:isFoulSimple(state.playerBoard);
+  // v1.3 Session21 haptic: ファウル発生時に1回だけ振動 (状態変化時のみ)
+  if(foul && !state._wasFoulNotified){
+    if(typeof window.haptic === "function") window.haptic(30);
+    state._wasFoulNotified = true;
+  } else if(!foul){
+    state._wasFoulNotified = false;
+  }
   for(const[row,elId,full]of rows){
     const el=document.getElementById(elId);const cards=state.playerBoard[row];
     if(!cards.length){el.textContent='';el.className='row-eval';continue;}
@@ -12112,12 +12447,11 @@ function updateConfirm(){
   if(state.flMode){
     const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
     const discardNeeded=state.flCards-13;
-    const discarded=state.flDiscard.length;
+    // v1.3 fix130: 13枚配置完了したら、手札に残ったカード = 捨て札として自動処理 (rdy判定も手札残りチェック不要)
     const boardFull=tot===13;
-    const rdy=boardFull&&discarded>=discardNeeded&&state.hand.length===0;
+    const rdy=boardFull;
     let txt;
     if(!boardFull)txt=`配置中 ${tot}/13`;
-    else if(discarded<discardNeeded)txt=`捨て ${discarded}/${discardNeeded}`;
     else txt='CONFIRM →';
     btn.disabled=!rdy;btn.textContent=txt;btn.className='btn-confirm fl';return;
   }
@@ -12174,7 +12508,7 @@ function onSlot(row,idx){
   const rC=state.playerBoard[row];const lim={top:3,mid:5,bot:5};
   if(rC[idx]){
     const card=rC[idx];
-    if(state.flMode){rC.splice(idx,1);state.hand.push(card);state.selectedCard=null;if(typeof sortFlHand==='function')sortFlHand();renderGame();return;}
+    if(state.flMode){if(typeof window.haptic==="function")window.haptic(8);rC.splice(idx,1);state.hand.push(card);state.selectedCard=null;if(typeof sortFlHand==='function')sortFlHand();renderGame();return;}
     if(state.phase==='pineapple'){if((state.placedThisRound||[]).find(c=>c.id===card.id))retCard(card,row,idx);else showToast('このカードは戻せません');}
     else if(state.phase==='place5')retCard(card,row,idx);
     return;
@@ -12194,6 +12528,8 @@ function onSlot(row,idx){
   if(!state.selectedCard)return;if(rC.length<lim[row])placeCard(state.selectedCard,row);
 }
 function retCard(card,row,idx){
+  // v1.3 Session21 haptic: スロット→手札 (LIGHT)
+  if(typeof window.haptic === "function") window.haptic(8);
   state.playerBoard[row].splice(idx,1);state.hand.push(card);
   if(state.placedThisRound)state.placedThisRound=state.placedThisRound.filter(c=>c.id!==card.id);
   if(state.phase==='pineapple'&&state.discardedThisRound){const dc=state.discard.pop();if(dc)state.hand.push(dc);state.discardedThisRound=false;}
@@ -12204,6 +12540,8 @@ function retCard(card,row,idx){
   renderGame();
 }
 function placeCard(card,row){
+  // v1.3 Session21 haptic: 手札→スロット配置 (LIGHT)
+  if(typeof window.haptic === "function") window.haptic(8);
   state.hand=state.hand.filter(c=>c.id!==card.id);state.playerBoard[row].push(card);
   if(!state.placedThisRound)state.placedThisRound=[];state.placedThisRound.push(card);state.selectedCard=null;
   if(state.flMode){
@@ -12226,6 +12564,8 @@ function placeCard(card,row){
 }
 function autoDiscard(){const c=state.hand[0];state.hand=state.hand.filter(x=>x.id!==c.id);state.discard.push(c);state.discardedThisRound=true;showToast(`${c.isJoker?'JK':c.r+SUIT_SYMS[c.s]} を捨てました`);if(typeof schedulePendingPush==='function') schedulePendingPush();}
 document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopChaipoTimer();}catch(e){}
+  // v1.3 Session21 haptic: 確定ボタン (MEDIUM)
+  if(typeof window.haptic === "function") window.haptic(20);
   if(state.gameOver){
     // ★ newGame()前にボード情報を保存する（newGame()でstateがリセットされるため）
     const wasFL = state.wasFL || (state.flCards > 0);
@@ -12323,9 +12663,24 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
       if(typeof updateConfirm === 'function') updateConfirm();
       return;
     }
-    newGame();
+    // v1.3 fix123: ボタンタップした瞬間、動画を先に再生 → 動画終了後に newGame + startFL をコール (手札配布)
+    // v1.3 fix124: setTimeout 削除 → 動画終了と同期で newGame + startFL を即実行 (平場チラ見え防止)
+    // v1.3 Session21 fix: リファンタジー (FL→FL) では動画演出をスキップ
+    //   平場→FLの初回突入時のみ動画演出を流す
     if(shouldStartFL && nextFlCards>=14){
-      setTimeout(()=>startFL(nextFlCards), 100);
+      if(!wasFL && typeof showFLIntro === 'function'){
+        // 平場→FL: 動画演出を流す
+        showFLIntro(nextFlCards, ()=>{
+          newGame();
+          startFL(nextFlCards, true);
+        });
+      } else {
+        // FL→FL (リファンタジー継続): 動画演出スキップ
+        newGame();
+        setTimeout(()=>startFL(nextFlCards, true), 100);
+      }
+    } else {
+      newGame();
     }
     return;
   }
@@ -12333,7 +12688,10 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
     const tot=state.playerBoard.top.length+state.playerBoard.mid.length+state.playerBoard.bot.length;
     const discardNeeded=state.flCards-13;
     if(tot<13){showToast(`あと${13-tot}枚配置してください`);return;}
-    if(state.flDiscard.length<discardNeeded){showToast(`あと${discardNeeded-state.flDiscard.length}枚捨ててください`);return;}
+    // v1.3 fix130: 13枚配置完了時、手札に残ったカードを自動的に flDiscard に移す
+    while(state.hand.length>0){
+      state.flDiscard.push(state.hand.shift());
+    }
     // FL練習モードの場合は専用の結果画面を表示
     if(typeof flPracticeMode !== 'undefined' && flPracticeMode){
       confirmFLPractice();
@@ -12582,8 +12940,8 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
   }
 });
 // btnAgainInline removed (integrated into CONFIRM button)
-function startFL(flCards){
-  console.log('startFL called with', flCards, 'cards, deckIdx='+state.deckIdx);
+function startFL(flCards, skipIntro){
+  console.log('startFL called with', flCards, 'cards, deckIdx='+state.deckIdx+', skipIntro='+!!skipIntro);
   state.flMode=true;state.flCards=flCards;
   // fix58: オンラインモードなら Supabase に FL 状態を反映
   if(state.onlineMode && typeof setFLActiveSupabase === 'function'){
@@ -12612,7 +12970,33 @@ function startFL(flCards){
       if(window.__flPrecomputed && window.__flPrecomputed.hands){
         var _pool = window.__flPrecomputed.hands[String(flCards)];
         if(_pool && _pool.length > 0){
-          var _picked = _pool[Math.floor(Math.random() * _pool.length)];
+          // v1.3 Session21: オンライン時は相手のR1手札と被らないハンドだけ抽選候補にする
+          //   (被りがあるとジョーカー重複バグの原因になる)
+          var _filteredPool = _pool;
+          if(state.onlineMode && state.oppBoard){
+            // 相手のR1手札は受信済みの oppBoard にあるはずだが、
+            // R1配置完了前のタイミングにも対応するため、
+            // もっと厳密には「相手が今までに見た可能性のあるカード」を除外
+            // シンプルに state.deck から 相手のR1 れた5枚を推定すると:
+            // 出現しているカード = state.hand + state.playerBoard + state.oppBoard
+            var _seenIds = new Set();
+            try{
+              (state.hand || []).forEach(function(c){ _seenIds.add(c.id); });
+              ['top','mid','bot'].forEach(function(r){
+                (state.playerBoard[r] || []).forEach(function(c){ _seenIds.add(c.id); });
+                (state.oppBoard[r] || []).forEach(function(c){ _seenIds.add(c.id); });
+              });
+            }catch(e){}
+            _filteredPool = _pool.filter(function(p){
+              return p.cards && !p.cards.some(function(id){ return _seenIds.has(id); });
+            });
+            console.log('[player FL online] pool filtered: '+_filteredPool.length+'/'+_pool.length+' (excluded '+_seenIds.size+' seen cards)');
+            if(_filteredPool.length === 0){
+              console.warn('[player FL online] フィルタ后プールが空 → 全プールより抽選 (被りリスクあり)');
+              _filteredPool = _pool;
+            }
+          }
+          var _picked = _filteredPool[Math.floor(Math.random() * _filteredPool.length)];
           var _flHand = _picked.cards.map(flIdToCard);
           state.hand = _flHand;
           window.__aiPlayerFlSolution = _picked.solution;
@@ -12631,6 +13015,13 @@ function startFL(flCards){
           state.deckIdx = _flHand.length;
           _playerFlPrecomputed = true;
           console.log('[player FL] v29.4 precomputed solution 適用 ('+flCards+'枚) id='+_picked.id);
+          // v1.3 Session21: オンライン時は FLハンドIDを相手に通知
+          if(state.onlineMode && typeof window.sendFLHandIdsSupabase === 'function'){
+            try{
+              var _handIds = _flHand.map(function(c){ return c.id; });
+              window.sendFLHandIdsSupabase(_handIds);
+            }catch(e){ console.error('[player FL] sendFLHandIdsSupabase err:', e); }
+          }
         }
       }
     }catch(e){ console.error('[player FL] precomputed access error:', e); }
@@ -12693,7 +13084,12 @@ function startFL(flCards){
     }
   }
   document.getElementById('resultBand').classList.remove('show');document.getElementById('flEntryBanner').classList.remove('show');
-  showFLIntro(flCards, ()=>{ sortFlHand(); renderGame(); setTimeout(()=>{updateScoreBar();updateButtonUI();try{startFlTimerIfEnabled();}catch(e){}},50); });
+  if(skipIntro){
+    // v1.3 fix123: 動画はもうボタンタップ時に先再生済 → そのまま手札配布
+    sortFlHand(); renderGame(); setTimeout(()=>{updateScoreBar();updateButtonUI();try{startFlTimerIfEnabled();}catch(e){}},50);
+  } else {
+    showFLIntro(flCards, ()=>{ sortFlHand(); renderGame(); setTimeout(()=>{updateScoreBar();updateButtonUI();try{startFlTimerIfEnabled();}catch(e){}},50); });
+  }
 }
 document.getElementById('btnAdvice').addEventListener('click',()=>{
   const panel=document.getElementById('advicePanel');const ov=document.getElementById('adviceOverlay');const t=document.getElementById('adviceContent');
@@ -12883,6 +13279,49 @@ function updateSettingsModalLabels(){
         setTimeout(function(){ if(typeof showStartScoreModal === 'function') showStartScoreModal(); }, 200);
       });
     }
+
+    // === Session 20 Step 2: ハプティックトグル ===
+    function hookHapticToggle(btnId, subId){
+      const btn = document.getElementById(btnId);
+      if(btn && !btn._hooked){
+        btn._hooked = true;
+        const sub = document.getElementById(subId);
+        if(sub && typeof window.isHapticDisabled === 'function'){
+          sub.textContent = window.isHapticDisabled() ? 'OFF' : 'ON';
+        }
+        btn.addEventListener('click', function(){
+          if(typeof window.isHapticDisabled !== 'function') return;
+          const nowDisabled = window.isHapticDisabled();
+          window.setHapticDisabled(!nowDisabled);
+          // ON にしたら確認用に短い振動
+          if(nowDisabled && typeof window.haptic === 'function'){
+            window.haptic(20);
+          }
+        });
+      }
+    }
+    hookHapticToggle('settingsHaptic', 'settingsHapticSub');
+    hookHapticToggle('settingsHaptic_screen', 'settingsHapticSub_screen');
+
+    // === Session 21: 開発者モードトグル ===
+    function hookDevModeToggle(btnId, subId){
+      const btn = document.getElementById(btnId);
+      if(btn && !btn._devHooked){
+        btn._devHooked = true;
+        const sub = document.getElementById(subId);
+        if(sub && typeof window.isDevModeEnabled === 'function'){
+          sub.textContent = window.isDevModeEnabled() ? 'ON' : 'OFF';
+        }
+        btn.addEventListener('click', function(){
+          if(typeof window.setDevModeEnabled !== 'function') return;
+          const nowEnabled = window.isDevModeEnabled();
+          window.setDevModeEnabled(!nowEnabled);
+          if(typeof window.haptic === 'function') window.haptic(15);
+        });
+      }
+    }
+    hookDevModeToggle('settingsDevMode', 'settingsDevModeSub');
+    hookDevModeToggle('settingsDevMode_screen', 'settingsDevModeSub_screen');
     const ex = document.getElementById('settingsExport');
     if(ex && !ex._hooked){
       ex._hooked = true;
@@ -13445,11 +13884,15 @@ try{var bel=document.getElementById('btnExportLogs');if(bel)bel.addEventListener
       if(drag.fromHand){
         undimOrig();
         if(slot){
-          if(drag.isGroup&&drag.groupCards&&drag.groupCards.length>1){
+          if(drag.isGroup&&drag.groupCards&&drag.groupCards.length>1&&state.flMode){
+            // v1.3 Session21 fix: グループ配置は FL 中のみ (平場では誤発動防止)
             const row=slot.dataset.row;
             const lim={top:3,mid:5,bot:5};
             const avail=lim[row]-state.playerBoard[row].length;
-            const toPlace=drag.groupCards.slice(0,avail);
+            // v1.3 Session21 fix: 現在の手札に存在するカードのみ配置 (防御的フィルタ)
+            const toPlace=drag.groupCards
+              .filter(c => state.hand.some(h => h.id === c.id))
+              .slice(0, avail);
             toPlace.forEach(c=>{state.hand=state.hand.filter(x=>x.id!==c.id);state.playerBoard[row].push(c);});
             clearGroupSel();
             clearFLTapSel(); // タップ選択もクリア
@@ -13492,44 +13935,99 @@ try{var bel=document.getElementById('btnExportLogs');if(bel)bel.addEventListener
 let flSortMode = 'rank';
 
 function showFLIntro(flCards, callback){
+  // v1.3 Session21 haptic: FL動画演出開始 (HEAVY) — FL突入の高揚感
+  if(typeof window.haptic === "function") window.haptic(30);
+  // v1.3 fix120: リング+SVG+大文字 → HEVC alpha 動画オーバーレイに全面置換
+  // v1.3 fix121: canplay待ち + 黒ローダーでチラ見え防止
   const ov = document.getElementById('flIntroOverlay');
-  
-  // 枚数に応じた表示と色
-  const flNames = {14:'QQ', 15:'KK', 16:'AA', 17:'TRIPS'};
-  const flColors = {
-    14: {bg:'radial-gradient(ellipse at center,#2a2a2a 0%,#111 100%)', text:'#9ca3af', glow:'rgba(156,163,175,0.5)'},
-    15: {bg:'radial-gradient(ellipse at center,#0a1628 0%,#000 100%)', text:'#3b82f6', glow:'rgba(59,130,246,0.6)'},
-    16: {bg:'radial-gradient(ellipse at center,#1a1200 0%,#000 100%)', text:'#f59e0b', glow:'rgba(245,158,11,0.6)'},
-    17: {bg:'radial-gradient(ellipse at center,#1a0000 0%,#000 100%)', text:'#ef4444', glow:'rgba(239,68,68,0.6)'}
+  const vid = document.getElementById('flIntroVideo');
+  const loader = document.getElementById('flIntroLoader');
+  let done = false;
+  const finish = ()=>{
+    if(done) return;
+    done = true;
+    try{ vid && vid.pause(); }catch(e){}
+    // v1.3 fix124: 平場チラ見え防止 - callback (newGame + startFL) を先に実行してFL画面に切り替えてから overlay をフェードアウト
+    if(typeof callback==='function'){
+      try{ callback(); }catch(e){ console.error('[showFLIntro] callback error:', e); }
+    }
+    // FL画面の renderGame が反映されるまで一拍進めてから overlay クリーンアップ
+    setTimeout(()=>{
+      if(ov) ov.classList.remove('show');
+      vid.style.visibility = '';
+    }, 120);
   };
-  
-  const c = flColors[flCards] || flColors[16];
-  
-  const cardsEl = document.getElementById('flIntroCards');
-  const typeEl = document.getElementById('flIntroType');
-  const ring = ov.querySelector('.fl-intro-ring');
-  
-  // 背景色を変更
-  ov.style.background = c.bg;
-  
-  // リングの色を変更
-  if(ring) {
-    ring.style.borderColor = c.text;
-    ring.style.boxShadow = '0 0 40px '+c.glow+',inset 0 0 30px '+c.glow.replace('0.6','0.15');
-  }
-  
-  if(cardsEl) {
-    cardsEl.textContent = flCards;
-    cardsEl.style.textShadow = '0 0 30px '+c.glow+',0 0 60px '+c.glow.replace('0.6','0.3');
-  }
-  if(typeEl) {
-    typeEl.textContent = flNames[flCards] + ' FANTASY';
-    typeEl.style.color = c.text;
-    typeEl.style.textShadow = '0 0 20px '+c.glow;
-  }
-  
+  if(!ov || !vid){ console.warn('[showFLIntro] overlay/video missing'); finish(); return; }
+
+  // 枚数 → ファイルシンボル (14:QQ→Q / 15:KK→K / 16:AA→A / 17:TRIPS→TRIPS)
+  const fileMap = {14:'Q', 15:'K', 16:'A', 17:'TRIPS'};
+  const fileBase = fileMap[flCards] || 'A';
+  const newSrc = 'assets/game/fl_' + fileBase + '.mp4';
+
+  // ローダーを出してoverlayを表示 (動画ロード中は黒画面)
+  if(loader){ loader.classList.remove('hidden'); }
+  // v1.3 fix122: video 要素を明示的に隠してチラ見えを防ぐ (canplayまで)
+  vid.style.visibility = 'hidden';
   ov.classList.add('show');
-  setTimeout(()=>{ ov.classList.remove('show'); setTimeout(callback, 350); }, 1800);
+
+  // srcを変更してロード開始 (preloadされていればキャッシュ从即座)
+  if(vid.src.indexOf(newSrc) === -1){
+    vid.src = newSrc;
+    try{ vid.load(); }catch(e){}
+  }
+  try{ vid.currentTime = 0; }catch(e){}
+
+  vid.addEventListener('ended', finish, {once:true});
+  vid.addEventListener('error', finish, {once:true});
+  // フォールバック: 8秒で強制終了 (読み込み失敗・HEVC alpha未対応の保険)
+  setTimeout(()=>{ if(!done) finish(); }, 8000);
+
+  // canplay まで待ってから play → ローダーを隠す
+  const playWhenReady = ()=>{
+    vid.removeEventListener('canplay', playWhenReady);
+    vid.style.visibility = 'visible';
+    if(loader){ loader.classList.add('hidden'); }
+    const p = vid.play();
+    if(p && typeof p.catch === 'function'){
+      p.catch(e=>{ console.warn('[showFLIntro] play() rejected:', e); finish(); });
+    }
+  };
+  if(vid.readyState >= 3){
+    // すでに canplay 以上 (HAVE_FUTURE_DATA)
+    playWhenReady();
+  } else {
+    vid.addEventListener('canplay', playWhenReady, {once:true});
+  }
+}
+
+// v1.3 fix121: ファンタジー確定演出 (左→右スライド + グリッチ)
+function showFLConfirmAnim(flCards){
+  const ov = document.getElementById('flConfirmOverlay');
+  if(!ov){ return; }
+  // v1.3 Session21 haptic: 「次回ファンタジー」演出と同期 (MEDIUM)
+  if(typeof window.haptic === "function") window.haptic(20);
+  // アニメーションをリセット (冗長重補防止)
+  ov.classList.remove('run');
+  ov.classList.remove('show');
+  // reflow でアニメスタート保証
+  void ov.offsetWidth;
+  ov.classList.add('show');
+  ov.classList.add('run');
+
+  // 動画事前ロード (showFLIntro 時のロード待ちを減らす)
+  try{
+    const vid = document.getElementById('flIntroVideo');
+    const fileMap = {14:'Q', 15:'K', 16:'A', 17:'TRIPS'};
+    const fileBase = fileMap[flCards] || 'A';
+    const preSrc = 'assets/game/fl_' + fileBase + '.mp4';
+    if(vid && vid.src.indexOf(preSrc) === -1){
+      vid.src = preSrc;
+      vid.load();
+    }
+  }catch(e){ console.warn('[showFLConfirmAnim] preload failed:', e); }
+
+  // アニメ終了 → overlay クリーンアップ (1.6s アニメ + 余裕)
+  setTimeout(()=>{ ov.classList.remove('run'); ov.classList.remove('show'); }, 1700);
 }
 
 function shortDesc(desc){
@@ -13915,8 +14413,10 @@ function onRoleBtnClick(role){
 
 function highlightGroupSel(){
   const selIds=(flGroupSel.combos[flGroupSel.idx]||[]).map(c=>c.id);
+  // v1.3 fix143: 役ボタン選択とタップ選択を同時に起こさず、役ボタンを優先 → タップ選択クリア
+  flTapSel = [];
   document.querySelectorAll('.card.in-hand').forEach(el=>{
-    el.classList.remove('fl-group-sel','fl-selected');
+    el.classList.remove('fl-group-sel','fl-selected','fl-tap-sel');
     if(selIds.includes(el.dataset.id))el.classList.add('fl-group-sel');
   });
   state.selectedCard=null;
@@ -13953,7 +14453,8 @@ function applyOverlapLayout(){
   const containerW = hc.parentElement.clientWidth - 12;  /* v28.43: 左オフセット削除 */
   hc.style.width = containerW + 'px';
   hc.style.left = '0px';  /* v28.43: 左オフセット削除 */
-  hc.style.marginLeft = '6px';
+  // v1.3 Session21: marginLeft 6px → 0 で中央揃えを正確に (FL手札)
+  hc.style.marginLeft = '0px';
   hc.style.position = 'relative';
 
   if(n === 1){
@@ -14109,14 +14610,15 @@ function _endGameFLAfterOpp(){
   renderBoardWithJokers();
 
   // FL継続バナー表示
-  if(flContinue){
-    document.getElementById('flEntryText').textContent='🌟 FL継続! ('+savedFlCards+'枚)';
-    document.getElementById('flEntrySub').textContent='次回もファンタジーランド';
-  } else {
-    document.getElementById('flEntryText').textContent='📋 平場へ';
-    document.getElementById('flEntrySub').textContent='ファンタジーランド終了';
-  }
-  document.getElementById('flEntryBanner').classList.add('show');
+  // v1.3 fix145: FL継続/平場へのテキストバナーを非表示 (画面中央上部の黄バナー不要)
+  // if(flContinue){
+  //   document.getElementById('flEntryText').textContent='🌟 FL継続! ('+savedFlCards+'枚)';
+  //   document.getElementById('flEntrySub').textContent='次回もファンタジーランド';
+  // } else {
+  //   document.getElementById('flEntryText').textContent='📋 平場へ';
+  //   document.getElementById('flEntrySub').textContent='ファンタジーランド終了';
+  // }
+  // document.getElementById('flEntryBanner').classList.add('show');
 
   // FL関連UIを非表示
   const pa=document.getElementById('playerArea');
@@ -14175,8 +14677,16 @@ function applyScoreResult(net){
   // net = YOU の純得点（正=YOU勝ち、負=OPP勝ち）
   const prevYou = sessionScore.you;
   const prevOpp = sessionScore.opp;
-  sessionScore.you += net;
-  sessionScore.opp -= net;
+
+  // v1.3 Session21 fix: 実際にスコアに反映される点数は「取る側/取られる側の現在持ち点」が上限
+  //   例: net=18 で相手が15点しかない → effectiveNet=15 (超過分は捨てられる)
+  //   例: net=-18 で自分が15点しかない → effectiveNet=-15
+  let effectiveNet = net;
+  if(net > 0 && net > prevOpp) effectiveNet = prevOpp;
+  else if(net < 0 && -net > prevYou) effectiveNet = -prevYou;
+
+  sessionScore.you += effectiveNet;
+  sessionScore.opp -= effectiveNet;
   sessionScore.games++;
 
   // 推移表示を更新
@@ -14191,8 +14701,8 @@ function applyScoreResult(net){
     tyEl.textContent = prevYou + ' → ' + sessionScore.you;
     toEl.textContent = prevOpp + ' → ' + sessionScore.opp;
 
-    const yDelta = net;
-    const oDelta = -net;
+    const yDelta = effectiveNet;
+    const oDelta = -effectiveNet;
     dyEl.textContent = yDelta > 0 ? '+' + yDelta : yDelta === 0 ? '±0' : String(yDelta);
     dyEl.className = 'score-trans-delta' + (yDelta > 0 ? ' pos' : yDelta < 0 ? ' neg' : ' zero');
     doEl.textContent = oDelta > 0 ? '+' + oDelta : oDelta === 0 ? '±0' : String(oDelta);
@@ -14369,13 +14879,22 @@ function shouldShowOppCards(){
 }
 
 // ===== FL複数タップ選択 =====
-let flTapSel = []; // タップで選択したカードのID配列
-
+let flTapSel = []; // タップで選択したカードのID配列 (古い順に並ぶ)
+const FL_HOLD_MAX = 5; // v1.3 fix141: ホールド上限
 function toggleFLTapSel(card){
   const idx = flTapSel.indexOf(card.id);
   if(idx >= 0){
     flTapSel.splice(idx, 1); // 選択解除
   } else {
+    // v1.3 fix142: ホールド上限 (5枚) を超えたら、一番古いタップ選択を1枚解除して新規追加
+    const groupSelCount = (typeof flGroupSel !== 'undefined' && flGroupSel && flGroupSel.combos && flGroupSel.combos[flGroupSel.idx]) ? flGroupSel.combos[flGroupSel.idx].length : 0;
+    const totalHold = flTapSel.length + groupSelCount;
+    if(totalHold >= FL_HOLD_MAX){
+      // 一番古いタップ選択 (flTapSel[0]) を解除
+      if(flTapSel.length > 0){
+        flTapSel.shift();
+      }
+    }
     flTapSel.push(card.id); // 選択追加
   }
   updateFLTapSelUI();
@@ -14698,7 +15217,7 @@ if(document.readyState === 'loading'){
 
 function onPlayClick(){
   console.log('[NEIGHBORS] onPlayClick called');
-  if(window.navigator && window.navigator.vibrate) window.navigator.vibrate(20);
+  if(typeof window.haptic === "function") window.haptic(20);
   var titleScreen = document.getElementById('screen-title');
   if(!titleScreen) return;
 
@@ -14801,7 +15320,7 @@ function onPlayClick(){
 }
 
 function onModeClick(modeName){
-  if(window.navigator && window.navigator.vibrate) window.navigator.vibrate(20);
+  if(typeof window.haptic === "function") window.haptic(20);
   console.log('[NEIGHBORS] モード選択:', modeName);
 
   // fix19: モードごとのトランジション画像マッピング
@@ -14939,7 +15458,7 @@ function navigateToMode(modeName){
 
 // fix38: 設定画面からタイトル画面に戻る(設定 → タイトル)
 function backToTitleFromSettings(){
-  if(window.navigator && window.navigator.vibrate) window.navigator.vibrate(15);
+  if(typeof window.haptic === "function") window.haptic(15);
   console.log('[NEIGHBORS] タイトルへ戻る (from 設定)');
 
   // 全モード画面非active
@@ -14976,7 +15495,7 @@ function backToTitleFromSettings(){
 
 // fix24: モード画面からモード選択へ戻る関数
 function backToModeSelect(){
-  if(window.navigator && window.navigator.vibrate) window.navigator.vibrate(15);
+  if(typeof window.haptic === "function") window.haptic(15);
   console.log('[NEIGHBORS] モード選択へ戻る');
 
   // 現在のモード画面を全クリーンアップ
@@ -15094,13 +15613,55 @@ function navigateToModeOnly(modeName){
 }
 
 function onSettingsClick(){
-  if(window.navigator && window.navigator.vibrate) window.navigator.vibrate(10);
+  if(typeof window.haptic === "function") window.haptic(10);
   var btnSettings = document.getElementById('btnSettings');
   if(btnSettings){ btnSettings.click(); return; }
   console.warn('[NEIGHBORS] btnSettings 要素なし');
 }
 
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
+
+/* === Session 20 Step 2: ハプティック === */
+(function(){
+  var HAPTIC_KEY = 'chaipo:haptic:disabled';
+  
+  window.isHapticDisabled = function(){
+    try { return localStorage.getItem(HAPTIC_KEY) === '1'; } catch(e){ return false; }
+  };
+  
+  window.setHapticDisabled = function(disabled){
+    try { localStorage.setItem(HAPTIC_KEY, disabled ? '1' : '0'); } catch(e){}
+    var labels = ['settingsHapticSub', 'settingsHapticSub_screen'];
+    labels.forEach(function(id){
+      var sub = document.getElementById(id);
+      if(sub) sub.textContent = disabled ? 'OFF' : 'ON';
+    });
+  };
+  
+  window.haptic = function(ms){
+    if(window.isHapticDisabled()) return;
+    ms = ms || 15;
+    
+    // Capacitor Haptics プラグイン経由 (iOS/Android ネイティブ)
+    if(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics){
+      var Haptics = window.Capacitor.Plugins.Haptics;
+      var style = 'LIGHT';
+      if(ms >= 18) style = 'MEDIUM';
+      if(ms >= 25) style = 'HEAVY';
+      try {
+        var p = Haptics.impact({ style: style });
+        if(p && p.catch) p.catch(function(e){ console.warn('[haptic] impact error:', e); });
+      } catch(e){ console.warn('[haptic] sync error:', e); }
+      return;
+    }
+    
+    // ブラウザフォールバック (デスクトップ Chrome / Android Chrome)
+    if(window.navigator && window.navigator.vibrate){
+      try { window.navigator.vibrate(ms); } catch(e){}
+    }
+  };
+})();
+
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
 
 
@@ -16142,23 +16703,24 @@ function handleConfirmFL(){
         return;
       }
       // fix77: 自分がFL の間は 平場相手の place5 も oppBoard 反映を保留 (FLプレイヤーは途中状態を見ず、 平場の R5完了時にまとめて反映)
-      if(typeof state !== 'undefined' && state && state.flMode){
-        console.log('[fix77] place5 反映保留 (自分 FL 中, R5完了まで見せない)');
-        // 保留ボードに保存
-        state.oppPendingFinalBoard = state.oppPendingFinalBoard || { top:[], mid:[], bot:[] };
-        state.oppPendingFinalBoard.top = placement.top.slice();
-        state.oppPendingFinalBoard.mid = placement.mid.slice();
-        state.oppPendingFinalBoard.bot = placement.bot.slice();
-        // resolver は通常通り解決
-        if(os.resolvers.r1){
-          const w = os.resolvers.r1; os.resolvers.r1 = null;
-          try{ clearTimeout(w.timerId); }catch(e){}
-          w.resolve(placement);
-        } else {
-          os.buffered.r1 = placement;
-        }
-        return;
-      }
+      // v1.3 fix154: この保留を解除 → FLプレイヤーにも平場相手の配置をリアルタイムで見せる
+      // if(typeof state !== 'undefined' && state && state.flMode){
+      //   console.log('[fix77] place5 反映保留 (自分 FL 中, R5完了まで見せない)');
+      //   // 保留ボードに保存
+      //   state.oppPendingFinalBoard = state.oppPendingFinalBoard || { top:[], mid:[], bot:[] };
+      //   state.oppPendingFinalBoard.top = placement.top.slice();
+      //   state.oppPendingFinalBoard.mid = placement.mid.slice();
+      //   state.oppPendingFinalBoard.bot = placement.bot.slice();
+      //   // resolver は通常通り解決
+      //   if(os.resolvers.r1){
+      //     const w = os.resolvers.r1; os.resolvers.r1 = null;
+      //     try{ clearTimeout(w.timerId); }catch(e){}
+      //     w.resolve(placement);
+      //   } else {
+      //     os.buffered.r1 = placement;
+      //   }
+      //   return;
+      // }
       // v29.1-B ストリクト: ボタン側は即座に画面反映
       try{
         if(typeof state !== 'undefined' && state && state.onlineMode &&
@@ -16212,23 +16774,24 @@ function handleConfirmFL(){
         return;
       }
       // fix77: 自分がFL の間は 平場相手の pineapple_place も oppBoard 反映を保留
-      if(typeof state !== 'undefined' && state && state.flMode){
-        console.log('[fix77] pineapple_place R' + r + ' 反映保留 (自分 FL 中)');
-        // 保留ボードにこの R までの配置を累積 (event_type='place5' は 上でセットされ、 ここは push)
-        state.oppPendingFinalBoard = state.oppPendingFinalBoard || { top:[], mid:[], bot:[] };
-        for(const row of ['top','mid','bot']){
-          (placement[row] || []).forEach(function(c){ state.oppPendingFinalBoard[row].push(c); });
-        }
-        if(os.resolvers.pineapple[r]){
-          const w = os.resolvers.pineapple[r];
-          os.resolvers.pineapple[r] = null;
-          try{ clearTimeout(w.timerId); }catch(e){}
-          w.resolve(placement);
-        } else {
-          os.buffered.pineapple[r] = placement;
-        }
-        return;
-      }
+      // v1.3 fix154: この保留も解除 → FLプレイヤーにも平場相手の配置をリアルタイムで見せる
+      // if(typeof state !== 'undefined' && state && state.flMode){
+      //   console.log('[fix77] pineapple_place R' + r + ' 反映保留 (自分 FL 中)');
+      //   // 保留ボードにこの R までの配置を累積 (event_type='place5' は 上でセットされ、 ここは push)
+      //   state.oppPendingFinalBoard = state.oppPendingFinalBoard || { top:[], mid:[], bot:[] };
+      //   for(const row of ['top','mid','bot']){
+      //     (placement[row] || []).forEach(function(c){ state.oppPendingFinalBoard[row].push(c); });
+      //   }
+      //   if(os.resolvers.pineapple[r]){
+      //     const w = os.resolvers.pineapple[r];
+      //     os.resolvers.pineapple[r] = null;
+      //     try{ clearTimeout(w.timerId); }catch(e){}
+      //     w.resolve(placement);
+      //   } else {
+      //     os.buffered.pineapple[r] = placement;
+      //   }
+      //   return;
+      // }
       // v29.1-B ストリクト: ボタン側は即座に画面反映 (push で追加)
       try{
         if(typeof state !== 'undefined' && state && state.onlineMode &&
@@ -16263,6 +16826,56 @@ function handleConfirmFL(){
       } else {
         os.buffered.pineapple[r] = placement;
       }
+    } else if(ev.event_type === 'fl_hand_ids'){
+      // v1.3 Session21: 相手がFL中のFLハンドIDを受信
+      //   → このIDを自分のデッキから除外してR2-R5用デッキを再構築
+      //   → ジョーカー重複バグを防ぐ
+      try{
+        if(typeof state !== 'undefined' && state && state.onlineMode){
+          var _flBody = ev.placed_cards || {};
+          var _flIds = _flBody.ids || [];
+          if(Array.isArray(_flIds) && _flIds.length > 0){
+            var _flIdSet = new Set(_flIds);
+            // 現在の自分の手札とボードにあるカードのIDも除外 (すでに引いたカード)
+            var _ownedIds = new Set();
+            try{
+              (state.hand || []).forEach(function(c){ _ownedIds.add(c.id); });
+              if(state.playerBoard){
+                ['top','mid','bot'].forEach(function(r){
+                  (state.playerBoard[r] || []).forEach(function(c){ _ownedIds.add(c.id); });
+                });
+              }
+            }catch(e){}
+            // 新しいデッキ: 全54枚 - FLハンドID - 自分の手札/ボードID
+            if(typeof makeDeck === 'function'){
+              var _allCards = makeDeck();
+              var _newDeck = _allCards.filter(function(c){
+                return !_flIdSet.has(c.id) && !_ownedIds.has(c.id);
+              });
+              // シャッフル (現在の Math.random を使用 — 両クライアントで差してもデッキ中身は同じ集合なのでOK)
+              for(var _ni = _newDeck.length - 1; _ni > 0; _ni--){
+                var _nj = Math.floor(Math.random() * (_ni + 1));
+                var _ntmp = _newDeck[_ni]; _newDeck[_ni] = _newDeck[_nj]; _newDeck[_nj] = _ntmp;
+              }
+              // R2-R5用に、現在の state.hand を先頭にもちつつ、後を _newDeck で上書き
+              // (但し dealNext のオンライン分岐は base=10+(round-2)*6 を使うので、
+              //  state.deck[10:] 以降に _newDeck を配置する必要がある)
+              // シンプルに: state.deck = (R1 host 0-4) + (R1 guest 5-9) + _newDeck (R2-R5用)
+              // R1の10枚はもう引いてるので他を上書き
+              if(state.deck && state.deck.length >= 10){
+                var _r1Host = state.deck.slice(0, 5);
+                var _r1Guest = state.deck.slice(5, 10);
+                state.deck = _r1Host.concat(_r1Guest).concat(_newDeck);
+                console.log('[fl_hand_ids] received '+_flIds.length+' ids → deck rebuilt: ' + state.deck.length + ' cards (R1保持+R2-R5再構築)');
+              } else {
+                console.warn('[fl_hand_ids] state.deck が不整、デッキ再構築スキップ');
+              }
+            }
+          }
+        }
+      }catch(e){ console.error('[fl_hand_ids] receive err:', e); }
+      // resolver 不要 (受信のみ)
+      return;
     } else if(ev.event_type === 'fl_place'){
       // fix64: 相手の FL 完成通知を受信
       const body = ev.placed_cards || {};
@@ -16571,6 +17184,27 @@ function handleConfirmFL(){
       await O.supabase.from('matches').update(update).eq('id', os.match.id);
       console.log('[fl] active set: cards=' + flCards);
     }catch(e){ console.error('[fl active] exception:', e); }
+  }
+
+  // v1.3 Session21: 自分FL時に FLハンドのカードIDを相手に通知
+  //   → 相手はこのIDをデッキから除外してR2-R5用のデッキを再構築する
+  //   → ジョーカー重複バグを防ぐ
+  async function sendFLHandIdsSupabase(handIds){
+    if(typeof state === 'undefined' || !state || !state.onlineMode) return;
+    const O = window.chaipoOnline;
+    const os = window.__onlineState;
+    if(!O || !O.supabase || !os || !os.match) return;
+    try{
+      const { error } = await O.supabase.from('match_events').insert({
+        match_id:     os.match.id,
+        event_type:   'fl_hand_ids',
+        round_num:    0,  // R1配布前のセットアップ
+        player_num:   os.myNum,
+        placed_cards: { ids: handIds }
+      });
+      if(error) console.error('[fl_hand_ids] insert error:', error);
+      else console.log('[fl_hand_ids] sent: ' + handIds.length + ' cards');
+    }catch(e){ console.error('[fl_hand_ids] exception:', e); }
   }
   
   async function clearFLActiveSupabase(){
@@ -16908,6 +17542,7 @@ function handleConfirmFL(){
   window.schedulePendingPush         = schedulePendingPush;
   window.clearPendingPlacement       = clearPendingPlacement;
   window.setFLActiveSupabase         = setFLActiveSupabase;
+  window.sendFLHandIdsSupabase       = sendFLHandIdsSupabase;
   window.clearFLActiveSupabase       = clearFLActiveSupabase;
   window.sendMyFlPlacement           = sendMyFlPlacement;
   window.waitForOpponentR1           = waitForOpponentR1;
@@ -19261,5 +19896,311 @@ function updateModeBtnStats(){
   console.log('[m5] quickmatch module loaded');
 })();
 </script>
+
+<!-- v1.3 fix130: チューナーとデバッグボタンを削除してクリーン版に -->
+
+<!-- === Session 21: 開発者モード / ボード位置調整ツール === -->
+<style>
+#devToolPanel{
+  position:fixed; right:8px; bottom:calc(env(safe-area-inset-bottom, 0px) + 8px);
+  z-index:99999;
+  background:rgba(20,20,28,0.92); color:#e7e7ee;
+  border:1px solid rgba(255,255,255,0.18);
+  border-radius:12px;
+  padding:8px 10px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:11px;
+  display:none;
+  user-select:none;
+  box-shadow:0 6px 24px rgba(0,0,0,0.4);
+  min-width:180px;
+}
+body.dev-mode #devToolPanel{ display:block; }
+#devToolPanel.collapsed .dev-body{ display:none; }
+#devToolPanel .dev-head{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:6px;
+}
+#devToolPanel .dev-title{
+  font-weight:700; letter-spacing:0.05em; font-size:10px; color:#9be7ff;
+}
+#devToolPanel .dev-collapse{
+  background:transparent; border:none; color:#9be7ff; font-size:14px; cursor:pointer; padding:0 4px;
+}
+#devToolPanel .dev-row{
+  display:flex; align-items:center; gap:4px; margin:3px 0;
+}
+#devToolPanel .dev-label{
+  width:28px; font-size:10px; color:#aaa;
+}
+#devToolPanel .dev-val{
+  min-width:36px; text-align:center; font-variant-numeric:tabular-nums; font-size:11px; color:#fff;
+}
+#devToolPanel button.dev-btn{
+  background:rgba(255,255,255,0.10); color:#fff; border:1px solid rgba(255,255,255,0.20);
+  border-radius:6px; padding:4px 7px; font-size:11px; cursor:pointer; min-width:24px;
+  font-family:inherit;
+}
+#devToolPanel button.dev-btn:active{ background:rgba(155,231,255,0.30); }
+#devToolPanel .dev-step-row{
+  display:flex; gap:4px; margin-top:6px; justify-content:space-between;
+}
+#devToolPanel .dev-step-row button{ flex:1; }
+#devToolPanel button.dev-step-active{
+  background:rgba(155,231,255,0.40); border-color:rgba(155,231,255,0.7);
+}
+#devToolPanel .dev-actions{
+  display:flex; gap:4px; margin-top:6px;
+}
+#devToolPanel .dev-actions button{ flex:1; font-size:10px; }
+#devToolPanel .dev-css{
+  margin-top:6px; padding:5px; background:rgba(0,0,0,0.4); border-radius:5px;
+  font-family:'SF Mono','Monaco',monospace; font-size:9px; color:#9be7ff;
+  word-break:break-all; cursor:pointer;
+}
+</style>
+
+<div id="devToolPanel">
+  <div class="dev-head">
+    <span class="dev-title">DEV / FL BOARD POS</span>
+    <button class="dev-collapse" id="devCollapse" type="button">–</button>
+  </div>
+  <div class="dev-body">
+    <div class="dev-row">
+      <span class="dev-label">Y</span>
+      <button class="dev-btn" id="devUp" type="button">↑</button>
+      <span class="dev-val" id="devValY">0</span>
+      <button class="dev-btn" id="devDown" type="button">↓</button>
+    </div>
+    <div class="dev-row">
+      <span class="dev-label">X</span>
+      <button class="dev-btn" id="devLeft" type="button">←</button>
+      <span class="dev-val" id="devValX">0</span>
+      <button class="dev-btn" id="devRight" type="button">→</button>
+    </div>
+    <div class="dev-step-row">
+      <button class="dev-btn" id="devStep1" type="button">1px</button>
+      <button class="dev-btn dev-step-active" id="devStep5" type="button">5px</button>
+      <button class="dev-btn" id="devStep10" type="button">10px</button>
+    </div>
+    <div class="dev-actions">
+      <button class="dev-btn" id="devReset" type="button">Reset</button>
+      <button class="dev-btn" id="devCopy" type="button">Copy CSS</button>
+    </div>
+    <div class="dev-css" id="devCssOutput">transform: translate(0px, 0px);</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // 開発者モード ON/OFF とボードオフセットを localStorage で永続化
+  const KEY_DEV = 'chaipo_dev_mode_v1';
+  const KEY_OFFX = 'chaipo_dev_board_offset_x';
+  const KEY_OFFY = 'chaipo_dev_board_offset_y';
+  let step = 5;
+
+  window.isDevModeEnabled = function(){
+    try{ return localStorage.getItem(KEY_DEV) === '1'; }catch(e){ return false; }
+  };
+  window.setDevModeEnabled = function(enabled){
+    try{ localStorage.setItem(KEY_DEV, enabled ? '1' : '0'); }catch(e){}
+    // v1.3 Session21: OFF にしたときは追加オフセットもクリアし本体CSSを復活させる
+    if(!enabled){
+      try{
+        localStorage.removeItem(KEY_OFFX);
+        localStorage.removeItem(KEY_OFFY);
+      }catch(e){}
+      const pa = document.getElementById('playerArea');
+      if(pa) pa.style.transform = '';
+    }
+    applyDevMode();
+    // 設定サブタイトル更新
+    ['settingsDevModeSub','settingsDevModeSub_screen'].forEach(function(id){
+      const sub = document.getElementById(id);
+      if(sub) sub.textContent = enabled ? 'ON' : 'OFF';
+    });
+    updatePanelDisplay();
+  };
+
+  function getOffset(){
+    let x = 0, y = 0;
+    try{
+      x = parseInt(localStorage.getItem(KEY_OFFX) || '0', 10) || 0;
+      y = parseInt(localStorage.getItem(KEY_OFFY) || '0', 10) || 0;
+    }catch(e){}
+    return {x:x, y:y};
+  }
+  function setOffset(x, y){
+    try{
+      localStorage.setItem(KEY_OFFX, String(x));
+      localStorage.setItem(KEY_OFFY, String(y));
+    }catch(e){}
+    applyOffset();
+    updatePanelDisplay();
+  }
+  function applyOffset(){
+    // v1.3 Session21: 開発者モード OFF 時は何もしない (本体CSSのみ適用)
+    if(!window.isDevModeEnabled()){
+      const pa = document.getElementById('playerArea');
+      if(pa && pa.style.transform) pa.style.transform = '';
+      return;
+    }
+    const o = getOffset();
+    const pa = document.getElementById('playerArea');
+    if(pa){
+      // FL中のみオフセットを適用 (平場は動かさない)
+      // 本体CSSの -41px に加算される形 (オフセット 0 ならインラインを外して本体CSSに任せる)
+      const isFL = document.body.classList.contains('fl-mode');
+      if(isFL && (o.x !== 0 || o.y !== 0)){
+        const totalY = -41 + o.y;
+        const totalX = 0 + o.x;
+        pa.style.transform = 'translate(' + totalX + 'px, ' + totalY + 'px)';
+      } else {
+        pa.style.transform = '';
+      }
+    }
+  }
+  window.applyDevBoardOffset = applyOffset;
+
+  // v1.3 Session21: 開発者モード ON のときだけ Observer を動かす
+  let _devObsActive = false;
+  let _devObs = null;
+  let _devBodyObs = null;
+  function startDevObserver(){
+    if(_devObsActive) return;
+    const pa = document.getElementById('playerArea');
+    if(!pa) return;
+    _devObs = new MutationObserver(function(){ applyOffset(); });
+    _devObs.observe(pa, { attributes:true, attributeFilter:['style','class'] });
+    _devBodyObs = new MutationObserver(function(){ applyOffset(); });
+    _devBodyObs.observe(document.body, { attributes:true, attributeFilter:['class'] });
+    _devObsActive = true;
+  }
+  function stopDevObserver(){
+    if(!_devObsActive) return;
+    if(_devObs){ _devObs.disconnect(); _devObs = null; }
+    if(_devBodyObs){ _devBodyObs.disconnect(); _devBodyObs = null; }
+    _devObsActive = false;
+  }
+
+  function applyDevMode(){
+    const enabled = window.isDevModeEnabled();
+    document.body.classList.toggle('dev-mode', enabled);
+    // v1.3 Session21: Observer も ON/OFF と連動
+    if(enabled){
+      startDevObserver();
+    } else {
+      stopDevObserver();
+      // OFF になったら transform もクリアして本体CSSを復活
+      const pa = document.getElementById('playerArea');
+      if(pa) pa.style.transform = '';
+    }
+  }
+
+  function updatePanelDisplay(){
+    const o = getOffset();
+    const xEl = document.getElementById('devValX');
+    const yEl = document.getElementById('devValY');
+    const cssEl = document.getElementById('devCssOutput');
+    if(xEl) xEl.textContent = o.x;
+    if(yEl) yEl.textContent = o.y;
+    if(cssEl) cssEl.textContent = 'transform: translate(' + o.x + 'px, ' + o.y + 'px);';
+  }
+
+  function nudge(dx, dy){
+    const o = getOffset();
+    setOffset(o.x + dx, o.y + dy);
+    if(typeof window.haptic === 'function') window.haptic(5);
+  }
+
+  function hookPanel(){
+    const up = document.getElementById('devUp');
+    const down = document.getElementById('devDown');
+    const left = document.getElementById('devLeft');
+    const right = document.getElementById('devRight');
+    const reset = document.getElementById('devReset');
+    const copy = document.getElementById('devCopy');
+    const collapse = document.getElementById('devCollapse');
+    const panel = document.getElementById('devToolPanel');
+    const s1 = document.getElementById('devStep1');
+    const s5 = document.getElementById('devStep5');
+    const s10 = document.getElementById('devStep10');
+
+    if(!up || up._hooked) return;
+    up._hooked = true;
+
+    up.addEventListener('click', function(){ nudge(0, -step); });
+    down.addEventListener('click', function(){ nudge(0, +step); });
+    left.addEventListener('click', function(){ nudge(-step, 0); });
+    right.addEventListener('click', function(){ nudge(+step, 0); });
+    reset.addEventListener('click', function(){
+      setOffset(0, 0);
+      if(typeof window.haptic === 'function') window.haptic(20);
+    });
+    copy.addEventListener('click', function(){
+      const o = getOffset();
+      // v1.3 Session21: FL中のみ適用されるセレクタで出力
+      const css = '/* FL中のボード位置調整 (Session21 dev tool) */\nhtml body.ui-v2.fl-mode .player-area{ transform: translate(' + o.x + 'px, ' + o.y + 'px) !important; }';
+      try{
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(css);
+        }
+      }catch(e){}
+      if(typeof window.haptic === 'function') window.haptic(20);
+      const cssEl = document.getElementById('devCssOutput');
+      if(cssEl){
+        cssEl.textContent = 'Copied! FL: translate(' + o.x + 'px,' + o.y + 'px)';
+        setTimeout(function(){ updatePanelDisplay(); }, 1200);
+      }
+    });
+    collapse.addEventListener('click', function(){
+      panel.classList.toggle('collapsed');
+      collapse.textContent = panel.classList.contains('collapsed') ? '+' : '–';
+    });
+    function setStep(n, btn){
+      step = n;
+      [s1, s5, s10].forEach(function(b){ b.classList.remove('dev-step-active'); });
+      btn.classList.add('dev-step-active');
+    }
+    s1.addEventListener('click', function(){ setStep(1, s1); });
+    s5.addEventListener('click', function(){ setStep(5, s5); });
+    s10.addEventListener('click', function(){ setStep(10, s10); });
+  }
+
+  function init(){
+    // v1.3 Session21: 起動時は追加オフセットを必ず 0,0 で始める (前回のセッションの残を引きずらない)
+    try{
+      localStorage.removeItem(KEY_OFFX);
+      localStorage.removeItem(KEY_OFFY);
+    }catch(e){}
+    applyDevMode();
+    applyOffset();
+    updatePanelDisplay();
+    hookPanel();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  // 以前は常時 MutationObserver を起動していたが、現在は applyDevMode から startDevObserver/stopDevObserver を呼ぶため不要
+  // (伝統的な watchPlayerArea 関数はそのまま残し、初期状態だけチェックするスタブに変更)
+  function watchPlayerArea(){
+    const pa = document.getElementById('playerArea');
+    if(!pa) { setTimeout(watchPlayerArea, 500); return; }
+    if(window.isDevModeEnabled()){
+      startDevObserver();
+    }
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', watchPlayerArea);
+  } else {
+    watchPlayerArea();
+  }
+})();
+</script>
+
 </body>
 </html>

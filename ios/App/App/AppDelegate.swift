@@ -1,10 +1,12 @@
 import UIKit
 import Capacitor
+import WebKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
@@ -27,6 +29,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        #if DEBUG
+        // Session 20: WKWebView を Safari Web Inspector で見るために必要 (iOS 16.4+)
+        if #available(iOS 16.4, *) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.enableWebViewInspector()
+            }
+        }
+        #endif
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
@@ -46,4 +56,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
 
+    #if DEBUG
+    @available(iOS 16.4, *)
+    private func enableWebViewInspector() {
+        guard let window = self.window else { return }
+        for view in self.allSubviews(of: window) {
+            if let webView = view as? WKWebView {
+                webView.isInspectable = true
+                print("[DEBUG] WKWebView isInspectable = true (Web Inspector 有効化)")
+                return
+            }
+        }
+        print("[DEBUG] WKWebView が見つからない (まだロード中の可能性)")
+    }
+
+    private func allSubviews(of view: UIView) -> [UIView] {
+        var result: [UIView] = []
+        for subview in view.subviews {
+            result.append(subview)
+            result.append(contentsOf: allSubviews(of: subview))
+        }
+        return result
+    }
+    #endif
 }
