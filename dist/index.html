@@ -14,6 +14,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
+  /* === Phase A-0: ショップシステム用 背景画像変数 === */
+  --bg-normal-url: url('assets/game/bg.jpg?v=2');
+  --bg-fl-url: url('assets/game/bg_fl.png?v=1');
+  /* === ここまで === */
   --accent:#7170ff;--accent-bg:#5e6ad2;--gold:#f5a623;--gold-dim:#c47d10;
   --green:#10b981;--foul-color:#ff3b5c;
   --fl-bg:rgba(245,166,35,0.12);
@@ -218,15 +222,21 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 }
 /* fix90 (UI v2): 対戦画面デザインリニューアル - 背景画像＋絶対配置 */
 body.ui-v2 #screen-game{
-  background:
-    url('assets/game/bg.jpg?v=2') center top / cover no-repeat,
-    #2a2a2a;
+  /* Phase A-0: background-image を CSS 変数経由に変更(動的切替対応) */
+  background-color: #2a2a2a;
+  background-image: var(--bg-normal-url);
+  background-position: center top;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 /* v1.3 Session21: FL中だけFL専用背景に切り替え */
 body.ui-v2.fl-mode #screen-game{
-  background:
-    url('assets/game/bg_fl.png?v=1') center top / cover no-repeat,
-    #0a1530;
+  /* Phase A-0: FL背景も CSS 変数経由 */
+  background-color: #0a1530;
+  background-image: var(--bg-fl-url);
+  background-position: center top;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 /* v1.3 Session21: FL中のボード位置調整 (開発者ツールで決定した値) */
 html body.ui-v2.fl-mode .player-area{
@@ -1739,6 +1749,344 @@ html body.ui-v2 .opp-card{
 .settings-item-sub{font-size:11px;color:#9ca3af;font-weight:400;letter-spacing:0.01em;}
 .settings-item-right{font-family:var(--font-mono),'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:#6b7280;padding:4px 8px;background:rgba(0,0,0,0.04);border-radius:6px;flex-shrink:0;}
 .settings-item-right.gold{color:#E8B923;background:rgba(232,185,35,0.08);}
+/* === Phase A-1: 背景アイテム選択グリッド === */
+.bg-section-label{
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  margin: 8px 8px 6px;
+  letter-spacing: 0.02em;
+}
+.bg-thumb-grid{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 4px 4px 8px;
+  margin-bottom: 8px;
+}
+.bg-thumb{
+  position: relative;
+  background: #f9fafb;
+  border: 2px solid rgba(0,0,0,0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  aspect-ratio: 9 / 16;
+}
+.bg-thumb:active{
+  transform: scale(0.96);
+}
+.bg-thumb.equipped{
+  border-color: #E8B923;
+  box-shadow: 0 0 0 1px rgba(232,185,35,0.4), 0 4px 12px rgba(232,185,35,0.18);
+}
+.bg-thumb-img{
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #2a2a2a;
+}
+.bg-thumb-name{
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0));
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+  padding: 12px 4px 5px;
+  letter-spacing: 0.01em;
+}
+.bg-thumb-check{
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: #E8B923;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(232,185,35,0.5);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.18s, transform 0.18s;
+}
+.bg-thumb.equipped .bg-thumb-check{
+  opacity: 1;
+  transform: scale(1);
+}
+.bg-thumb-empty{
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 12px;
+  padding: 18px 8px;
+}
+/* === Phase A-1 ここまで === */
+
+/* ========================================================================
+   === Phase A-2: ショップ画面 ===
+   ======================================================================== */
+
+/* ショップ FAB アイコン (モード選択画面 左下) */
+.shop-fab{
+  position: absolute;
+  left: 4%;
+  bottom: 5%;
+  width: 56px;
+  height: 56px;
+  z-index: 215;
+  background: linear-gradient(135deg, #fff7e0 0%, #ffe9b6 100%);
+  border: 2px solid #E8651A;
+  border-radius: 16px;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(232,101,26,0.35), 0 2px 4px rgba(0,0,0,0.15);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+.shop-fab:active{
+  transform: scale(0.92);
+  box-shadow: 0 2px 6px rgba(232,101,26,0.4);
+}
+.shop-fab svg{
+  width: 36px;
+  height: 36px;
+  display: block;
+}
+
+#screen-shop{
+  /* Phase A-2 UI Fix: 親 .screen の align/justify center を打ち消す */
+  background: linear-gradient(180deg, #FDFBF5 0%, #FBF6E8 100%);
+  z-index: 100;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+.shop-header{
+  /* Phase A-2 UI Fix: 世界観統一(クリーム+茶+ゴールド) */
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: calc(var(--safe-top, 0px) + 14px) 70px 14px;
+  background: linear-gradient(180deg, #FBF6E8 0%, #F5E9C8 100%);
+  border-bottom: 2px solid rgba(232,185,35,0.35);
+  box-shadow: 0 2px 8px rgba(212,143,17,0.08);
+}
+.shop-header::after{
+  content: '';
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 60px; height: 3px;
+  background: linear-gradient(90deg, transparent, #E8B923, transparent);
+}
+.shop-header-title{
+  font-family: 'Orbitron', 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: #7a4f10;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+}
+.shop-header-coins{
+  /* Phase A-2 UI Fix v3: top:50% + translateY(-50%) で確実に右上中央寄せ */
+  /* ヘッダーは padding-top: safe-top+14px なので 50% は中央付近に来る */
+  position: absolute;
+  right: 14px;
+  top: calc(var(--safe-top, 0px) + 50%);
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #FFF1B0 0%, #F5D87A 100%);
+  border: 1.5px solid #C8941A;
+  padding: 6px 12px 6px 8px;
+  border-radius: 9999px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  color: #5a3a08;
+  box-shadow: 0 2px 4px rgba(122,79,16,0.2), inset 0 1px 0 rgba(255,255,255,0.5);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.shop-header-coins:active{
+  transform: translateY(-50%) scale(0.95);
+}
+.shop-header-coins svg{
+  width: 18px; height: 18px;
+  filter: drop-shadow(0 1px 1px rgba(122,79,16,0.3));
+}
+
+.shop-tabs{
+  flex-shrink: 0;
+  display: flex;
+  background: rgba(253,251,245,0.95);
+  border-bottom: 1px solid rgba(122,79,16,0.12);
+  padding: 0 4px;
+  position: relative;
+  z-index: 1;
+}
+.shop-tab{
+  flex: 1;
+  padding: 13px 6px 12px;
+  background: transparent;
+  border: none;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  color: #b09558;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  position: relative;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s;
+}
+.shop-tab.active{
+  color: #E8651A;
+}
+.shop-tab.active::after{
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 12%;
+  right: 12%;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(90deg, #F5A623 0%, #E8651A 100%);
+  box-shadow: 0 -1px 4px rgba(232,101,26,0.4);
+}
+
+.shop-body{
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 14px calc(var(--safe-bottom) + 18px);
+  -webkit-overflow-scrolling: touch;
+}
+.shop-tab-pane{ display: none; }
+.shop-tab-pane.active{ display: block; }
+
+/* Phase A-2 UI Fix: 「準備中」プレースホルダ */
+.shop-placeholder{
+  text-align: center;
+  padding: 60px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.shop-placeholder-icon{
+  width: 56px;
+  height: 56px;
+  color: #C8941A;
+  opacity: 0.55;
+  margin-bottom: 14px;
+  filter: drop-shadow(0 2px 4px rgba(122,79,16,0.15));
+}
+.shop-placeholder-title{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: #7a4f10;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.shop-placeholder-text{
+  font-size: 12px;
+  color: #9c7c4a;
+  line-height: 1.7;
+  max-width: 240px;
+}
+
+/* === Phase A-2 UI Fix v3: 左下フローティング戻るボタン(body直下) === */
+.shop-back-fab{
+  position: fixed !important;
+  left: 16px !important;
+  bottom: calc(var(--safe-bottom, 0px) + 16px) !important;
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #FBF6E8 0%, #F5E9C8 100%) !important;
+  border: 1.5px solid #C8941A !important;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 99999 !important; /* 最前面 */
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto !important; /* 確実にタップ可能 */
+  box-shadow: 0 4px 12px rgba(122,79,16,0.25), 0 0 0 1px rgba(232,185,35,0.2), inset 0 1px 0 rgba(255,255,255,0.7);
+  transition: transform 0.12s, box-shadow 0.12s;
+  padding: 0;
+}
+/* body.shop-screen-active 時のみ表示 */
+body.shop-screen-active .shop-back-fab{
+  display: flex !important;
+}
+.shop-back-fab:active{
+  transform: scale(0.92);
+}
+.shop-back-fab svg{
+  width: 22px; height: 22px;
+  color: #7a4f10;
+  filter: drop-shadow(0 1px 0 rgba(255,255,255,0.5));
+}
+
+.shop-section-label{
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  margin: 4px 4px 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.shop-section-label:not(:first-child){
+  margin-top: 18px;
+}
+
+.shop-placeholder{
+  text-align: center;
+  padding: 60px 20px;
+  color: #9ca3af;
+}
+.shop-placeholder-icon{
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 12px;
+  opacity: 0.4;
+}
+.shop-placeholder-title{
+  font-size: 15px;
+  font-weight: 700;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+.shop-placeholder-text{
+  font-size: 12px;
+  color: #9ca3af;
+  line-height: 1.5;
+}
+
+/* === Phase A-2 ここまで === */
 .settings-version{text-align:center;margin-top:16px;font-family:var(--font-mono);font-size:10px;color:#d1d5db;letter-spacing:0.08em;}
 
 /* v28.66: ボード履歴モーダル */
@@ -7616,6 +7964,11 @@ body.debug-interactive .vmode-btn::before {
 
     O.isReady = true;
     console.log('[supabase] ready. user record:', O.userRecord);
+
+    // === Phase A-0: ショップシステム初期化(非同期、ゲームをブロックしない) ===
+    if(O.userId && O.supabase && typeof window.initShopSystem === 'function'){
+      setTimeout(function(){ window.initShopSystem(O); }, 100);
+    }
     
     // fix54: 進行中マッチの検知 → 中断モーダル表示
     // 起動時に status='playing' のマッチがある場合（たとえば iPhone アプリを
@@ -8045,6 +8398,483 @@ body.debug-interactive .vmode-btn::before {
   window.chaipoOnline.init = initSupabase;
   window.chaipoOnline.ensureUserRecord = ensureUserRecord;
 
+  // ========================================================================
+  // === Phase A-0: ショップシステム データ層 ===
+  // ========================================================================
+  // 設計: ~/Desktop/claude/shop_system/PHASE_A0_DESIGN_2026-05-01.md
+  //
+  // window.chaipoShop には:
+  //   - state (inventory, currency, settings, itemsMaster, ready)
+  //   - 7関数 (initShopSystem, fetchItemsMaster, fetchUserShopData,
+  //            ensureDefaultInventory, equipItem, getEquippedAsset,
+  //            applyEquippedAssets)
+  // が含まれる。
+  //
+  // データソース:
+  //   - Supabase (オンライン時): items_master, user_inventory, user_currency, user_settings
+  //   - localStorage (オフライン時 / 起動時の即時表示): chaipoShop_*_v1
+  //
+  // 装備中アイテムは CSS 変数 (--bg-normal-url, --bg-fl-url) に反映される。
+  // ========================================================================
+
+  // グローバル state
+  window.chaipoShop = window.chaipoShop || {
+    inventory: [],
+    currency: { coins: 0, total_earned: 0, total_spent: 0 },
+    settings: {
+      equipped_bg_normal: 'bg_default_normal',
+      equipped_bg_fl:     'bg_default_fl',
+      equipped_card_back: null,
+      equipped_effect:    null
+    },
+    itemsMaster: [],
+    ready: false,
+    lastSyncAt: null,
+    lastError: null
+  };
+
+  const SHOP_LS_KEYS = {
+    inventory:   'chaipoShop_inventory_v1',
+    currency:    'chaipoShop_currency_v1',
+    settings:    'chaipoShop_settings_v1',
+    itemsMaster: 'chaipoShop_itemsMaster_v1'
+  };
+
+  // ----- localStorage helpers -----
+  function _shopLoadCache(){
+    try {
+      const inv = localStorage.getItem(SHOP_LS_KEYS.inventory);
+      const cur = localStorage.getItem(SHOP_LS_KEYS.currency);
+      const set = localStorage.getItem(SHOP_LS_KEYS.settings);
+      const im  = localStorage.getItem(SHOP_LS_KEYS.itemsMaster);
+      if(inv) window.chaipoShop.inventory   = JSON.parse(inv);
+      if(cur) window.chaipoShop.currency    = JSON.parse(cur);
+      if(set) window.chaipoShop.settings    = Object.assign(window.chaipoShop.settings, JSON.parse(set));
+      if(im)  window.chaipoShop.itemsMaster = JSON.parse(im);
+      console.log('[shop] cache loaded. items=' + window.chaipoShop.itemsMaster.length +
+                  ', inventory=' + window.chaipoShop.inventory.length);
+    } catch(e){
+      console.warn('[shop] cache load failed:', e.message);
+    }
+  }
+
+  function _shopSaveCache(){
+    try {
+      localStorage.setItem(SHOP_LS_KEYS.inventory,   JSON.stringify(window.chaipoShop.inventory));
+      localStorage.setItem(SHOP_LS_KEYS.currency,    JSON.stringify(window.chaipoShop.currency));
+      localStorage.setItem(SHOP_LS_KEYS.settings,    JSON.stringify(window.chaipoShop.settings));
+      localStorage.setItem(SHOP_LS_KEYS.itemsMaster, JSON.stringify(window.chaipoShop.itemsMaster));
+    } catch(e){
+      console.warn('[shop] cache save failed:', e.message);
+    }
+  }
+
+  // ----- 1. fetchItemsMaster: アイテムマスタ取得 -----
+  async function fetchItemsMaster(O){
+    if(!O || !O.supabase) throw new Error('supabase not ready');
+    const { data, error } = await O.supabase
+      .from('items_master')
+      .select('*')
+      .order('type', { ascending: true })
+      .order('sort_order', { ascending: true });
+    if(error) throw error;
+    window.chaipoShop.itemsMaster = data || [];
+    console.log('[shop] itemsMaster fetched: ' + (data || []).length + ' items');
+    return data;
+  }
+
+  // ----- 2. fetchUserShopData: ユーザーの所持・残高・装備を取得 -----
+  async function fetchUserShopData(O){
+    if(!O || !O.supabase || !O.userId) throw new Error('user not ready');
+
+    // 並列取得
+    const [invRes, curRes, setRes] = await Promise.all([
+      O.supabase.from('user_inventory').select('*').eq('user_id', O.userId),
+      O.supabase.from('user_currency').select('*').eq('user_id', O.userId).maybeSingle(),
+      O.supabase.from('user_settings').select('*').eq('user_id', O.userId).maybeSingle()
+    ]);
+
+    if(invRes.error) throw invRes.error;
+    window.chaipoShop.inventory = invRes.data || [];
+
+    // 通貨レコードがなければ初期化
+    if(curRes.error){ console.warn('[shop] currency fetch err:', curRes.error.message); }
+    if(curRes.data){
+      window.chaipoShop.currency = {
+        coins: curRes.data.coins || 0,
+        total_earned: curRes.data.total_earned || 0,
+        total_spent: curRes.data.total_spent || 0
+      };
+    } else {
+      // 初回ユーザー: 通貨レコードを作る
+      const insertRes = await O.supabase.from('user_currency').insert({
+        user_id: O.userId, coins: 0, total_earned: 0, total_spent: 0
+      });
+      if(insertRes.error) console.warn('[shop] currency insert err:', insertRes.error.message);
+    }
+
+    // 設定レコードがなければデフォルトで初期化
+    if(setRes.error){ console.warn('[shop] settings fetch err:', setRes.error.message); }
+    if(setRes.data){
+      window.chaipoShop.settings = {
+        equipped_bg_normal: setRes.data.equipped_bg_normal || 'bg_default_normal',
+        equipped_bg_fl:     setRes.data.equipped_bg_fl     || 'bg_default_fl',
+        equipped_card_back: setRes.data.equipped_card_back || null,
+        equipped_effect:    setRes.data.equipped_effect    || null
+      };
+    } else {
+      // 初回ユーザー: 設定レコードを作る
+      const insertRes = await O.supabase.from('user_settings').insert({
+        user_id: O.userId,
+        equipped_bg_normal: 'bg_default_normal',
+        equipped_bg_fl: 'bg_default_fl'
+      });
+      if(insertRes.error) console.warn('[shop] settings insert err:', insertRes.error.message);
+    }
+
+    console.log('[shop] user data fetched. inventory=' + window.chaipoShop.inventory.length +
+                ', coins=' + window.chaipoShop.currency.coins);
+  }
+
+  // ----- 3. ensureDefaultInventory: is_default=true のアイテムを所持していなければ追加 -----
+  async function ensureDefaultInventory(O){
+    if(!O || !O.supabase || !O.userId) return;
+    const ownedIds = new Set(window.chaipoShop.inventory.map(function(x){ return x.item_id; }));
+    const defaults = window.chaipoShop.itemsMaster.filter(function(x){ return x.is_default; });
+    const missing  = defaults.filter(function(x){ return !ownedIds.has(x.id); });
+    if(missing.length === 0) return;
+
+    const rows = missing.map(function(x){
+      return { user_id: O.userId, item_id: x.id, source: 'default' };
+    });
+    const { data, error } = await O.supabase.from('user_inventory').insert(rows).select();
+    if(error){ console.warn('[shop] default inventory insert err:', error.message); return; }
+    // ローカルにも追加
+    if(data){
+      window.chaipoShop.inventory = window.chaipoShop.inventory.concat(data);
+      console.log('[shop] default items granted: ' + data.length);
+    }
+  }
+
+  // ----- 4. equipItem: 装備変更 -----
+  async function equipItem(itemId, slot){
+    const validSlots = ['bg_normal', 'bg_fl', 'card_back', 'effect'];
+    if(!validSlots.includes(slot)) throw new Error('invalid slot: ' + slot);
+
+    // 所持確認(default アイテムは inventory になくてもOK)
+    const isOwned = window.chaipoShop.inventory.some(function(x){ return x.item_id === itemId; });
+    const item = window.chaipoShop.itemsMaster.find(function(x){ return x.id === itemId; });
+    if(!item) throw new Error('item not found in master: ' + itemId);
+    if(!isOwned && !item.is_default){
+      throw new Error('item not owned: ' + itemId);
+    }
+
+    // type と slot の整合性チェック
+    const expectedType = {
+      'bg_normal':  'background_normal',
+      'bg_fl':      'background_fl',
+      'card_back':  'card_back',
+      'effect':     'effect'
+    }[slot];
+    if(item.type !== expectedType){
+      throw new Error('type mismatch: slot=' + slot + ' expects ' + expectedType + ', item is ' + item.type);
+    }
+
+    // ローカル state 更新
+    const settingKey = 'equipped_' + slot;
+    window.chaipoShop.settings[settingKey] = itemId;
+
+    // CSS に反映
+    applyEquippedAssets();
+
+    // ローカルキャッシュ保存
+    _shopSaveCache();
+
+    // Supabase 更新(失敗してもローカルは反映済み)
+    const O = window.chaipoOnline;
+    if(O && O.supabase && O.userId){
+      const update = {};
+      update[settingKey] = itemId;
+      update.updated_at = new Date().toISOString();
+      const { error } = await O.supabase
+        .from('user_settings')
+        .update(update)
+        .eq('user_id', O.userId);
+      if(error){
+        console.warn('[shop] equipItem update failed:', error.message);
+        return false;
+      }
+    }
+    console.log('[shop] equipped: ' + slot + ' = ' + itemId);
+    return true;
+  }
+
+  // ----- 5. getEquippedAsset: 装備中アイテムの asset_url を取得 -----
+  function getEquippedAsset(slot){
+    const settingKey = 'equipped_' + slot;
+    const itemId = window.chaipoShop.settings[settingKey];
+    if(!itemId) return null;
+    const item = window.chaipoShop.itemsMaster.find(function(x){ return x.id === itemId; });
+    return item ? (item.asset_url || null) : null;
+  }
+
+  // ----- 6. applyEquippedAssets: 装備中アイテムを CSS 変数に反映 -----
+  function applyEquippedAssets(){
+    const root = document.documentElement;
+
+    // 背景(通常)
+    const bgNormalUrl = getEquippedAsset('bg_normal');
+    if(bgNormalUrl){
+      root.style.setProperty('--bg-normal-url', "url('" + bgNormalUrl + "')");
+    } else {
+      // デフォルト: CSS 変数を未設定にして fallback (元々 :root に書いてあるデフォルト)に戻す
+      root.style.removeProperty('--bg-normal-url');
+    }
+
+    // 背景(FL)
+    const bgFlUrl = getEquippedAsset('bg_fl');
+    if(bgFlUrl){
+      root.style.setProperty('--bg-fl-url', "url('" + bgFlUrl + "')");
+    } else {
+      root.style.removeProperty('--bg-fl-url');
+    }
+
+    // (将来) card_back, effect も同様に処理
+    console.log('[shop] applied equipped assets. bg_normal=' + (bgNormalUrl || '(default)') +
+                ', bg_fl=' + (bgFlUrl || '(default)'));
+  }
+
+  // ----- 7. initShopSystem: 起動時統括 -----
+  async function initShopSystem(O){
+    console.log('[shop] init start');
+    // まずローカルキャッシュで即時反映(オフラインでも動かす)
+    _shopLoadCache();
+    applyEquippedAssets();
+
+    // Supabase からの取得は非同期で進める
+    if(!O || !O.supabase || !O.userId){
+      console.warn('[shop] supabase not ready, using cache only');
+      window.chaipoShop.ready = true;
+      return;
+    }
+
+    try {
+      await fetchItemsMaster(O);
+      await fetchUserShopData(O);
+      await ensureDefaultInventory(O);
+      applyEquippedAssets();
+      _shopSaveCache();
+      window.chaipoShop.ready = true;
+      window.chaipoShop.lastSyncAt = new Date().toISOString();
+      window.chaipoShop.lastError = null;
+      console.log('[shop] init complete');
+    } catch(e){
+      console.error('[shop] init failed:', e.message || e);
+      window.chaipoShop.lastError = e.message || String(e);
+      window.chaipoShop.ready = true; // キャッシュで動作可
+    }
+  }
+
+  // 公開
+  window.initShopSystem      = initShopSystem;
+  window.fetchItemsMaster    = function(){ return fetchItemsMaster(window.chaipoOnline); };
+  window.fetchUserShopData   = function(){ return fetchUserShopData(window.chaipoOnline); };
+  window.ensureDefaultInventory = function(){ return ensureDefaultInventory(window.chaipoOnline); };
+  window.equipItem           = equipItem;
+  window.getEquippedAsset    = getEquippedAsset;
+  window.applyEquippedAssets = applyEquippedAssets;
+
+  // ========================================================================
+  // === Phase A-1: 背景セクション UI レンダリング ===
+  // ========================================================================
+
+  // デフォルトアイテム用のプレビュー画像フォールバック(preview_url が NULL の時)
+  const SHOP_DEFAULT_PREVIEW = {
+    'bg_default_normal': 'assets/game/bg.jpg',
+    'bg_default_fl':     'assets/game/bg_fl.png'
+  };
+
+  function _shopGetPreviewUrl(item){
+    if(!item) return '';
+    if(item.preview_url) return item.preview_url;
+    if(SHOP_DEFAULT_PREVIEW[item.id]) return SHOP_DEFAULT_PREVIEW[item.id];
+    return '';
+  }
+
+  function _shopEscapeHtml(str){
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function renderBackgroundSection(){
+    const gridNormal = document.getElementById('bgGridNormal');
+    const gridFL     = document.getElementById('bgGridFL');
+    if(!gridNormal || !gridFL) return; // 設定画面が表示されてない時はスキップしない(IDがあれば描画)
+
+    const items     = window.chaipoShop.itemsMaster || [];
+    const inventory = window.chaipoShop.inventory   || [];
+    const settings  = window.chaipoShop.settings    || {};
+    const ownedIds  = new Set(inventory.map(function(x){ return x.item_id; }));
+
+    function renderGrid(grid, type, equippedSlot, equippedItemId){
+      // type に該当 + (所持 or is_default) のアイテムだけ表示
+      const list = items.filter(function(x){
+        return x.type === type && (ownedIds.has(x.id) || x.is_default);
+      });
+      if(list.length === 0){
+        grid.innerHTML = '<div class="bg-thumb-empty">所持している背景がありません</div>';
+        return;
+      }
+      grid.innerHTML = list.map(function(item){
+        const previewUrl = _shopGetPreviewUrl(item);
+        const isEquipped = (item.id === equippedItemId);
+        const bgImg = previewUrl
+          ? "background-image: url('" + _shopEscapeHtml(previewUrl) + "');"
+          : "";
+        return '<div class="bg-thumb' + (isEquipped ? ' equipped' : '') + '"' +
+               ' data-item-id="' + _shopEscapeHtml(item.id) + '"' +
+               ' data-slot="' + _shopEscapeHtml(equippedSlot) + '"' +
+               ' onclick="onBgThumbClick(this)">' +
+               '  <div class="bg-thumb-img" style="' + bgImg + '"></div>' +
+               '  <div class="bg-thumb-name">' + _shopEscapeHtml(item.name) + '</div>' +
+               '  <div class="bg-thumb-check">✓</div>' +
+               '</div>';
+      }).join('');
+    }
+
+    renderGrid(gridNormal, 'background_normal', 'bg_normal', settings.equipped_bg_normal);
+    renderGrid(gridFL,     'background_fl',     'bg_fl',     settings.equipped_bg_fl);
+  }
+
+  // サムネイル クリックハンドラ
+  async function onBgThumbClick(el){
+    if(!el || !el.dataset) return;
+    const itemId = el.dataset.itemId;
+    const slot   = el.dataset.slot;
+    if(!itemId || !slot) return;
+
+    // 既に装備中なら何もしない
+    if(el.classList.contains('equipped')){
+      if(typeof window.haptic === 'function') window.haptic(8);
+      return;
+    }
+
+    try {
+      const ok = await window.equipItem(itemId, slot);
+      // 装備成功時のフィードバック
+      if(typeof window.haptic === 'function') window.haptic(15);
+      // 名前取得
+      const item = window.chaipoShop.itemsMaster.find(function(x){ return x.id === itemId; });
+      const name = item ? item.name : itemId;
+      if(typeof showToast === 'function'){
+        showToast(name + ' を装備しました');
+      }
+      // UI を再描画(✓ マークの位置を更新)
+      renderBackgroundSection();
+    } catch(e){
+      console.error('[shop] equip failed:', e);
+      if(typeof window.haptic === 'function') window.haptic(30);
+      if(typeof showToast === 'function'){
+        showToast('装備変更に失敗しました');
+      }
+    }
+  }
+
+  // 公開
+  window.renderBackgroundSection = renderBackgroundSection;
+  window.onBgThumbClick           = onBgThumbClick;
+
+  // initShopSystem 完了時に自動で背景セクションも更新する
+  // (initShopSystem 内の applyEquippedAssets 呼び出し後に補完)
+  const _origInitShopSystem = window.initShopSystem;
+  window.initShopSystem = async function(O){
+    await _origInitShopSystem(O);
+    try { renderBackgroundSection(); } catch(e){ console.warn('[shop] render failed:', e); }
+  };
+
+  // ========================================================================
+  // === Phase A-2: ショップ画面 制御 ===
+  // ========================================================================
+
+  function onShopFabClick(){
+    // === Phase A-2 Fix: モード選択画面のクリーンアップ処理を経由 ===
+    // 直接 showScreen を呼ぶとモード選択画面のオーバーレイレイヤーが残ったまま
+    // になり遷移先が見えない問題を回避するため、onModeClick 経由で遷移する。
+    // 既存ハプティックは onModeClick 内で実施されるため重複呼び出ししない。
+    if(typeof window.onModeClick === 'function'){
+      window.onModeClick('ショップ');
+      return;
+    }
+    // フォールバック(onModeClick 未定義の場合)
+    if(typeof window.haptic === 'function') window.haptic(15);
+    if(typeof showScreen === 'function') showScreen('shop');
+    if(typeof window.showShopScreen === 'function') window.showShopScreen();
+  }
+
+  function showShopScreen(){
+    document.body.classList.add('shop-screen-active');
+    switchShopTab('inventory');
+    updateShopCoinsDisplay();
+    if(typeof window.renderBackgroundSection === 'function'){
+      try { window.renderBackgroundSection(); } catch(e){ console.warn('[shop] render err:', e); }
+    }
+  }
+
+  function switchShopTab(tabName){
+    if(typeof window.haptic === 'function') window.haptic(8);
+    var tabs = document.querySelectorAll('.shop-tab');
+    var panes = document.querySelectorAll('.shop-tab-pane');
+    tabs.forEach(function(t){
+      if(t.dataset && t.dataset.tab === tabName){
+        t.classList.add('active');
+      } else {
+        t.classList.remove('active');
+      }
+    });
+    panes.forEach(function(p){
+      if(p.id === 'shopPane-' + tabName){
+        p.classList.add('active');
+      } else {
+        p.classList.remove('active');
+      }
+    });
+  }
+
+  function updateShopCoinsDisplay(){
+    var el = document.getElementById('shopCoinsDisplay');
+    if(!el) return;
+    var coins = (window.chaipoShop && window.chaipoShop.currency && window.chaipoShop.currency.coins) || 0;
+    el.textContent = coins.toLocaleString('en-US');
+  }
+
+  window.onShopFabClick        = onShopFabClick;
+  window.showShopScreen        = showShopScreen;
+  window.switchShopTab         = switchShopTab;
+  window.updateShopCoinsDisplay = updateShopCoinsDisplay;
+
+  const _origInitShopSystem_a2 = window.initShopSystem;
+  window.initShopSystem = async function(O){
+    await _origInitShopSystem_a2(O);
+    try { updateShopCoinsDisplay(); } catch(e){ console.warn('[shop] coin update err:', e); }
+  };
+
+  // ========================================================================
+  // === Phase A-2 ここまで ===
+  // ========================================================================
+
+  // ========================================================================
+  // === Phase A-1 ここまで ===
+  // ========================================================================
+
+  // ========================================================================
+  // === ショップシステム データ層 ここまで ===
+  // ========================================================================
+
+
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', () => setTimeout(initSupabase, 200));
   } else {
@@ -8054,6 +8884,13 @@ body.debug-interactive .vmode-btn::before {
 </script>
 </head>
 <body>
+<!-- === Phase A-2 UI Fix v3: shop-back-fab を body 直下に配置 === -->
+<button class="shop-back-fab" type="button" aria-label="戻る" id="shopBackFab" style="display:none;">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M15 18 L9 12 L15 6"/>
+  </svg>
+</button>
+
 
 <!-- v28.61 スタッツ項目説明ポップアップ -->
 <div class="stats-explain-backdrop" id="statsExplainBackdrop"></div>
@@ -8796,6 +9633,73 @@ body.debug-interactive .vmode-btn::before {
   </div>
 </div>
 
+<!-- === Phase A-2: ショップ画面 === -->
+<div class="screen" id="screen-shop">
+  <div class="shop-header">
+    <div class="shop-header-title">SHOP</div>
+    <button class="shop-header-coins" type="button" aria-label="コイン残高" onclick="switchShopTab('store')">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" fill="#FBBF24" stroke="#92400E" stroke-width="1.5"/>
+        <circle cx="12" cy="12" r="7" fill="none" stroke="#92400E" stroke-width="0.8" stroke-dasharray="1.5 1"/>
+        <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="900" fill="#92400E" font-family="Orbitron, sans-serif">¥</text>
+      </svg>
+      <span id="shopHeaderCoins">0</span>
+    </button>
+  </div>
+  <div class="shop-tabs">
+    <button class="shop-tab active" data-tab="inventory" type="button" onclick="switchShopTab('inventory')">所持</button>
+    <button class="shop-tab"        data-tab="store"     type="button" onclick="switchShopTab('store')">購入</button>
+    <button class="shop-tab"        data-tab="missions"  type="button" onclick="switchShopTab('missions')">ミッション</button>
+    <button class="shop-tab"        data-tab="season"    type="button" onclick="switchShopTab('season')">シーズン</button>
+  </div>
+
+  <div class="shop-body">
+    <div class="shop-tab-pane active" id="shopPane-inventory">
+      <div class="shop-section-label">通常背景</div>
+      <div class="bg-thumb-grid" id="bgGridNormal">
+        <div class="bg-thumb-empty">読み込み中...</div>
+      </div>
+      <div class="shop-section-label">FL背景</div>
+      <div class="bg-thumb-grid" id="bgGridFL">
+        <div class="bg-thumb-empty">読み込み中...</div>
+      </div>
+    </div>
+
+    <div class="shop-tab-pane" id="shopPane-store">
+      <div class="shop-placeholder">
+        <svg class="shop-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        <div class="shop-placeholder-title">準備中</div>
+        <div class="shop-placeholder-text">プレミアムアイテムの<br>購入機能は現在開発中です</div>
+      </div>
+    </div>
+
+    <div class="shop-tab-pane" id="shopPane-missions">
+      <div class="shop-placeholder">
+        <svg class="shop-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        <div class="shop-placeholder-title">準備中</div>
+        <div class="shop-placeholder-text">プレイ目標の達成で<br>アイテムを獲得できる予定です</div>
+      </div>
+    </div>
+
+    <div class="shop-tab-pane" id="shopPane-season">
+      <div class="shop-placeholder">
+        <svg class="shop-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <div class="shop-placeholder-title">準備中</div>
+        <div class="shop-placeholder-text">期間限定アイテムや<br>シーズンパスは今後追加予定です</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
 <div class="screen active" id="screen-title">
   <!-- v3a_clean: チャイポネイバーズ タイトル画面 -->
   <div class="canvas">
@@ -8848,6 +9752,20 @@ body.debug-interactive .vmode-btn::before {
     <button class="vmode-btn vmode-btn-online"    type="button" aria-label="オンライン対戦"    onclick="onModeClick('オンライン対戦')">オンライン対戦</button>
     <button class="vmode-btn vmode-btn-data"      type="button" aria-label="データ"          onclick="onModeClick('データ')">データ</button>
     <button class="vmode-btn vmode-btn-settings"  type="button" aria-label="設定"            onclick="onModeClick('設定')">設定</button>
+    <!-- === Phase A-2: ショップアイコン (左下、独立フローティングUI) === -->
+    <button class="shop-fab" type="button" aria-label="ショップ" onclick="onShopFabClick()">
+      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="6" y="14" width="24" height="16" rx="2" fill="#fff" stroke="#7a4f10" stroke-width="1.6"/>
+        <rect x="16" y="14" width="4" height="16" fill="#E8651A"/>
+        <rect x="6" y="20" width="24" height="3" fill="#E8651A"/>
+        <rect x="4" y="11" width="28" height="5" rx="1" fill="#FFB347" stroke="#7a4f10" stroke-width="1.6"/>
+        <rect x="16" y="11" width="4" height="5" fill="#E8651A"/>
+        <path d="M14 10 Q12 6 10 8 Q10 11 14 11 Z" fill="#E8651A" stroke="#7a4f10" stroke-width="1"/>
+        <path d="M22 10 Q24 6 26 8 Q26 11 22 11 Z" fill="#E8651A" stroke="#7a4f10" stroke-width="1"/>
+        <circle cx="27" cy="9" r="5" fill="#FFD700" stroke="#7a4f10" stroke-width="1.4"/>
+        <text x="27" y="12" text-anchor="middle" font-size="7" font-weight="700" fill="#7a4f10" font-family="serif">¥</text>
+      </svg>
+    </button>
   </div>
 </div>
 
@@ -15462,7 +16380,7 @@ function backToTitleFromSettings(){
   console.log('[NEIGHBORS] タイトルへ戻る (from 設定)');
 
   // 全モード画面非active
-  var allScreens = ['ai-select', 'fl-select', 'online-match', 'friend-match', 'friends', 'quickmatch', 'room-waiting', 'online-profile', 'stats', 'settings'];
+  var allScreens = ['ai-select', 'fl-select', 'online-match', 'friend-match', 'friends', 'quickmatch', 'room-waiting', 'online-profile', 'stats', 'settings', 'shop'];
   allScreens.forEach(function(id){
     var el = document.getElementById('screen-' + id);
     if(el) el.classList.remove('active');
@@ -15499,7 +16417,7 @@ function backToModeSelect(){
   console.log('[NEIGHBORS] モード選択へ戻る');
 
   // 現在のモード画面を全クリーンアップ
-  var allScreens = ['ai-select', 'fl-select', 'online-match', 'friend-match', 'friends', 'quickmatch', 'room-waiting', 'online-profile', 'stats', 'settings'];
+  var allScreens = ['ai-select', 'fl-select', 'online-match', 'friend-match', 'friends', 'quickmatch', 'room-waiting', 'online-profile', 'stats', 'settings', 'shop'];
   allScreens.forEach(function(id){
     var el = document.getElementById('screen-' + id);
     if(el) el.classList.remove('active');
@@ -15609,6 +16527,13 @@ function navigateToModeOnly(modeName){
       if(typeof showScreen === 'function') showScreen('settings');
       else if(typeof openSettingsModal === 'function') openSettingsModal();
       break;
+    // === Phase A-2: ショップ画面 ===
+    case 'ショップ':
+      if(typeof showScreen === 'function') showScreen('shop');
+      if(typeof window.showShopScreen === 'function'){
+        try { window.showShopScreen(); } catch(e){ console.warn('[shop] showShopScreen err:', e); }
+      }
+      break;
   }
 }
 
@@ -15620,6 +16545,81 @@ function onSettingsClick(){
 }
 
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');}
+
+// === Phase A-2 UI Fix v2: ショップ画面から確実にモード選択画面へ戻る ===
+function closeShopAndReturn(ev){
+  console.log('[shop] closeShopAndReturn called, ev=', ev && ev.type);
+  // イベントの伝播を確実に止める(タブクリック扱いを防ぐ)
+  if(ev){
+    if(ev.preventDefault) ev.preventDefault();
+    if(ev.stopPropagation) ev.stopPropagation();
+    if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+  }
+  // body のショップアクティブクラスを外す(戻るボタンも自動で非表示に)
+  document.body.classList.remove('shop-screen-active');
+  if(typeof window.haptic === 'function') window.haptic(15);
+  // 1. ショップ画面の active を確実に外す
+  var shopEl = document.getElementById('screen-shop');
+  if(shopEl){
+    shopEl.classList.remove('active');
+    console.log('[shop] screen-shop active removed. classList=', shopEl.className);
+  } else {
+    console.warn('[shop] screen-shop element not found');
+  }
+  // 2. モード選択画面に戻る
+  if(typeof backToModeSelect === 'function'){
+    console.log('[shop] calling backToModeSelect()');
+    backToModeSelect();
+  } else {
+    console.warn('[shop] backToModeSelect not found, fallback to title screen');
+    var titleScreen = document.getElementById('screen-title');
+    if(titleScreen) titleScreen.classList.add('active');
+  }
+  console.log('[shop] closeShopAndReturn completed');
+  return false;
+}
+window.closeShopAndReturn = closeShopAndReturn;
+
+// addEventListener で確実にバインド(onclick 経由ではなく)
+// DOMContentLoaded か Load 後に実行する必要がある
+function _bindShopBackFab(){
+  var btn = document.getElementById('shopBackFab');
+  if(!btn){
+    console.warn('[shop] shopBackFab element not yet, retry in 100ms');
+    setTimeout(_bindShopBackFab, 100);
+    return;
+  }
+  // 既存リスナを削除して二重バインド防止
+  if(btn._closeBoundV2) return;
+  btn._closeBoundV2 = true;
+
+  // click(普通の発火パス)
+  btn.addEventListener('click', function(ev){
+    console.log('[shop] back-fab CLICK fired');
+    closeShopAndReturn(ev);
+  }, true); // capture phase で先に処理
+
+  // pointerdown(タブパネル等のイベント拾いより早く処理)
+  btn.addEventListener('pointerdown', function(ev){
+    console.log('[shop] back-fab POINTERDOWN fired');
+  }, true);
+
+  // touchend(iOS Safari 用フォールバック)
+  btn.addEventListener('touchend', function(ev){
+    console.log('[shop] back-fab TOUCHEND fired');
+    closeShopAndReturn(ev);
+  }, true);
+
+  console.log('[shop] back-fab event listeners bound');
+}
+
+// DOM 読み込み完了 + 確実な実行
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', _bindShopBackFab);
+} else {
+  _bindShopBackFab();
+}
+// === ここまで ===
 
 /* === Session 20 Step 2: ハプティック === */
 (function(){
