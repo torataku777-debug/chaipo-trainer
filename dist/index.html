@@ -1841,61 +1841,44 @@ html body.ui-v2 .opp-card{
    === Phase A-2: ショップ画面 ===
    ======================================================================== */
 
-/* ショップ FAB アイコン (モード選択画面 左下) */
+/* ショップ FAB アイコン (モード選択画面 左下、Session 24: 画像差し替え)
+   shop_icon.png (256x192, 透過PNG) を背景画像として表示。画像自体に
+   看板・SHOP文字・立体感が含まれているため、ボーダー/グラデ背景/SVG/labelは廃止。
+   軽い傾きとドロップシャドウだけ残してステッカー感を演出。 */
 .shop-fab{
-  /* Session 23 Phase 3: 看板/ステッカー風に強化(世界観統一試み) */
   position: absolute;
   left: 3%;
   bottom: 5%;
-  width: 64px;
-  height: 64px;
+  width: 88px;
+  height: 66px;
   z-index: 215;
-  /* ステッカー風の軽い傾き */
   transform: rotate(-4deg);
-  background: linear-gradient(135deg, #FFF1B0 0%, #F5D87A 55%, #E8B923 100%);
-  border: 2.5px solid #7a4f10;
-  border-radius: 12px;
-  padding: 5px 0 4px;
+  background: transparent;
+  border: none;
+  padding: 0;
   cursor: pointer;
-  /* 多層シャドウで看板感を出す */
-  box-shadow:
-    -2px 3px 0 rgba(0,0,0,0.2),
-    inset 0 2px 0 rgba(255,255,255,0.7),
-    inset 0 -2px 0 rgba(0,0,0,0.12),
-    0 4px 12px rgba(0,0,0,0.25);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  background-image: url('assets/game/shop_icon.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  /* ステッカーらしいドロップシャドウのみ */
+  filter: drop-shadow(-2px 3px 2px rgba(0,0,0,0.35)) drop-shadow(0 4px 8px rgba(0,0,0,0.25));
+  transition: transform 0.12s ease, filter 0.12s ease;
   -webkit-tap-highlight-color: transparent;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
+  display: block;
   pointer-events: auto;
+  /* 中の SVG/label を念のため非表示 */
+  font-size: 0;
+  color: transparent;
+  line-height: 0;
 }
 .shop-fab:active{
   transform: rotate(-4deg) scale(0.94);
-  box-shadow:
-    -1px 2px 0 rgba(0,0,0,0.2),
-    inset 0 2px 0 rgba(255,255,255,0.5),
-    inset 0 -2px 0 rgba(0,0,0,0.15),
-    0 2px 6px rgba(0,0,0,0.3);
+  filter: drop-shadow(-1px 2px 1px rgba(0,0,0,0.35)) drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
-.shop-fab svg{
-  width: 30px;
-  height: 30px;
-  display: block;
-  filter: drop-shadow(0 1px 0 rgba(255,255,255,0.4));
-}
+.shop-fab svg,
 .shop-fab-label{
-  font-family: 'Orbitron', 'Space Grotesk', sans-serif;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  color: #5a3a08;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.7);
-  margin-top: 1px;
-  text-transform: uppercase;
-  line-height: 1;
+  display: none !important;
 }
 
 #screen-shop{
