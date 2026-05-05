@@ -21404,12 +21404,35 @@ body.is-web-browser #screen-shop.active{
   transform: translateX(-50%) translateY(0) scale(1) !important;
 }
 
-/* === screen-game 専用: ブラウザスケール適用保留 === */
-/* Session 23 で width:430px固定 + transform:scale を試したが、
-   スマホブラウザのアドレスバー領域でハンドエリアが見えなくなる問題が発生。
-   本格対応は screen-game のレスポンシブ設計(position:absolute → flex/vh/vw)を
-   伴うため、別セッションに頼んでいる。
-   ここではゲーム画面のスケール誠整をすべてロールバックし、従来のデフォルト挑動作に恋す */
+/* === screen-game 専用: F案レスポンシブ化 (Session 24 / 2026-05-05) ===
+   方針: 基準サイズ 430x932 (iPhone 15 Pro Max) で固定し、
+         JS で計算した --game-scale を transform:scale で適用。
+   - position:fixed + top:0 + left:50% + margin-left:-215px で水平中央寄せ
+   - transform-origin: top center で上端基準スケール (ハンドエリア切れ防止)
+   - inset:auto で .screen のデフォルト inset:0 を無効化
+   - iOS Capacitor では is-web-browser クラスが付かず、本ルール非適用 */
+body.is-web-browser #screen-game{
+  width: 430px !important;
+  height: 932px !important;
+  position: fixed !important;
+  top: 0 !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: calc(50vw - 215px) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform-origin: top center !important;
+  transform: scale(var(--game-scale, 1)) !important;
+}
+/* 非アクティブ状態 (フェードアウト) でも scale を維持 */
+body.is-web-browser #screen-game:not(.active){
+  opacity: 0;
+  pointer-events: none;
+}
+body.is-web-browser #screen-game.active{
+  opacity: 1;
+  pointer-events: all;
+}
 </style>
 
 <script>
@@ -21422,16 +21445,31 @@ body.is-web-browser #screen-shop.active{
   function isCapacitor(){
     return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
   }
+  /* Session 24: screen-game 用スケール係数を計算して CSS 変数に設定
+     基準サイズ 430x932 (iPhone 15 Pro Max) を超えない範囲で min(sw, sh, 1) */
+  function updateGameScale(){
+    if(isCapacitor() || !document.body || !document.body.classList.contains('is-web-browser')) return;
+    var sw = window.innerWidth / 430;
+    var sh = window.innerHeight / 932;
+    var scale = Math.min(sw, sh, 1);
+    document.documentElement.style.setProperty('--game-scale', scale.toFixed(4));
+  }
   function applyWebBrowserClass(){
     if(!isCapacitor() && document.body){
       document.body.classList.add('is-web-browser');
+      updateGameScale();
     }
   }
+  /* リサイズ・回転に追従 */
+  window.addEventListener('resize', updateGameScale);
+  window.addEventListener('orientationchange', updateGameScale);
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', applyWebBrowserClass);
   } else {
     applyWebBrowserClass();
   }
+  /* Session 24: デバッグ用 */
+  window.__chaipoUpdateGameScale = updateGameScale;
 })();
 </script>
 
