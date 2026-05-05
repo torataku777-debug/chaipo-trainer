@@ -1841,18 +1841,20 @@ html body.ui-v2 .opp-card{
    === Phase A-2: ショップ画面 ===
    ======================================================================== */
 
-/* ショップ FAB アイコン (モード選択画面 左下、Session 24: 画像差し替え)
-   shop_icon.png (256x192, 透過PNG) を背景画像として表示。画像自体に
-   看板・SHOP文字・立体感が含まれているため、ボーダー/グラデ背景/SVG/labelは廃止。
-   軽い傾きとドロップシャドウだけ残してステッカー感を演出。 */
+/* ショップ FAB アイコン (モード選択画面 右上、Session 24)
+   - 親を mode-select-buttons から #screen-mode-select に変更してヒットエリア競合を解消
+   - 右上配置 (top: safe-top + 14px / right: 14px)
+   - shop_icon.png を背景画像として表示
+   - 「タップしたい感」: 軽いパルスアニメ + ゴールドのハロー光 + active 時の押し込み */
 .shop-fab{
   position: absolute;
-  left: 3%;
-  bottom: 5%;
-  width: 88px;
-  height: 66px;
+  top: calc(var(--safe-top, 0px) + 14px);
+  right: 14px;
+  left: auto;
+  bottom: auto;
+  width: 96px;
+  height: 72px;
   z-index: 215;
-  transform: rotate(-4deg);
   background: transparent;
   border: none;
   padding: 0;
@@ -1861,20 +1863,39 @@ html body.ui-v2 .opp-card{
   background-repeat: no-repeat;
   background-size: contain;
   background-position: center;
-  /* ステッカーらしいドロップシャドウのみ */
-  filter: drop-shadow(-2px 3px 2px rgba(0,0,0,0.35)) drop-shadow(0 4px 8px rgba(0,0,0,0.25));
-  transition: transform 0.12s ease, filter 0.12s ease;
+  /* 立体感 + ゴールドのほんのりした光 */
+  filter:
+    drop-shadow(-2px 3px 3px rgba(0,0,0,0.4))
+    drop-shadow(0 0 10px rgba(232,185,35,0.45));
+  transform: rotate(-4deg);
+  transform-origin: 70% 50%;
+  /* ふわっと呼吸するパルスアニメ */
+  animation: shopFabPulse 2.6s ease-in-out infinite;
+  transition: filter 0.15s ease;
   -webkit-tap-highlight-color: transparent;
   display: block;
   pointer-events: auto;
-  /* 中の SVG/label を念のため非表示 */
+  /* 中の SVG/label は非表示 (HTMLは残してロールバック容易にする) */
   font-size: 0;
   color: transparent;
   line-height: 0;
 }
+@keyframes shopFabPulse {
+  0%, 100% { transform: rotate(-4deg) scale(1); }
+  50%      { transform: rotate(-4deg) scale(1.06); }
+}
+.shop-fab:hover{
+  filter:
+    drop-shadow(-2px 3px 3px rgba(0,0,0,0.4))
+    drop-shadow(0 0 16px rgba(232,185,35,0.7));
+}
 .shop-fab:active{
-  transform: rotate(-4deg) scale(0.94);
-  filter: drop-shadow(-1px 2px 1px rgba(0,0,0,0.35)) drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  /* タップ瞬間はアニメ停止 + ぐっと縮む */
+  animation-play-state: paused;
+  transform: rotate(-4deg) scale(0.92);
+  filter:
+    drop-shadow(-1px 2px 2px rgba(0,0,0,0.4))
+    drop-shadow(0 0 18px rgba(232,185,35,0.85));
 }
 .shop-fab svg,
 .shop-fab-label{
@@ -9871,23 +9892,22 @@ body.debug-interactive .vmode-btn::before {
     <button class="vmode-btn vmode-btn-online"    type="button" aria-label="オンライン対戦"    onclick="onModeClick('オンライン対戦')">オンライン対戦</button>
     <button class="vmode-btn vmode-btn-data"      type="button" aria-label="データ"          onclick="onModeClick('データ')">データ</button>
     <button class="vmode-btn vmode-btn-settings"  type="button" aria-label="設定"            onclick="onModeClick('設定')">設定</button>
-    <!-- === Phase A-2 + Session 23 Phase 3: ショップアイコン (左下、看板/ステッカー風) === -->
-    <button class="shop-fab" type="button" aria-label="ショップ" onclick="onShopFabClick()">
-      <svg viewBox="0 0 36 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <!-- 箱本体 -->
-        <rect x="6" y="14" width="24" height="16" rx="2" fill="#fff" stroke="#7a4f10" stroke-width="1.8"/>
-        <rect x="16" y="14" width="4" height="16" fill="#E8651A"/>
-        <rect x="6" y="20" width="24" height="3" fill="#E8651A"/>
-        <!-- フタ -->
-        <rect x="4" y="11" width="28" height="5" rx="1" fill="#FFB347" stroke="#7a4f10" stroke-width="1.8"/>
-        <rect x="16" y="11" width="4" height="5" fill="#E8651A"/>
-        <!-- リボンの蝶結び -->
-        <path d="M14 10 Q12 6 10 8 Q10 11 14 11 Z" fill="#E8651A" stroke="#7a4f10" stroke-width="1.2"/>
-        <path d="M22 10 Q24 6 26 8 Q26 11 22 11 Z" fill="#E8651A" stroke="#7a4f10" stroke-width="1.2"/>
-      </svg>
-      <span class="shop-fab-label">SHOP</span>
-    </button>
   </div>
+  <!-- === Session 24: ショップアイコン (右上、画像アイコン)
+       mode-select-buttons の外に出して、is-active クラスや誤タップの影響を断つ。
+       中身の SVG/label は CSS の display:none で非表示 (将来ロールバック容易のため残置)。 -->
+  <button class="shop-fab" type="button" aria-label="ショップ" onclick="onShopFabClick()">
+    <svg viewBox="0 0 36 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="6" y="14" width="24" height="16" rx="2" fill="#fff" stroke="#7a4f10" stroke-width="1.8"/>
+      <rect x="16" y="14" width="4" height="16" fill="#E8651A"/>
+      <rect x="6" y="20" width="24" height="3" fill="#E8651A"/>
+      <rect x="4" y="11" width="28" height="5" rx="1" fill="#FFB347" stroke="#7a4f10" stroke-width="1.8"/>
+      <rect x="16" y="11" width="4" height="5" fill="#E8651A"/>
+      <path d="M14 10 Q12 6 10 8 Q10 11 14 11 Z" fill="#E8651A" stroke="#7a4f10" stroke-width="1.2"/>
+      <path d="M22 10 Q24 6 26 8 Q26 11 22 11 Z" fill="#E8651A" stroke="#7a4f10" stroke-width="1.2"/>
+    </svg>
+    <span class="shop-fab-label">SHOP</span>
+  </button>
 </div>
 
 <div class="screen" id="screen-game">
