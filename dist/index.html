@@ -18,7 +18,7 @@
 <style>
 :root {
   /* === Phase A-0: ショップシステム用 背景画像変数 === */
-  --bg-normal-url: url('assets/game/bg.jpg?v=2');
+  --bg-normal-url: url('assets/game/bg_v1.jpg');
   --bg-fl-url: url('assets/game/bg_fl.png?v=1');
   /* === ここまで === */
   --accent:#7170ff;--accent-bg:#5e6ad2;--gold:#f5a623;--gold-dim:#c47d10;
@@ -1900,6 +1900,24 @@ html body.ui-v2 .opp-card{
 .shop-fab svg,
 .shop-fab-label{
   display: none !important;
+}
+
+/* Session 24 board layers */
+.game-bg-layer{
+  position: absolute; inset: 0; z-index: 1;
+  pointer-events: none;
+  background-image: var(--bg-normal-url);
+  background-size: cover; background-position: center; background-repeat: no-repeat;
+}
+.game-board-layer{
+  position: absolute; inset: 0; z-index: 2;
+  pointer-events: none;
+  background-image: url("assets/game/board_overlay.png");
+  background-size: 100% 100%;
+  background-position: center; background-repeat: no-repeat;
+}
+#screen-game .game-layout{
+  position: relative; z-index: 3;
 }
 
 #screen-shop{
@@ -8547,7 +8565,7 @@ body.debug-interactive .vmode-btn::before {
     inventory: [],
     currency: { coins: 0, total_earned: 0, total_spent: 0 },
     settings: {
-      equipped_bg_normal: 'bg_default_normal',
+      equipped_bg_normal: 'bg_neighbors_v1',
       equipped_bg_fl:     'bg_default_fl',
       equipped_card_back: null,
       equipped_effect:    null
@@ -8581,6 +8599,27 @@ body.debug-interactive .vmode-btn::before {
     } catch(e){
       console.warn('[shop] cache load failed:', e.message);
     }
+    /* Session 24: cache load 直後にも seed を流す (オフライン時用) */
+    _shopSeedNeighborsBackgrounds();
+  }
+
+  /* Session 24: 新背景アイテム seed 注入 (共通関数)
+     fetchItemsMaster で上書きされても再注入できるよう独立関数化。
+     bg_neighbors_v1 / bg_neighbors_v2 を itemsMaster に追加。is_default=true。 */
+  function _shopSeedNeighborsBackgrounds(){
+    var im = window.chaipoShop.itemsMaster;
+    var existIds = new Set(im.map(function(x){ return x.id; }));
+    var seeds = [
+      { id: 'bg_neighbors_v1', type: 'background_normal', name: 'ネイバーズ昼', preview_url: 'assets/game/bg_v1.jpg', asset_url: 'assets/game/bg_v1.jpg', is_default: true, price_coins: 0 },
+      { id: 'bg_neighbors_v2', type: 'background_normal', name: 'ネイバーズ夕',  preview_url: 'assets/game/bg_v2.jpg', asset_url: 'assets/game/bg_v2.jpg', is_default: true, price_coins: 0 }
+    ];
+    var added = 0;
+    seeds.forEach(function(s){ if(!existIds.has(s.id)){ im.push(s); added++; } });
+    if(added > 0){
+      console.log('[shop] seeded ' + added + ' Neighbors backgrounds (Session 24)');
+      try { localStorage.setItem(SHOP_LS_KEYS.itemsMaster, JSON.stringify(im)); } catch(e){}
+    }
+    return added;
   }
 
   function _shopSaveCache(){
@@ -8642,7 +8681,7 @@ body.debug-interactive .vmode-btn::before {
     if(setRes.error){ console.warn('[shop] settings fetch err:', setRes.error.message); }
     if(setRes.data){
       window.chaipoShop.settings = {
-        equipped_bg_normal: setRes.data.equipped_bg_normal || 'bg_default_normal',
+        equipped_bg_normal: setRes.data.equipped_bg_normal || 'bg_neighbors_v1',
         equipped_bg_fl:     setRes.data.equipped_bg_fl     || 'bg_default_fl',
         equipped_card_back: setRes.data.equipped_card_back || null,
         equipped_effect:    setRes.data.equipped_effect    || null
@@ -8651,7 +8690,7 @@ body.debug-interactive .vmode-btn::before {
       // 初回ユーザー: 設定レコードを作る
       const insertRes = await O.supabase.from('user_settings').insert({
         user_id: O.userId,
-        equipped_bg_normal: 'bg_default_normal',
+        equipped_bg_normal: 'bg_neighbors_v1',
         equipped_bg_fl: 'bg_default_fl'
       });
       if(insertRes.error) console.warn('[shop] settings insert err:', insertRes.error.message);
@@ -8747,6 +8786,16 @@ body.debug-interactive .vmode-btn::before {
   function applyEquippedAssets(){
     const root = document.documentElement;
 
+    /* Session 24: bg_default_normal (asset_url=null) 装備中ならネイバーズ昼に自動移行 */
+    try{
+      var s = window.chaipoShop && window.chaipoShop.settings;
+      if(s && s.equipped_bg_normal === "bg_default_normal"){
+        s.equipped_bg_normal = "bg_neighbors_v1";
+        try{ localStorage.setItem("chaipoShop_settings_v1", JSON.stringify(s)); }catch(_){ }
+        console.log("[shop] migrated default bg to bg_neighbors_v1");
+      }
+    }catch(e){ console.warn("[shop] migration err", e); }
+
     // 背景(通常)
     const bgNormalUrl = getEquippedAsset('bg_normal');
     if(bgNormalUrl){
@@ -8785,6 +8834,8 @@ body.debug-interactive .vmode-btn::before {
 
     try {
       await fetchItemsMaster(O);
+      /* Session 24: Supabase 取得後にも seed を流して上書きを防ぐ */
+      _shopSeedNeighborsBackgrounds();
       await fetchUserShopData(O);
       await ensureDefaultInventory(O);
       applyEquippedAssets();
@@ -8816,7 +8867,10 @@ body.debug-interactive .vmode-btn::before {
   // デフォルトアイテム用のプレビュー画像フォールバック(preview_url が NULL の時)
   const SHOP_DEFAULT_PREVIEW = {
     'bg_default_normal': 'assets/game/bg.jpg',
-    'bg_default_fl':     'assets/game/bg_fl.png'
+    'bg_default_fl':     'assets/game/bg_fl.png',
+    /* Session 24: 新背景アイテム (デフォルト所持、誰でも切替可) */
+    'bg_neighbors_v1':   'assets/game/bg_v1.jpg',
+    'bg_neighbors_v2':   'assets/game/bg_v2.jpg'
   };
 
   function _shopGetPreviewUrl(item){
@@ -9911,6 +9965,9 @@ body.debug-interactive .vmode-btn::before {
 </div>
 
 <div class="screen" id="screen-game">
+  <!-- Session 24: bg + board overlay -->
+  <div class="game-bg-layer" id="gameBgLayer"></div>
+  <div class="game-board-layer" id="gameBoardLayer"></div>
   <div class="game-layout">
     <div class="game-header">
       <div class="game-title-small" id="gameTitle">チャイポ</div>
