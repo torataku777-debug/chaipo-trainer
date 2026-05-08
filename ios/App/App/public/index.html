@@ -2045,12 +2045,12 @@ body.bdt-edit-mode .bdt-handle{ display: block; }
 .bdt-handle[data-pos="sw"]{ bottom: -7px; left: -7px; cursor: nesw-resize; }
 .bdt-handle[data-pos="w"] { top: 50%; left: -7px; margin-top: -7px; cursor: ew-resize; }
 
-/* Session 24 fix5 v2: 結果ボードを左寄り → 右寄りに移動
-   従来: left:0 right:0 で全幅
-   修正: left を画面幅の40%地点に移動して右半分にだけ出す。max-width は付けない (内側折返し回避) */
+/* Session 24 fix5 v3: 結果ボードを opp-area の制約から逃して画面右側にしっかり配置
+   .opp-area が width:55.2% (画面左半分) のため、その中の right:0 は画面の真ん中。
+   opp-area からはみ出して画面右側に大きく取るには負の right が必要。 */
 body.ui-v2 #screen-game .opp-area .result-band{
-  left: 40% !important;
-  right: 8px !important;
+  left: 90% !important;
+  right: -90% !important;
 }
 
 /* Session 24 fix6 取り下げ: face-down 全消しは結果画面で相手カードが消える副作用が出たため。
