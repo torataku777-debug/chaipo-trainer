@@ -22725,7 +22725,8 @@ body.bptune-enabled .bptune-active{
         player_normal: '自分平場',
         player_fl:     '自分FL',
         opp_normal:    '相手平場',
-        opp_fl:        '相手FL'
+        opp_fl:        '相手FL',
+        result_band:   '結果ボード'
       };
       t.setAttribute('data-bdt-label', labelMap[tab] || tab);
       ['nw','n','ne','e','se','s','sw','w'].forEach(function(pos){
@@ -22876,6 +22877,13 @@ body.bptune-enabled .bptune-active{
         document.body.classList.remove('fl-mode');
         var sg = document.getElementById('screen-game');
         if(sg) sg.classList.remove('fl-mode');
+        /* fix: パネル閉じる時に結果ボードのダミーも解除 */
+        var rb = document.getElementById('resultBand');
+        if(rb && rb.dataset.bdtDummyApplied){
+          rb.classList.remove('show','win','lose','draw');
+          rb.innerHTML = '';
+          rb.dataset.bdtDummyApplied = '';
+        }
       }
     });
     document.querySelectorAll('.bdt-tab').forEach(function(el){
