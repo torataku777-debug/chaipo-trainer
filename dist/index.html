@@ -2260,10 +2260,18 @@ body.ui-v2 #screen-game .opp-row-tag{ display: none !important; }
 }
 
 .shop-body{
-  flex: 1;
+  /* fix: スクロール復活 - flex 子要素の高さ計算で min-height:0 が必須 */
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 14px 14px calc(var(--safe-bottom) + 18px);
   -webkit-overflow-scrolling: touch;
+}
+/* fix: shop-tab-pane も内側を伸ばして高さを取る */
+.shop-tab-pane.active{
+  display: block;
+  min-height: 0;
 }
 .shop-tab-pane{ display: none; }
 .shop-tab-pane.active{ display: block; }
@@ -8845,7 +8853,29 @@ body.debug-interactive .vmode-btn::before {
     if(added > 0){
       console.log('[shop] seeded ' + added + ' Neighbors backgrounds (Session 24)');
       try { localStorage.setItem(SHOP_LS_KEYS.itemsMaster, JSON.stringify(im)); } catch(e){}
+    /* fix: 旧背景アイテムを itemsMaster と inventory から削除 (clean-up migration)
+       bg_default_normal: もう使わないクリア背景
+       bg_clear_green_normal: 同上
+       残すのは bg_neighbors_v1 / bg_neighbors_v2 のみ */
+    var LEGACY_BG_IDS = ['bg_default_normal', 'bg_clear_green_normal'];
+    if(window.chaipoShop && Array.isArray(window.chaipoShop.itemsMaster)){
+      window.chaipoShop.itemsMaster = window.chaipoShop.itemsMaster.filter(function(it){
+        return LEGACY_BG_IDS.indexOf(it.id) === -1;
+      });
     }
+    if(window.chaipoShop && Array.isArray(window.chaipoShop.inventory)){
+      window.chaipoShop.inventory = window.chaipoShop.inventory.filter(function(inv){
+        return LEGACY_BG_IDS.indexOf(inv.item_id) === -1;
+      });
+    }
+    /* もし装備中が legacy だったら bg_neighbors_v1 にフォールバック */
+    if(window.chaipoShop && window.chaipoShop.settings){
+      if(LEGACY_BG_IDS.indexOf(window.chaipoShop.settings.equipped_bg_normal) > -1){
+        window.chaipoShop.settings.equipped_bg_normal = 'bg_neighbors_v1';
+      }
+    }
+
+  }
     return added;
   }
 
@@ -10178,9 +10208,7 @@ body.debug-interactive .vmode-btn::before {
 <button class="bdt-toggle" id="bdtToggle" type="button" aria-label="board-tuner">📐</button>
 <div class="bdt-panel" id="bdtPanel">
   <div class="bdt-tabs" id="bdtTabs">
-    <div class="bdt-tab bdt-tab-active" data-tab="player_normal">自分平場</div>
-    <div class="bdt-tab" data-tab="player_fl">自分FL</div>
-    <div class="bdt-tab" data-tab="opp_normal">相手平場</div>
+    <div class="bdt-tab bdt-tab-active" data-tab="opp_normal">相手平場</div>
     <div class="bdt-tab" data-tab="opp_fl">相手FL</div>
   </div>
   <div class="bdt-row"><label>top</label><input type="number" step="0.1" id="bdtTop" /><span class="bdt-unit">%</span></div>
@@ -22582,6 +22610,7 @@ body.bptune-enabled .bptune-active{
   /* isCapacitor early-return を解除。CSS 側の display 制御に一本化 */
 
   var LS_KEY = 'bdt_v1';
+  /* fix: 相手ボードのみ調整可能 (player_* は固定値で残すが、UIタブからは選択不可) */
   var BDT_TABS = ['player_normal','player_fl','opp_normal','opp_fl'];
   var DEFAULTS = {
     player_normal: { top: 42.6, left: 18.2, width: 75.3, height: 31.1, tx: 0, ty: 0 },
@@ -22590,7 +22619,7 @@ body.bptune-enabled .bptune-active{
     opp_fl:        { top: 16.9, left: 0.9,  width: 55.2, height: 15.1, tx: 0, ty: 0 }
   };
   var state = loadState();
-  var currentTab = 'player_normal';
+  var currentTab = 'opp_normal';
   var styleEl = null;
 
   function loadState(){
