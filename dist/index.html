@@ -1863,27 +1863,29 @@ html body.ui-v2 .opp-card{
   background-repeat: no-repeat;
   background-size: contain;
   background-position: center;
+  /* 立体感 + ゴールドのほんのりした光 */
   filter:
     drop-shadow(-2px 3px 3px rgba(0,0,0,0.4))
     drop-shadow(0 0 10px rgba(232,185,35,0.45));
   transform: rotate(-4deg);
   transform-origin: 70% 50%;
+  /* ふわっと呼吸するパルスアニメ */
   animation: shopFabPulse 2.6s ease-in-out infinite;
   transition: filter 0.15s ease, opacity 0.4s ease;
   -webkit-tap-highlight-color: transparent;
   display: block;
-  /* Session 24 fix: デフォルト非表示 + クリック不可。
-     表示は「モード選択画面でループ動画 ready」の時だけ */
+  /* Session 24 fix1/2/3: デフォルト非表示 + クリック不可。
+     表示は body.shop-fab-visible が付いた時 = 「モード選択画面 active かつループ動画 ready」のみ。
+     これによりゲーム画面 (AI対戦/FL練習等) でハンバーガー押下時の誤タップを根絶 */
   opacity: 0;
   pointer-events: none;
+  /* 中の SVG/label は非表示 (HTMLは残してロールバック容易にする) */
   font-size: 0;
   color: transparent;
   line-height: 0;
 }
-/* Session 24 fix7: shop-fab はモード選択画面 (.active) + ループ動画 ready 時だけ表示。
-   transitionLayer.is-active だけだと AI対戦/FL練習画面でも生きるため、screen-mode-select.active を必須条件に追加 */
-body.on-mode-select .transition-video-layer.is-active.loop-ready .shop-fab,
-body:has(#screen-mode-select.active) .transition-video-layer.is-active.loop-ready .shop-fab{
+/* Session 24 fix1/2/3: body.shop-fab-visible 時のみ shop-fab 表示 */
+body.shop-fab-visible .shop-fab{
   opacity: 1;
   pointer-events: auto;
 }
@@ -2043,56 +2045,29 @@ body.bdt-edit-mode .bdt-handle{ display: block; }
 .bdt-handle[data-pos="sw"]{ bottom: -7px; left: -7px; cursor: nesw-resize; }
 .bdt-handle[data-pos="w"] { top: 50%; left: -7px; margin-top: -7px; cursor: ew-resize; }
 
-
-/* Session 24 fix4: スコアバーの YOU/相手 ラベル非表示 + ボード内の YOU/相手 表記非表示 */
-body.ui-v2 #screen-game .score-label{
-  display: none !important;
-}
-body.ui-v2 #screen-game .opp-label,
-body.ui-v2 #screen-game .player-label{
-  display: none !important;
-}
-
-
-/* Session 24 fix5: ラウンド結果バンドを右寄りに */
-body.ui-v2 #screen-game .result-band{
-  left: auto !important;
-  right: 0 !important;
-  margin-left: auto !important;
-}
-/* 結果モーダル (resultModal / scoreCard) があれば右寄せ */
-body.ui-v2 #screen-game .score-card,
-body.ui-v2 #screen-game .result-modal,
-body.ui-v2 #screen-game .round-result-card{
-  left: auto !important;
-  right: 14px !important;
-  margin-left: auto !important;
-  margin-right: 0 !important;
-}
-
-
-/* Session 24 fix6 TODO: 相手FL時にこちら平場の場合、結果画面で opp-card.face-down が
-   真っ黒になる問題は JS 修正が必要 (renderOppBoard で gameOver===true && oppFlMode 時に
-   oppFlPendingBoard or 確定ボードを face-up で表示)。次セッションで対応予定。 */
-
-/* Session 24 Step A: hide opp-row-tag */
-body.ui-v2 #screen-game .opp-row-tag{ display: none !important; }
-/* Session 24 fix4: スコアバーのYOU/相手ラベル非表示 + 相手エリアの「相手」表記非表示 */
-body.ui-v2 #screen-game .score-label{ display: none !important; }
-body.ui-v2 #screen-game .opp-label{ display: none !important; }
-/* Session 24 fix5: 結果バンドを右寄せに変更 (左寄せ → 右寄せ) */
+/* Session 24 fix5: 結果ボードを左寄り → 右寄りに移動 */
 body.ui-v2 #screen-game .opp-area .result-band{
   left: auto !important;
   right: 0 !important;
+  max-width: 60% !important;
   margin-left: auto !important;
-  text-align: left;
-}
-body.ui-v2 #screen-game .opp-area .result-band .result-card-frame,
-body.ui-v2 #screen-game .opp-area .result-band > div{
-  margin-left: auto !important;
-  margin-right: 0 !important;
 }
 
+/* Session 24 fix6: 結果画面 (.result-band.show) 表示時、相手 FL の face-down カードを非表示
+   相手FL × こちら平場 で opp-card.face-down が並んで真っ黒になる問題の対策 */
+body.ui-v2 #screen-game .opp-area:has(.result-band.show) .opp-card.face-down{
+  display: none !important;
+}
+
+/* Session 24 fix4: 自分ボードの YOU 表記と相手ボードの 相手 表記を非表示 */
+body.ui-v2 #screen-game .opp-label,
+body.ui-v2 #screen-game .player-label,
+body.ui-v2 #screen-game #playerLabel{
+  display: none !important;
+}
+
+/* Session 24 Step A: hide opp-row-tag */
+body.ui-v2 #screen-game .opp-row-tag{ display: none !important; }
 
 /* Session 24 board layers */
 .game-bg-layer{
@@ -13353,8 +13328,6 @@ function endGame(){
   // v29.4: online の finalize は checkMatchEnd に移動 (マッチ終了時のみ)
   // ゲーム終了後：JKの化け先を計算してボードを再描画
   renderBoardWithJokers();
-  /* Session 24 fix6: gameOver 設定後に renderOpp を再描画して相手 FL の face-down を解除 */
-  try { renderOpp(); } catch(e){ console.warn('[fix6] renderOpp on endGame failed:', e); }
   updateConfirm(); // ボタンを即更新
 }
 function renderBoardWithJokers(){
@@ -13634,31 +13607,10 @@ function renderOpp(){
   const hideOppFl = state.oppFlMode && !state.gameOver && (
     state.flMode ||
     // v1.3 fix153: 自分が平場 + 相手FL のときは、 R5の配置が完了するまで すべてのラウンドで 相手のボードを隠す
-    // Session 24 fix6: gameOver 時は hideOppFl=false にして表向き表示
-    (!state.flMode && state.oppFlMode && !state.gameOver) ||
+    (!state.flMode && state.oppFlMode) ||
     (state.round === 1 && (state.phase === 'place5' || state.phase === 'transitioning')) ||
     state.oppFlPending
   );
-
-  // Session 24 fix6: gameOver 時は相手 FL 配置を表向きで見せる。
-  // state.oppBoard が空なら oppPendingFinalBoard / oppFlPendingBoard から補完
-  if(state.gameOver === true && state.oppFlMode){
-    var _oppBT = state.oppBoard && state.oppBoard.top || [];
-    var _oppBM = state.oppBoard && state.oppBoard.mid || [];
-    var _oppBB = state.oppBoard && state.oppBoard.bot || [];
-    var _isEmpty = _oppBT.length === 0 && _oppBM.length === 0 && _oppBB.length === 0;
-    if(_isEmpty){
-      var _src = state.oppPendingFinalBoard || state.oppFlPendingBoard;
-      if(_src && _src.top && _src.mid && _src.bot){
-        state.oppBoard = {
-          top: _src.top.slice(),
-          mid: _src.mid.slice(),
-          bot: _src.bot.slice()
-        };
-        console.log('[fix6] restored oppBoard from pending for gameOver display');
-      }
-    }
-  }
 
   // 今ラウンドで相手が未配置の枚数（ノンボタン時の保留分）
   // R1: oppPendingBoard があれば今ラウンド未配置
@@ -22497,74 +22449,69 @@ body.bptune-enabled .bptune-active{
 </script>
 
 <script>
-/* Session 24 fix7-js: screen-mode-select の active 状態を監視して body にクラス付与
-   (CSS :has() のフォールバック + 確実性のため) */
+/* Session 24 fix1/2/3: shop-fab 表示制御
+   screen-mode-select.active かつ transitionLoopVideo ready の両条件を満たす時のみ
+   body.shop-fab-visible を付与。これによりゲーム画面で誤タップしてショップに飛ぶバグを根絶。 */
 (function(){
-  function update(){
-    var sm = document.getElementById('screen-mode-select');
-    if(!sm) return;
-    if(sm.classList.contains('active')){
-      document.body.classList.add('on-mode-select');
-    } else {
-      document.body.classList.remove('on-mode-select');
-    }
+  var loopReady = false;
+  var modeSelectActive = false;
+
+  function updateVisible(){
+    document.body.classList.toggle('shop-fab-visible', loopReady && modeSelectActive);
   }
-  function start(){
-    var sm = document.getElementById('screen-mode-select');
-    if(!sm){ setTimeout(start, 200); return; }
-    update();
-    var ob = new MutationObserver(update);
-    ob.observe(sm, { attributes: true, attributeFilter: ['class'] });
-    /* 全画面切替時にも反応するため、すべての .screen を監視 */
-    document.querySelectorAll('.screen').forEach(function(s){
-      ob.observe(s, { attributes: true, attributeFilter: ['class'] });
-    });
-  }
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', start);
-  } else {
-    start();
-  }
-})();
-</script>
-<script>
-/* Session 24 fix1: ループ動画 ready 検知して transitionLayer に loop-ready クラス付与 */
-(function(){
-  function attach(){
+
+  function attachLoopVideo(){
     var v = document.getElementById('transitionLoopVideo');
-    var layer = document.getElementById('transitionLayer');
-    if(!v || !layer) return false;
-    function markReady(){
-      layer.classList.add('loop-ready');
-    }
-    function unmark(){
-      layer.classList.remove('loop-ready');
-    }
-    if(v.readyState >= 2){ markReady(); }
+    if(!v) return false;
+    function markReady(){ loopReady = true; updateVisible(); }
+    function unmark(){ loopReady = false; updateVisible(); }
+    if(v.readyState >= 2) markReady();
     v.addEventListener('loadeddata', markReady);
     v.addEventListener('canplay', markReady);
     v.addEventListener('playing', markReady);
     v.addEventListener('emptied', unmark);
-    /* transitionLayer が is-active 解除されたら loop-ready も外す */
-    var observer = new MutationObserver(function(mutations){
-      mutations.forEach(function(m){
-        if(m.attributeName === 'class'){
-          if(!layer.classList.contains('is-active')){
-            unmark();
-          }
-        }
-      });
-    });
-    observer.observe(layer, { attributes: true });
     return true;
   }
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', attach);
-  } else {
-    if(!attach()){
-      /* 要素未作成なら遅延リトライ */
-      setTimeout(attach, 500);
+
+  function attachModeSelectWatch(){
+    var ms = document.getElementById('screen-mode-select');
+    if(!ms) return false;
+    function check(){
+      modeSelectActive = ms.classList.contains('active');
+      updateVisible();
     }
+    check();
+    var observer = new MutationObserver(function(mutations){
+      mutations.forEach(function(m){
+        if(m.attributeName === 'class') check();
+      });
+    });
+    observer.observe(ms, { attributes: true });
+    /* transitionLayer の is-active 解除も検知 (画面遷移時の安全策) */
+    var layer = document.getElementById('transitionLayer');
+    if(layer){
+      var layerObserver = new MutationObserver(function(mutations){
+        mutations.forEach(function(m){
+          if(m.attributeName === 'class'){
+            if(!layer.classList.contains('is-active')) loopReady = false;
+            updateVisible();
+          }
+        });
+      });
+      layerObserver.observe(layer, { attributes: true });
+    }
+    return true;
+  }
+
+  function init(){
+    if(!attachLoopVideo()) setTimeout(attachLoopVideo, 500);
+    if(!attachModeSelectWatch()) setTimeout(attachModeSelectWatch, 500);
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
   }
 })();
 
