@@ -2051,12 +2051,10 @@ body.bdt-edit-mode .bdt-handle{ display: block; }
    right:-86% で画面右端まで近づき、内側 (.result-band-inner) が
    実質 width 60〜65% を取れるようになる。 */
 body.ui-v2 #screen-game .opp-area .result-band{
-  /* v5: 更に小型化 (left を 100% に近づけ、right を内側に) + 右端隙間 8px */
   left: 100% !important;
   right: -80% !important;
-  /* 内側パディングも縮小 */
 }
-/* v5: 内側 - 黄色完全排除、ニュートラル白+グレー系で視認性UP */
+/* v6: 内側 - 不透明白 + グレー枠で視認性UP */
 body.ui-v2 #screen-game .opp-area .result-band .result-band-inner{
   background: #fff !important;
   border: 1.5px solid rgba(0, 0, 0, 0.15) !important;
@@ -2066,11 +2064,7 @@ body.ui-v2 #screen-game .opp-area .result-band .result-band-inner{
     0 2px 8px rgba(0, 0, 0, 0.12),
     0 4px 16px rgba(0, 0, 0, 0.08) !important;
 }
-/* v5: WIN/LOSE/DRAW 系の色付け - 黄色をやめてニュートラルカラーに
-   - WIN: 濃い緑 (#0a7d4a)
-   - LOSE: 既存の赤
-   - DRAW: ニュートラルグレー
-   ::before の擬似要素 (キラキラ) も解除 */
+/* v6: WIN/LOSE 状態別の枠色 (黄色ベースのグラデ・キラキラ全解除) */
 body.ui-v2 #screen-game .opp-area .result-band.win .result-band-inner{
   border-color: rgba(10, 125, 74, 0.4) !important;
   background: #fff !important;
@@ -2085,24 +2079,28 @@ body.ui-v2 #screen-game .opp-area .result-band.lose .result-band-inner{
   border-color: rgba(220, 38, 38, 0.35) !important;
   background: #fff !important;
 }
-/* v5: タイトル色とポイント色 - 黄色 → 緑/赤/グレー */
-body.ui-v2 #screen-game .opp-area .result-band.win .result-band-title,
-body.ui-v2 #screen-game .opp-area .result-band.win .result-band-points{
+/* v6: 黄色 (#E8B923) を使う全クラスを強制上書き
+   .result-band-title.win  WIN タイトル
+   .result-band-net.positive  +15pt の数値
+   .rbc.you  YOU ヘッダー列
+   .rbc.w  勝利側の数値 (合計, 増減)
+   text-shadow も黄色なので none に */
+body.ui-v2 #screen-game .opp-area .result-band-title.win,
+body.ui-v2 #screen-game .opp-area .result-band-net.positive,
+body.ui-v2 #screen-game .opp-area .rbc.you,
+body.ui-v2 #screen-game .opp-area .rbc.w{
   color: #0a7d4a !important;
+  text-shadow: none !important;
 }
-body.ui-v2 #screen-game .opp-area .result-band.lose .result-band-title,
-body.ui-v2 #screen-game .opp-area .result-band.lose .result-band-points{
-  color: #dc2626 !important;
-}
-/* SCOOP! などの状態ラベルも黄色やめて同じ色に */
-body.ui-v2 #screen-game .opp-area .result-band.win .result-band-table .scoop{
+/* v6: SCOOP! 表記など状態テキストも黄色排除 */
+body.ui-v2 #screen-game .opp-area .result-band .scoop,
+body.ui-v2 #screen-game .opp-area .result-band [class*="scoop"]{
   color: #0a7d4a !important;
+  text-shadow: none !important;
 }
-/* YOU/相手 ヘッダー、増減 +N の黄色アクセントもニュートラルに */
-body.ui-v2 #screen-game .opp-area .result-band .result-band-table th.you,
-body.ui-v2 #screen-game .opp-area .result-band .result-band-table .delta-plus,
-body.ui-v2 #screen-game .opp-area .result-band .delta.plus{
-  color: #0a7d4a !important;
+/* v6: rbc.lbl の黄色寄りボーダーを軽くニュートラルに */
+body.ui-v2 #screen-game .opp-area .rbc{
+  border-bottom-color: rgba(0, 0, 0, 0.08) !important;
 }
 
 /* Session 24 fix6 取り下げ: face-down 全消しは結果画面で相手カードが消える副作用が出たため。
