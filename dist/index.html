@@ -2045,19 +2045,16 @@ body.bdt-edit-mode .bdt-handle{ display: block; }
 .bdt-handle[data-pos="sw"]{ bottom: -7px; left: -7px; cursor: nesw-resize; }
 .bdt-handle[data-pos="w"] { top: 50%; left: -7px; margin-top: -7px; cursor: ew-resize; }
 
-/* Session 24 fix5: 結果ボードを左寄り → 右寄りに移動 */
+/* Session 24 fix5 v2: 結果ボードを左寄り → 右寄りに移動
+   従来: left:0 right:0 で全幅
+   修正: left を画面幅の40%地点に移動して右半分にだけ出す。max-width は付けない (内側折返し回避) */
 body.ui-v2 #screen-game .opp-area .result-band{
-  left: auto !important;
-  right: 0 !important;
-  max-width: 60% !important;
-  margin-left: auto !important;
+  left: 40% !important;
+  right: 8px !important;
 }
 
-/* Session 24 fix6: 結果画面 (.result-band.show) 表示時、相手 FL の face-down カードを非表示
-   相手FL × こちら平場 で opp-card.face-down が並んで真っ黒になる問題の対策 */
-body.ui-v2 #screen-game .opp-area:has(.result-band.show) .opp-card.face-down{
-  display: none !important;
-}
+/* Session 24 fix6 取り下げ: face-down 全消しは結果画面で相手カードが消える副作用が出たため。
+   相手FL × こちら平場 の表示問題は別途 renderOppRow ロジック側で対応する必要あり (TODO) */
 
 /* Session 24 fix4: 自分ボードの YOU 表記と相手ボードの 相手 表記を非表示 */
 body.ui-v2 #screen-game .opp-label,
