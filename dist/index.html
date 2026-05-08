@@ -22658,48 +22658,27 @@ body.bptune-enabled .bptune-active{
   function saveState(){
     try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){}
   }
-  function ensureStyleEl(){
-    if(!styleEl){
-      styleEl = document.createElement('style');
-      styleEl.id = 'bdtDynamicStyle';
-      document.head.appendChild(styleEl);
-    }
-    return styleEl;
-  }
+  /* fix: <style>動的書換 → element.style 直接書込みに変更
+     iOS WebView の <head> 動的style反映問題を完全回避 */
   function applyAllStyles(){
-    var el = ensureStyleEl();
-    var pn = state.player_normal, pf = state.player_fl;
-    var on = state.opp_normal, of = state.opp_fl;
-    el.textContent = [
-      'html body.ui-v2 #screen-game:not(.fl-mode) .player-area, html body.ui-v2 #screen-game .player-area:not(.fl-mode){',
-      '  top: ' + pn.top + '% !important;',
-      '  left: ' + pn.left + '% !important;',
-      '  width: ' + pn.width + '% !important;',
-      '  height: ' + pn.height + '% !important;',
-      '  transform: translate(' + pn.tx + 'px, ' + pn.ty + 'px) !important;',
-      '}',
-      'html body.ui-v2.fl-mode .player-area, html body.ui-v2 #screen-game.fl-mode .player-area, html body.ui-v2 #screen-game .player-area.fl-mode{',
-      '  top: ' + pf.top + '% !important;',
-      '  left: ' + pf.left + '% !important;',
-      '  width: ' + pf.width + '% !important;',
-      '  height: ' + pf.height + '% !important;',
-      '  transform: translate(' + pf.tx + 'px, ' + pf.ty + 'px) !important;',
-      '}',
-      'html body.ui-v2 #screen-game:not(.fl-mode) .opp-area, html body.ui-v2 #screen-game .opp-area:not(.fl-mode){',
-      '  top: ' + on.top + '% !important;',
-      '  left: ' + on.left + '% !important;',
-      '  width: ' + on.width + '% !important;',
-      '  height: ' + on.height + '% !important;',
-      '  transform: translate(' + on.tx + 'px, ' + on.ty + 'px) !important;',
-      '}',
-      'html body.ui-v2.fl-mode .opp-area, html body.ui-v2 #screen-game.fl-mode .opp-area, html body.ui-v2 #screen-game .opp-area.fl-mode{',
-      '  top: ' + of.top + '% !important;',
-      '  left: ' + of.left + '% !important;',
-      '  width: ' + of.width + '% !important;',
-      '  height: ' + of.height + '% !important;',
-      '  transform: translate(' + of.tx + 'px, ' + of.ty + 'px) !important;',
-      '}'
-    ].join('\n');
+    var oppEl = document.querySelector('.opp-area');
+    var playerEl = document.querySelector('.player-area');
+    if(!oppEl || !playerEl) return;
+    var isFlNow = document.body.classList.contains('fl-mode');
+    var ov = isFlNow ? state.opp_fl : state.opp_normal;
+    var pv = isFlNow ? state.player_fl : state.player_normal;
+    /* opp-area に直接 inline style 書込 (setProperty 'important' で !important 指定) */
+    oppEl.style.setProperty('top', ov.top + '%', 'important');
+    oppEl.style.setProperty('left', ov.left + '%', 'important');
+    oppEl.style.setProperty('width', ov.width + '%', 'important');
+    oppEl.style.setProperty('height', ov.height + '%', 'important');
+    oppEl.style.setProperty('transform', 'translate(' + ov.tx + 'px, ' + ov.ty + 'px)', 'important');
+    /* player-area も同様 (将来再対応するときのため値だけ反映) */
+    playerEl.style.setProperty('top', pv.top + '%', 'important');
+    playerEl.style.setProperty('left', pv.left + '%', 'important');
+    playerEl.style.setProperty('width', pv.width + '%', 'important');
+    playerEl.style.setProperty('height', pv.height + '%', 'important');
+    playerEl.style.setProperty('transform', 'translate(' + pv.tx + 'px, ' + pv.ty + 'px)', 'important');
   }
 
   function getTargetEl(tab){
