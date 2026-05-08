@@ -1934,7 +1934,9 @@ body.shop-fab-visible .shop-fab{
 /* Session 24 fix: 表示条件を「body.is-web-browser または body.dev-mode」に拡張
    iOS Capacitor でも設定画面の「開発者モード」トグル ON で表示できるようにする */
 body.is-web-browser .bdt-toggle,
-body.dev-mode .bdt-toggle{ display: flex; }
+body.dev-mode .bdt-toggle{ display: flex; pointer-events: auto !important; }
+body.is-web-browser .bdt-panel.bdt-open,
+body.dev-mode .bdt-panel.bdt-open{ pointer-events: auto !important; }
 .bdt-toggle.bdt-active{ background: #ffc83d; color: #000; }
 
 .bdt-panel{
@@ -10228,9 +10230,7 @@ body.debug-interactive .vmode-btn::before {
 <button class="bdt-toggle" id="bdtToggle" type="button" aria-label="board-tuner">📐</button>
 <div class="bdt-panel" id="bdtPanel">
   <div class="bdt-tabs" id="bdtTabs">
-    <div class="bdt-tab bdt-tab-active" data-tab="opp_normal">相手平場</div>
-    <div class="bdt-tab" data-tab="opp_fl">相手FL</div>
-    <div class="bdt-tab" data-tab="result_band">結果ボード</div>
+    <div class="bdt-tab bdt-tab-active" data-tab="result_band">結果ボード</div>
   </div>
   <div class="bdt-row"><label>top</label><button class="bdt-step bdt-minus" data-target="Top" data-step="-0.5">−</button><input type="number" step="0.1" id="bdtTop" /><button class="bdt-step bdt-plus" data-target="Top" data-step="0.5">+</button><span class="bdt-unit">%</span></div>
   <div class="bdt-row"><label>left</label><button class="bdt-step bdt-minus" data-target="Left" data-step="-0.5">−</button><input type="number" step="0.1" id="bdtLeft" /><button class="bdt-step bdt-plus" data-target="Left" data-step="0.5">+</button><span class="bdt-unit">%</span></div>
@@ -22641,7 +22641,7 @@ body.bptune-enabled .bptune-active{
     opp_fl:        { top: 16.9, left: 0.9,  width: 55.2, height: 15.1, tx: 0, ty: 0 }
   };
   var state = loadState();
-  var currentTab = 'opp_normal';
+  var currentTab = 'result_band';
   var styleEl = null;
 
   function loadState(){
@@ -22911,6 +22911,14 @@ body.bptune-enabled .bptune-active{
     var toggle = document.getElementById('bdtToggle');
     var panel  = document.getElementById('bdtPanel');
     if(!toggle || !panel) return;
+    /* fix: 親 transitionLayer の pointer-events:none が子に効くため、
+       body 直下に DOM 移動して影響を排除 */
+    if(toggle.parentElement !== document.body){
+      document.body.appendChild(toggle);
+    }
+    if(panel.parentElement !== document.body){
+      document.body.appendChild(panel);
+    }
     applyAllStyles();
     bindInputs();
     toggle.addEventListener('click', function(){
