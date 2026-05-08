@@ -249,11 +249,12 @@ html body.ui-v2.fl-mode .player-area{
 body.ui-v2 .game-header{ background:rgba(255,255,255,0.85) !important; border-bottom:none !important; }
 body.ui-v2 .score-bar{ background:rgba(255,255,255,0.78) !important; border:none !important; }
 
-/* fix95 (UI v2): 相手ボード - 元レイアウト維持で位置のみ絶対配置 (確定値 v2) */
+/* fix95 (UI v2): 相手ボード - 元レイアウト維持で位置のみ絶対配置
+   Session 24 fix: チューナー調整値を反映 (相手平場のみ top/left を微調整) */
 body.ui-v2 .opp-area{
   position:absolute !important;
-  top:16.9% !important;
-  left:0.9% !important;
+  top:18.9% !important;
+  left:2.3% !important;
   width:55.2% !important;
   height:15.1% !important;
   right:auto !important;
@@ -22629,12 +22630,13 @@ body.bptune-enabled .bptune-active{
   /* isCapacitor early-return を解除。CSS 側の display 制御に一本化 */
 
   var LS_KEY = 'bdt_v1';
-  /* fix: 相手ボードのみ調整可能 (player_* は固定値で残すが、UIタブからは選択不可) */
+  /* fix: 相手ボードのみ調整可能 (player_* は固定値で残すが、UIタブからは選択不可)
+     Session 24 fix: opp_normal の確定値を反映 (top 16.9→18.9, left 0.9→2.3) */
   var BDT_TABS = ['player_normal','player_fl','opp_normal','opp_fl'];
   var DEFAULTS = {
     player_normal: { top: 42.6, left: 18.2, width: 75.3, height: 31.1, tx: 0, ty: 0 },
     player_fl:     { top: 42.6, left: 18.2, width: 75.3, height: 31.1, tx: 0, ty: -41 },
-    opp_normal:    { top: 16.9, left: 0.9,  width: 55.2, height: 15.1, tx: 0, ty: 0 },
+    opp_normal:    { top: 18.9, left: 2.3,  width: 55.2, height: 15.1, tx: 0, ty: 0 },
     opp_fl:        { top: 16.9, left: 0.9,  width: 55.2, height: 15.1, tx: 0, ty: 0 }
   };
   var state = loadState();
