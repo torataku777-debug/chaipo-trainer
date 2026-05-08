@@ -22681,6 +22681,30 @@ body.bptune-enabled .bptune-active{
     playerEl.style.setProperty('width', pv.width + '%', 'important');
     playerEl.style.setProperty('height', pv.height + '%', 'important');
     playerEl.style.setProperty('transform', 'translate(' + pv.tx + 'px, ' + pv.ty + 'px)', 'important');
+
+    /* 結果ボード: 編集中だけ screen-game 直下に DOM 移動して、画面幅%基準で直接配置
+       (opp-area の値を一切読まないので、相手ボードと完全に独立) */
+    var rb = document.getElementById('resultBand');
+    if(rb && currentTab === 'result_band'){
+      var rv = state.result_band;
+      var sg = document.getElementById('screen-game');
+      /* DOM を screen-game 直下に移動 (まだなら) */
+      if(sg && rb.parentElement !== sg){
+        sg.appendChild(rb);
+      }
+      rb.style.setProperty('position', 'absolute', 'important');
+      rb.style.setProperty('top', rv.top + '%', 'important');
+      rb.style.setProperty('left', rv.left + '%', 'important');
+      rb.style.setProperty('width', rv.width + '%', 'important');
+      rb.style.setProperty('right', 'auto', 'important');
+      rb.style.setProperty('z-index', '50', 'important');
+      if(rv.height && rv.height > 0){
+        rb.style.setProperty('height', rv.height + '%', 'important');
+      } else {
+        rb.style.removeProperty('height');
+      }
+      rb.style.setProperty('transform', 'translate(' + rv.tx + 'px, ' + rv.ty + 'px)', 'important');
+    }
   }
 
   function getTargetEl(tab){
@@ -22717,6 +22741,33 @@ body.bptune-enabled .bptune-active{
     } else {
       body.classList.remove('fl-mode');
       if(sg) sg.classList.remove('fl-mode');
+    }
+    /* fix: 結果ボード編集モード - WIN ダミーで強制表示
+       他タブ切替時は元の状態に戻す (DOM位置 / inline style / ダミー全クリア) */
+    var rb = document.getElementById('resultBand');
+    if(rb){
+      if(tab === 'result_band'){
+        rb.classList.remove('lose','draw');
+        rb.classList.add('win','show');
+        if(!rb.dataset.bdtDummyApplied){
+          rb.innerHTML = '<div class="result-band-inner"><div class="result-band-header"><div class="result-band-title win">WIN</div><div class="result-band-net positive">+15pt</div></div><div class="result-band-rows"><div class="rbc lbl"></div><div class="rbc lbl you">YOU</div><div class="rbc lbl opp">相手</div><div class="rbc lbl">合計</div><div class="rbc tot">15</div><div class="rbc tot">0</div><div class="rbc lbl">状態</div><div class="rbc w">SCOOP!</div><div class="rbc l">FOUL</div><div class="rbc lbl">増減</div><div class="rbc w">+15</div><div class="rbc l">-15</div></div></div>';
+          rb.dataset.bdtDummyApplied = '1';
+        }
+      } else {
+        /* 他タブ選択時: ダミー解除 + DOM 元位置 + inline style クリア */
+        if(rb.dataset.bdtDummyApplied){
+          rb.classList.remove('show','win','lose','draw');
+          rb.innerHTML = '';
+          rb.dataset.bdtDummyApplied = '';
+        }
+        var oppArea2 = document.querySelector('.opp-area');
+        if(oppArea2 && rb.parentElement !== oppArea2){
+          oppArea2.appendChild(rb);
+        }
+        ['position','top','left','width','height','right','z-index','transform'].forEach(function(prop){
+          rb.style.removeProperty(prop);
+        });
+      }
     }
     var t = getTargetEl(tab);
     if(t){
