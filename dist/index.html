@@ -1880,8 +1880,10 @@ html body.ui-v2 .opp-card{
   color: transparent;
   line-height: 0;
 }
-/* ループ動画 ready 後に shop-fab を表示 (モード選択画面アクティブ時のみ) */
-.transition-video-layer.is-active.loop-ready .shop-fab{
+/* Session 24 fix7: shop-fab はモード選択画面 (.active) + ループ動画 ready 時だけ表示。
+   transitionLayer.is-active だけだと AI対戦/FL練習画面でも生きるため、screen-mode-select.active を必須条件に追加 */
+body.on-mode-select .transition-video-layer.is-active.loop-ready .shop-fab,
+body:has(#screen-mode-select.active) .transition-video-layer.is-active.loop-ready .shop-fab{
   opacity: 1;
   pointer-events: auto;
 }
@@ -2075,6 +2077,22 @@ body.ui-v2 #screen-game .round-result-card{
 
 /* Session 24 Step A: hide opp-row-tag */
 body.ui-v2 #screen-game .opp-row-tag{ display: none !important; }
+/* Session 24 fix4: スコアバーのYOU/相手ラベル非表示 + 相手エリアの「相手」表記非表示 */
+body.ui-v2 #screen-game .score-label{ display: none !important; }
+body.ui-v2 #screen-game .opp-label{ display: none !important; }
+/* Session 24 fix5: 結果バンドを右寄せに変更 (左寄せ → 右寄せ) */
+body.ui-v2 #screen-game .opp-area .result-band{
+  left: auto !important;
+  right: 0 !important;
+  margin-left: auto !important;
+  text-align: left;
+}
+body.ui-v2 #screen-game .opp-area .result-band .result-card-frame,
+body.ui-v2 #screen-game .opp-area .result-band > div{
+  margin-left: auto !important;
+  margin-right: 0 !important;
+}
+
 
 /* Session 24 board layers */
 .game-bg-layer{
@@ -13335,6 +13353,8 @@ function endGame(){
   // v29.4: online の finalize は checkMatchEnd に移動 (マッチ終了時のみ)
   // ゲーム終了後：JKの化け先を計算してボードを再描画
   renderBoardWithJokers();
+  /* Session 24 fix6: gameOver 設定後に renderOpp を再描画して相手 FL の face-down を解除 */
+  try { renderOpp(); } catch(e){ console.warn('[fix6] renderOpp on endGame failed:', e); }
   updateConfirm(); // ボタンを即更新
 }
 function renderBoardWithJokers(){
@@ -13614,7 +13634,8 @@ function renderOpp(){
   const hideOppFl = state.oppFlMode && !state.gameOver && (
     state.flMode ||
     // v1.3 fix153: 自分が平場 + 相手FL のときは、 R5の配置が完了するまで すべてのラウンドで 相手のボードを隠す
-    (!state.flMode && state.oppFlMode) ||
+    // Session 24 fix6: gameOver 時は hideOppFl=false にして表向き表示
+    (!state.flMode && state.oppFlMode && !state.gameOver) ||
     (state.round === 1 && (state.phase === 'place5' || state.phase === 'transitioning')) ||
     state.oppFlPending
   );
@@ -22475,6 +22496,37 @@ body.bptune-enabled .bptune-active{
 })();
 </script>
 
+<script>
+/* Session 24 fix7-js: screen-mode-select の active 状態を監視して body にクラス付与
+   (CSS :has() のフォールバック + 確実性のため) */
+(function(){
+  function update(){
+    var sm = document.getElementById('screen-mode-select');
+    if(!sm) return;
+    if(sm.classList.contains('active')){
+      document.body.classList.add('on-mode-select');
+    } else {
+      document.body.classList.remove('on-mode-select');
+    }
+  }
+  function start(){
+    var sm = document.getElementById('screen-mode-select');
+    if(!sm){ setTimeout(start, 200); return; }
+    update();
+    var ob = new MutationObserver(update);
+    ob.observe(sm, { attributes: true, attributeFilter: ['class'] });
+    /* 全画面切替時にも反応するため、すべての .screen を監視 */
+    document.querySelectorAll('.screen').forEach(function(s){
+      ob.observe(s, { attributes: true, attributeFilter: ['class'] });
+    });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+})();
+</script>
 <script>
 /* Session 24 fix1: ループ動画 ready 検知して transitionLayer に loop-ready クラス付与 */
 (function(){
