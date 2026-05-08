@@ -722,7 +722,7 @@ html body.ui-v2 #screen-game .score-label-wrap{
 }
 
 /* fix112 (UI v2): TOP/MID/BOT ラベルを大きく */
-html body.ui-v2 #screen-game .opp-row-tag,
+/* Session 24: opp-row-tag removed from fix112 */
 html body.ui-v2 #screen-game .row-label,
 html body.ui-v2 #screen-game .row-tag{
   font-size:11px !important;
@@ -1901,6 +1901,143 @@ html body.ui-v2 .opp-card{
 .shop-fab-label{
   display: none !important;
 }
+
+/* === Session 24 Step B: Board Tuner CSS === */
+.bdt-toggle{
+  position: fixed;
+  top: calc(var(--safe-top, 0px) + 14px);
+  left: 14px;
+  z-index: 9999;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.7);
+  color: #ffc83d;
+  border: 2px solid #ffc83d;
+  font-size: 20px;
+  display: none;
+  align-items: center; justify-content: center;
+  cursor: pointer;
+  font-weight: bold; line-height: 1; padding: 0;
+  font-family: -apple-system, sans-serif;
+  user-select: none; -webkit-tap-highlight-color: transparent;
+}
+body.is-web-browser .bdt-toggle{ display: flex; }
+.bdt-toggle.bdt-active{ background: #ffc83d; color: #000; }
+
+.bdt-panel{
+  position: fixed;
+  top: calc(var(--safe-top, 0px) + 64px);
+  left: 14px;
+  z-index: 9998;
+  width: 270px;
+  background: rgba(0,0,0,0.92);
+  color: #fff;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-family: -apple-system, monospace;
+  display: none;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,200,61,0.3);
+}
+.bdt-panel.bdt-open{ display: block; }
+.bdt-tabs{
+  display: flex; gap: 4px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.bdt-tab{
+  flex: 1 1 calc(50% - 4px);
+  padding: 6px 4px;
+  background: rgba(255,255,255,0.1);
+  color: #ccc;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  font-size: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.bdt-tab.bdt-tab-active{
+  background: #ffc83d; color: #000; border-color: #ffc83d;
+}
+.bdt-row{
+  display: flex; align-items: center;
+  margin-bottom: 6px; gap: 6px;
+}
+.bdt-row label{ width: 60px; color: #aaa; font-size: 10px; }
+.bdt-row input{
+  flex: 1; min-width: 0;
+  background: #222; color: #ffc83d;
+  border: 1px solid #555;
+  border-radius: 3px;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-family: inherit;
+}
+.bdt-row .bdt-unit{ color: #888; font-size: 10px; width: 14px; }
+.bdt-actions{
+  display: flex; gap: 6px;
+  margin-top: 10px;
+}
+.bdt-btn{
+  flex: 1;
+  background: #ffc83d; color: #000;
+  border: none;
+  padding: 7px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 11px;
+  cursor: pointer;
+}
+.bdt-btn-secondary{ background: rgba(255,255,255,0.15); color: #fff; }
+.bdt-hint{
+  margin-top: 8px;
+  padding: 6px 8px;
+  background: rgba(255,200,61,0.08);
+  border-left: 2px solid #ffc83d;
+  font-size: 10px;
+  color: #ddd;
+  line-height: 1.4;
+}
+body.bdt-edit-mode .bdt-target{
+  outline: 2px dashed #ffc83d !important;
+  outline-offset: 2px;
+  cursor: move;
+  z-index: 100 !important;
+}
+body.bdt-edit-mode .bdt-target::after{
+  content: attr(data-bdt-label);
+  position: absolute;
+  top: -22px; left: 0;
+  background: #ffc83d; color: #000;
+  font-size: 10px; font-weight: bold;
+  padding: 2px 6px; border-radius: 3px;
+  pointer-events: none;
+  font-family: -apple-system;
+}
+.bdt-handle{
+  position: absolute;
+  width: 14px; height: 14px;
+  background: #ffc83d;
+  border: 2px solid #000;
+  border-radius: 50%;
+  z-index: 200;
+  pointer-events: auto;
+  display: none;
+  touch-action: none;
+}
+body.bdt-edit-mode .bdt-handle{ display: block; }
+.bdt-handle[data-pos="nw"]{ top: -7px; left: -7px; cursor: nwse-resize; }
+.bdt-handle[data-pos="n"] { top: -7px; left: 50%; margin-left: -7px; cursor: ns-resize; }
+.bdt-handle[data-pos="ne"]{ top: -7px; right: -7px; cursor: nesw-resize; }
+.bdt-handle[data-pos="e"] { top: 50%; right: -7px; margin-top: -7px; cursor: ew-resize; }
+.bdt-handle[data-pos="se"]{ bottom: -7px; right: -7px; cursor: nwse-resize; }
+.bdt-handle[data-pos="s"] { bottom: -7px; left: 50%; margin-left: -7px; cursor: ns-resize; }
+.bdt-handle[data-pos="sw"]{ bottom: -7px; left: -7px; cursor: nesw-resize; }
+.bdt-handle[data-pos="w"] { top: 50%; left: -7px; margin-top: -7px; cursor: ew-resize; }
+
+/* Session 24 Step A: hide opp-row-tag */
+body.ui-v2 #screen-game .opp-row-tag{ display: none !important; }
 
 /* Session 24 board layers */
 .game-bg-layer{
@@ -9947,7 +10084,29 @@ body.debug-interactive .vmode-btn::before {
     <button class="vmode-btn vmode-btn-data"      type="button" aria-label="データ"          onclick="onModeClick('データ')">データ</button>
     <button class="vmode-btn vmode-btn-settings"  type="button" aria-label="設定"            onclick="onModeClick('設定')">設定</button>
   </div>
-  <!-- === Session 24: ショップアイコン (右上、画像アイコン)
+  <!-- Session 24 Step B: Board Tuner -->
+<button class="bdt-toggle" id="bdtToggle" type="button" aria-label="board-tuner">📐</button>
+<div class="bdt-panel" id="bdtPanel">
+  <div class="bdt-tabs" id="bdtTabs">
+    <div class="bdt-tab bdt-tab-active" data-tab="player_normal">自分平場</div>
+    <div class="bdt-tab" data-tab="player_fl">自分FL</div>
+    <div class="bdt-tab" data-tab="opp_normal">相手平場</div>
+    <div class="bdt-tab" data-tab="opp_fl">相手FL</div>
+  </div>
+  <div class="bdt-row"><label>top</label><input type="number" step="0.1" id="bdtTop" /><span class="bdt-unit">%</span></div>
+  <div class="bdt-row"><label>left</label><input type="number" step="0.1" id="bdtLeft" /><span class="bdt-unit">%</span></div>
+  <div class="bdt-row"><label>width</label><input type="number" step="0.1" id="bdtWidth" /><span class="bdt-unit">%</span></div>
+  <div class="bdt-row"><label>height</label><input type="number" step="0.1" id="bdtHeight" /><span class="bdt-unit">%</span></div>
+  <div class="bdt-row"><label>tx</label><input type="number" step="1" id="bdtTx" /><span class="bdt-unit">px</span></div>
+  <div class="bdt-row"><label>ty</label><input type="number" step="1" id="bdtTy" /><span class="bdt-unit">px</span></div>
+  <div class="bdt-actions">
+    <button class="bdt-btn" type="button" id="bdtCopyJson">JSONコピー</button>
+    <button class="bdt-btn bdt-btn-secondary" type="button" id="bdtReset">リセット</button>
+  </div>
+  <div class="bdt-hint">編集中タブのボードを<br>ドラッグで移動 / 黄丸でリサイズ<br>tx/ty=transformのpx微調整</div>
+</div>
+
+<!-- === Session 24: ショップアイコン (右上、画像アイコン)
        mode-select-buttons の外に出して、is-active クラスや誤タップの影響を断つ。
        中身の SVG/label は CSS の display:none で非表示 (将来ロールバック容易のため残置)。 -->
   <button class="shop-fab" type="button" aria-label="ショップ" onclick="onShopFabClick()">
@@ -13463,7 +13622,7 @@ function renderOpp(){
           oc.style.cssText='display:flex;align-items:center;justify-content:center;';
           oc.innerHTML='<span style="display:inline-block;width:14px;height:14px;background:linear-gradient(135deg,#FFD94A,#E8B923 50%,#B8890F);clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);filter:drop-shadow(0 0 3px rgba(232,185,35,0.5));"></span>';
         }
-        else{const sym=SUIT_SYMS[cards[i].s];oc.innerHTML='<div style="color:'+cols[cards[i].s]+';font-size:12px;font-weight:700;font-family:var(--font-ui);line-height:1">'+cards[i].r+'</div><div style="color:'+cols[cards[i].s]+';font-size:10px;line-height:1">'+sym+'</div>';}
+        else{const sym=SUIT_SYMS[cards[i].s];oc.innerHTML='<div style="color:'+cols[cards[i].s]+';font-size:16px;font-weight:700;font-family:var(--font-ui);line-height:1">'+cards[i].r+'</div><div style="color:'+cols[cards[i].s]+';font-size:14px;line-height:1">'+sym+'</div>';}
         sl.appendChild(oc);
       } else if(pendingCount > 0 && state.gameOver===false) {
         // 今ラウンドの保留分は裏向きスロットで表示（枚数だけ示す）
@@ -21680,6 +21839,416 @@ body.is-web-browser #screen-game.active{
 }
 </style>
 
+
+<!-- === Session 24 Step B: 4状態ボード調整ツール (ブラウザのみ表示) === -->
+<style>
+body:not(.is-web-browser) .bptune-toggle,
+body:not(.is-web-browser) .bptune-panel{ display:none !important; }
+body.is-web-browser:not(.bptune-enabled) .bptune-toggle{ display:flex; }
+body.is-web-browser:not(.bptune-enabled) .bptune-panel{ display:none; }
+body.is-web-browser.bptune-enabled .bptune-panel{ display:block; }
+body.is-web-browser.bptune-enabled .bptune-toggle{ background:#ffc83d; color:#000; }
+
+.bptune-toggle{
+  position: fixed;
+  top: calc(var(--safe-top, 0px) + 14px);
+  right: 116px;
+  z-index: 99998;
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: #000;
+  color: #ffc83d;
+  border: 2px solid #ffc83d;
+  font-size: 18px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
+  font-family: -apple-system, sans-serif;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.bptune-panel{
+  position: fixed;
+  top: calc(var(--safe-top, 0px) + 64px);
+  right: 8px;
+  z-index: 99998;
+  background: rgba(0,0,0,0.92);
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-family: -apple-system, monospace;
+  font-size: 11px;
+  min-width: 240px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+.bptune-tabs{
+  display: flex;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+.bptune-tab{
+  flex: 1;
+  background: #222;
+  color: #999;
+  border: none;
+  padding: 6px 4px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.bptune-tab.active{
+  background: #ffc83d;
+  color: #000;
+}
+.bptune-row{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+.bptune-row > span:first-child{ color: #aaa; min-width: 60px; }
+.bptune-row .bptune-val{ color: #ffc83d; font-weight: 700; min-width: 60px; text-align: right; }
+.bptune-actions{
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.bptune-btn{
+  flex: 1;
+  background: #ffc83d;
+  color: #000;
+  border: none;
+  padding: 7px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 11px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.bptune-btn.bptune-btn-sec{ background: #444; color: #fff; }
+.bptune-hint{
+  margin-top: 6px;
+  font-size: 9px;
+  color: #888;
+  line-height: 1.3;
+}
+body.bptune-enabled .opp-area,
+body.bptune-enabled .player-area{
+  outline: 2px dashed rgba(255, 200, 61, 0.7);
+  outline-offset: -2px;
+}
+body.bptune-enabled .bptune-active{
+  outline-color: rgba(255, 200, 61, 1) !important;
+  outline-style: solid !important;
+  cursor: move;
+}
+.bptune-handle{
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: #ffc83d;
+  border: 2px solid #000;
+  border-radius: 50%;
+  z-index: 99997;
+  cursor: nwse-resize;
+  pointer-events: auto;
+}
+.bptune-handle.h-tl{ top: -7px; left: -7px; cursor: nwse-resize; }
+.bptune-handle.h-tr{ top: -7px; right: -7px; cursor: nesw-resize; }
+.bptune-handle.h-bl{ bottom: -7px; left: -7px; cursor: nesw-resize; }
+.bptune-handle.h-br{ bottom: -7px; right: -7px; cursor: nwse-resize; }
+</style>
+
+<button class="bptune-toggle" id="bptuneToggle" type="button" aria-label="ボード調整">📐</button>
+<div class="bptune-panel" id="bptunePanel">
+  <div class="bptune-tabs">
+    <button class="bptune-tab active" data-mode="pself">自分平場</button>
+    <button class="bptune-tab" data-mode="pself-fl">自分FL</button>
+    <button class="bptune-tab" data-mode="opp">相手平場</button>
+    <button class="bptune-tab" data-mode="opp-fl">相手FL</button>
+  </div>
+  <div class="bptune-row"><span>top</span><span class="bptune-val" id="bptVal_top">42.6%</span></div>
+  <div class="bptune-row"><span>left</span><span class="bptune-val" id="bptVal_left">18.2%</span></div>
+  <div class="bptune-row"><span>width</span><span class="bptune-val" id="bptVal_width">75.3%</span></div>
+  <div class="bptune-row"><span>height</span><span class="bptune-val" id="bptVal_height">31.1%</span></div>
+  <div class="bptune-actions">
+    <button class="bptune-btn" id="bptuneCopy">JSONコピー</button>
+    <button class="bptune-btn bptune-btn-sec" id="bptuneReset">リセット</button>
+  </div>
+  <div class="bptune-actions" style="margin-top:4px;">
+    <button class="bptune-btn bptune-btn-sec" id="bptuneClose">閉じる</button>
+  </div>
+  <div class="bptune-hint">ボードをドラッグで移動 / 4隅でリサイズ。タブで状態切替。</div>
+</div>
+
+<script>
+(function(){
+  if(!document.body) return;
+  function isCapacitor(){
+    return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  }
+  if(isCapacitor()) return;
+
+  var LS_KEY = 'chaipo_bptune_v1';
+  var DEFAULTS = {
+    'pself':    { top: 42.6, left: 18.2, width: 75.3, height: 31.1 },
+    'pself-fl': { top: 42.6, left: 18.2, width: 75.3, height: 31.1, translateY: -41 },
+    'opp':      { top: 16.9, left: 0.9,  width: 55.2, height: 15.1 },
+    'opp-fl':   { top: 16.9, left: 0.9,  width: 55.2, height: 15.1 }
+  };
+  var CSS_VARS = {
+    'pself':    { top: '--bp-pself-top', left: '--bp-pself-left', width: '--bp-pself-width', height: '--bp-pself-height' },
+    'pself-fl': { top: '--bp-pself-fl-top', left: '--bp-pself-fl-left', width: '--bp-pself-fl-width', height: '--bp-pself-fl-height' },
+    'opp':      { top: '--bp-opp-top', left: '--bp-opp-left', width: '--bp-opp-width', height: '--bp-opp-height' },
+    'opp-fl':   { top: '--bp-opp-fl-top', left: '--bp-opp-fl-left', width: '--bp-opp-fl-width', height: '--bp-opp-fl-height' }
+  };
+  var TARGET = {
+    'pself':    { selector: '.player-area', flMode: false },
+    'pself-fl': { selector: '.player-area', flMode: true  },
+    'opp':      { selector: '.opp-area',    flMode: false },
+    'opp-fl':   { selector: '.opp-area',    flMode: true  }
+  };
+
+  var state = JSON.parse(JSON.stringify(DEFAULTS));
+  try {
+    var saved = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
+    if(saved && typeof saved === 'object'){
+      Object.keys(state).forEach(function(k){
+        if(saved[k]) Object.assign(state[k], saved[k]);
+      });
+    }
+  } catch(e){}
+
+  var currentMode = 'pself';
+  var savedFlState = false;
+
+  function saveLocal(){
+    try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){}
+  }
+
+  function applyAll(){
+    var root = document.documentElement;
+    Object.keys(CSS_VARS).forEach(function(mode){
+      var vars = CSS_VARS[mode];
+      var v = state[mode];
+      root.style.setProperty(vars.top,    v.top    + '%');
+      root.style.setProperty(vars.left,   v.left   + '%');
+      root.style.setProperty(vars.width,  v.width  + '%');
+      root.style.setProperty(vars.height, v.height + '%');
+    });
+    if(state['pself-fl'] && typeof state['pself-fl'].translateY === 'number'){
+      root.style.setProperty('--bp-pself-fl-translate-y', state['pself-fl'].translateY + 'px');
+    }
+  }
+
+  function refreshPanel(){
+    var v = state[currentMode];
+    document.getElementById('bptVal_top').textContent    = v.top.toFixed(1) + '%';
+    document.getElementById('bptVal_left').textContent   = v.left.toFixed(1) + '%';
+    document.getElementById('bptVal_width').textContent  = v.width.toFixed(1) + '%';
+    document.getElementById('bptVal_height').textContent = v.height.toFixed(1) + '%';
+    document.querySelectorAll('.bptune-tab').forEach(function(t){
+      t.classList.toggle('active', t.dataset.mode === currentMode);
+    });
+  }
+
+  function activateTarget(){
+    document.querySelectorAll('.bptune-handle').forEach(function(h){ h.remove(); });
+    document.querySelectorAll('.bptune-active').forEach(function(e){ e.classList.remove('bptune-active'); });
+
+    var t = TARGET[currentMode];
+    var el = document.querySelector(t.selector);
+    if(!el) return;
+
+    if(t.flMode){
+      document.body.classList.add('fl-mode');
+    } else {
+      if(!savedFlState) document.body.classList.remove('fl-mode');
+      else              document.body.classList.add('fl-mode');
+    }
+
+    el.classList.add('bptune-active');
+    ['tl','tr','bl','br'].forEach(function(pos){
+      var hd = document.createElement('div');
+      hd.className = 'bptune-handle h-' + pos;
+      hd.dataset.pos = pos;
+      el.appendChild(hd);
+      attachResize(hd, el);
+    });
+    attachDrag(el);
+  }
+
+  function getScreenGameRect(){
+    var sg = document.getElementById('screen-game');
+    if(!sg) return null;
+    return sg.getBoundingClientRect();
+  }
+
+  function attachDrag(el){
+    var startX, startY, startTop, startLeft;
+    var dragging = false;
+    function down(e){
+      if(e.target.classList.contains('bptune-handle')) return;
+      e.preventDefault();
+      var pt = (e.touches && e.touches[0]) || e;
+      startX = pt.clientX; startY = pt.clientY;
+      startTop  = state[currentMode].top;
+      startLeft = state[currentMode].left;
+      dragging = true;
+      document.addEventListener('mousemove', move);
+      document.addEventListener('touchmove', move, { passive: false });
+      document.addEventListener('mouseup', up);
+      document.addEventListener('touchend', up);
+    }
+    function move(e){
+      if(!dragging) return;
+      e.preventDefault();
+      var pt = (e.touches && e.touches[0]) || e;
+      var sg = getScreenGameRect();
+      if(!sg) return;
+      var dxPercent = (pt.clientX - startX) / sg.width  * 100;
+      var dyPercent = (pt.clientY - startY) / sg.height * 100;
+      state[currentMode].left = clamp(startLeft + dxPercent, -50, 100);
+      state[currentMode].top  = clamp(startTop  + dyPercent, -50, 100);
+      applyAll();
+      refreshPanel();
+    }
+    function up(){
+      dragging = false;
+      saveLocal();
+      document.removeEventListener('mousemove', move);
+      document.removeEventListener('touchmove', move);
+      document.removeEventListener('mouseup', up);
+      document.removeEventListener('touchend', up);
+    }
+    el.addEventListener('mousedown', down);
+    el.addEventListener('touchstart', down, { passive: false });
+  }
+
+  function attachResize(handle, el){
+    var startX, startY, sTop, sLeft, sW, sH;
+    var resizing = false;
+    var pos = handle.dataset.pos;
+    function down(e){
+      e.preventDefault(); e.stopPropagation();
+      var pt = (e.touches && e.touches[0]) || e;
+      startX = pt.clientX; startY = pt.clientY;
+      sTop  = state[currentMode].top;
+      sLeft = state[currentMode].left;
+      sW    = state[currentMode].width;
+      sH    = state[currentMode].height;
+      resizing = true;
+      document.addEventListener('mousemove', move);
+      document.addEventListener('touchmove', move, { passive: false });
+      document.addEventListener('mouseup', up);
+      document.addEventListener('touchend', up);
+    }
+    function move(e){
+      if(!resizing) return;
+      e.preventDefault();
+      var pt = (e.touches && e.touches[0]) || e;
+      var sg = getScreenGameRect();
+      if(!sg) return;
+      var dxPercent = (pt.clientX - startX) / sg.width  * 100;
+      var dyPercent = (pt.clientY - startY) / sg.height * 100;
+      var v = state[currentMode];
+      if(pos === 'br'){
+        v.width  = clamp(sW + dxPercent, 5, 100);
+        v.height = clamp(sH + dyPercent, 5, 100);
+      } else if(pos === 'bl'){
+        v.left   = clamp(sLeft + dxPercent, -50, 100);
+        v.width  = clamp(sW - dxPercent, 5, 100);
+        v.height = clamp(sH + dyPercent, 5, 100);
+      } else if(pos === 'tr'){
+        v.top    = clamp(sTop + dyPercent, -50, 100);
+        v.height = clamp(sH - dyPercent, 5, 100);
+        v.width  = clamp(sW + dxPercent, 5, 100);
+      } else if(pos === 'tl'){
+        v.top    = clamp(sTop + dyPercent, -50, 100);
+        v.left   = clamp(sLeft + dxPercent, -50, 100);
+        v.width  = clamp(sW - dxPercent, 5, 100);
+        v.height = clamp(sH - dyPercent, 5, 100);
+      }
+      applyAll();
+      refreshPanel();
+    }
+    function up(){
+      resizing = false;
+      saveLocal();
+      document.removeEventListener('mousemove', move);
+      document.removeEventListener('touchmove', move);
+      document.removeEventListener('mouseup', up);
+      document.removeEventListener('touchend', up);
+    }
+    handle.addEventListener('mousedown', down);
+    handle.addEventListener('touchstart', down, { passive: false });
+  }
+
+  function clamp(v, mn, mx){ return Math.max(mn, Math.min(mx, v)); }
+
+  document.querySelectorAll('.bptune-tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      currentMode = t.dataset.mode;
+      activateTarget();
+      refreshPanel();
+    });
+  });
+
+  document.getElementById('bptuneToggle').addEventListener('click', function(){
+    var on = !document.body.classList.contains('bptune-enabled');
+    if(on){
+      savedFlState = document.body.classList.contains('fl-mode');
+      if(!document.getElementById('screen-game').classList.contains('active')){
+        document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+        document.getElementById('screen-game').classList.add('active');
+      }
+      document.body.classList.add('bptune-enabled');
+      activateTarget();
+      refreshPanel();
+    } else {
+      if(savedFlState) document.body.classList.add('fl-mode');
+      else             document.body.classList.remove('fl-mode');
+      document.body.classList.remove('bptune-enabled');
+      document.querySelectorAll('.bptune-handle').forEach(function(h){ h.remove(); });
+      document.querySelectorAll('.bptune-active').forEach(function(e){ e.classList.remove('bptune-active'); });
+    }
+  });
+
+  document.getElementById('bptuneCopy').addEventListener('click', function(){
+    var json = JSON.stringify(state, null, 2);
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(json).then(function(){
+        if(typeof showToast === 'function') showToast('JSON コピーしました');
+      });
+    } else {
+      window.prompt('JSON値', json);
+    }
+  });
+
+  document.getElementById('bptuneReset').addEventListener('click', function(){
+    if(!confirm('現在のタブの値をデフォルトに戻しますか?')) return;
+    state[currentMode] = JSON.parse(JSON.stringify(DEFAULTS[currentMode]));
+    applyAll();
+    refreshPanel();
+    saveLocal();
+  });
+
+  document.getElementById('bptuneClose').addEventListener('click', function(){
+    document.getElementById('bptuneToggle').click();
+  });
+
+  applyAll();
+
+  window.__bptune = { state: state, applyAll: applyAll, mode: function(m){ currentMode = m; activateTarget(); refreshPanel(); } };
+  console.log('[bptune] Session 24 board tuner ready');
+})();
+</script>
+
 <div id="screen-invite-code" role="dialog" aria-modal="true" aria-labelledby="inviteTitle">
   <div class="invite-card">
     <div class="invite-badge">Closed Beta</div>
@@ -21849,5 +22418,296 @@ body.is-web-browser #screen-game.active{
 })();
 </script>
 
+<script>
+/* Session 24 Step B: Board Tuner JS */
+(function(){
+  if(!window.matchMedia) return;
+  function isCapacitor(){
+    return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  }
+  if(isCapacitor()) return;
+
+  var LS_KEY = 'bdt_v1';
+  var BDT_TABS = ['player_normal','player_fl','opp_normal','opp_fl'];
+  var DEFAULTS = {
+    player_normal: { top: 42.6, left: 18.2, width: 75.3, height: 31.1, tx: 0, ty: 0 },
+    player_fl:     { top: 42.6, left: 18.2, width: 75.3, height: 31.1, tx: 0, ty: -41 },
+    opp_normal:    { top: 16.9, left: 0.9,  width: 55.2, height: 15.1, tx: 0, ty: 0 },
+    opp_fl:        { top: 16.9, left: 0.9,  width: 55.2, height: 15.1, tx: 0, ty: 0 }
+  };
+  var state = loadState();
+  var currentTab = 'player_normal';
+  var styleEl = null;
+
+  function loadState(){
+    try {
+      var raw = localStorage.getItem(LS_KEY);
+      if(raw){
+        var parsed = JSON.parse(raw);
+        var merged = JSON.parse(JSON.stringify(DEFAULTS));
+        BDT_TABS.forEach(function(t){
+          if(parsed[t]) Object.assign(merged[t], parsed[t]);
+        });
+        return merged;
+      }
+    } catch(e){}
+    return JSON.parse(JSON.stringify(DEFAULTS));
+  }
+  function saveState(){
+    try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){}
+  }
+  function ensureStyleEl(){
+    if(!styleEl){
+      styleEl = document.createElement('style');
+      styleEl.id = 'bdtDynamicStyle';
+      document.head.appendChild(styleEl);
+    }
+    return styleEl;
+  }
+  function applyAllStyles(){
+    var el = ensureStyleEl();
+    var pn = state.player_normal, pf = state.player_fl;
+    var on = state.opp_normal, of = state.opp_fl;
+    el.textContent = [
+      'html body.ui-v2 #screen-game:not(.fl-mode) .player-area, html body.ui-v2 #screen-game .player-area:not(.fl-mode){',
+      '  top: ' + pn.top + '% !important;',
+      '  left: ' + pn.left + '% !important;',
+      '  width: ' + pn.width + '% !important;',
+      '  height: ' + pn.height + '% !important;',
+      '  transform: translate(' + pn.tx + 'px, ' + pn.ty + 'px) !important;',
+      '}',
+      'html body.ui-v2.fl-mode .player-area, html body.ui-v2 #screen-game.fl-mode .player-area, html body.ui-v2 #screen-game .player-area.fl-mode{',
+      '  top: ' + pf.top + '% !important;',
+      '  left: ' + pf.left + '% !important;',
+      '  width: ' + pf.width + '% !important;',
+      '  height: ' + pf.height + '% !important;',
+      '  transform: translate(' + pf.tx + 'px, ' + pf.ty + 'px) !important;',
+      '}',
+      'html body.ui-v2 #screen-game:not(.fl-mode) .opp-area, html body.ui-v2 #screen-game .opp-area:not(.fl-mode){',
+      '  top: ' + on.top + '% !important;',
+      '  left: ' + on.left + '% !important;',
+      '  width: ' + on.width + '% !important;',
+      '  height: ' + on.height + '% !important;',
+      '  transform: translate(' + on.tx + 'px, ' + on.ty + 'px) !important;',
+      '}',
+      'html body.ui-v2.fl-mode .opp-area, html body.ui-v2 #screen-game.fl-mode .opp-area, html body.ui-v2 #screen-game .opp-area.fl-mode{',
+      '  top: ' + of.top + '% !important;',
+      '  left: ' + of.left + '% !important;',
+      '  width: ' + of.width + '% !important;',
+      '  height: ' + of.height + '% !important;',
+      '  transform: translate(' + of.tx + 'px, ' + of.ty + 'px) !important;',
+      '}'
+    ].join('\n');
+  }
+
+  function getTargetEl(tab){
+    if(tab.indexOf('player') === 0) return document.querySelector('.player-area');
+    return document.querySelector('.opp-area');
+  }
+  function isFlTab(tab){ return tab.indexOf('_fl') > -1; }
+
+  function syncInputs(){
+    var v = state[currentTab];
+    document.getElementById('bdtTop').value    = v.top;
+    document.getElementById('bdtLeft').value   = v.left;
+    document.getElementById('bdtWidth').value  = v.width;
+    document.getElementById('bdtHeight').value = v.height;
+    document.getElementById('bdtTx').value     = v.tx;
+    document.getElementById('bdtTy').value     = v.ty;
+  }
+
+  function setEditMode(tab){
+    currentTab = tab;
+    document.querySelectorAll('.bdt-tab').forEach(function(el){
+      el.classList.toggle('bdt-tab-active', el.dataset.tab === tab);
+    });
+    document.querySelectorAll('.bdt-target').forEach(function(el){
+      el.classList.remove('bdt-target');
+      el.removeAttribute('data-bdt-label');
+      el.querySelectorAll('.bdt-handle').forEach(function(hh){ hh.remove(); });
+    });
+    var sg = document.getElementById('screen-game');
+    var body = document.body;
+    if(isFlTab(tab)){
+      body.classList.add('fl-mode');
+      if(sg) sg.classList.add('fl-mode');
+    } else {
+      body.classList.remove('fl-mode');
+      if(sg) sg.classList.remove('fl-mode');
+    }
+    var t = getTargetEl(tab);
+    if(t){
+      t.classList.add('bdt-target');
+      var labelMap = {
+        player_normal: '自分平場',
+        player_fl:     '自分FL',
+        opp_normal:    '相手平場',
+        opp_fl:        '相手FL'
+      };
+      t.setAttribute('data-bdt-label', labelMap[tab] || tab);
+      ['nw','n','ne','e','se','s','sw','w'].forEach(function(pos){
+        var hh = document.createElement('div');
+        hh.className = 'bdt-handle';
+        hh.dataset.pos = pos;
+        t.appendChild(hh);
+      });
+      attachDragResize(t);
+    }
+    syncInputs();
+  }
+
+  function getScreenRect(){
+    var sg = document.getElementById('screen-game');
+    return sg ? sg.getBoundingClientRect() : { width: 430, height: 932, left: 0, top: 0 };
+  }
+
+  function attachDragResize(target){
+    target.addEventListener('pointerdown', onPointerDownTarget);
+    target.querySelectorAll('.bdt-handle').forEach(function(hh){
+      hh.addEventListener('pointerdown', onPointerDownHandle);
+    });
+  }
+
+  var dragging = null;
+
+  function onPointerDownTarget(e){
+    if(!document.body.classList.contains('bdt-edit-mode')) return;
+    if(e.target.classList.contains('bdt-handle')) return;
+    e.preventDefault(); e.stopPropagation();
+    dragging = {
+      type: 'move',
+      startX: e.clientX, startY: e.clientY,
+      startVal: Object.assign({}, state[currentTab])
+    };
+    e.target.setPointerCapture && e.target.setPointerCapture(e.pointerId);
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp);
+  }
+  function onPointerDownHandle(e){
+    if(!document.body.classList.contains('bdt-edit-mode')) return;
+    e.preventDefault(); e.stopPropagation();
+    dragging = {
+      type: 'resize',
+      pos: e.target.dataset.pos,
+      startX: e.clientX, startY: e.clientY,
+      startVal: Object.assign({}, state[currentTab])
+    };
+    e.target.setPointerCapture && e.target.setPointerCapture(e.pointerId);
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp);
+  }
+  function onPointerMove(e){
+    if(!dragging) return;
+    var rect = getScreenRect();
+    var dx = e.clientX - dragging.startX;
+    var dy = e.clientY - dragging.startY;
+    var dxPct = dx / rect.width  * 100;
+    var dyPct = dy / rect.height * 100;
+    var v = state[currentTab];
+    var s = dragging.startVal;
+    if(dragging.type === 'move'){
+      v.top  = round1(s.top  + dyPct);
+      v.left = round1(s.left + dxPct);
+    } else {
+      var pos = dragging.pos;
+      if(pos.indexOf('w') > -1){
+        v.left  = round1(s.left  + dxPct);
+        v.width = round1(s.width - dxPct);
+      }
+      if(pos.indexOf('e') > -1){
+        v.width = round1(s.width + dxPct);
+      }
+      if(pos.indexOf('n') > -1){
+        v.top    = round1(s.top    + dyPct);
+        v.height = round1(s.height - dyPct);
+      }
+      if(pos.indexOf('s') > -1){
+        v.height = round1(s.height + dyPct);
+      }
+      if(v.width  < 5) v.width  = 5;
+      if(v.height < 5) v.height = 5;
+    }
+    applyAllStyles();
+    syncInputs();
+  }
+  function onPointerUp(){
+    if(dragging){
+      dragging = null;
+      saveState();
+    }
+    document.removeEventListener('pointermove', onPointerMove);
+    document.removeEventListener('pointerup', onPointerUp);
+  }
+  function round1(n){ return Math.round(n * 10) / 10; }
+
+  function bindInputs(){
+    ['Top','Left','Width','Height','Tx','Ty'].forEach(function(k){
+      var el = document.getElementById('bdt' + k);
+      el.addEventListener('input', function(){
+        var v = parseFloat(el.value);
+        if(isNaN(v)) return;
+        var prop = k.toLowerCase();
+        state[currentTab][prop] = v;
+        applyAllStyles();
+        saveState();
+      });
+    });
+  }
+
+  function init(){
+    var toggle = document.getElementById('bdtToggle');
+    var panel  = document.getElementById('bdtPanel');
+    if(!toggle || !panel) return;
+    applyAllStyles();
+    bindInputs();
+    toggle.addEventListener('click', function(){
+      var open = panel.classList.toggle('bdt-open');
+      toggle.classList.toggle('bdt-active', open);
+      if(open){
+        document.body.classList.add('bdt-edit-mode');
+        setEditMode(currentTab);
+      } else {
+        document.body.classList.remove('bdt-edit-mode');
+        document.querySelectorAll('.bdt-target').forEach(function(el){
+          el.classList.remove('bdt-target');
+          el.removeAttribute('data-bdt-label');
+          el.querySelectorAll('.bdt-handle').forEach(function(hh){ hh.remove(); });
+        });
+        document.body.classList.remove('fl-mode');
+        var sg = document.getElementById('screen-game');
+        if(sg) sg.classList.remove('fl-mode');
+      }
+    });
+    document.querySelectorAll('.bdt-tab').forEach(function(el){
+      el.addEventListener('click', function(){
+        setEditMode(el.dataset.tab);
+      });
+    });
+    document.getElementById('bdtCopyJson').addEventListener('click', function(){
+      var json = JSON.stringify(state, null, 2);
+      try {
+        navigator.clipboard.writeText(json);
+        alert('JSON copied:\n\n' + json);
+      } catch(e){
+        prompt('JSON:', json);
+      }
+    });
+    document.getElementById('bdtReset').addEventListener('click', function(){
+      if(!confirm('Reset current tab to defaults?')) return;
+      state[currentTab] = JSON.parse(JSON.stringify(DEFAULTS[currentTab]));
+      applyAllStyles();
+      syncInputs();
+      saveState();
+    });
+    console.log('[bdt] Board Tuner ready');
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
 </body>
 </html>
