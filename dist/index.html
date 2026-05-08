@@ -1930,7 +1930,10 @@ body.shop-fab-visible .shop-fab{
   font-family: -apple-system, sans-serif;
   user-select: none; -webkit-tap-highlight-color: transparent;
 }
-body.is-web-browser .bdt-toggle{ display: flex; }
+/* Session 24 fix: 表示条件を「body.is-web-browser または body.dev-mode」に拡張
+   iOS Capacitor でも設定画面の「開発者モード」トグル ON で表示できるようにする */
+body.is-web-browser .bdt-toggle,
+body.dev-mode .bdt-toggle{ display: flex; }
 .bdt-toggle.bdt-active{ background: #ffc83d; color: #000; }
 
 .bdt-panel{
@@ -22572,13 +22575,11 @@ body.bptune-enabled .bptune-active{
   }
 })();
 
-/* Session 24 Step B: Board Tuner JS */
+/* Session 24 Step B: Board Tuner JS
+   v2: iOS Capacitor でも実行可能に。表示は CSS (body.dev-mode || body.is-web-browser) 側で制御 */
 (function(){
   if(!window.matchMedia) return;
-  function isCapacitor(){
-    return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
-  }
-  if(isCapacitor()) return;
+  /* isCapacitor early-return を解除。CSS 側の display 制御に一本化 */
 
   var LS_KEY = 'bdt_v1';
   var BDT_TABS = ['player_normal','player_fl','opp_normal','opp_fl'];
