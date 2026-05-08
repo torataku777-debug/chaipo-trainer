@@ -1987,6 +1987,25 @@ body.dev-mode .bdt-toggle{ display: flex; }
   font-family: inherit;
 }
 .bdt-row .bdt-unit{ color: #888; font-size: 10px; width: 14px; }
+/* fix: +/- ボタンで iOS でも数値調整できる */
+.bdt-step{
+  width: 28px;
+  height: 28px;
+  border: 1px solid #555;
+  background: #333;
+  color: #ffc83d;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  font-family: -apple-system, sans-serif;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.bdt-step:active{ background: #ffc83d; color: #000; }
 .bdt-actions{
   display: flex; gap: 6px;
   margin-top: 10px;
@@ -10211,12 +10230,12 @@ body.debug-interactive .vmode-btn::before {
     <div class="bdt-tab bdt-tab-active" data-tab="opp_normal">相手平場</div>
     <div class="bdt-tab" data-tab="opp_fl">相手FL</div>
   </div>
-  <div class="bdt-row"><label>top</label><input type="number" step="0.1" id="bdtTop" /><span class="bdt-unit">%</span></div>
-  <div class="bdt-row"><label>left</label><input type="number" step="0.1" id="bdtLeft" /><span class="bdt-unit">%</span></div>
-  <div class="bdt-row"><label>width</label><input type="number" step="0.1" id="bdtWidth" /><span class="bdt-unit">%</span></div>
-  <div class="bdt-row"><label>height</label><input type="number" step="0.1" id="bdtHeight" /><span class="bdt-unit">%</span></div>
-  <div class="bdt-row"><label>tx</label><input type="number" step="1" id="bdtTx" /><span class="bdt-unit">px</span></div>
-  <div class="bdt-row"><label>ty</label><input type="number" step="1" id="bdtTy" /><span class="bdt-unit">px</span></div>
+  <div class="bdt-row"><label>top</label><button class="bdt-step bdt-minus" data-target="Top" data-step="-0.5">−</button><input type="number" step="0.1" id="bdtTop" /><button class="bdt-step bdt-plus" data-target="Top" data-step="0.5">+</button><span class="bdt-unit">%</span></div>
+  <div class="bdt-row"><label>left</label><button class="bdt-step bdt-minus" data-target="Left" data-step="-0.5">−</button><input type="number" step="0.1" id="bdtLeft" /><button class="bdt-step bdt-plus" data-target="Left" data-step="0.5">+</button><span class="bdt-unit">%</span></div>
+  <div class="bdt-row"><label>width</label><button class="bdt-step bdt-minus" data-target="Width" data-step="-0.5">−</button><input type="number" step="0.1" id="bdtWidth" /><button class="bdt-step bdt-plus" data-target="Width" data-step="0.5">+</button><span class="bdt-unit">%</span></div>
+  <div class="bdt-row"><label>height</label><button class="bdt-step bdt-minus" data-target="Height" data-step="-0.5">−</button><input type="number" step="0.1" id="bdtHeight" /><button class="bdt-step bdt-plus" data-target="Height" data-step="0.5">+</button><span class="bdt-unit">%</span></div>
+  <div class="bdt-row"><label>tx</label><button class="bdt-step bdt-minus" data-target="Tx" data-step="-1">−</button><input type="number" step="1" id="bdtTx" /><button class="bdt-step bdt-plus" data-target="Tx" data-step="1">+</button><span class="bdt-unit">px</span></div>
+  <div class="bdt-row"><label>ty</label><button class="bdt-step bdt-minus" data-target="Ty" data-step="-1">−</button><input type="number" step="1" id="bdtTy" /><button class="bdt-step bdt-plus" data-target="Ty" data-step="1">+</button><span class="bdt-unit">px</span></div>
   <div class="bdt-actions">
     <button class="bdt-btn" type="button" id="bdtCopyJson">JSONコピー</button>
     <button class="bdt-btn bdt-btn-secondary" type="button" id="bdtReset">リセット</button>
@@ -22831,6 +22850,23 @@ body.bptune-enabled .bptune-active{
         if(isNaN(v)) return;
         var prop = k.toLowerCase();
         state[currentTab][prop] = v;
+        applyAllStyles();
+        saveState();
+      });
+    });
+    /* fix: +/- ボタンで iOS でも数値調整できる */
+    document.querySelectorAll('.bdt-step').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        var target = btn.dataset.target;
+        var step = parseFloat(btn.dataset.step);
+        if(!target || isNaN(step)) return;
+        var inputEl = document.getElementById('bdt' + target);
+        if(!inputEl) return;
+        var prop = target.toLowerCase();
+        var newVal = round1((state[currentTab][prop] || 0) + step);
+        state[currentTab][prop] = newVal;
+        inputEl.value = newVal;
         applyAllStyles();
         saveState();
       });
