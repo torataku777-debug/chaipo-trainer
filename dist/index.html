@@ -13432,6 +13432,23 @@ async function newGame(onlineConfig){
     }
   }
   if(!_isOnline) state.deckIdx=idx;
+  /* Session 24: 自分DLR (ボタン) 時のタイムライン演出
+     OFC正式ルール: ボタン側は後置き → 相手が先に5枚配置完了してから自分の番
+     ノンボタンは従来通り (自分が先置き) */
+  if(isPlayerButton && state.oppPendingBoard && !state.flMode){
+    /* 相手の保留配置を即座に oppBoard へ反映 (差分検知で演出発火) */
+    state.oppBoard = state.oppPendingBoard;
+    state.oppPendingBoard = null;
+    state.oppPlayedThisRound = true;
+    /* 手札を一時非表示 (演出完了まで) */
+    state._handHiddenForOppAnim = true;
+    /* 演出 (0.4s + ずらし最大0.15s) 完了後に手札表示 */
+    setTimeout(function(){
+      state._handHiddenForOppAnim = false;
+      try{ renderHand(); }catch(e){}
+      try{ updateConfirm(); }catch(e){}
+    }, 700);
+  }
   // 結果表示を全てクリア
   document.getElementById('resultBand').classList.remove('show');
   document.getElementById('flEntryBanner').classList.remove('show');
@@ -13499,6 +13516,19 @@ async function dealNext(){
       state.oppPendingPlace={place: decision_b.place};
       state.oppPlayedThisRound=false;
     }
+  }
+  /* Session 24: Pineapple R2-5 でも 自分DLR (ボタン) 時のタイムライン演出 */
+  if(isPlayerButton && state.oppPendingPlace && !state.flMode){
+    const _pendPlace = state.oppPendingPlace.place;
+    for(const r of['top','mid','bot']) state.oppBoard[r].push(...(_pendPlace[r]||[]));
+    state.oppPendingPlace = null;
+    state.oppPlayedThisRound = true;
+    state._handHiddenForOppAnim = true;
+    setTimeout(function(){
+      state._handHiddenForOppAnim = false;
+      try{ renderHand(); }catch(e){}
+      try{ updateConfirm(); }catch(e){}
+    }, 600);
   }
   renderGame();
   // v28.17: ラウンドタイマー起動
@@ -14035,6 +14065,8 @@ function makeCard(card){
 }
 function renderHand(){
   const el=document.getElementById('handCards');el.innerHTML='';
+  /* Session 24: 自分DLR時の演出中は手札非表示 */
+  if(state._handHiddenForOppAnim) return;
   for(const card of state.hand){
     const ce=makeCard(card);ce.classList.add('in-hand');
     if(state.selectedCard&&state.selectedCard.id===card.id) ce.classList.add(state.flMode?'fl-selected':'selected');
