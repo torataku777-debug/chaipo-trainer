@@ -22695,8 +22695,11 @@ body.bptune-enabled .bptune-active{
     try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){}
   }
   /* fix: <style>動的書換 → element.style 直接書込みに変更
-     iOS WebView の <head> 動的style反映問題を完全回避 */
+     iOS WebView の <head> 動的style反映問題を完全回避
+     fix2: bdt-edit-mode 限定にして、編集中じゃない時は CSS ハードコード値が効くようにする */
   function applyAllStyles(){
+    /* 編集モード以外では何もしない (CSS のデフォルト値が効く) */
+    if(!document.body.classList.contains('bdt-edit-mode')) return;
     var oppEl = document.querySelector('.opp-area');
     var playerEl = document.querySelector('.player-area');
     if(!oppEl || !playerEl) return;
@@ -22963,6 +22966,20 @@ body.bptune-enabled .bptune-active{
     if(panel.parentElement !== document.body){
       document.body.appendChild(panel);
     }
+    /* fix: 起動時に既に DOM に貼り付いてる古い inline style をクリア
+       (前バージョンで編集中の値が残っていた場合の対策) */
+    var rbInit = document.getElementById('resultBand');
+    if(rbInit){
+      ['position','top','left','width','height','right','z-index','transform'].forEach(function(prop){
+        rbInit.style.removeProperty(prop);
+      });
+      /* DOM 位置も opp-area に戻す */
+      var oppA = document.querySelector('.opp-area');
+      if(oppA && rbInit.parentElement !== oppA){
+        oppA.appendChild(rbInit);
+      }
+    }
+    /* applyAllStyles は edit-mode 限定なのでここで呼んでも何もしない (互換維持の保険) */
     applyAllStyles();
     bindInputs();
     toggle.addEventListener('click', function(){
