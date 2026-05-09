@@ -1933,6 +1933,8 @@ body.shop-fab-visible .shop-fab{
 }
 /* Session 24 fix: 表示条件を「body.is-web-browser または body.dev-mode」に拡張
    iOS Capacitor でも設定画面の「開発者モード」トグル ON で表示できるようにする */
+/* Session 24 fix: 古い devToolPanel も非表示 (FL ボード位置調整ツール) */
+#devToolPanel{ display: none !important; }
 /* Session 24 fix: Tuner UI 完全非表示 (結果バンドの直接ドラッグに置換) */
 .bdt-toggle, .bdt-panel{ display: none !important; }
 .bdt-target, .bdt-handle{ display: none !important; }
@@ -13486,20 +13488,23 @@ function renderBoardWithJokers(){
   renderSlots('slotsBot',state.playerBoard.bot,5,'bot',result.botJkMap);
 }
 function showResultBand(score){
-  // v1.3 Session21 fix: result-band を opp-area の中に DOM 移動し、absolute で重ねる
-  //   → 自分のボード位置が動かないようにする
-  //   ただし相手FL時は相手のFLボードと重なるため、元の位置 (opp-area の外) に戻す
+  // Session 24 fix: ユーザーがドラッグで位置保存している場合は screen-game 直下に維持
   const _band = document.getElementById('resultBand');
   const _oppArea = document.querySelector('.opp-area');
-  if(_band && _oppArea){
+  var _savedPos = null;
+  try { _savedPos = JSON.parse(localStorage.getItem('rb_pos_v1') || 'null'); } catch(e){}
+  var _sg = document.getElementById('screen-game');
+  if(_band && _savedPos && _sg){
+    if(_band.parentElement !== _sg){
+      _sg.appendChild(_band);
+    }
+  } else if(_band && _oppArea){
     const _layoutEl = _oppArea.parentElement;
     if(state.oppFlMode){
-      // 相手FL時: opp-area の直後に戻す (元の位置)
       if(_layoutEl && _band.parentElement !== _layoutEl){
         _layoutEl.insertBefore(_band, _oppArea.nextSibling);
       }
     } else {
-      // 通常時: opp-area の中に移動
       if(_band.parentElement !== _oppArea){
         _oppArea.appendChild(_band);
       }
