@@ -13813,17 +13813,16 @@ function _findNewOppCards(prev, cur){
 }
 
 function _animateOppCardPlacement(addedCards){
-  /* 裏向き保留カード (#oppPending内の.opp-back) を取得 */
-  var pendingCards = document.querySelectorAll('#oppPending .opp-back, #oppPending .opp-card.face-down');
-  if(pendingCards.length === 0 || addedCards.length === 0) return;
+  /* renderOppPending が消す前にキャッシュした位置情報を使う */
+  var cachedRects = window._oppPendingRectsCache || [];
+  if(cachedRects.length === 0 || addedCards.length === 0) return;
 
   var slotIdMap = { top: 'oppTop', mid: 'oppMid', bot: 'oppBot' };
 
   for(var k = 0; k < addedCards.length; k++){
-    if(k >= pendingCards.length) break;
-    (function(srcEl, dest, delay){
-      var srcRect = srcEl.getBoundingClientRect();
-      if(srcRect.width === 0) return;
+    if(k >= cachedRects.length) break;
+    (function(srcRect, dest, delay){
+      if(!srcRect || srcRect.width === 0) return;
       /* 移動先スロット要素 */
       var slotsEl = document.getElementById(slotIdMap[dest.row]);
       if(!slotsEl) return;
@@ -13849,8 +13848,7 @@ function _animateOppCardPlacement(addedCards){
       fly.innerHTML = '<div class="opp-flip-back"></div><div class="opp-flip-front"></div>';
       document.body.appendChild(fly);
 
-      /* 元の裏カードは隠す */
-      srcEl.style.visibility = 'hidden';
+      /* 元の裏カードは既に renderOppPending で消えているので隠す処理は不要 */
 
       /* 次フレームで transform 開始 */
       requestAnimationFrame(function(){
@@ -13870,8 +13868,10 @@ function _animateOppCardPlacement(addedCards){
           slotChild.style.opacity = '1';
         }
       }, 400 + delay + 50);
-    })(pendingCards[k], addedCards[k], k * 30 /* 30ms ずつ ずらして賑やかさ出す (5枚で 0.3+0.4=最大0.7秒) */);
+    })(cachedRects[k], addedCards[k], k * 30 /* 30ms ずつ ずらして賑やかさ */);
   }
+  /* 次回のため キャッシュをクリア */
+  window._oppPendingRectsCache = [];
 }
 
 function renderOpp(){
@@ -13963,6 +13963,21 @@ function renderOpp(){
 
 // 今ラウンドで相手がまだ配置していない分を裏向きで表示
 function renderOppPending(count){
+  /* Session 24 fix: 消す前に裏カードの位置をキャッシュ (演出元として使う) */
+  try {
+    var existingPending = document.getElementById('oppPendingCards');
+    if(existingPending){
+      var existingCards = existingPending.querySelectorAll('.opp-card');
+      if(existingCards.length > 0){
+        var rects = [];
+        existingCards.forEach(function(c){
+          var r = c.getBoundingClientRect();
+          rects.push({ left: r.left, top: r.top, width: r.width, height: r.height });
+        });
+        window._oppPendingRectsCache = rects;
+      }
+    }
+  } catch(e){}
   let pendingEl = document.getElementById('oppPendingCards');
   if(!pendingEl){
     // oppAreaにpendingエリアを動的追加
