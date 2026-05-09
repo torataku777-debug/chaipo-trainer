@@ -23658,43 +23658,33 @@ body.bptune-enabled .bptune-active{
 })();
 </script>
 
-<!-- Session 24: 画面オーバーレイログ (デバッグ用) -->
-<div id="dbgLogOverlay" style="position:fixed;top:60px;right:5px;width:240px;max-height:340px;overflow-y:auto;background:rgba(0,0,0,0.85);color:#0f0;font-size:9px;font-family:monospace;padding:6px;border-radius:6px;z-index:99999;display:none;border:1px solid #0f0;line-height:1.3;">
-<div style="text-align:right;margin-bottom:4px"><button onclick="document.getElementById('dbgLogOverlay').style.display='none'" style="background:#600;color:#fff;border:none;padding:2px 6px;border-radius:3px;font-size:9px">×</button></div>
-<div id="dbgLogContent"></div>
-</div>
-<button id="dbgLogToggle" style="position:fixed;top:25px;right:5px;width:30px;height:30px;background:rgba(0,0,0,0.6);color:#0f0;border:1px solid #0f0;border-radius:50%;font-size:14px;z-index:99999;padding:0;cursor:pointer">📋</button>
+<!-- Session 24 dbg log -->
+<div id="dbgLogContent" style="position:fixed;top:2px;left:2px;right:2px;max-height:180px;overflow-y:auto;background:rgba(0,0,0,0.92);color:#0f0;font-size:8px;font-family:monospace;padding:3px;border-radius:4px;z-index:99999;line-height:1.2;border:1px solid #0f0;white-space:pre-wrap;word-break:break-all;pointer-events:none"></div>
 <script>
 (function(){
   var dbgLogs = [];
-  var dbgEl = document.getElementById('dbgLogContent');
-  var origLog = console.log.bind(console);
-  var origWarn = console.warn.bind(console);
-  var origErr = console.error.bind(console);
+  var dbgEl = null;
   function pushLog(prefix, args){
     try {
       var msg = prefix + ' ' + Array.from(args).map(function(a){
-        if(typeof a === 'object') { try { return JSON.stringify(a).slice(0, 100); } catch(e) { return String(a); } }
+        if(typeof a === 'object'){ try { return JSON.stringify(a).slice(0, 80); } catch(e){ return String(a); } }
         return String(a);
       }).join(' ');
-      /* FL関連のみ拾う */
-      if(/opp flat|opp-anim|fl|FL|R[1-5]|deck|render/i.test(msg)){
-        dbgLogs.push(msg.slice(0, 180));
-        if(dbgLogs.length > 30) dbgLogs.shift();
-        if(dbgEl) dbgEl.innerHTML = dbgLogs.map(function(l){return '<div>'+l.replace(/</g,'&lt;')+'</div>';}).join('');
+      if(/opp flat|opp-anim|FL|R[1-5]|deck|startFL|aiPineapple|button|render/i.test(msg)){
+        dbgLogs.push(msg.slice(0, 140));
+        if(dbgLogs.length > 25) dbgLogs.shift();
+        if(!dbgEl) dbgEl = document.getElementById('dbgLogContent');
+        if(dbgEl) dbgEl.textContent = dbgLogs.join('\n');
       }
     } catch(e){}
   }
-  console.log = function(){ pushLog('[L]', arguments); origLog.apply(console, arguments); };
-  console.warn = function(){ pushLog('[W]', arguments); origWarn.apply(console, arguments); };
-  console.error = function(){ pushLog('[E]', arguments); origErr.apply(console, arguments); };
-  var toggleBtn = document.getElementById('dbgLogToggle');
-  if(toggleBtn) toggleBtn.addEventListener('click', function(){
-    var ov = document.getElementById('dbgLogOverlay');
-    ov.style.display = (ov.style.display === 'none' ? 'block' : 'none');
-  });
+  var origLog = console.log.bind(console);
+  var origWarn = console.warn.bind(console);
+  var origErr = console.error.bind(console);
+  console.log = function(){ pushLog('L', arguments); origLog.apply(console, arguments); };
+  console.warn = function(){ pushLog('W', arguments); origWarn.apply(console, arguments); };
+  console.error = function(){ pushLog('E', arguments); origErr.apply(console, arguments); };
 })();
 </script>
-
 </body>
 </html>
