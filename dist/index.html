@@ -1933,10 +1933,13 @@ body.shop-fab-visible .shop-fab{
 }
 /* Session 24 fix: 表示条件を「body.is-web-browser または body.dev-mode」に拡張
    iOS Capacitor でも設定画面の「開発者モード」トグル ON で表示できるようにする */
-body.is-web-browser .bdt-toggle,
-body.dev-mode .bdt-toggle{ display: flex; pointer-events: auto !important; }
-body.is-web-browser .bdt-panel.bdt-open,
-body.dev-mode .bdt-panel.bdt-open{ pointer-events: auto !important; }
+/* Session 24 fix: Tuner UI 完全非表示 (結果バンドの直接ドラッグに置換) */
+.bdt-toggle, .bdt-panel{ display: none !important; }
+.bdt-target, .bdt-handle{ display: none !important; }
+body.bdt-edit-mode .bdt-target,
+body.bdt-edit-mode .bdt-handle{ display: none !important; }
+body.bdt-edit-mode .bdt-target::after{ display: none !important; }
+body.bdt-edit-mode .bdt-target{ outline: none !important; }
 
 /* ドラッグ移動中のフィードバック */
 .bdt-toggle.bdt-dragging,
@@ -22661,11 +22664,179 @@ body.bptune-enabled .bptune-active{
   }
 })();
 
-/* Session 24 Step B: Board Tuner JS
-   v2: iOS Capacitor でも実行可能に。表示は CSS (body.dev-mode || body.is-web-browser) 側で制御 */
+/* Session 24 fix: 結果バンドの直接ドラッグ機能
+   開発者モード時のみ、長押し→ドラッグで結果バンド位置を変更
+   位置は localStorage 'rb_pos_v1' に保存し、次回 showResultBand で復元 */
 (function(){
+  var POS_KEY = 'rb_pos_v1';
+
+  function loadPos(){
+    try { return JSON.parse(localStorage.getItem(POS_KEY) || 'null'); } catch(e){ return null; }
+  }
+  function savePos(pos){
+    try { localStorage.setItem(POS_KEY, JSON.stringify(pos)); } catch(e){}
+  }
+
+  function applyPos(){
+    var rb = document.getElementById('resultBand');
+    if(!rb) return;
+    var pos = loadPos();
+    if(!pos) return;
+    var sg = document.getElementById('screen-game');
+    if(sg && rb.parentElement !== sg){
+      sg.appendChild(rb);
+    }
+    rb.style.setProperty('top', pos.top + 'px', 'important');
+    rb.style.setProperty('left', pos.left + 'px', 'important');
+    rb.style.setProperty('right', 'auto', 'important');
+    rb.style.setProperty('width', pos.width + 'px', 'important');
+  }
+
+  function attachShowObserver(){
+    var rb = document.getElementById('resultBand');
+    if(!rb) return false;
+    var observer = new MutationObserver(function(mutations){
+      for(var i = 0; i < mutations.length; i++){
+        var m = mutations[i];
+        if(m.attributeName === 'class' && rb.classList.contains('show')){
+          setTimeout(applyPos, 50);
+        }
+      }
+    });
+    observer.observe(rb, { attributes: true });
+    if(rb.classList.contains('show')) applyPos();
+    return true;
+  }
+
+  function attachDrag(){
+    var rb = document.getElementById('resultBand');
+    if(!rb) return false;
+
+    var longPressTimer = null;
+    var dragMode = false;
+    var dragStart = null;
+
+    rb.addEventListener('pointerdown', function(e){
+      if(!document.body.classList.contains('dev-mode')) return;
+      if(!rb.classList.contains('show')) return;
+      if(e.button !== undefined && e.button !== 0) return;
+      var rect = rb.getBoundingClientRect();
+      dragStart = { x: e.clientX, y: e.clientY, rect: rect };
+      longPressTimer = setTimeout(function(){
+        dragMode = true;
+        rb.style.setProperty('opacity', '0.7', 'important');
+        rb.style.setProperty('cursor', 'grabbing', 'important');
+        rb.style.setProperty('transition', 'none', 'important');
+        try { rb.setPointerCapture(e.pointerId); } catch(err){}
+        if(typeof window.haptic === 'function') window.haptic(15);
+      }, 400);
+    });
+
+    rb.addEventListener('pointermove', function(e){
+      if(!dragMode || !dragStart) return;
+      e.preventDefault();
+      var dx = e.clientX - dragStart.x;
+      var dy = e.clientY - dragStart.y;
+      var newLeft = dragStart.rect.left + dx;
+      var newTop  = dragStart.rect.top  + dy;
+      var maxLeft = window.innerWidth  - rb.offsetWidth;
+      var maxTop  = window.innerHeight - rb.offsetHeight;
+      newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+      newTop  = Math.max(0, Math.min(newTop,  maxTop));
+      rb.style.setProperty('top',  newTop  + 'px', 'important');
+      rb.style.setProperty('left', newLeft + 'px', 'important');
+      rb.style.setProperty('right', 'auto', 'important');
+      var sg = document.getElementById('screen-game');
+      if(sg && rb.parentElement !== sg){
+        sg.appendChild(rb);
+      }
+    });
+
+    function endDrag(e){
+      clearTimeout(longPressTimer);
+      if(dragMode){
+        var rect = rb.getBoundingClientRect();
+        savePos({ top: rect.top, left: rect.left, width: rect.width });
+        rb.style.removeProperty('opacity');
+        rb.style.removeProperty('cursor');
+        rb.style.removeProperty('transition');
+        dragMode = false;
+        if(typeof window.haptic === 'function') window.haptic(10);
+      }
+      dragStart = null;
+    }
+    rb.addEventListener('pointerup', endDrag);
+    rb.addEventListener('pointercancel', endDrag);
+
+    var lastTap = 0;
+    rb.addEventListener('click', function(e){
+      if(!document.body.classList.contains('dev-mode')) return;
+      if(!rb.classList.contains('show')) return;
+      var now = Date.now();
+      if(now - lastTap < 350){
+        try { localStorage.removeItem(POS_KEY); } catch(err){}
+        ['top','left','right','width','transform','opacity','cursor','transition'].forEach(function(p){
+          rb.style.removeProperty(p);
+        });
+        var oppA = document.querySelector('.opp-area');
+        if(oppA && rb.parentElement !== oppA){
+          oppA.appendChild(rb);
+        }
+        if(typeof window.haptic === 'function') window.haptic(20);
+        lastTap = 0;
+        return;
+      }
+      lastTap = now;
+    });
+    return true;
+  }
+
+  function init(){
+    if(!attachShowObserver()) setTimeout(attachShowObserver, 500);
+    if(!attachDrag()) setTimeout(attachDrag, 500);
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+
+/* Session 24 fix: 起動時に古いチューナー残骸を全クリア */
+(function(){
+  function cleanup(){
+    var rb = document.getElementById('resultBand');
+    if(rb){
+      ['position','top','left','width','height','right','z-index','transform','opacity','cursor','transition'].forEach(function(p){
+        rb.style.removeProperty(p);
+      });
+      if(rb.dataset.bdtDummyApplied){
+        rb.classList.remove('show','win','lose','draw');
+        rb.innerHTML = '';
+        delete rb.dataset.bdtDummyApplied;
+      }
+    }
+    document.body.classList.remove('bdt-edit-mode');
+    document.querySelectorAll('.bdt-target').forEach(function(el){
+      el.classList.remove('bdt-target');
+      el.removeAttribute('data-bdt-label');
+    });
+    document.querySelectorAll('.bdt-handle').forEach(function(el){ el.remove(); });
+    var panel = document.getElementById('bdtPanel');
+    if(panel) panel.classList.remove('bdt-open');
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', cleanup);
+  } else {
+    cleanup();
+  }
+})();
+
+/* Session 24 Step B: Board Tuner JS
+   v3: 結果バンドの直接ドラッグに置き換えたため Tuner JS は完全停止 */
+(function(){
+  return; /* 完全停止 */
   if(!window.matchMedia) return;
-  /* isCapacitor early-return を解除。CSS 側の display 制御に一本化 */
 
   var LS_KEY = 'bdt_v1';
   /* fix: 相手ボードのみ調整可能 (player_* は固定値で残すが、UIタブからは選択不可)
