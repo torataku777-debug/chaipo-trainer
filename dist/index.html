@@ -13798,14 +13798,15 @@ function _snapshotOppBoard(){
 }
 
 function _findNewOppCards(prev, cur){
-  /* prev に無くて cur にあるカードの { row, idx } を返す */
+  /* prev に無くて cur にあるカードの { row, idx, card } を返す */
   var added = [];
   ['top','mid','bot'].forEach(function(row){
     var prevRow = (prev && prev[row]) || [];
     var curRow = (cur && cur[row]) || [];
+    var liveBoard = (state && state.oppBoard && state.oppBoard[row]) || [];
     for(var i = 0; i < curRow.length; i++){
       if(curRow[i] && !prevRow[i]){
-        added.push({ row: row, idx: i });
+        added.push({ row: row, idx: i, card: liveBoard[i] || null });
       }
     }
   });
@@ -13860,7 +13861,19 @@ function _animateOppCardPlacement(addedCards){
       fly.style.width = srcRect.width + 'px';
       fly.style.height = srcRect.height + 'px';
       fly.style.transform = 'translate(0, 0) rotateY(0deg)';
-      fly.innerHTML = '<div class="opp-flip-back"></div><div class="opp-flip-front"></div>';
+      /* 表面にランク・スート埋め込み */
+      var frontHTML = '';
+      if(dest.card){
+        var sCols = {s:'#1e293b',h:'#dc2626',d:'#1d4ed8',c:'#059669'};
+        if(dest.card.isJoker){
+          frontHTML = '<span style="display:inline-block;width:14px;height:14px;background:linear-gradient(135deg,#FFD94A,#E8B923 50%,#B8890F);clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);"></span>';
+        } else {
+          var sym = (typeof SUIT_SYMS !== 'undefined' && SUIT_SYMS[dest.card.s]) ? SUIT_SYMS[dest.card.s] : '?';
+          var col = sCols[dest.card.s] || '#000';
+          frontHTML = '<div style="color:'+col+';font-size:16px;font-weight:700;line-height:1">'+dest.card.r+'</div><div style="color:'+col+';font-size:14px;line-height:1">'+sym+'</div>';
+        }
+      }
+      fly.innerHTML = '<div class="opp-flip-back"></div><div class="opp-flip-front">' + frontHTML + '</div>';
       document.body.appendChild(fly);
 
       /* 元の裏カードは既に renderOppPending で消えているので隠す処理は不要 */
