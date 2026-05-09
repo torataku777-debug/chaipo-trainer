@@ -2115,9 +2115,15 @@ body.ui-v2 #screen-game .opp-area .result-band{
   right: 0 !important;
   z-index: 50 !important;
 }
-/* screen-game 直下に DOM 移動された場合 (ドラッグ後の状態) */
+/* Session 24 fix: 結果バンドの確定位置 (ユーザーがドラッグで調整した値)
+   iPhone 15 Pro Max (430x932) で top:144px / left:225px / width:181px
+   → 画面比 % 換算: top 15.4% / left 52.3% / width 42.1% */
 body.ui-v2 #screen-game > .result-band{
   position: absolute !important;
+  top: 15.4% !important;
+  left: 52.3% !important;
+  width: 42.1% !important;
+  right: auto !important;
   z-index: 50 !important;
 }
 /* v6: 内側 - 不透明白 + グレー枠で視認性UP */
@@ -13488,27 +13494,12 @@ function renderBoardWithJokers(){
   renderSlots('slotsBot',state.playerBoard.bot,5,'bot',result.botJkMap);
 }
 function showResultBand(score){
-  // Session 24 fix: ユーザーがドラッグで位置保存している場合は screen-game 直下に維持
+  // Session 24 fix: 結果バンドは常に screen-game 直下に配置
+  // (CSS で固定位置を指定済み、ユーザーがドラッグ調整した場合は inline style で上書き)
   const _band = document.getElementById('resultBand');
-  const _oppArea = document.querySelector('.opp-area');
-  var _savedPos = null;
-  try { _savedPos = JSON.parse(localStorage.getItem('rb_pos_v1') || 'null'); } catch(e){}
   var _sg = document.getElementById('screen-game');
-  if(_band && _savedPos && _sg){
-    if(_band.parentElement !== _sg){
-      _sg.appendChild(_band);
-    }
-  } else if(_band && _oppArea){
-    const _layoutEl = _oppArea.parentElement;
-    if(state.oppFlMode){
-      if(_layoutEl && _band.parentElement !== _layoutEl){
-        _layoutEl.insertBefore(_band, _oppArea.nextSibling);
-      }
-    } else {
-      if(_band.parentElement !== _oppArea){
-        _oppArea.appendChild(_band);
-      }
-    }
+  if(_band && _sg && _band.parentElement !== _sg){
+    _sg.appendChild(_band);
   }
   // 結果表示時は相手エリアを非表示（相手FL時は除く）
   const oppArea = document.querySelector('.opp-area');
