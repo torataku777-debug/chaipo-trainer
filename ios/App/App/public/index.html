@@ -1935,6 +1935,50 @@ body.shop-fab-visible .shop-fab{
    iOS Capacitor でも設定画面の「開発者モード」トグル ON で表示できるようにする */
 /* Session 24 fix: 古い devToolPanel も非表示 (FL ボード位置調整ツール) */
 #devToolPanel{ display: none !important; }
+/* Session 24 fix: 相手AI配置の flip スライド演出 */
+.opp-flip-flying{
+  position: fixed !important;
+  z-index: 9000 !important;
+  width: 28px;
+  height: 40px;
+  border-radius: 5px;
+  pointer-events: none;
+  transition: transform 0.4s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.4s ease;
+  transform-style: preserve-3d;
+  perspective: 600px;
+  will-change: transform;
+}
+.opp-flip-flying .opp-flip-front,
+.opp-flip-flying .opp-flip-back{
+  position: absolute;
+  inset: 0;
+  border-radius: 5px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.opp-flip-flying .opp-flip-back{
+  background: linear-gradient(135deg, #1e3a5f, #2a4a7f);
+  border: 1px solid rgba(255,255,255,0.15);
+  transform: rotateY(0deg);
+}
+.opp-flip-flying .opp-flip-back::before{
+  content: '';
+  width: 60%;
+  height: 60%;
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+  border: 1px dashed rgba(255,255,255,0.2);
+}
+.opp-flip-flying .opp-flip-front{
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.1);
+  transform: rotateY(180deg);
+}
+
 /* Session 24 fix: Tuner UI 完全非表示 (結果バンドの直接ドラッグに置換) */
 .bdt-toggle, .bdt-panel{ display: none !important; }
 .bdt-target, .bdt-handle{ display: none !important; }
@@ -13740,7 +13784,100 @@ function clearGhostHint(){
   el.querySelectorAll('.slot.ghost-hint').forEach(s => s.classList.remove('ghost-hint'));
   el.querySelectorAll('.card.ghost-card').forEach(c => c.remove());
 }
+/* Session 24 fix: 相手 AI 配置のスライド + flip 演出 */
+var _prevOppBoardSnapshot = null;
+
+function _snapshotOppBoard(){
+  if(!state || !state.oppBoard) return null;
+  function ids(arr){ return (arr||[]).map(function(c){ return c ? (c.id || (c.r + c.s)) : null; }); }
+  return {
+    top: ids(state.oppBoard.top),
+    mid: ids(state.oppBoard.mid),
+    bot: ids(state.oppBoard.bot)
+  };
+}
+
+function _findNewOppCards(prev, cur){
+  /* prev に無くて cur にあるカードの { row, idx } を返す */
+  var added = [];
+  ['top','mid','bot'].forEach(function(row){
+    var prevRow = (prev && prev[row]) || [];
+    var curRow = (cur && cur[row]) || [];
+    for(var i = 0; i < curRow.length; i++){
+      if(curRow[i] && !prevRow[i]){
+        added.push({ row: row, idx: i });
+      }
+    }
+  });
+  return added;
+}
+
+function _animateOppCardPlacement(addedCards){
+  /* 裏向き保留カード (#oppPending内の.opp-back) を取得 */
+  var pendingCards = document.querySelectorAll('#oppPending .opp-back, #oppPending .opp-card.face-down');
+  if(pendingCards.length === 0 || addedCards.length === 0) return;
+
+  var slotIdMap = { top: 'oppTop', mid: 'oppMid', bot: 'oppBot' };
+
+  for(var k = 0; k < addedCards.length; k++){
+    if(k >= pendingCards.length) break;
+    (function(srcEl, dest, delay){
+      var srcRect = srcEl.getBoundingClientRect();
+      if(srcRect.width === 0) return;
+      /* 移動先スロット要素 */
+      var slotsEl = document.getElementById(slotIdMap[dest.row]);
+      if(!slotsEl) return;
+      var slot = slotsEl.children[dest.idx];
+      if(!slot) return;
+      /* 一時的に slot を invisible にして、演出が終わってから revealed */
+      var slotChild = slot.firstElementChild;
+      if(slotChild){
+        slotChild.style.opacity = '0';
+        slotChild.style.transition = 'opacity 0.1s';
+      }
+      var destRect = slot.getBoundingClientRect();
+      if(destRect.width === 0) return;
+
+      /* flying card 作成 */
+      var fly = document.createElement('div');
+      fly.className = 'opp-flip-flying';
+      fly.style.left = srcRect.left + 'px';
+      fly.style.top = srcRect.top + 'px';
+      fly.style.width = srcRect.width + 'px';
+      fly.style.height = srcRect.height + 'px';
+      fly.style.transform = 'translate(0, 0) rotateY(0deg)';
+      fly.innerHTML = '<div class="opp-flip-back"></div><div class="opp-flip-front"></div>';
+      document.body.appendChild(fly);
+
+      /* 元の裏カードは隠す */
+      srcEl.style.visibility = 'hidden';
+
+      /* 次フレームで transform 開始 */
+      requestAnimationFrame(function(){
+        setTimeout(function(){
+          var dx = (destRect.left + destRect.width/2) - (srcRect.left + srcRect.width/2);
+          var dy = (destRect.top + destRect.height/2) - (srcRect.top + srcRect.height/2);
+          var scale = destRect.width / srcRect.width;
+          fly.style.transform = 'translate(' + dx + 'px, ' + dy + 'px) scale(' + scale + ') rotateY(180deg)';
+        }, delay);
+      });
+
+      /* 演出終了 → flying 削除 + 本物表示 */
+      setTimeout(function(){
+        if(fly.parentElement) fly.parentElement.removeChild(fly);
+        if(slotChild){
+          slotChild.style.transition = 'opacity 0.15s';
+          slotChild.style.opacity = '1';
+        }
+      }, 400 + delay + 50);
+    })(pendingCards[k], addedCards[k], k * 30 /* 30ms ずつ ずらして賑やかさ出す (5枚で 0.3+0.4=最大0.7秒) */);
+  }
+}
+
 function renderOpp(){
+  /* Session 24 fix: 配置演出のため事前 snapshot */
+  var _prevSnap = _prevOppBoardSnapshot;
+  var _curSnap = _snapshotOppBoard();
   const cfg={top:[3,'oppTop'],mid:[5,'oppMid'],bot:[5,'oppBot']};
   const cols={s:'#1e293b',h:'#dc2626',d:'#1d4ed8',c:'#059669'};
 
@@ -13809,6 +13946,19 @@ function renderOpp(){
 
   // 今ラウンドの保留分（裏向き）を別エリアで表示 - FL中は非表示
   renderOppPending(state.flMode ? 0 : pendingCount);
+  /* Session 24 fix: 差分カードに対してスライド + flip 演出 */
+  try {
+    if(_prevSnap && _curSnap){
+      var added = _findNewOppCards(_prevSnap, _curSnap);
+      if(added.length > 0){
+        /* 描画後の DOM に対して演出を当てるため次フレームで実行 */
+        requestAnimationFrame(function(){
+          _animateOppCardPlacement(added);
+        });
+      }
+    }
+  } catch(e){ console.error('[opp-anim] error:', e); }
+  _prevOppBoardSnapshot = _curSnap;
 }
 
 // 今ラウンドで相手がまだ配置していない分を裏向きで表示
