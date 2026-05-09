@@ -2102,8 +2102,13 @@ body.bdt-edit-mode .bdt-handle{ display: block; }
    right:-86% で画面右端まで近づき、内側 (.result-band-inner) が
    実質 width 60〜65% を取れるようになる。 */
 body.ui-v2 #screen-game .opp-area .result-band{
-  left: 100% !important;
-  right: -80% !important;
+  /* Session 24 fix: チューナー確定値を opp-area 比に逆算して反映
+     画面幅基準 (left 56.1%, width 46.7%, top 1.5%) → opp-area 比 (left 97.46%, width 84.6%) */
+  top: 1.5% !important;
+  left: 97.46% !important;
+  width: 84.6% !important;
+  right: auto !important;
+  transform: translate(-24px, 159px) !important;
 }
 /* v6: 内側 - 不透明白 + グレー枠で視認性UP */
 body.ui-v2 #screen-game .opp-area .result-band .result-band-inner{
@@ -22666,7 +22671,7 @@ body.bptune-enabled .bptune-active{
     player_fl:     { top: 42.6, left: 18.2, width: 75.3, height: 31.1, tx: 0, ty: -41 },
     opp_normal:    { top: 18.9, left: 2.3,  width: 55.2, height: 15.1, tx: 0, ty: 0 },
     opp_fl:        { top: 16.9, left: 0.9,  width: 55.2, height: 15.1, tx: 0, ty: 0 },
-    result_band:   { top: 0,    left: 56.1, width: 44.2, height: 0,    tx: 0, ty: 0 }
+    result_band:   { top: 1.5,  left: 56.1, width: 46.7, height: 0,    tx: -24, ty: 159 }
   };
   var state = loadState();
   var currentTab = 'result_band';
