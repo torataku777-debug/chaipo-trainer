@@ -13926,7 +13926,7 @@ function _animateOppCardPlacement(addedCards){
           slotChild.style.opacity = '1';
         }
       }, 400 + delay + 50);
-    })(cachedRects[k], addedCards[k], k * 30 /* 30ms ずつ ずらして賑やかさ */);
+    })(src, addedCards[k], k * 30 /* 30ms ずつ ずらして賑やかさ */);
   }
   /* 次回のため キャッシュをクリア */
   window._oppPendingRectsCache = [];
@@ -14005,12 +14005,14 @@ function renderOpp(){
 
   // 今ラウンドの保留分（裏向き）を別エリアで表示 - FL中は非表示
   renderOppPending(state.flMode ? 0 : pendingCount);
-  /* Session 24 fix: 差分カードに対してスライド + flip 演出 */
+  /* Session 24 fix: 差分カードに対してスライド + flip 演出
+     prev が null (初回 renderOpp) でも cur に新しいカードがあれば演出発火 */
   try {
-    if(_prevSnap && _curSnap){
-      var added = _findNewOppCards(_prevSnap, _curSnap);
+    if(_curSnap && state && state.round >= 1){
+      var prevForDiff = _prevSnap || { top:[], mid:[], bot:[] };
+      var added = _findNewOppCards(prevForDiff, _curSnap);
       if(added.length > 0){
-        /* 描画後の DOM に対して演出を当てるため次フレームで実行 */
+        console.log('[opp-anim] firing for ' + added.length + ' cards');
         requestAnimationFrame(function(){
           _animateOppCardPlacement(added);
         });
