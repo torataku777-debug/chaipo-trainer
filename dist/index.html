@@ -1937,6 +1937,32 @@ body.is-web-browser .bdt-toggle,
 body.dev-mode .bdt-toggle{ display: flex; pointer-events: auto !important; }
 body.is-web-browser .bdt-panel.bdt-open,
 body.dev-mode .bdt-panel.bdt-open{ pointer-events: auto !important; }
+
+/* ドラッグ移動中のフィードバック */
+.bdt-toggle.bdt-dragging,
+.bdt-panel.bdt-dragging{
+  opacity: 0.7;
+  transition: none !important;
+  cursor: grabbing !important;
+}
+/* パネル先頭にドラッグハンドル */
+.bdt-drag-handle{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 18px;
+  margin: -8px -8px 8px -8px;
+  background: rgba(255, 200, 61, 0.15);
+  border-radius: 8px 8px 0 0;
+  color: #ffc83d;
+  font-size: 18px;
+  letter-spacing: 4px;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+.bdt-drag-handle:active{ cursor: grabbing; }
 .bdt-toggle.bdt-active{ background: #ffc83d; color: #000; }
 
 .bdt-panel{
@@ -10229,6 +10255,7 @@ body.debug-interactive .vmode-btn::before {
   <!-- Session 24 Step B: Board Tuner -->
 <button class="bdt-toggle" id="bdtToggle" type="button" aria-label="board-tuner">📐</button>
 <div class="bdt-panel" id="bdtPanel">
+  <div class="bdt-drag-handle" id="bdtDragHandle" title="ドラッグで移動 / ダブルタップで初期位置">⋮⋮</div>
   <div class="bdt-tabs" id="bdtTabs">
     <div class="bdt-tab bdt-tab-active" data-tab="result_band">結果ボード</div>
   </div>
@@ -22979,7 +23006,169 @@ body.bptune-enabled .bptune-active{
       syncInputs();
       saveState();
     });
+
+    /* fix: チューナーの 📐 ボタン と パネル本体 をドラッグで移動可能にする */
+    setupTunerDrag(toggle, panel);
+
     console.log('[bdt] Board Tuner ready');
+  }
+
+  /* チューナー UI のドラッグ移動 */
+  function setupTunerDrag(toggle, panel){
+    var POS_KEY = 'bdt_pos_v1';
+    var savedPos = null;
+    try { savedPos = JSON.parse(localStorage.getItem(POS_KEY) || 'null'); } catch(e){}
+
+    /* 保存位置を復元 */
+    if(savedPos){
+      if(savedPos.toggle){
+        toggle.style.setProperty('top',  savedPos.toggle.top + 'px', 'important');
+        toggle.style.setProperty('left', savedPos.toggle.left + 'px', 'important');
+        toggle.style.setProperty('right', 'auto', 'important');
+      }
+      if(savedPos.panel){
+        panel.style.setProperty('top',  savedPos.panel.top + 'px', 'important');
+        panel.style.setProperty('left', savedPos.panel.left + 'px', 'important');
+        panel.style.setProperty('right', 'auto', 'important');
+      }
+    }
+
+    function savePos(){
+      var data = {};
+      if(toggle.style.left){
+        data.toggle = {
+          top:  parseFloat(toggle.style.top)  || 0,
+          left: parseFloat(toggle.style.left) || 0
+        };
+      }
+      if(panel.style.left){
+        data.panel = {
+          top:  parseFloat(panel.style.top)  || 0,
+          left: parseFloat(panel.style.left) || 0
+        };
+      }
+      try { localStorage.setItem(POS_KEY, JSON.stringify(data)); } catch(e){}
+    }
+
+    /* ボタンのロングプレス → ドラッグ移動 */
+    var toggleLongPressTimer = null;
+    var toggleDragMode = false;
+    var toggleStart = null;
+
+    toggle.addEventListener('pointerdown', function(e){
+      if(e.button !== undefined && e.button !== 0) return;
+      toggleStart = {
+        x: e.clientX, y: e.clientY,
+        rect: toggle.getBoundingClientRect()
+      };
+      /* 300ms 押し続けたらドラッグモードに突入 */
+      toggleLongPressTimer = setTimeout(function(){
+        toggleDragMode = true;
+        toggle.classList.add('bdt-dragging');
+        try { toggle.setPointerCapture(e.pointerId); } catch(e){}
+      }, 300);
+    });
+
+    toggle.addEventListener('pointermove', function(e){
+      if(!toggleDragMode || !toggleStart) return;
+      e.preventDefault();
+      var dx = e.clientX - toggleStart.x;
+      var dy = e.clientY - toggleStart.y;
+      var newLeft = toggleStart.rect.left + dx;
+      var newTop  = toggleStart.rect.top  + dy;
+      /* 画面端クランプ */
+      var maxLeft = window.innerWidth  - toggle.offsetWidth;
+      var maxTop  = window.innerHeight - toggle.offsetHeight;
+      newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+      newTop  = Math.max(0, Math.min(newTop,  maxTop));
+      toggle.style.setProperty('top',  newTop  + 'px', 'important');
+      toggle.style.setProperty('left', newLeft + 'px', 'important');
+      toggle.style.setProperty('right', 'auto', 'important');
+    });
+
+    toggle.addEventListener('pointerup', function(e){
+      clearTimeout(toggleLongPressTimer);
+      if(toggleDragMode){
+        toggle.classList.remove('bdt-dragging');
+        savePos();
+        toggleDragMode = false;
+        toggleStart = null;
+        /* ドラッグ後の click イベントを抑制 */
+        e.stopPropagation();
+        e.preventDefault();
+        var blocker = function(ev){ ev.stopPropagation(); ev.preventDefault(); toggle.removeEventListener('click', blocker, true); };
+        toggle.addEventListener('click', blocker, true);
+        return;
+      }
+      toggleStart = null;
+    });
+
+    toggle.addEventListener('pointercancel', function(){
+      clearTimeout(toggleLongPressTimer);
+      toggle.classList.remove('bdt-dragging');
+      toggleDragMode = false;
+      toggleStart = null;
+    });
+
+    /* ボタンのダブルタップ = 位置リセット (左上 14, 14) */
+    var lastTap = 0;
+    toggle.addEventListener('click', function(e){
+      var now = Date.now();
+      if(now - lastTap < 350){
+        toggle.style.removeProperty('top');
+        toggle.style.removeProperty('left');
+        toggle.style.removeProperty('right');
+        panel.style.removeProperty('top');
+        panel.style.removeProperty('left');
+        panel.style.removeProperty('right');
+        try { localStorage.removeItem(POS_KEY); } catch(e){}
+        lastTap = 0;
+        e.stopPropagation();
+        e.preventDefault();
+        return;
+      }
+      lastTap = now;
+    }, true);
+
+    /* パネルのドラッグハンドルでの移動 */
+    var dragHandle = document.getElementById('bdtDragHandle');
+    if(dragHandle){
+      var panelDrag = null;
+      dragHandle.addEventListener('pointerdown', function(e){
+        if(e.button !== undefined && e.button !== 0) return;
+        e.preventDefault();
+        panelDrag = {
+          x: e.clientX, y: e.clientY,
+          rect: panel.getBoundingClientRect()
+        };
+        panel.classList.add('bdt-dragging');
+        try { dragHandle.setPointerCapture(e.pointerId); } catch(e){}
+      });
+      dragHandle.addEventListener('pointermove', function(e){
+        if(!panelDrag) return;
+        e.preventDefault();
+        var dx = e.clientX - panelDrag.x;
+        var dy = e.clientY - panelDrag.y;
+        var newLeft = panelDrag.rect.left + dx;
+        var newTop  = panelDrag.rect.top  + dy;
+        var maxLeft = window.innerWidth  - panel.offsetWidth;
+        var maxTop  = window.innerHeight - panel.offsetHeight;
+        newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+        newTop  = Math.max(0, Math.min(newTop,  maxTop));
+        panel.style.setProperty('top',  newTop  + 'px', 'important');
+        panel.style.setProperty('left', newLeft + 'px', 'important');
+        panel.style.setProperty('right', 'auto', 'important');
+      });
+      var endPanelDrag = function(){
+        if(panelDrag){
+          panel.classList.remove('bdt-dragging');
+          savePos();
+          panelDrag = null;
+        }
+      };
+      dragHandle.addEventListener('pointerup', endPanelDrag);
+      dragHandle.addEventListener('pointercancel', endPanelDrag);
+    }
   }
 
   if(document.readyState === 'loading'){
