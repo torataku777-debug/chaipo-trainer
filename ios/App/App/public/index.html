@@ -13433,21 +13433,24 @@ async function newGame(onlineConfig){
   }
   if(!_isOnline) state.deckIdx=idx;
   /* Session 24: 自分DLR (ボタン) 時のタイムライン演出
-     OFC正式ルール: ボタン側は後置き → 相手が先に5枚配置完了してから自分の番
-     ノンボタンは従来通り (自分が先置き) */
+     順序: 裏カード表示 → 200ms 後に oppBoard 反映 + 演出発火 → 700ms 後に手札表示 */
   if(isPlayerButton && state.oppPendingBoard && !state.flMode){
-    /* 相手の保留配置を即座に oppBoard へ反映 (差分検知で演出発火) */
-    state.oppBoard = state.oppPendingBoard;
-    state.oppPendingBoard = null;
-    state.oppPlayedThisRound = true;
     /* 手札を一時非表示 (演出完了まで) */
     state._handHiddenForOppAnim = true;
-    /* 演出 (0.4s + ずらし最大0.15s) 完了後に手札表示 */
+    /* 200ms 後: 裏カードが描画されたタイミングで oppBoard 反映 → 差分検知で演出発火 */
     setTimeout(function(){
-      state._handHiddenForOppAnim = false;
-      try{ renderHand(); }catch(e){}
-      try{ updateConfirm(); }catch(e){}
-    }, 700);
+      if(!state.oppPendingBoard) return;
+      state.oppBoard = state.oppPendingBoard;
+      state.oppPendingBoard = null;
+      state.oppPlayedThisRound = true;
+      try{ renderOpp(); }catch(e){ console.error('[anim] renderOpp:', e); }
+      /* 700ms 後: 演出 (0.4s + ずらし) 完了 → 手札表示 */
+      setTimeout(function(){
+        state._handHiddenForOppAnim = false;
+        try{ renderHand(); }catch(e){}
+        try{ updateConfirm(); }catch(e){}
+      }, 700);
+    }, 200);
   }
   // 結果表示を全てクリア
   document.getElementById('resultBand').classList.remove('show');
@@ -13517,18 +13520,23 @@ async function dealNext(){
       state.oppPlayedThisRound=false;
     }
   }
-  /* Session 24: Pineapple R2-5 でも 自分DLR (ボタン) 時のタイムライン演出 */
+  /* Session 24: Pineapple R2-5 自分DLR タイムライン演出
+     順序: 裏カード2枚表示 → 200ms 後に反映 → 600ms 後に手札表示 */
   if(isPlayerButton && state.oppPendingPlace && !state.flMode){
-    const _pendPlace = state.oppPendingPlace.place;
-    for(const r of['top','mid','bot']) state.oppBoard[r].push(...(_pendPlace[r]||[]));
-    state.oppPendingPlace = null;
-    state.oppPlayedThisRound = true;
     state._handHiddenForOppAnim = true;
     setTimeout(function(){
-      state._handHiddenForOppAnim = false;
-      try{ renderHand(); }catch(e){}
-      try{ updateConfirm(); }catch(e){}
-    }, 600);
+      if(!state.oppPendingPlace) return;
+      const _pendPlace = state.oppPendingPlace.place;
+      for(const r of['top','mid','bot']) state.oppBoard[r].push(...(_pendPlace[r]||[]));
+      state.oppPendingPlace = null;
+      state.oppPlayedThisRound = true;
+      try{ renderOpp(); }catch(e){ console.error('[anim] renderOpp R2-5:', e); }
+      setTimeout(function(){
+        state._handHiddenForOppAnim = false;
+        try{ renderHand(); }catch(e){}
+        try{ updateConfirm(); }catch(e){}
+      }, 600);
+    }, 200);
   }
   renderGame();
   // v28.17: ラウンドタイマー起動
@@ -13868,12 +13876,12 @@ function _animateOppCardPlacement(addedCards){
     var src = cachedRects[k] || fallbackRect;
     if(!src) continue;
     (function(srcRect, dest, delay){
-      if(!srcRect || srcRect.width === 0) return;
+      if(!srcRect || srcRect.width === 0){ console.log('[anim-skip] srcRect bad:', JSON.stringify(srcRect)); return; }
       /* 移動先スロット要素 */
       var slotsEl = document.getElementById(slotIdMap[dest.row]);
-      if(!slotsEl) return;
+      if(!slotsEl){ console.log('[anim-skip] slotsEl missing for row', dest.row); return; }
       var slot = slotsEl.children[dest.idx];
-      if(!slot) return;
+      if(!slot){ console.log('[anim-skip] slot missing at idx', dest.idx, 'in row', dest.row, 'children:', slotsEl.children.length); return; }
       /* 一時的に slot を invisible にして、演出が終わってから revealed */
       var slotChild = slot.firstElementChild;
       if(slotChild){
@@ -13881,7 +13889,7 @@ function _animateOppCardPlacement(addedCards){
         slotChild.style.transition = 'opacity 0.1s';
       }
       var destRect = slot.getBoundingClientRect();
-      if(destRect.width === 0) return;
+      if(destRect.width === 0){ console.log('[anim-skip] destRect width=0 for', dest.row, dest.idx); return; }
 
       /* flying card 作成 */
       var fly = document.createElement('div');
