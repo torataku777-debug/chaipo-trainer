@@ -22668,6 +22668,16 @@ body.bptune-enabled .bptune-active{
     var oppEl = document.querySelector('.opp-area');
     var playerEl = document.querySelector('.player-area');
     if(!oppEl || !playerEl) return;
+    /* fix: state のキー欠落で undefined.top クラッシュを防ぐ safety guard
+       欠けてる場合は DEFAULTS から補填して再保存 */
+    var didFix = false;
+    BDT_TABS.forEach(function(t){
+      if(!state[t]){
+        state[t] = JSON.parse(JSON.stringify(DEFAULTS[t]));
+        didFix = true;
+      }
+    });
+    if(didFix) saveState();
     var isFlNow = document.body.classList.contains('fl-mode');
     var ov = isFlNow ? state.opp_fl : state.opp_normal;
     var pv = isFlNow ? state.player_fl : state.player_normal;
@@ -22689,6 +22699,7 @@ body.bptune-enabled .bptune-active{
     var rb = document.getElementById('resultBand');
     if(rb && currentTab === 'result_band'){
       var rv = state.result_band;
+      if(!rv) return; /* safety guard: state に result_band キーが無い場合は反映スキップ */
       var sg = document.getElementById('screen-game');
       /* DOM を screen-game 直下に移動 (まだなら) */
       if(sg && rb.parentElement !== sg){
