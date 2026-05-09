@@ -12990,8 +12990,16 @@ function _runOppFlatRounds(startRound){
     }catch(e){
       console.error('[opp flat] round ' + round + ' error:', e);
     }
+    /* Session 24: 各ラウンド配置後に renderOpp 呼び出し → 演出発火
+       オフラインのみ (オンラインは onlineMode=true なので関係ない) */
+    try {
+      if(typeof renderOpp === 'function'){
+        renderOpp();
+      }
+    } catch(e){ console.error('[opp flat] renderOpp:', e); }
     round++;
-    setTimeout(next, 0);  // 次ラウンドを setTimeout でキュー (UI ブロック回避)
+    /* Session 24: 演出が見えるよう 800ms 待ってから次ラウンド */
+    setTimeout(next, 800);
   }
 
   setTimeout(next, 0);
@@ -14765,7 +14773,32 @@ function startFL(flCards, skipIntro){
         console.log('[fix83] online mode → _runOppFlatRounds skip');
       } else {
         console.log('[opp flat] 相手平場 R2-R5 をバックグラウンドで実行');
-        _runOppFlatRounds(2);
+        /* Session 24: R1 演出のため、 oppBoard の R1 を一度退避→クリア→500ms 後再配置 */
+        try {
+          var _r1snap = {
+            top: state.oppBoard.top.slice(),
+            mid: state.oppBoard.mid.slice(),
+            bot: state.oppBoard.bot.slice()
+          };
+          state.oppBoard = { top:[], mid:[], bot:[] };
+          /* renderOpp を呼んで oppBoard 空状態を反映 (snapshot もリセット) */
+          if(typeof _prevOppBoardSnapshot !== 'undefined'){
+            _prevOppBoardSnapshot = { top:[], mid:[], bot:[] };
+          }
+          if(typeof renderOpp === 'function') renderOpp();
+          /* 500ms 後: R1 の 5 枚を再配置 → 差分検知で演出発火 */
+          setTimeout(function(){
+            state.oppBoard = _r1snap;
+            if(typeof renderOpp === 'function') renderOpp();
+            /* 800ms 後 (R1 演出完了) に R2 開始 */
+            setTimeout(function(){
+              _runOppFlatRounds(2);
+            }, 800);
+          }, 500);
+        } catch(e){
+          console.error('[FL R1 anim] error:', e);
+          _runOppFlatRounds(2);
+        }
       }
     }
   }
