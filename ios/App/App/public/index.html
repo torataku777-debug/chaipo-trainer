@@ -970,18 +970,18 @@ html body.ui-v2 .opp-card{
   letter-spacing:0.18em;
   text-transform:uppercase;
 }
-.result-band-title.win{color:#E8B923;text-shadow:0 0 10px rgba(232,185,35,0.4);}
+.result-band-title.win{color:#0a7d4a;text-shadow:none;}
 .result-band-title.lose{color:var(--foul-color);}
 .result-band-title.draw{color:#888;}
 .result-band-net{font-family:var(--font-mono);font-size:18px;font-weight:800;letter-spacing:-0.02em;}
-.result-band-net.positive{color:#E8B923;text-shadow:0 0 8px rgba(232,185,35,0.3);}
+.result-band-net.positive{color:#0a7d4a;text-shadow:none;}
 .result-band-net.negative{color:var(--foul-color);}
 .result-band-rows{display:grid;grid-template-columns:36px 1fr 1fr;gap:0;position:relative;z-index:1;}
 .rbc{padding:4px 6px;font-size:10px;text-align:center;border-bottom:1px solid rgba(232,185,35,0.1)}
 .rbc:nth-last-child(-n+3){border-bottom:none}
 .rbc.lbl{color:#999;font-size:8px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.1em;font-weight:700}
-.rbc.you{color:#E8B923;font-weight:700}.rbc.opp{color:#6b7280;font-weight:700}
-.rbc.w{color:#E8B923;font-weight:800}.rbc.l{color:var(--foul-color);font-weight:700}
+.rbc.you{color:#0a7d4a;font-weight:700}.rbc.opp{color:#6b7280;font-weight:700}
+.rbc.w{color:#0a7d4a;font-weight:800}.rbc.l{color:var(--foul-color);font-weight:700}
 .rbc.tot{font-family:var(--font-mono);font-size:14px;font-weight:800;color:#0a0a0a}
 .result-btn-row{display:flex;gap:6px;padding-top:2px}
 .btn-again-inline{
@@ -22761,14 +22761,32 @@ body.bptune-enabled .bptune-active{
       clearTimeout(longPressTimer);
       if(dragMode){
         var rect = rb.getBoundingClientRect();
-        savePos({ top: rect.top, left: rect.left, width: rect.width });
+        var pos = { top: Math.round(rect.top), left: Math.round(rect.left), width: Math.round(rect.width) };
+        savePos(pos);
         rb.style.removeProperty('opacity');
         rb.style.removeProperty('cursor');
         rb.style.removeProperty('transition');
         dragMode = false;
         if(typeof window.haptic === 'function') window.haptic(10);
+        /* ドラッグ終了時に位置を画面に表示 (長押しでコピーできる) */
+        showPosToast(pos);
       }
       dragStart = null;
+    }
+
+    function showPosToast(pos){
+      var existing = document.getElementById('rbPosToast');
+      if(existing) existing.remove();
+      var toast = document.createElement('div');
+      toast.id = 'rbPosToast';
+      toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.92);color:#0a7d4a;padding:12px 16px;border-radius:10px;font-family:-apple-system,monospace;font-size:12px;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,0.4);max-width:90vw;border:1px solid rgba(10,125,74,0.5);user-select:text;-webkit-user-select:text;line-height:1.6;';
+      toast.innerHTML = '<div style="color:#fff;font-size:11px;margin-bottom:6px;font-weight:bold;">結果ボード位置 (タップで閉じる)</div>' +
+        '<div style="color:#0a7d4a;font-family:monospace;">top: ' + pos.top + 'px<br>left: ' + pos.left + 'px<br>width: ' + pos.width + 'px</div>' +
+        '<div style="color:#aaa;font-size:9px;margin-top:6px;">Claude に 「結果ボード位置: top=X left=Y width=Z」 と伝える</div>';
+      document.body.appendChild(toast);
+      toast.addEventListener('click', function(){ toast.remove(); });
+      /* 8秒で自動消去 */
+      setTimeout(function(){ if(toast.parentElement) toast.remove(); }, 8000);
     }
     rb.addEventListener('pointerup', endDrag);
     rb.addEventListener('pointercancel', endDrag);
