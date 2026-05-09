@@ -23658,8 +23658,10 @@ body.bptune-enabled .bptune-active{
 })();
 </script>
 
+
+
 <!-- Session 24 dbg log -->
-<div id="dbgLogContent" style="position:fixed;top:2px;left:2px;right:2px;max-height:180px;overflow-y:auto;background:rgba(0,0,0,0.92);color:#0f0;font-size:8px;font-family:monospace;padding:3px;border-radius:4px;z-index:99999;line-height:1.2;border:1px solid #0f0;white-space:pre-wrap;word-break:break-all;pointer-events:none"></div>
+<div id="dbgLogContent" style="position:fixed;bottom:0;left:0;right:0;height:60px;overflow-y:auto;background:rgba(0,0,0,0.85);color:#0f0;font-size:7px;font-family:monospace;padding:2px 4px;z-index:99998;line-height:1.15;border-top:1px solid #0f0;white-space:pre-wrap;word-break:break-all;pointer-events:none"></div>
 <script>
 (function(){
   var dbgLogs = [];
@@ -23667,12 +23669,12 @@ body.bptune-enabled .bptune-active{
   function pushLog(prefix, args){
     try {
       var msg = prefix + ' ' + Array.from(args).map(function(a){
-        if(typeof a === 'object'){ try { return JSON.stringify(a).slice(0, 80); } catch(e){ return String(a); } }
+        if(typeof a === 'object'){ try { return JSON.stringify(a).slice(0, 60); } catch(e){ return String(a); } }
         return String(a);
       }).join(' ');
       if(/opp flat|opp-anim|FL|R[1-5]|deck|startFL|aiPineapple|button|render/i.test(msg)){
-        dbgLogs.push(msg.slice(0, 140));
-        if(dbgLogs.length > 25) dbgLogs.shift();
+        dbgLogs.push(msg.slice(0, 100));
+        if(dbgLogs.length > 8) dbgLogs.shift();
         if(!dbgEl) dbgEl = document.getElementById('dbgLogContent');
         if(dbgEl) dbgEl.textContent = dbgLogs.join('\n');
       }
