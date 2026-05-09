@@ -12967,6 +12967,11 @@ function _runOppFlatRounds(startRound){
   } catch(e){}
 
   function next(){
+    /* Session 24 dbg: ラウンド開始時の状態 */
+    try {
+      var _oppCnt = (state.oppBoard.top||[]).length + (state.oppBoard.mid||[]).length + (state.oppBoard.bot||[]).length;
+      console.log('[opp flat] R'+round+' begin: deckIdx='+state.deckIdx+' deckLen='+state.deck.length+' oppCnt='+_oppCnt);
+    } catch(e){}
     if(round > 5){
       state.oppPlayPending = false;
       console.log('[opp flat] R2-R5 完了');
@@ -12980,7 +12985,7 @@ function _runOppFlatRounds(startRound){
     const d = state.deck;
     if(d.length - state.deckIdx < 3){
       state.oppPlayPending = false;
-      console.warn('[opp flat] デッキ不足');
+      console.warn('[opp flat] デッキ不足 R'+round+': len='+d.length+' idx='+state.deckIdx+' rem='+(d.length-state.deckIdx));
       return;
     }
     const oppHand = d.slice(state.deckIdx, state.deckIdx + 3);
@@ -23661,7 +23666,7 @@ body.bptune-enabled .bptune-active{
 
 
 <!-- Session 24 dbg log -->
-<div id="dbgLogContent" style="position:fixed;bottom:0;left:0;right:0;height:60px;overflow-y:auto;background:rgba(0,0,0,0.85);color:#0f0;font-size:7px;font-family:monospace;padding:2px 4px;z-index:99998;line-height:1.15;border-top:1px solid #0f0;white-space:pre-wrap;word-break:break-all;pointer-events:none"></div>
+<div id="dbgLogContent" style="position:fixed;bottom:0;left:0;right:0;height:90px;overflow-y:auto;background:rgba(0,0,0,0.85);color:#0f0;font-size:7px;font-family:monospace;padding:2px 4px;z-index:99998;line-height:1.15;border-top:1px solid #0f0;white-space:pre-wrap;word-break:break-all;pointer-events:none"></div>
 <script>
 (function(){
   var dbgLogs = [];
@@ -23674,7 +23679,7 @@ body.bptune-enabled .bptune-active{
       }).join(' ');
       if(/opp flat|opp-anim|FL|R[1-5]|deck|startFL|aiPineapple|button|render/i.test(msg)){
         dbgLogs.push(msg.slice(0, 100));
-        if(dbgLogs.length > 8) dbgLogs.shift();
+        if(dbgLogs.length > 14) dbgLogs.shift();
         if(!dbgEl) dbgEl = document.getElementById('dbgLogContent');
         if(dbgEl) dbgEl.textContent = dbgLogs.join('\n');
       }
