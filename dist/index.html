@@ -13813,14 +13813,29 @@ function _findNewOppCards(prev, cur){
 }
 
 function _animateOppCardPlacement(addedCards){
-  /* renderOppPending が消す前にキャッシュした位置情報を使う */
+  if(addedCards.length === 0) return;
+  /* 裏カードのキャッシュがあれば使う、無ければ画面上部から飛ばす */
   var cachedRects = window._oppPendingRectsCache || [];
-  if(cachedRects.length === 0 || addedCards.length === 0) return;
+  var fallbackRect = null;
+  if(cachedRects.length === 0){
+    /* opp-area の真上 (画面上端少し下) を起点にする */
+    var oppArea = document.querySelector('.opp-area');
+    if(oppArea){
+      var oRect = oppArea.getBoundingClientRect();
+      fallbackRect = {
+        left: oRect.left + oRect.width * 0.3,
+        top: -50, /* 画面外から飛んでくる */
+        width: 28,
+        height: 40
+      };
+    }
+  }
 
   var slotIdMap = { top: 'oppTop', mid: 'oppMid', bot: 'oppBot' };
 
   for(var k = 0; k < addedCards.length; k++){
-    if(k >= cachedRects.length) break;
+    var src = cachedRects[k] || fallbackRect;
+    if(!src) continue;
     (function(srcRect, dest, delay){
       if(!srcRect || srcRect.width === 0) return;
       /* 移動先スロット要素 */
