@@ -12958,6 +12958,13 @@ function _runOppFlatRounds(startRound){
   // state.deck から 3 枚ずつ引いて R2-R5 まで aiPineappleRollout で配置
   state.oppPlayPending = true;
   let round = startRound || 2;
+  /* Session 24 デバッグ: R1 状態を記録 */
+  try {
+    var _r1Top = (state.oppBoard.top||[]).map(function(c){return c?(c.r+(c.s||'')):'-';}).join(',');
+    var _r1Mid = (state.oppBoard.mid||[]).map(function(c){return c?(c.r+(c.s||'')):'-';}).join(',');
+    var _r1Bot = (state.oppBoard.bot||[]).map(function(c){return c?(c.r+(c.s||'')):'-';}).join(',');
+    console.log('[opp flat] start: top=['+_r1Top+'] mid=['+_r1Mid+'] bot=['+_r1Bot+']');
+  } catch(e){}
 
   function next(){
     if(round > 5){
@@ -13960,10 +13967,15 @@ function renderOpp(){
   //   - プレイヤーも FL (既存 v28.15: スクープ判定の公平性)
   //   - プレイヤー R1 配置中 (CONFIRM 未確定): 相手 FL を先に見せない
   //   - 相手 FL 計算中: UIの一貫性保持
+  /* Session 24 fix: 自分平場+相手FL の hideOppFl 条件を修正
+     - gameOver / phase=ended / R5 配置完了後 は表向き表示
+     - 自分FL中は引き続き隠す (相手FLが先見えるとアドバンテージ) */
+  const _myPlayerCount = (state.playerBoard.top.length + state.playerBoard.mid.length + state.playerBoard.bot.length);
+  const _r5PlayerDone = (state.round >= 5 && _myPlayerCount >= 13);
   const hideOppFl = state.oppFlMode && !state.gameOver && (
     state.flMode ||
-    // v1.3 fix153: 自分が平場 + 相手FL のときは、 R5の配置が完了するまで すべてのラウンドで 相手のボードを隠す
-    (!state.flMode && state.oppFlMode) ||
+    /* 自分が平場+相手FL: R5 完了するまで隠す (それ以降は表向き) */
+    (!state.flMode && state.oppFlMode && !_r5PlayerDone) ||
     (state.round === 1 && (state.phase === 'place5' || state.phase === 'transitioning')) ||
     state.oppFlPending
   );
