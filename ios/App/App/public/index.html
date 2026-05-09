@@ -13420,10 +13420,12 @@ async function newGame(onlineConfig){
     }
     state.oppPlayedThisRound = false;
 
-    if(isPlayerButton || state.flMode){
+    if(state.flMode){
+      /* FL モードのみ: 即時確定 (FL は表示ロジックが特殊なため変更しない) */
       state.oppBoard = {top:[...oP.top], mid:[...oP.mid], bot:[...oP.bot]};
       state.oppPlayedThisRound = true;
     } else {
+      /* Session 24: DLR どちらでも 裏カード保留 → プレイヤー配置完了後に演出で表示 */
       state.oppBoard = {top:[], mid:[], bot:[]};
       state.oppPendingBoard = {top:[...oP.top], mid:[...oP.mid], bot:[...oP.bot]};
       state.oppPlayedThisRound = false;
@@ -13480,9 +13482,8 @@ async function dealNext(){
     // 相手のパイナップルカードを引く
     const oH=d.slice(i,i+=3);state.deckIdx=i;
 
-    if(isPlayerButton || state.flMode){
-      // ボタン or FL中: AIが先に配置済み（全部見える）
-      // Rollout v1 AI を使用 (v28.12)
+    if(state.flMode){
+      /* FL モードのみ: AI が先に配置済み（全部見える） */
       let deckRem_a = [];
       try{ deckRem_a = _getRemainingCards(state.oppBoard, state.playerBoard, state.discard, oH); }catch(e){}
       const decision_a = aiPineappleRollout(oH, state.oppBoard, state.round, deckRem_a, ROLLOUT_N_DEFAULT);
@@ -13491,8 +13492,7 @@ async function dealNext(){
       try{logRoundOppDiff(state.round);}catch(e){console.error('[log] oppDiff:',e);}
       state.oppPlayedThisRound=true;
     } else {
-      // ノンボタン（平場のみ）: AIの配置を保留
-      // Rollout v1 AI を使用 (v28.12)
+      /* Session 24: DLR どちらでも 裏カード保留 → プレイヤー配置完了後に演出で表示 */
       let deckRem_b = [];
       try{ deckRem_b = _getRemainingCards(state.oppBoard, state.playerBoard, state.discard, oH); }catch(e){}
       const decision_b = aiPineappleRollout(oH, state.oppBoard, state.round, deckRem_b, ROLLOUT_N_DEFAULT);
@@ -13925,8 +13925,9 @@ function renderOpp(){
   // 今ラウンドで相手が未配置の枚数（ノンボタン時の保留分）
   // R1: oppPendingBoard があれば今ラウンド未配置
   // R2-5: oppPendingPlace があれば今ラウンド未配置
-  const hasPendingR1 = !isPlayerButton && state.oppPendingBoard;
-  const hasPendingPine = !isPlayerButton && state.oppPendingPlace;
+  /* Session 24: DLR 関係なく oppPendingBoard/Place があれば裏カード表示 */
+  const hasPendingR1 = !!state.oppPendingBoard;
+  const hasPendingPine = !!state.oppPendingPlace;
   const pendingCount = hasPendingR1 ? 5 : hasPendingPine ? 2 : 0;
 
   for(const[row,[cnt,eId]]of Object.entries(cfg)){
@@ -14439,8 +14440,8 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
       })();
       return;
     }
-    // ノンボタン: プレイヤー配置確定後にAIの配置を表示
-    if(!isPlayerButton && state.oppPendingBoard){
+    // Session 24: DLR 関係なく プレイヤー配置確定後にAIの配置を表示 (演出付き)
+    if(state.oppPendingBoard){
       state.oppBoard=state.oppPendingBoard;
       state.oppPendingBoard=null;
       state.oppPlayedThisRound=true;
@@ -14565,8 +14566,8 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
       return;
     }
     state.placedThisRound=[];state.discardedThisRound=false;
-    // ノンボタン: プレイヤー配置確定後にAIの保留配置を表示
-    if(!isPlayerButton && state.oppPendingPlace){
+    // Session 24: DLR 関係なく プレイヤー配置確定後にAIの保留配置を表示 (演出付き)
+    if(state.oppPendingPlace){
       const{place}=state.oppPendingPlace;
       for(const r of['top','mid','bot'])state.oppBoard[r].push(...(place[r]||[]));
       try{logRoundOppDiff(state.round);}catch(e){console.error('[log] oppDiff2:',e);}
