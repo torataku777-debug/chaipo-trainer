@@ -14773,22 +14773,15 @@ function startFL(flCards, skipIntro){
         console.log('[fix83] online mode → _runOppFlatRounds skip');
       } else {
         console.log('[opp flat] 相手平場 R2-R5 をバックグラウンドで実行');
-        /* Session 24: R1 演出のため、 oppBoard の R1 を一度退避→クリア→500ms 後再配置 */
+        /* Session 24: R1 は newGame で既に確定済み (oppBoard に5枚)
+           演出だけ走らせるため、 _prevOppBoardSnapshot を {空} にして renderOpp 呼び出し
+           → 差分検知で5枚分の演出発火 (oppBoard は変更しないので消失リスクなし) */
         try {
-          var _r1snap = {
-            top: state.oppBoard.top.slice(),
-            mid: state.oppBoard.mid.slice(),
-            bot: state.oppBoard.bot.slice()
-          };
-          state.oppBoard = { top:[], mid:[], bot:[] };
-          /* renderOpp を呼んで oppBoard 空状態を反映 (snapshot もリセット) */
           if(typeof _prevOppBoardSnapshot !== 'undefined'){
             _prevOppBoardSnapshot = { top:[], mid:[], bot:[] };
           }
-          if(typeof renderOpp === 'function') renderOpp();
-          /* 500ms 後: R1 の 5 枚を再配置 → 差分検知で演出発火 */
+          /* 500ms 後 (renderGame 完了 + DOM 安定後) に renderOpp 呼ぶ */
           setTimeout(function(){
-            state.oppBoard = _r1snap;
             if(typeof renderOpp === 'function') renderOpp();
             /* 800ms 後 (R1 演出完了) に R2 開始 */
             setTimeout(function(){
