@@ -22671,7 +22671,7 @@ body.bptune-enabled .bptune-active{
     player_fl:     { top: 42.6, left: 18.2, width: 75.3, height: 31.1, tx: 0, ty: -41 },
     opp_normal:    { top: 18.9, left: 2.3,  width: 55.2, height: 15.1, tx: 0, ty: 0 },
     opp_fl:        { top: 16.9, left: 0.9,  width: 55.2, height: 15.1, tx: 0, ty: 0 },
-    result_band:   { top: 1.5,  left: 56.1, width: 46.7, height: 0,    tx: -24, ty: 159 }
+    result_band:   { top: 9.9,  left: 59.8, width: 46.7, height: 0,    tx: -40, ty: 83 }
   };
   var state = loadState();
   var currentTab = 'result_band';
@@ -22998,12 +22998,21 @@ body.bptune-enabled .bptune-active{
         document.body.classList.remove('fl-mode');
         var sg = document.getElementById('screen-game');
         if(sg) sg.classList.remove('fl-mode');
-        /* fix: パネル閉じる時に結果ボードのダミーも解除 */
+        /* fix: パネル閉じる時に結果ボードのダミー解除 + screen-game 直下維持 + inline style クリア */
         var rb = document.getElementById('resultBand');
-        if(rb && rb.dataset.bdtDummyApplied){
-          rb.classList.remove('show','win','lose','draw');
-          rb.innerHTML = '';
-          rb.dataset.bdtDummyApplied = '';
+        if(rb){
+          if(rb.dataset.bdtDummyApplied){
+            rb.classList.remove('show','win','lose','draw');
+            rb.innerHTML = '';
+            rb.dataset.bdtDummyApplied = '';
+          }
+          var sgClose = document.getElementById('screen-game');
+          if(sgClose && rb.parentElement !== sgClose){
+            sgClose.appendChild(rb);
+          }
+          ['position','top','left','width','height','right','z-index','transform'].forEach(function(prop){
+            rb.style.removeProperty(prop);
+          });
         }
       }
     });
