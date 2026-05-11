@@ -2963,7 +2963,7 @@ body.shop-screen-active .shop-back-fab{
   opacity:0;
   transition:opacity 0.3s ease;
 }
-.tut-overlay.open{opacity:1;pointer-events:auto;}
+.tut-overlay.open{opacity:1;}  /* pointer-events は子要素 .tut-bubble / .tut-close-btn 個別に設定 */
 /* スポットライト: ターゲット要素の位置を box-shadow で覆う */
 .tut-spotlight{
   position:absolute;
@@ -3110,7 +3110,26 @@ body.shop-screen-active .shop-back-fab{
 .tut-close-btn:active{background:rgba(40,42,52,0.9);}
 .tut-overlay:not(.open) .tut-close-btn{display:none !important;}
 .tut-overlay:not(.open) .tut-bubble,
-.tut-overlay:not(.open) .tut-spotlight{display:none !important;}
+.tut-overlay:not(.open) .tut-spotlight,
+.tut-overlay:not(.open) .tut-ghost{display:none !important;}
+/* Session 26 Patch10: 指ゴースト */
+.tut-ghost{
+  position:absolute;
+  font-size:36px;
+  pointer-events:none;
+  z-index:9505;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,0.6));
+  transform-origin:center center;
+  animation:tutGhostMove 2.0s ease-in-out infinite;
+  will-change:transform, opacity;
+}
+@keyframes tutGhostMove{
+  0%   { transform:translate(var(--from-x,0px), var(--from-y,0px)) scale(1);   opacity:1; }
+  40%  { transform:translate(var(--from-x,0px), var(--from-y,0px)) scale(0.85); opacity:1; }
+  50%  { transform:translate(var(--from-x,0px), var(--from-y,0px)) scale(1);   opacity:1; }
+  90%  { transform:translate(var(--to-x,0px),   var(--to-y,0px))   scale(0.85); opacity:1; }
+  100% { transform:translate(var(--to-x,0px),   var(--to-y,0px))   scale(1);   opacity:0; }
+}
 .tut-overlay:not(.open),
 .tut-overlay:not(.open) *{pointer-events:none !important;}
 /* チュートリアル中はゲーム本体操作をブロック */
@@ -3120,6 +3139,18 @@ body.tut-active #screen-game .btn-confirm,
 body.tut-active #screen-game .card,
 body.tut-active #screen-game .slot{
   pointer-events:none !important;
+}
+/* Lesson 2 以降: チュートリアル中でもカードと段は操作可能にする */
+body.tut-active.tut-interactive #screen-game .card,
+body.tut-active.tut-interactive #screen-game .slot{
+  pointer-events:auto !important;
+}
+.tut-victory-pulse{
+  animation: tutVictoryPulse 0.6s ease-out 2;
+}
+@keyframes tutVictoryPulse{
+  0%{box-shadow:0 0 0 0 rgba(255,181,97,0.7);}
+  100%{box-shadow:0 0 0 40px rgba(255,181,97,0);}
 }
 /* スポットライト対象は操作可能にする (透過対応、 ただし pointer-events は overlay 制御で十分) */
 
@@ -10075,13 +10106,21 @@ body.debug-interactive .vmode-btn::before {
 
   window.onTutorialLessonClick = function(lessonId){
     if(typeof window.haptic === 'function') window.haptic(15);
-    /* Session 26 T-1: Lesson 1 は本体実装、 他は引き続き予告のみ */
+    /* Session 26 T-1/T-2: Lesson 1 と Lesson 2 は本体実装、 他は引き続き予告のみ */
     if(lessonId === 'l1'){
       openTutorialLesson1();
       return;
     }
+    if(lessonId === 'l2'){
+      if(typeof window.openTutorialLesson2 === 'function'){
+        window.openTutorialLesson2();
+      } else {
+        if(typeof showToast === 'function') showToast('Lesson 2 が読み込まれていません');
+      }
+      return;
+    }
     var titles = {
-      l2: '配置の基本', l3: 'ファウルの罠',
+      l3: 'ファウルの罠',
       l4: '役を作ろう', l5: 'ファンタジーランド入門'
     };
     var title = titles[lessonId] || lessonId;
@@ -10199,6 +10238,7 @@ body.debug-interactive .vmode-btn::before {
   }
 
   function positionSpotlight(targetSel){
+    /* Session 26 Patch10: targetSel が配列なら複数要素の外接矩形を計算 */
     var spot = document.getElementById('tutSpotlight');
     if(!spot) return;
     if(!targetSel){
@@ -10210,31 +10250,42 @@ body.debug-interactive .vmode-btn::before {
       spot.style.height = '1px';
       return;
     }
-    var el = document.querySelector(targetSel);
-    if(!el){
-      /* フォールバック: 全画面モード */
+    var sels = Array.isArray(targetSel) ? targetSel : [targetSel];
+    var rects = [];
+    for(var i=0;i<sels.length;i++){
+      var el = document.querySelector(sels[i]);
+      if(el) rects.push(el.getBoundingClientRect());
+    }
+    if(rects.length === 0){
       spot.classList.add('full');
       spot.classList.remove('has-ring');
       return;
     }
-    var r = el.getBoundingClientRect();
+    /* 外接矩形を計算 */
+    var L = Infinity, T = Infinity, R = -Infinity, B = -Infinity;
+    for(var j=0;j<rects.length;j++){
+      var r = rects[j];
+      if(r.left   < L) L = r.left;
+      if(r.top    < T) T = r.top;
+      if(r.right  > R) R = r.right;
+      if(r.bottom > B) B = r.bottom;
+    }
     var pad = 6;
     spot.classList.remove('full');
     spot.classList.add('has-ring');
-    spot.style.left = (r.left - pad) + 'px';
-    spot.style.top = (r.top - pad) + 'px';
-    spot.style.width = (r.width + pad*2) + 'px';
-    spot.style.height = (r.height + pad*2) + 'px';
+    spot.style.left = (L - pad) + 'px';
+    spot.style.top = (T - pad) + 'px';
+    spot.style.width = (R - L + pad*2) + 'px';
+    spot.style.height = (B - T + pad*2) + 'px';
   }
 
   function positionBubble(targetSel, pos){
+    /* Session 26 Patch10: 配列でも単一でも同じ扱い (吹き出し位置は pos が決める) */
     var bubble = document.getElementById('tutBubble');
     if(!bubble) return;
     bubble.classList.remove('pos-top','pos-bottom','pos-center');
-    /* pos = top → 画面の上の方 (=ターゲットが下半身にある場合) */
-    /* pos = bottom → 画面の下の方 (=ターゲットが上半身にある場合) */
-    /* pos = center → ターゲットなし時 */
-    if(!targetSel || pos === 'center'){
+    var hasTarget = !!targetSel && (!Array.isArray(targetSel) || targetSel.length>0);
+    if(!hasTarget || pos === 'center'){
       bubble.classList.add('pos-center');
       return;
     }
@@ -10368,6 +10419,320 @@ body.debug-interactive .vmode-btn::before {
     bindTutorialL1Handlers();
   }
   window.openTutorialLesson1 = openTutorialLesson1;
+
+  /* === Session 26 Tutorial T-2: Lesson 2 「配置の基本」 本体 === */
+  var TUT_L2_PAGES = [
+    {
+      title: '実際に置いてみよう!',
+      text: '5枚のカードを配ったよ。<br>下の<strong>手札</strong>から、 ボードに置いていこう。',
+      target: '#handArea', pos: 'top', step: 'intro'
+    },
+    {
+      title: 'まずはタップ',
+      text: '<strong>カードをタップ</strong>して選んで、<br>次に置きたい<strong>段の空きスロット</strong>をタップ。<br>1枚置いてみよう!',
+      target: ['#playerArea', '#handArea'], pos: 'top', step: 'tap', requireCount: 1,
+      ghost: { from: 'card-first', to: 'slot-mid-first' }
+    },
+    {
+      title: 'ドラッグでも置ける',
+      text: 'カードを直接<strong>ドラッグして段に持っていく</strong>方法もあるよ。<br>残り全部置いて、 <strong>5枚すべて</strong>配置しよう!',
+      target: ['#playerArea', '#handArea'], pos: 'top', step: 'drag', requireCount: 5,
+      ghost: { from: 'card-first', to: 'slot-mid-first' }
+    },
+    {
+      title: 'やり直しもできる',
+      text: '置いたカードを<strong>タップする</strong>と手札に戻せるよ。<br>(または<strong>ドラッグで手札枠に戻す</strong>)<br>1回試してみよう。',
+      target: ['#playerArea', '#handArea'], pos: 'top', step: 'retract', requireRetract: true,
+      ghost: { from: 'board-card-first', to: 'hand-area' }
+    },
+    {
+      title: 'Lesson 2 完了!',
+      text: 'お疲れさま!<br>次は<strong>Lesson 3「ファウルの罠」</strong>で配置のルールを学ぼう。',
+      target: null, pos: 'center', step: 'done'
+    }
+  ];
+
+  var tutL2 = { pageIdx: 0, resizeHandler: null, retractCount: 0 };
+
+  function setupTutorialL2Preset(){
+    if(typeof state === 'undefined') return false;
+    state = {
+      phase: 'tutorial-l2', round: 1,
+      flMode: false, oppFlMode: false,
+      tutorialMode: true, tutorialLesson: 'l2',
+      gameOver: false,
+      playerBoard: { top:[], mid:[], bot:[] },
+      oppBoard: { top:[], mid:[], bot:[] },
+      hand: [
+        {r:'A',s:'s',id:'As'},{r:'K',s:'s',id:'Ks'},
+        {r:'Q',s:'s',id:'Qs'},{r:'J',s:'s',id:'Js'},
+        {r:'T',s:'s',id:'Ts'}
+      ],
+      discard: [], handDiscarded: [], selectedCard: null,
+      deck: [], deckIdx: 52,
+      placedThisRound: [], discardedThisRound: false,
+      onlineMode: false, onlineMatch: null,
+      myPlayerNum: null, asHost: false,
+      flCards: 0, flDiscard: [],
+      wasFL: false, oppWasFL: false,
+      oppFlPending: false, oppFlHand: null,
+      oppPlayPending: false, oppFlPendingBoard: null,
+      oppPendingFinalBoard: null,
+      oppBoardPrefilledForRound: null,
+      oppSavedFlCards: 0,
+      oppPendingBoard: null, oppPendingPlace: null,
+      oppPlayedThisRound: false, onlineMustWait: false
+    };
+    return true;
+  }
+
+  function tutL2_getPlacedCount(){
+    if(typeof state === 'undefined' || !state.playerBoard) return 0;
+    return state.playerBoard.top.length + state.playerBoard.mid.length + state.playerBoard.bot.length;
+  }
+
+  function tutL2_canAdvance(page){
+    if(page.requireCount) return tutL2_getPlacedCount() >= page.requireCount;
+    if(page.requireRetract) return tutL2.retractCount >= 1;
+    return true;
+  }
+
+  function renderTutL2Page(){
+    var idx = tutL2.pageIdx;
+    var page = TUT_L2_PAGES[idx];
+    var total = TUT_L2_PAGES.length;
+    var isLast = (idx === total - 1);
+
+    var titleEl = document.getElementById('tutBubbleTitle');
+    var textEl = document.getElementById('tutBubbleText');
+    var indEl = document.getElementById('tutPageInd');
+    var backBtn = document.getElementById('tutNavBack');
+    var nextBtn = document.getElementById('tutNavNext');
+
+    if(titleEl) titleEl.innerHTML = page.title;
+    if(textEl) textEl.innerHTML = page.text;
+    if(indEl) indEl.textContent = (idx+1) + ' / ' + total;
+    if(backBtn) backBtn.disabled = (idx === 0);
+
+    if(page.step === 'tap' || page.step === 'drag' || page.step === 'retract'){
+      document.body.classList.add('tut-interactive');
+    } else {
+      document.body.classList.remove('tut-interactive');
+    }
+
+    if(nextBtn){
+      var canAdvance = tutL2_canAdvance(page);
+      if(isLast){
+        nextBtn.textContent = '完了 ✓';
+        nextBtn.classList.remove('next');
+        nextBtn.classList.add('done');
+        nextBtn.disabled = false;
+        nextBtn.style.opacity = '1';
+      } else {
+        nextBtn.textContent = canAdvance ? '次へ →' : '進行中...';
+        nextBtn.classList.remove('done');
+        nextBtn.classList.add('next');
+        nextBtn.disabled = !canAdvance;
+        nextBtn.style.opacity = canAdvance ? '1' : '0.5';
+      }
+    }
+
+    positionSpotlight(page.target);
+    positionBubble(page.target, page.pos);
+    /* Session 26 Patch10: 指ゴースト表示 */
+    positionTutGhost(page.ghost);
+  }
+
+  /* ゴーストの from/to 仮想名 → 実 DOM 解決 */
+  function _resolveGhostTarget(name){
+    if(name === 'card-first'){
+      /* 手札の最初の in-hand カード */
+      return document.querySelector('#handCards .card.in-hand');
+    }
+    if(name === 'slot-mid-first'){
+      /* 中段の空きスロット (最初) */
+      var slots = document.querySelectorAll('#slotsMid .slot');
+      for(var i=0;i<slots.length;i++){
+        /* スロット内にカードが無いもの */
+        if(!slots[i].querySelector('.card')) return slots[i];
+      }
+      return slots[0] || null;
+    }
+    if(name === 'board-card-first'){
+      /* プレイヤーボード上の最初のカード */
+      return document.querySelector('#playerArea .card.on-board');
+    }
+    if(name === 'hand-area'){
+      return document.getElementById('handCards') || document.getElementById('handArea');
+    }
+    return null;
+  }
+
+  function positionTutGhost(ghostCfg){
+    var ghost = document.getElementById('tutGhost');
+    if(!ghost) return;
+    if(!ghostCfg){
+      ghost.style.display = 'none';
+      return;
+    }
+    var fromEl = _resolveGhostTarget(ghostCfg.from);
+    var toEl = _resolveGhostTarget(ghostCfg.to);
+    if(!fromEl || !toEl){
+      ghost.style.display = 'none';
+      return;
+    }
+    var fromR = fromEl.getBoundingClientRect();
+    var toR = toEl.getBoundingClientRect();
+    /* ゴーストの基準位置 = (0,0)、 そこから from/to へ translate する */
+    /* ターゲット中心に指の先端を合わせる: 指は base が上、 中心ちょい上に置く */
+    var fx = fromR.left + fromR.width/2 - 18;  /* 指幅の半分くらい補正 */
+    var fy = fromR.top + fromR.height/2 - 8;
+    var tx = toR.left + toR.width/2 - 18;
+    var ty = toR.top + toR.height/2 - 8;
+    ghost.style.left = '0px';
+    ghost.style.top = '0px';
+    ghost.style.setProperty('--from-x', fx + 'px');
+    ghost.style.setProperty('--from-y', fy + 'px');
+    ghost.style.setProperty('--to-x', tx + 'px');
+    ghost.style.setProperty('--to-y', ty + 'px');
+    ghost.style.display = 'block';
+    /* アニメ再起動 (連続呼び出しでリセットするため) */
+    ghost.style.animation = 'none';
+    /* reflow */
+    void ghost.offsetHeight;
+    ghost.style.animation = '';
+  }
+
+  function tutL2_onUserAction(actionType){
+    if(typeof state === 'undefined' || state.tutorialLesson !== 'l2') return;
+    if(actionType === 'retract') tutL2.retractCount += 1;
+    /* ゴーストとスポットライトを次の DOM 状態で再計算する必要があるため次フレームで */
+    requestAnimationFrame(function(){ renderTutL2Page(); });
+  }
+
+  function openTutorialLesson2(){
+    if(typeof showScreen === 'function') showScreen('game');
+    if(!setupTutorialL2Preset()){
+      if(typeof showToast==='function') showToast('チュートリアルを開始できません');
+      return;
+    }
+    try{ if(typeof renderGame === 'function') renderGame(); }
+    catch(e){ console.error('[tutL2] renderGame error', e); }
+
+    document.body.classList.add('tut-active');
+    tutL2.pageIdx = 0;
+    tutL2.retractCount = 0;
+    var overlay = document.getElementById('tutOverlay');
+    if(overlay) overlay.classList.add('open');
+
+    bindTutorialL2Handlers();
+
+    requestAnimationFrame(function(){
+      requestAnimationFrame(renderTutL2Page);
+    });
+
+    tutL2.resizeHandler = function(){ renderTutL2Page(); };
+    window.addEventListener('resize', tutL2.resizeHandler);
+    window.addEventListener('orientationchange', tutL2.resizeHandler);
+  }
+
+  function closeTutorialLesson2(saveProgress){
+    var overlay = document.getElementById('tutOverlay');
+    if(overlay) overlay.classList.remove('open');
+    document.body.classList.remove('tut-active');
+    document.body.classList.remove('tut-interactive');
+    /* Session 26 Patch10: ゴースト非表示 */
+    var ghost = document.getElementById('tutGhost');
+    if(ghost) ghost.style.display = 'none';
+    if(tutL2.resizeHandler){
+      window.removeEventListener('resize', tutL2.resizeHandler);
+      window.removeEventListener('orientationchange', tutL2.resizeHandler);
+      tutL2.resizeHandler = null;
+    }
+    if(typeof state !== 'undefined'){
+      try{
+        state.tutorialMode = false;
+        state.tutorialLesson = null;
+        state.gameOver = true;
+      }catch(e){}
+    }
+    unbindTutorialL2Handlers();
+    bindTutorialL1Handlers();
+    if(typeof showScreen === 'function') showScreen('title');
+
+    if(saveProgress){
+      var p = getTutorialProgress();
+      if(p.completed.indexOf('l2') < 0) p.completed.push('l2');
+      p.current = 'l3';
+      saveTutorialProgress(p);
+      renderTutorialList();
+      if(typeof showToast === 'function') showToast('Lesson 2 完了!');
+    }
+  }
+
+  function tutorialL2Next(){
+    if(typeof window.haptic === 'function') window.haptic(10);
+    var total = TUT_L2_PAGES.length;
+    if(tutL2.pageIdx >= total - 1){
+      closeTutorialLesson2(true);
+      return;
+    }
+    var page = TUT_L2_PAGES[tutL2.pageIdx];
+    if(!tutL2_canAdvance(page)) return;
+    tutL2.pageIdx += 1;
+    renderTutL2Page();
+  }
+
+  function tutorialL2Back(){
+    if(typeof window.haptic === 'function') window.haptic(10);
+    if(tutL2.pageIdx > 0){
+      tutL2.pageIdx -= 1;
+      renderTutL2Page();
+    }
+  }
+
+  var _tutL2Handlers = { next:null, back:null, close:null };
+  function bindTutorialL2Handlers(){
+    /* unbindAllTutHandlers で DOM が cloneNode 置換されるので、 その後で取り直す */
+    unbindAllTutHandlers();
+    var nextBtn = document.getElementById('tutNavNext');
+    var backBtn = document.getElementById('tutNavBack');
+    var closeBtn = document.getElementById('tutCloseBtn');
+    if(nextBtn){
+      _tutL2Handlers.next = tutorialL2Next;
+      nextBtn.addEventListener('click', _tutL2Handlers.next);
+    }
+    if(backBtn){
+      _tutL2Handlers.back = tutorialL2Back;
+      backBtn.addEventListener('click', _tutL2Handlers.back);
+    }
+    if(closeBtn){
+      _tutL2Handlers.close = function(){ closeTutorialLesson2(false); };
+      closeBtn.addEventListener('click', _tutL2Handlers.close);
+    }
+  }
+  function unbindTutorialL2Handlers(){
+    var nextBtn = document.getElementById('tutNavNext');
+    var backBtn = document.getElementById('tutNavBack');
+    var closeBtn = document.getElementById('tutCloseBtn');
+    if(nextBtn && _tutL2Handlers.next){ nextBtn.removeEventListener('click', _tutL2Handlers.next); _tutL2Handlers.next = null; }
+    if(backBtn && _tutL2Handlers.back){ backBtn.removeEventListener('click', _tutL2Handlers.back); _tutL2Handlers.back = null; }
+    if(closeBtn && _tutL2Handlers.close){ closeBtn.removeEventListener('click', _tutL2Handlers.close); _tutL2Handlers.close = null; }
+  }
+  function unbindAllTutHandlers(){
+    var nextBtn = document.getElementById('tutNavNext');
+    var backBtn = document.getElementById('tutNavBack');
+    var closeBtn = document.getElementById('tutCloseBtn');
+    [nextBtn, backBtn, closeBtn].forEach(function(el){
+      if(!el) return;
+      var clone = el.cloneNode(true);
+      el.parentNode.replaceChild(clone, el);
+      if(clone.dataset) delete clone.dataset.bound;
+    });
+  }
+
+  window.openTutorialLesson2 = openTutorialLesson2;
+  window.tutL2_onUserAction = tutL2_onUserAction;
 
   /* ミッションタブを開いたときに進捗を再描画 */
   window.refreshTutorialList = renderTutorialList;
@@ -15260,10 +15625,13 @@ function updateConfirm(){
   if(state.phase==='place5'){btn.disabled=tot<5;btn.textContent=tot<5?`配置中 ${tot}/5`:'CONFIRM →';}
   else{const pl=(state.placedThisRound||[]).length;const done=pl>=2&&state.discardedThisRound;btn.disabled=!done;btn.textContent=done?'CONFIRM →':`配置 ${pl}/2`;}
 }
-document.getElementById('playerArea').addEventListener('click',e=>{const sl=e.target.closest('.slot');if(sl)onSlot(sl.dataset.row,parseInt(sl.dataset.idx));});
+document.getElementById('playerArea').addEventListener('click',e=>{/* Session 26 Patch14: touchend で既に処理済みならスキップ (タップ二重発火による多重戻り防止) */if(Date.now() - touchHandledTime < 300) return;const sl=e.target.closest('.slot');if(sl)onSlot(sl.dataset.row,parseInt(sl.dataset.idx));});
 // タップ重複防止フラグ
 let touchHandledCard = null;
 let touchHandledTime = 0;
+/* Session 26 Patch15: 戻し操作のデバウンス (250ms 以内の連続戻しを無視) */
+let lastRetractTime = 0;
+const RETRACT_DEBOUNCE_MS = 250;
 
 document.getElementById('handCards').addEventListener('click',e=>{
   // touchendで既に処理済みならスキップ
@@ -15307,10 +15675,14 @@ function onHandClick(card){
 function onSlot(row,idx){
   const rC=state.playerBoard[row];const lim={top:3,mid:5,bot:5};
   if(rC[idx]){
+    /* Session 26 Patch15: 戻しデバウンス */
+    if(Date.now() - lastRetractTime < RETRACT_DEBOUNCE_MS) return;
+    lastRetractTime = Date.now();
     const card=rC[idx];
     if(state.flMode){if(typeof window.haptic==="function")window.haptic(8);rC.splice(idx,1);state.hand.push(card);state.selectedCard=null;if(typeof sortFlHand==='function')sortFlHand();renderGame();return;}
     if(state.phase==='pineapple'){if((state.placedThisRound||[]).find(c=>c.id===card.id))retCard(card,row,idx);else showToast('このカードは戻せません');}
     else if(state.phase==='place5')retCard(card,row,idx);
+    else if(state.phase==='tutorial-l2')retCard(card,row,idx);  /* Session 26 T-2 */
     return;
   }
   // fix69: FL モードで click フロー (タップ選択→スロットタップ) をサポート — PCブラウザで配置できないバグ修正
@@ -15338,6 +15710,8 @@ function retCard(card,row,idx){
   if(state.flMode && typeof sortFlHand==='function') sortFlHand();
   if(typeof schedulePendingPush==='function') schedulePendingPush(); // fix58: pending update
   renderGame();
+  /* Session 26 T-2: Lesson 2 進行フック */
+  if(typeof window.tutL2_onUserAction === 'function') window.tutL2_onUserAction('retract');
 }
 function placeCard(card,row){
   // v1.3 Session21 haptic: 手札→スロット配置 (LIGHT)
@@ -15361,6 +15735,8 @@ function placeCard(card,row){
   if(!state.flMode&&state.phase==='pineapple'&&state.placedThisRound.length>=2&&!state.discardedThisRound&&state.hand.length>0)autoDiscard();
   if(typeof schedulePendingPush==='function') schedulePendingPush(); // fix58: pending update
   renderGame();
+  /* Session 26 T-2: Lesson 2 進行フック */
+  if(typeof window.tutL2_onUserAction === 'function') window.tutL2_onUserAction('place');
 }
 function autoDiscard(){const c=state.hand[0];state.hand=state.hand.filter(x=>x.id!==c.id);if(!Array.isArray(state.handDiscarded))state.handDiscarded=[];state.handDiscarded.push(c);state.discardedThisRound=true;if(typeof schedulePendingPush==='function') schedulePendingPush();}
 document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopChaipoTimer();}catch(e){}
@@ -16810,6 +17186,7 @@ try{var bel=document.getElementById('btnExportLogs');if(bel)bel.addEventListener
     const card=state.playerBoard[row][idx];if(!card)return false;
     if(state.flMode||state.phase==='place5')return true;
     if(state.phase==='pineapple')return !!(state.placedThisRound||[]).find(c=>c.id===card.id);
+    if(state.phase==='tutorial-l2')return true;  /* Session 26 T-2: チュートリアル中はドラッグ可能 */
     return false;
   }
 
@@ -25106,6 +25483,8 @@ body.bptune-enabled .bptune-active{
   </div>
   <!-- 右上の閉じる -->
   <button class="tut-close-btn" id="tutCloseBtn" type="button" aria-label="閉じる">✕</button>
+  <!-- Session 26 Patch10: 指ゴースト演出 -->
+  <div class="tut-ghost" id="tutGhost" style="display:none;">👆</div>
 </div>
 
 </body>
