@@ -14654,6 +14654,8 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
 function startFL(flCards, skipIntro){
   console.log('startFL called with', flCards, 'cards, deckIdx='+state.deckIdx+', skipIntro='+!!skipIntro);
   state.flMode=true;state.flCards=flCards;
+  /* Session 24 fix: 前ゲームの自分DLR演出フラグが残ってるとハンド表示されないのでリセット */
+  state._handHiddenForOppAnim = false;
   /* Session 24 fix: newGame で oppPendingBoard に保留された相手R1 を oppBoard に反映
      (FL モードでは裏カード表示しないので保留のままだと R1 が消失する) */
   if(state.oppPendingBoard){
