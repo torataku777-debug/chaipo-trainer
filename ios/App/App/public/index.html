@@ -16445,7 +16445,13 @@ try{var bel=document.getElementById('btnExportLogs');if(bel)bel.addEventListener
         }
       }else{
         if(slot){moveCardOnBoard(drag.card,drag.fromRow,drag.fromIdx,slot.dataset.row);}
-        else{renderGame();}
+        else{
+          /* Session 26: ボード→ハンド ドラッグで戻す */
+          var _handBox=handEl.getBoundingClientRect();
+          if(cx>=_handBox.left&&cx<=_handBox.right&&cy>=_handBox.top&&cy<=_handBox.bottom){
+            retCard(drag.card,drag.fromRow,drag.fromIdx);
+          }else{renderGame();}
+        }
       }
     }else{
       if(drag.fromHand){touchHandledTime=Date.now();onHandClick(drag.card);}
