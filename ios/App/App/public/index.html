@@ -2955,6 +2955,175 @@ body.shop-screen-active .shop-back-fab{
   background: linear-gradient(135deg, #E8B923 0%, #E8651A 100%);
   color: #fff;
 }
+
+/* === Session 26 Tutorial T-1 v2: ゲーム画面オーバーレイ式 === */
+.tut-overlay{
+  position:fixed;inset:0;z-index:9500;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 0.3s ease;
+}
+.tut-overlay.open{opacity:1;pointer-events:auto;}
+/* スポットライト: ターゲット要素の位置を box-shadow で覆う */
+.tut-spotlight{
+  position:absolute;
+  left:0;top:0;width:0;height:0;
+  border-radius:14px;
+  box-shadow:0 0 0 9999px rgba(0,0,0,0.78);
+  transition:left 0.45s cubic-bezier(0.65,0,0.35,1),
+             top 0.45s cubic-bezier(0.65,0,0.35,1),
+             width 0.45s cubic-bezier(0.65,0,0.35,1),
+             height 0.45s cubic-bezier(0.65,0,0.35,1);
+  pointer-events:none;
+}
+.tut-spotlight.full{
+  /* 全画面モード: 穴を作らず全部覆う */
+  left:50%;top:50%;width:1px;height:1px;
+}
+.tut-spotlight.has-ring::before{
+  content:"";
+  position:absolute;inset:-4px;
+  border:2px solid rgba(255,181,97,0.85);
+  border-radius:18px;
+  box-shadow:0 0 22px 4px rgba(255,142,60,0.4);
+  pointer-events:none;
+  animation:tutRingPulse 1.8s ease-in-out infinite;
+}
+@keyframes tutRingPulse{
+  0%,100%{opacity:0.85;transform:scale(1);}
+  50%{opacity:1;transform:scale(1.015);}
+}
+/* ポム吹き出し */
+.tut-bubble{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;
+  width:calc(100% - 32px);max-width:340px;
+  pointer-events:auto;
+  transition:top 0.4s cubic-bezier(0.65,0,0.35,1), bottom 0.4s cubic-bezier(0.65,0,0.35,1);
+}
+.tut-bubble.pos-bottom{bottom:24px;top:auto;}
+.tut-bubble.pos-top{top:24px;bottom:auto;}
+.tut-bubble.pos-center{
+  top:50%;bottom:auto;
+  transform:translate(-50%,-50%);
+}
+.tut-bubble-pom{
+  width:80px;height:80px;
+  object-fit:contain;
+  margin-bottom:-12px;
+  z-index:2;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+  animation:tutPomHop 2.2s ease-in-out infinite;
+}
+@keyframes tutPomHop{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-6px);}
+}
+.tut-bubble-card{
+  background:rgba(20,22,32,0.92);
+  -webkit-backdrop-filter:blur(18px) saturate(140%);
+  backdrop-filter:blur(18px) saturate(140%);
+  border-radius:16px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.12);
+  border:1px solid rgba(255,181,97,0.25);
+  padding:18px 18px 12px;
+  width:100%;
+  position:relative;
+}
+.tut-bubble-card::before{
+  /* 上向き三角 (ポム足元から吹き出す形) */
+  content:"";
+  position:absolute;
+  top:-8px;left:50%;
+  transform:translateX(-50%) rotate(45deg);
+  width:14px;height:14px;
+  background:rgba(20,22,32,0.92);
+  border-left:1px solid rgba(255,181,97,0.25);
+  border-top:1px solid rgba(255,181,97,0.25);
+}
+.tut-bubble-title{
+  color:#FFB561;
+  font-size:15px;font-weight:700;
+  letter-spacing:0.04em;
+  margin:0 0 8px;
+  text-align:center;
+}
+.tut-bubble-text{
+  color:rgba(255,255,255,0.92);
+  font-size:13px;line-height:1.65;
+  margin:0 0 12px;
+  text-align:center;
+}
+.tut-bubble-text strong{color:#FFB561;font-weight:700;}
+.tut-bubble-nav{
+  display:flex;align-items:center;gap:8px;
+  padding-top:8px;
+  border-top:1px solid rgba(255,255,255,0.08);
+}
+.tut-nav-btn{
+  flex:1;height:36px;
+  border-radius:10px;border:none;
+  font-size:12px;font-weight:600;
+  cursor:pointer;
+  transition:transform 0.12s,opacity 0.15s;
+}
+.tut-nav-btn:active{transform:scale(0.95);}
+.tut-nav-btn.back{
+  background:rgba(255,255,255,0.10);
+  color:rgba(255,255,255,0.85);
+}
+.tut-nav-btn.back:disabled{opacity:0.30;pointer-events:none;}
+.tut-nav-btn.next{
+  background:linear-gradient(135deg,#FFB561 0%,#FF8E3C 100%);
+  color:#1a1a1a;
+  box-shadow:0 4px 12px rgba(255,142,60,0.35);
+}
+.tut-nav-btn.done{
+  background:linear-gradient(135deg,#4ade80 0%,#22c55e 100%);
+  color:#fff;
+  box-shadow:0 4px 12px rgba(34,197,94,0.4);
+}
+.tut-page-ind{
+  flex-shrink:0;
+  color:rgba(255,255,255,0.5);
+  font-size:11px;
+  font-variant-numeric:tabular-nums;
+  min-width:32px;text-align:center;
+}
+/* 右上 × ボタン */
+.tut-close-btn{
+  position:absolute;top:14px;right:14px;
+  width:34px;height:34px;border-radius:50%;
+  background:rgba(20,22,32,0.85);
+  -webkit-backdrop-filter:blur(8px);
+  backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,0.15);
+  color:#fff;
+  font-size:16px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  pointer-events:auto;
+  z-index:9510;
+}
+.tut-close-btn:active{background:rgba(40,42,52,0.9);}
+.tut-overlay:not(.open) .tut-close-btn{display:none !important;}
+.tut-overlay:not(.open) .tut-bubble,
+.tut-overlay:not(.open) .tut-spotlight{display:none !important;}
+.tut-overlay:not(.open),
+.tut-overlay:not(.open) *{pointer-events:none !important;}
+/* チュートリアル中はゲーム本体操作をブロック */
+body.tut-active #screen-game .btn-menu,
+body.tut-active #screen-game .btn-advice,
+body.tut-active #screen-game .btn-confirm,
+body.tut-active #screen-game .card,
+body.tut-active #screen-game .slot{
+  pointer-events:none !important;
+}
+/* スポットライト対象は操作可能にする (透過対応、 ただし pointer-events は overlay 制御で十分) */
+
+
 .shop-roadmap-note{
   text-align: center;
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
@@ -9906,9 +10075,13 @@ body.debug-interactive .vmode-btn::before {
 
   window.onTutorialLessonClick = function(lessonId){
     if(typeof window.haptic === 'function') window.haptic(15);
-    /* T-0 段階: レッスン本体は次フェーズ。 今は動作確認用のダイアログのみ */
+    /* Session 26 T-1: Lesson 1 は本体実装、 他は引き続き予告のみ */
+    if(lessonId === 'l1'){
+      openTutorialLesson1();
+      return;
+    }
     var titles = {
-      l1: 'ようこそ', l2: '配置の基本', l3: 'ファウルの罠',
+      l2: '配置の基本', l3: 'ファウルの罠',
       l4: '役を作ろう', l5: 'ファンタジーランド入門'
     };
     var title = titles[lessonId] || lessonId;
@@ -9918,6 +10091,283 @@ body.debug-interactive .vmode-btn::before {
       alert('Lesson 「' + title + '」 は次のアップデートで実装予定');
     }
   };
+
+  /* === Session 26 Tutorial T-1 v2: ゲーム画面オーバーレイ式 Lesson 1 === */
+  /* 各ページの定義: target = ハイライト対象セレクタ (null=全画面), pos = 吹き出し位置 */
+  var TUT_L1_PAGES = [
+    {
+      title: 'やっほー、 ぼくポム!',
+      text: 'これから5レッスンでチャイポの遊び方を紹介するよ。<br>まずはゲーム画面を見ながら全体像をつかもう。',
+      target: null,
+      pos: 'center'
+    },
+    {
+      title: 'これがあなたのボード',
+      text: '<strong>上3 / 中5 / 下5</strong> = 合計13枚を置く3段ボード。<br>例として既に役が組んであるよ。',
+      target: '#playerArea',
+      pos: 'top'
+    },
+    {
+      title: '強さの順番ルール',
+      text: '<strong>下段 ≥ 中段 ≥ 上段</strong> の強さで並べる必要があるよ。<br>守れないと<strong>ファウル</strong>で全部0点!',
+      target: '#playerArea',
+      pos: 'top'
+    },
+    {
+      title: 'ここに手札が配られる',
+      text: 'ラウンドごとにここに新しいカードが配られて、<br>ボードの3段のどこに置くか選んでいくよ。',
+      target: '#handArea',
+      pos: 'top'
+    },
+    {
+      title: 'スコアはここに表示',
+      text: '役の強さで点数がもらえるよ。<br>3段全部で相手に勝つと <strong>+6 のスクープボーナス</strong>!',
+      target: '#scoreBar',
+      pos: 'bottom'
+    },
+    {
+      title: 'Lesson 1 完了!',
+      text: 'お疲れさま!<br>次は<strong>Lesson 2「配置の基本」</strong>で実際にカードを置いてみよう。',
+      target: null,
+      pos: 'center'
+    }
+  ];
+
+  var tutL1 = {
+    pageIdx: 0,
+    resizeHandler: null,
+    savedState: null
+  };
+
+  function setupTutorialPresetBoard(){
+    /* state を完全リセット & プリセット盤面を作る */
+    /* state はグローバル let なので直接書き換える */
+    if(typeof state === 'undefined'){
+      return false;
+    }
+    /* 既存ゲーム状態をバックアップ (チュートリアル終了で復元するため) */
+    tutL1.savedState = state;
+
+    /* プリセット盤面 */
+    var preset = {
+      phase: 'tutorial',
+      round: 1,
+      flMode: false,
+      oppFlMode: false,
+      tutorialMode: true,
+      gameOver: false,
+      playerBoard: {
+        top: [{r:'A',s:'s',id:'As'}, {r:'K',s:'d',id:'Kd'}, {r:'Q',s:'h',id:'Qh'}],
+        mid: [{r:'A',s:'h',id:'Ah'}, {r:'A',s:'d',id:'Ad'}, {r:'K',s:'c',id:'Kc'}, {r:'K',s:'h',id:'Kh'}, {r:'Q',s:'c',id:'Qc'}],
+        bot: [{r:'7',s:'s',id:'7s'}, {r:'7',s:'h',id:'7h'}, {r:'7',s:'d',id:'7d'}, {r:'2',s:'c',id:'2c'}, {r:'2',s:'h',id:'2h'}]
+      },
+      oppBoard: {
+        top: [{r:'J',s:'s',id:'Js'}, {r:'J',s:'d',id:'Jd'}, {r:'9',s:'h',id:'9h'}],
+        mid: [{r:'T',s:'s',id:'Ts'}, {r:'T',s:'h',id:'Th'}, {r:'T',s:'d',id:'Td'}, {r:'5',s:'c',id:'5c'}, {r:'5',s:'h',id:'5h'}],
+        bot: [{r:'8',s:'s',id:'8s'}, {r:'8',s:'h',id:'8h'}, {r:'6',s:'d',id:'6d'}, {r:'6',s:'c',id:'6c'}, {r:'4',s:'s',id:'4s'}]
+      },
+      hand: [],
+      discard: [],
+      handDiscarded: [],
+      selectedCard: null,
+      deck: [],
+      deckIdx: 52,
+      placedThisRound: [],
+      discardedThisRound: false,
+      onlineMode: false,
+      onlineMatch: null,
+      myPlayerNum: null,
+      asHost: false,
+      flCards: 0,
+      flDiscard: [],
+      wasFL: false,
+      oppWasFL: false,
+      oppFlPending: false,
+      oppFlHand: null,
+      oppPlayPending: false,
+      oppFlPendingBoard: null,
+      oppPendingFinalBoard: null,
+      oppBoardPrefilledForRound: null,
+      oppSavedFlCards: 0,
+      oppPendingBoard: null,
+      oppPendingPlace: null,
+      oppPlayedThisRound: false,
+      onlineMustWait: false
+    };
+    state = preset;
+    return true;
+  }
+
+  function positionSpotlight(targetSel){
+    var spot = document.getElementById('tutSpotlight');
+    if(!spot) return;
+    if(!targetSel){
+      spot.classList.add('full');
+      spot.classList.remove('has-ring');
+      spot.style.left = '50%';
+      spot.style.top = '50%';
+      spot.style.width = '1px';
+      spot.style.height = '1px';
+      return;
+    }
+    var el = document.querySelector(targetSel);
+    if(!el){
+      /* フォールバック: 全画面モード */
+      spot.classList.add('full');
+      spot.classList.remove('has-ring');
+      return;
+    }
+    var r = el.getBoundingClientRect();
+    var pad = 6;
+    spot.classList.remove('full');
+    spot.classList.add('has-ring');
+    spot.style.left = (r.left - pad) + 'px';
+    spot.style.top = (r.top - pad) + 'px';
+    spot.style.width = (r.width + pad*2) + 'px';
+    spot.style.height = (r.height + pad*2) + 'px';
+  }
+
+  function positionBubble(targetSel, pos){
+    var bubble = document.getElementById('tutBubble');
+    if(!bubble) return;
+    bubble.classList.remove('pos-top','pos-bottom','pos-center');
+    /* pos = top → 画面の上の方 (=ターゲットが下半身にある場合) */
+    /* pos = bottom → 画面の下の方 (=ターゲットが上半身にある場合) */
+    /* pos = center → ターゲットなし時 */
+    if(!targetSel || pos === 'center'){
+      bubble.classList.add('pos-center');
+      return;
+    }
+    bubble.classList.add(pos === 'top' ? 'pos-top' : 'pos-bottom');
+  }
+
+  function renderTutL1Page(){
+    var idx = tutL1.pageIdx;
+    var page = TUT_L1_PAGES[idx];
+    var total = TUT_L1_PAGES.length;
+    var isLast = (idx === total - 1);
+
+    var titleEl = document.getElementById('tutBubbleTitle');
+    var textEl = document.getElementById('tutBubbleText');
+    var indEl = document.getElementById('tutPageInd');
+    var backBtn = document.getElementById('tutNavBack');
+    var nextBtn = document.getElementById('tutNavNext');
+
+    if(titleEl) titleEl.innerHTML = page.title;
+    if(textEl) textEl.innerHTML = page.text;
+    if(indEl) indEl.textContent = (idx+1) + ' / ' + total;
+    if(backBtn) backBtn.disabled = (idx === 0);
+    if(nextBtn){
+      if(isLast){
+        nextBtn.textContent = '完了 ✓';
+        nextBtn.classList.remove('next');
+        nextBtn.classList.add('done');
+      } else {
+        nextBtn.textContent = '次へ →';
+        nextBtn.classList.remove('done');
+        nextBtn.classList.add('next');
+      }
+    }
+
+    positionSpotlight(page.target);
+    positionBubble(page.target, page.pos);
+  }
+
+  function openTutorialLesson1(){
+    /* 1. ショップを閉じてゲーム画面へ */
+    if(typeof showScreen === 'function') showScreen('game');
+    /* 2. プリセット盤面をセットアップ */
+    if(!setupTutorialPresetBoard()){
+      if(typeof showToast==='function') showToast('チュートリアルを開始できません');
+      return;
+    }
+    /* 3. ボードを描画 (renderGame は state を読んで描く) */
+    try{
+      /* チュートリアル中はタイマー類が走らないように flag を見て個別関数で描画 */
+      if(typeof renderGame === 'function') renderGame();
+    }catch(e){
+      console.error('[tut] renderGame error', e);
+    }
+    /* 4. body にチュートリアル中フラグ */
+    document.body.classList.add('tut-active');
+    /* 5. オーバーレイ表示 */
+    tutL1.pageIdx = 0;
+    var overlay = document.getElementById('tutOverlay');
+    if(overlay) overlay.classList.add('open');
+    /* レイアウト計算は次フレームで (DOMが反映されてから) */
+    requestAnimationFrame(function(){
+      requestAnimationFrame(renderTutL1Page);
+    });
+    /* リサイズ/向き変更で再計算 */
+    tutL1.resizeHandler = function(){ renderTutL1Page(); };
+    window.addEventListener('resize', tutL1.resizeHandler);
+    window.addEventListener('orientationchange', tutL1.resizeHandler);
+  }
+
+  function closeTutorialLesson1(saveProgress){
+    var overlay = document.getElementById('tutOverlay');
+    if(overlay) overlay.classList.remove('open');
+    document.body.classList.remove('tut-active');
+    if(tutL1.resizeHandler){
+      window.removeEventListener('resize', tutL1.resizeHandler);
+      window.removeEventListener('orientationchange', tutL1.resizeHandler);
+      tutL1.resizeHandler = null;
+    }
+    /* 元の state を完全リセット → タイトル画面に戻す */
+    if(typeof state !== 'undefined'){
+      try{
+        state.tutorialMode = false;
+        state.gameOver = true;
+      }catch(e){}
+    }
+    /* タイトルへ戻す (ゲーム途中状態が残るとややこしいため) */
+    if(typeof showScreen === 'function') showScreen('title');
+
+    if(saveProgress){
+      var p = getTutorialProgress();
+      if(p.completed.indexOf('l1') < 0) p.completed.push('l1');
+      p.current = 'l2';
+      saveTutorialProgress(p);
+      renderTutorialList();
+      if(typeof showToast === 'function'){
+        showToast('Lesson 1 完了!');
+      }
+    }
+  }
+
+  function tutorialL1Next(){
+    if(typeof window.haptic === 'function') window.haptic(10);
+    var total = TUT_L1_PAGES.length;
+    if(tutL1.pageIdx >= total - 1){
+      closeTutorialLesson1(true);
+      return;
+    }
+    tutL1.pageIdx += 1;
+    renderTutL1Page();
+  }
+
+  function tutorialL1Back(){
+    if(typeof window.haptic === 'function') window.haptic(10);
+    if(tutL1.pageIdx > 0){
+      tutL1.pageIdx -= 1;
+      renderTutL1Page();
+    }
+  }
+
+  function bindTutorialL1Handlers(){
+    var nextBtn = document.getElementById('tutNavNext');
+    var backBtn = document.getElementById('tutNavBack');
+    var closeBtn = document.getElementById('tutCloseBtn');
+    if(nextBtn && !nextBtn.dataset.bound){ nextBtn.addEventListener('click', tutorialL1Next); nextBtn.dataset.bound = '1'; }
+    if(backBtn && !backBtn.dataset.bound){ backBtn.addEventListener('click', tutorialL1Back); backBtn.dataset.bound = '1'; }
+    if(closeBtn && !closeBtn.dataset.bound){ closeBtn.addEventListener('click', function(){ closeTutorialLesson1(false); }); closeBtn.dataset.bound = '1'; }
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', bindTutorialL1Handlers);
+  } else {
+    bindTutorialL1Handlers();
+  }
+  window.openTutorialLesson1 = openTutorialLesson1;
 
   /* ミッションタブを開いたときに進捗を再描画 */
   window.refreshTutorialList = renderTutorialList;
@@ -24637,5 +25087,26 @@ body.bptune-enabled .bptune-active{
     <button id="rbtBtnClose">閉じる</button>
   </div>
 </div>
+<!-- Session 26 Tutorial T-1 v2: ゲーム画面オーバーレイ式チュートリアル -->
+<div class="tut-overlay" id="tutOverlay">
+  <!-- スポットライト本体 (穴を作る div) -->
+  <div class="tut-spotlight" id="tutSpotlight"></div>
+  <!-- ポム吹き出し -->
+  <div class="tut-bubble" id="tutBubble">
+    <img class="tut-bubble-pom" src="assets/game/ready_pom.png" alt="ポム" draggable="false">
+    <div class="tut-bubble-card">
+      <div class="tut-bubble-title" id="tutBubbleTitle">タイトル</div>
+      <div class="tut-bubble-text" id="tutBubbleText">本文</div>
+      <div class="tut-bubble-nav">
+        <button class="tut-nav-btn back" id="tutNavBack" type="button">← 戻る</button>
+        <div class="tut-page-ind" id="tutPageInd">1 / 6</div>
+        <button class="tut-nav-btn next" id="tutNavNext" type="button">次へ →</button>
+      </div>
+    </div>
+  </div>
+  <!-- 右上の閉じる -->
+  <button class="tut-close-btn" id="tutCloseBtn" type="button" aria-label="閉じる">✕</button>
+</div>
+
 </body>
 </html>
