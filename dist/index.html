@@ -2259,6 +2259,14 @@ body.ui-v2 #screen-game .opp-row-tag{ display: none !important; }
   background-size: 100% 100%;
   background-position: center; background-repeat: no-repeat;
 }
+/* Session 24: FL中は対戦FL用 (縮小ボード+相手大ボード) */
+body.fl-mode .game-board-layer{
+  background-image: url("assets/game/board_overlay_fl_match.png") !important;
+}
+/* Session 24: FL練習中は練習用 (大ボード1個のみ) */
+body.fl-practice-active .game-board-layer{
+  background-image: url("assets/game/board_overlay_fl_practice.png") !important;
+}
 #screen-game .game-layout{
   position: relative; z-index: 3;
 }
@@ -13228,7 +13236,7 @@ async function newGame(onlineConfig){
   //        ジョーカーなど同一 ID カードでグループドラッグが誤発動し、groupCards 中身がボードに増殖
   if(typeof flGroupSel !== 'undefined') flGroupSel = {role:null, combos:[], idx:0};
   if(typeof flTapSel !== 'undefined') flTapSel = [];
-  if(typeof flPracticeMode !== 'undefined') flPracticeMode = false;
+  if(typeof flPracticeMode !== 'undefined') flPracticeMode = false; document.body.classList.remove('fl-practice-active');
   // v29.1-A: online モードは matches.dealer からボタン判定 (両クライアントで一致)
   if(_isOnline){
     const _myNum = onlineConfig.asHost ? 0 : 1;
@@ -15473,7 +15481,7 @@ document.getElementById('drawerBackToTitle').addEventListener('click',()=>{
   if(isFl){
     // FL練習サブメニューへ
     if(typeof state !== 'undefined' && state){ state.gameOver = true; }
-    if(typeof flPracticeMode !== 'undefined'){ flPracticeMode = false; }
+    if(typeof flPracticeMode !== 'undefined'){ flPracticeMode = false; document.body.classList.remove('fl-practice-active'); }
     showScreen('fl-select');
   } else {
     // AI対戦サブメニューへ
@@ -17544,7 +17552,7 @@ function flSolutionToPlacement(solution, allCards){
 
 // ===== FL練習モード v5 =====
 // 視覚的に改善された結果表示
-let flPracticeMode = false;
+let flPracticeMode = false; document.body.classList.remove('fl-practice-active');
 let flPracticeCards = 14;
 let flPracticeDealt = [];
 
@@ -17574,7 +17582,7 @@ function initModeSelect(){
   if(btnModeStats) btnModeStats.onclick = function(e){ e.preventDefault(); showStatsModal(); };
   
   var btnAI2P = document.getElementById('btnAI2P');
-  if(btnAI2P) btnAI2P.onclick = function(e){ e.preventDefault(); flPracticeMode = false; if(typeof newGame === 'function') newGame(); };
+  if(btnAI2P) btnAI2P.onclick = function(e){ e.preventDefault(); flPracticeMode = false; document.body.classList.remove('fl-practice-active'); if(typeof newGame === 'function') newGame(); };
   
   var btnModeFlPractice = document.getElementById('btnModeFlPractice');
   if(btnModeFlPractice) btnModeFlPractice.onclick = function(e){ e.preventDefault(); showScreen('fl-select'); };
@@ -17584,6 +17592,7 @@ function initModeSelect(){
       e.preventDefault();
       flPracticeCards = parseInt(btn.getAttribute('data-fl'));
       flPracticeMode = true;
+      document.body.classList.add('fl-practice-active');
       startFLPractice();
     };
   });
@@ -19815,7 +19824,7 @@ function updateModeBtnStats(){
     btn.addEventListener('click', function(e){
       e.preventDefault();
       e.stopImmediatePropagation();
-      if(typeof flPracticeMode !== 'undefined') flPracticeMode = false;
+      if(typeof flPracticeMode !== 'undefined') flPracticeMode = false; document.body.classList.remove('fl-practice-active');
       showGameIntroAndStart();
     }, true); // capture で既存handlerより先に実行
   }
