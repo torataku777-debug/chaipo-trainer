@@ -787,15 +787,18 @@ body.ui-v2 .hand-area{
 /* v1.3 fix124: トランプの枠線視認性アップ (都市夜景背景に対して枠をもっと明確に) */
 html body.ui-v2 .card{
   border:1.8px solid rgba(0,0,0,0.65) !important;
-  box-shadow:0 0 0 1px rgba(255,255,255,0.55) inset, 0 2px 6px rgba(0,0,0,0.45), 0 4px 12px rgba(0,0,0,0.25) !important;
+  /* Session 24: 黒アウターシャドウ削除、 白インセットのみ残す */
+  box-shadow:0 0 0 1px rgba(255,255,255,0.55) inset !important;
 }
 html body.ui-v2 .card.in-hand{
   border:1.8px solid rgba(0,0,0,0.7) !important;
-  box-shadow:0 0 0 1px rgba(255,255,255,0.6) inset, 0 3px 8px rgba(0,0,0,0.5), 0 5px 14px rgba(0,0,0,0.3) !important;
+  /* Session 24: 黒アウターシャドウ削除、 白インセットのみ残す */
+  box-shadow:0 0 0 1px rgba(255,255,255,0.6) inset !important;
 }
 html body.ui-v2 .opp-card{
   border:1.5px solid rgba(0,0,0,0.55) !important;
-  box-shadow:0 0 0 1px rgba(255,255,255,0.5) inset, 0 2px 5px rgba(0,0,0,0.4) !important;
+  /* Session 24: 黒アウターシャドウ削除、 白インセットのみ残す */
+  box-shadow:0 0 0 1px rgba(255,255,255,0.5) inset !important;
 }
 
 
@@ -1185,7 +1188,7 @@ html body.ui-v2 .opp-card{
   touch-action:none;
   position:relative;
 }
-.card.in-hand{width:54px;height:74px;box-shadow:0 2px 8px rgba(0,0,0,0.1),0 4px 16px rgba(0,0,0,0.06)}
+.card.in-hand{width:54px;height:74px;box-shadow:none}
 .card.selected{
   transform:translateY(-9px) scale(1.05);
   box-shadow:0 0 0 2px #E8B923,0 8px 24px rgba(232,185,35,0.4),0 0 28px rgba(255,220,90,0.35);
