@@ -462,7 +462,7 @@ html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="straig
 html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="flush"],
 html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="fullhouse"],
 html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="quads"],
-html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="strflush"]  {background:linear-gradient(180deg,#fff5d6,#ffe89c) !important;color:#1a1a1a !important;text-shadow:none !important;border-color:rgba(0,0,0,0.18) !important;}
+html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="strflush"]  {background:linear-gradient(180deg,#ffffff,#f3f4f6) !important;color:#1a1a1a !important;text-shadow:none !important;border-color:rgba(0,0,0,0.18) !important;}
 html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn.active{
   outline:2px solid rgba(255,255,255,0.6) !important;
   outline-offset:1px !important;
@@ -722,6 +722,76 @@ html body.ui-v2 #screen-game .score-bar .btn-chip::before{
   font-weight:900;
   letter-spacing:0.12em;
 }
+/* === Session 25: 結果バンド位置調整ツール === */
+body.rb-tuner-on::before{
+  content: '';
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.18);
+  z-index: 9400;
+  pointer-events: none;
+}
+body.rb-tuner-on #screen-game .result-band{
+  outline: 3px dashed #E8651A !important;
+  outline-offset: 2px !important;
+  pointer-events: auto !important;
+  touch-action: none !important;
+  cursor: move !important;
+  z-index: 9450 !important;
+}
+.rb-tuner-handle{
+  position: absolute;
+  width: 28px; height: 28px;
+  background: #E8651A;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  z-index: 9460;
+  pointer-events: auto;
+  touch-action: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+}
+.rb-tuner-handle.tl{ top:-14px; left:-14px; cursor:nw-resize; }
+.rb-tuner-handle.tr{ top:-14px; right:-14px; cursor:ne-resize; }
+.rb-tuner-handle.bl{ bottom:-14px; left:-14px; cursor:sw-resize; }
+.rb-tuner-handle.br{ bottom:-14px; right:-14px; cursor:se-resize; }
+.rb-tuner-hud{
+  position: fixed;
+  top: calc(var(--safe-top, 0px) + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9600;
+  background: rgba(10,12,20,0.85);
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 10px 14px;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+  display: none;
+  pointer-events: auto;
+  line-height: 1.55;
+  letter-spacing: 0.05em;
+  min-width: 240px;
+  text-align: center;
+}
+body.rb-tuner-on .rb-tuner-hud{ display: block; }
+.rb-tuner-hud .mode-label{ color:#FFD94A; margin-bottom:6px; font-size:11px; }
+.rb-tuner-hud .row{ display:flex; gap:8px; justify-content:center; }
+.rb-tuner-hud .val{ color: #FFD94A; }
+.rb-tuner-hud .btns{ margin-top: 8px; display: flex; gap: 8px; justify-content: center; }
+.rb-tuner-hud button{
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-family: inherit; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+.rb-tuner-hud button:active{ background: rgba(255,255,255,0.35); }
+.rb-tuner-hud .save-btn{ background:#E8651A; border-color:#E8651A; }
+
 /* === Session 25: Score Bar Frosted Glass === */
 html body.ui-v2 #screen-game .score-bar{
   background: rgba(10, 12, 20, 0.42) !important;
@@ -1101,28 +1171,30 @@ html body.ui-v2.fl-mode .opp-card{
   100%{opacity:1;transform:translateY(0) scale(1);}
 }
 .result-band-inner{
-  background:linear-gradient(135deg,#fff 0%,#FFFCF0 100%);
-  border:1.5px solid rgba(232,185,35,0.35);
+  background:rgba(255,255,255,0.92);
+  -webkit-backdrop-filter:blur(12px) saturate(140%);
+  backdrop-filter:blur(12px) saturate(140%);
+  border:1.5px solid rgba(10,10,10,0.18);
   border-radius:14px;
   padding:10px 14px;
   display:flex;flex-direction:column;
   gap:6px;
-  box-shadow:0 2px 12px rgba(0,0,0,0.06),0 0 24px rgba(232,185,35,0.1);
+  box-shadow:0 4px 16px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.5);
   position:relative;
   overflow:hidden;
 }
-/* 勝利時の特別エフェクト */
+/* 勝利時の特別エフェクト (オレンジ系ブランドカラー) */
 .result-band.win .result-band-inner{
-  border-color:#E8B923;
-  background:linear-gradient(135deg,#FFFBF0 0%,#FFF5D6 100%);
-  box-shadow:0 4px 20px rgba(232,185,35,0.25),0 0 40px rgba(232,185,35,0.3),inset 0 1px 0 rgba(255,255,255,0.6);
+  border-color:#E8651A;
+  background:rgba(255,255,255,0.95);
+  box-shadow:0 4px 18px rgba(232,101,26,0.30),0 0 28px rgba(232,101,26,0.18),inset 0 1px 0 rgba(255,255,255,0.6);
 }
 .result-band.win .result-band-inner::before{
   content:'';
   position:absolute;
   top:-20px;right:-20px;
   width:80px;height:80px;
-  background:radial-gradient(circle,rgba(255,220,90,0.4) 0%,transparent 70%);
+  background:radial-gradient(circle,rgba(232,101,26,0.32) 0%,transparent 70%);
   pointer-events:none;
 }
 .result-band.lose .result-band-inner{
@@ -1723,11 +1795,11 @@ html body.ui-v2.fl-mode .opp-card{
   font-family:var(--font-ui),'Noto Sans JP',sans-serif;
   font-size:9px;
   font-weight:500;
-  color:#c8a030;
+  color:#6b7280;
   letter-spacing:0.08em;
   margin-left:6px;
   padding:1px 6px;
-  background:rgba(232,185,35,0.12);
+  background:rgba(107,114,128,0.10);
   border-radius:3px;
   text-transform:none;
 }
@@ -1735,7 +1807,7 @@ html body.ui-v2.fl-mode .opp-card{
   opacity:0.7;
 }
 .drawer-item.drawer-item-coming:active{
-  background:rgba(232,185,35,0.04);
+  background:rgba(0,0,0,0.03);
 }
 .drawer-item.drawer-item-coming .drawer-item-icon{
   color:#c8a030;
@@ -1752,7 +1824,7 @@ html body.ui-v2.fl-mode .opp-card{
   font-weight:700;
   letter-spacing:0.08em;
   color:#fff;
-  background:linear-gradient(135deg,#c8a030 0%,#9a7a1e 100%);
+  background:linear-gradient(135deg,#6b7280 0%,#4b5563 100%);
   border-radius:4px;
   box-shadow:0 1px 2px rgba(0,0,0,0.08);
 }
@@ -1773,13 +1845,13 @@ html body.ui-v2.fl-mode .opp-card{
   font-family:var(--font-mono);
   font-size:9px;
   font-weight:700;
-  color:#E8B923;
+  color:#6b7280;
   letter-spacing:0.22em;
   padding:10px 14px 6px;
   text-transform:uppercase;
 }
 .drawer-group{
-  background:#FDFBF5;
+  background:#ffffff;
   border:1px solid rgba(232,185,35,0.15);
   border-radius:12px;
   margin:0 8px 8px;
@@ -1811,7 +1883,7 @@ html body.ui-v2.fl-mode .opp-card{
   height:1px;
   background:rgba(232,185,35,0.12);
 }
-.drawer-item:active{background:rgba(232,185,35,0.06)}
+.drawer-item:active{background:rgba(0,0,0,0.04)}
 .drawer-item-danger{color:#E02D4E;}
 .drawer-item-icon{
   display:flex;
@@ -1846,7 +1918,7 @@ html body.ui-v2.fl-mode .opp-card{
   font-weight:400;
   margin-left:2px;
 }
-.drawer-item-right.gold{color:#E8B923;}
+.drawer-item-right.gold{color:#6b7280;}
 
 /* v28.64: 設定モーダル */
 .settings-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:399;opacity:0;pointer-events:none;transition:opacity 0.3s;}
@@ -2336,9 +2408,9 @@ body.ui-v2 #screen-game .opp-area .result-band{
    → 画面比 % 換算: top 15.4% / left 52.3% / width 42.1% */
 body.ui-v2 #screen-game > .result-band{
   position: absolute !important;
-  top: 15.4% !important;
-  left: 52.3% !important;
-  width: 42.1% !important;
+  top: 17.85% !important;
+  left: 51.78% !important;
+  width: 42.09% !important;
   right: auto !important;
   z-index: 50 !important;
 }
@@ -3079,14 +3151,14 @@ body.shop-screen-active .shop-back-fab{
   cursor:pointer;
   transition:transform 0.12s cubic-bezier(0.4,0,0.2,1),box-shadow 0.15s,background 0.15s,border-color 0.15s,color 0.15s;
   white-space:nowrap;
-  border:1.5px solid rgba(232,185,35,0.5);
-  background:linear-gradient(180deg,#FFFDF5 0%,#FFF5D6 100%);
-  color:#8a5e08;
+  border:1.5px solid rgba(0,0,0,0.18);
+  background:linear-gradient(180deg,#ffffff 0%,#f3f4f6 100%);
+  color:#1a1a1a;
   /* v28.45: Flex centering で文字確実に中央 */
   display:flex;
   align-items:center;
   justify-content:center;
-  box-shadow:0 1px 2px rgba(184,137,15,0.08);
+  box-shadow:0 1px 2px rgba(0,0,0,0.08);
   position:relative;
   overflow:hidden;
   min-height:46px;
@@ -14146,12 +14218,10 @@ function showResultBand(score){
   let g = `<div class="rbc lbl"></div><div class="rbc you" style="font-size:9px;font-weight:700">YOU</div><div class="rbc opp" style="font-size:9px;font-weight:700">相手</div>`;
   // 合計
   g += `<div class="rbc lbl">合計</div><div class="rbc you tot">${pTotalScore}</div><div class="rbc opp tot">${oTotalScore}</div>`;
-  // スクープ/ファウル (どちらかに状態がある時のみ表示)
-  if(pStatus || oStatus){
-    g += `<div class="rbc lbl">状態</div>`;
-    g += `<div class="rbc you ${pFoul?'l':pAllWin?'w':''}">${pStatus||'-'}</div>`;
-    g += `<div class="rbc opp ${oFoul?'l':oAllWin?'w':''}">${oStatus||'-'}</div>`;
-  }
+  // Session 25: 「状態」行は常に表示 (バンドの高さを揃えるため)
+  g += `<div class="rbc lbl">状態</div>`;
+  g += `<div class="rbc you ${pFoul?'l':pAllWin?'w':''}">${pStatus||'-'}</div>`;
+  g += `<div class="rbc opp ${oFoul?'l':oAllWin?'w':''}">${oStatus||'-'}</div>`;
   // 増減
   g += `<div class="rbc lbl" style="font-weight:700">増減</div>`;
   g += `<div class="rbc you ${net>0?'w':net<0?'l':''}" style="font-weight:800">${net>0?'+'+net:net}</div>`;
@@ -14532,7 +14602,13 @@ function renderOpp(){
      - 自分FL中は引き続き隠す (相手FLが先見えるとアドバンテージ) */
   const _myPlayerCount = (state.playerBoard.top.length + state.playerBoard.mid.length + state.playerBoard.bot.length);
   const _r5PlayerDone = (state.round >= 5 && _myPlayerCount >= 13);
-  const hideOppFl = state.oppFlMode && !state.gameOver && (
+  /* Session 25: gameOver や R5 終了後は両者FL でも表向きにする (結果確認のため) */
+  const _bothBoardsComplete = (
+    state.playerBoard.top.length + state.playerBoard.mid.length + state.playerBoard.bot.length >= 13 &&
+    state.oppBoard.top.length + state.oppBoard.mid.length + state.oppBoard.bot.length >= 13
+  );
+  const _resultPhase = state.gameOver || state.phase === 'ended' || _bothBoardsComplete;
+  const hideOppFl = state.oppFlMode && !state.gameOver && !_resultPhase && (
     state.flMode ||
     /* 自分が平場+相手FL: R5 完了するまで隠す (それ以降は表向き) */
     (!state.flMode && state.oppFlMode && !_r5PlayerDone) ||
@@ -14828,7 +14904,7 @@ function placeCard(card,row){
   if(typeof schedulePendingPush==='function') schedulePendingPush(); // fix58: pending update
   renderGame();
 }
-function autoDiscard(){const c=state.hand[0];state.hand=state.hand.filter(x=>x.id!==c.id);state.discard.push(c);state.discardedThisRound=true;showToast(`${c.isJoker?'JK':c.r+SUIT_SYMS[c.s]} を捨てました`);if(typeof schedulePendingPush==='function') schedulePendingPush();}
+function autoDiscard(){const c=state.hand[0];state.hand=state.hand.filter(x=>x.id!==c.id);state.discard.push(c);state.discardedThisRound=true;if(typeof schedulePendingPush==='function') schedulePendingPush();}
 document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopChaipoTimer();}catch(e){}
   // v1.3 Session21 haptic: 確定ボタン (MEDIUM)
   if(typeof window.haptic === "function") window.haptic(20);
@@ -15479,6 +15555,168 @@ function closeDrawer(){document.getElementById('drawerSheet').classList.remove('
 window.openDrawer = openDrawer;
 window.closeDrawer = closeDrawer;
 document.getElementById('btnMenu').addEventListener('click', function(){ window.openDrawer(); });
+
+/* === Session 25: 結果バンド位置調整ツール === */
+(function(){
+  var longPressTimer = null;
+  var dragMode = null;
+  var startTouch = null;
+  var startRect = null;
+  var screenW = 0, screenH = 0;
+
+  function currentMode(){
+    if(document.body.classList.contains('fl-mode') || document.body.classList.contains('fl-practice-active')){
+      return 'fl';
+    }
+    return 'normal';
+  }
+
+  function getRb(){
+    return document.querySelector('#screen-game > .result-band, #screen-game .result-band');
+  }
+
+  function startTuner(){
+    var rb = getRb();
+    if(!rb){ alert('結果バンドが見つかりません (ゲーム終了後に起動してください)'); return; }
+    if(!rb.classList.contains('show')){
+      alert('結果バンドが表示されていません (ゲーム終了後に起動してください)');
+      return;
+    }
+    rb.querySelectorAll('.rb-tuner-handle').forEach(function(h){ h.remove(); });
+    ['tl','tr','bl','br'].forEach(function(c){
+      var h = document.createElement('div');
+      h.className = 'rb-tuner-handle ' + c;
+      h.setAttribute('data-corner', c);
+      rb.appendChild(h);
+    });
+    document.body.classList.add('rb-tuner-on');
+    document.getElementById('rbtMode').textContent = (currentMode() === 'fl') ? 'MODE: FANTASY (結果バンド)' : 'MODE: 平場 (結果バンド)';
+    updateHud();
+    bindEvents(rb);
+  }
+
+  function stopTuner(){
+    var rb = getRb();
+    if(rb){
+      rb.querySelectorAll('.rb-tuner-handle').forEach(function(h){ h.remove(); });
+      rb.style.removeProperty('top');
+      rb.style.removeProperty('left');
+      rb.style.removeProperty('width');
+      rb.style.removeProperty('height');
+      rb.style.removeProperty('position');
+    }
+    document.body.classList.remove('rb-tuner-on');
+    unbindEvents();
+  }
+
+  function getRbRect(){
+    var rb = getRb();
+    if(!rb) return null;
+    var screen = document.getElementById('screen-game');
+    var sr = screen.getBoundingClientRect();
+    var rr = rb.getBoundingClientRect();
+    screenW = sr.width;
+    screenH = sr.height;
+    return { top: rr.top - sr.top, left: rr.left - sr.left, width: rr.width, height: rr.height };
+  }
+
+  function updateHud(){
+    var r = getRbRect();
+    if(!r) return;
+    document.getElementById('rbtTop').textContent    = (r.top / screenH * 100).toFixed(2) + '%';
+    document.getElementById('rbtLeft').textContent   = (r.left / screenW * 100).toFixed(2) + '%';
+    document.getElementById('rbtWidth').textContent  = (r.width / screenW * 100).toFixed(2) + '%';
+    document.getElementById('rbtHeight').textContent = (r.height / screenH * 100).toFixed(2) + '%';
+  }
+
+  function applyRect(rect){
+    var rb = getRb();
+    if(!rb) return;
+    rb.style.setProperty('position', 'absolute', 'important');
+    rb.style.setProperty('top',    (rect.top / screenH * 100) + '%', 'important');
+    rb.style.setProperty('left',   (rect.left / screenW * 100) + '%', 'important');
+    rb.style.setProperty('width',  (rect.width / screenW * 100) + '%', 'important');
+    rb.style.setProperty('height', 'auto', 'important');
+    updateHud();
+  }
+
+  function onTouchStart(e){
+    var t = e.touches[0];
+    var target = e.target;
+    if(target.classList.contains('rb-tuner-handle')){
+      dragMode = target.getAttribute('data-corner');
+    } else if(target.closest('.result-band')){
+      dragMode = 'move';
+    } else {
+      return;
+    }
+    e.preventDefault();
+    startTouch = { x: t.clientX, y: t.clientY };
+    startRect = getRbRect();
+  }
+  function onTouchMove(e){
+    if(!dragMode || !startTouch || !startRect) return;
+    e.preventDefault();
+    var t = e.touches[0];
+    var dx = t.clientX - startTouch.x;
+    var dy = t.clientY - startTouch.y;
+    var r = { top:startRect.top, left:startRect.left, width:startRect.width, height:startRect.height };
+    if(dragMode === 'move'){ r.top += dy; r.left += dx; }
+    else if(dragMode === 'tl'){ r.top += dy; r.left += dx; r.width -= dx; r.height -= dy; }
+    else if(dragMode === 'tr'){ r.top += dy; r.width += dx; r.height -= dy; }
+    else if(dragMode === 'bl'){ r.left += dx; r.width -= dx; r.height += dy; }
+    else if(dragMode === 'br'){ r.width += dx; r.height += dy; }
+    if(r.width < 80) r.width = 80;
+    if(r.height < 60) r.height = 60;
+    applyRect(r);
+  }
+  function onTouchEnd(){ dragMode = null; startTouch = null; startRect = null; }
+
+  function bindEvents(rb){
+    rb.addEventListener('touchstart', onTouchStart, { passive: false });
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onTouchEnd);
+  }
+  function unbindEvents(){
+    document.removeEventListener('touchmove', onTouchMove);
+    document.removeEventListener('touchend', onTouchEnd);
+  }
+
+  var btnMenu = document.getElementById('btnMenu');
+  if(btnMenu){
+    btnMenu.addEventListener('touchstart', function(){
+      longPressTimer = setTimeout(function(){
+        longPressTimer = null;
+        if(document.body.classList.contains('rb-tuner-on')) stopTuner();
+        else startTuner();
+      }, 800);
+    });
+    btnMenu.addEventListener('touchend', function(){ if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer = null; } });
+    btnMenu.addEventListener('touchmove', function(){ if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer = null; } });
+  }
+
+  var btnSave = document.getElementById('rbtBtnSave');
+  if(btnSave){
+    btnSave.addEventListener('click', function(){
+      var r = getRbRect();
+      if(!r) return;
+      var mode = currentMode();
+      var data = {
+        mode: mode,
+        top:    +(r.top / screenH * 100).toFixed(2),
+        left:   +(r.left / screenW * 100).toFixed(2),
+        width:  +(r.width / screenW * 100).toFixed(2),
+        height: +(r.height / screenH * 100).toFixed(2)
+      };
+      var msg = '[rb-tuner] SAVE [' + mode.toUpperCase() + '] top:' + data.top + '% left:' + data.left + '% width:' + data.width + '% height:' + data.height + '%';
+      try{ fetch('http://192.168.10.137:9000/',{method:'POST',body:msg}); }catch(_){}
+      alert('保存 (' + mode + ')\ntop: ' + data.top + '%\nleft: ' + data.left + '%\nwidth: ' + data.width + '%\nheight: ' + data.height + '%');
+    });
+  }
+  var btnClose = document.getElementById('rbtBtnClose');
+  if(btnClose){ btnClose.addEventListener('click', stopTuner); }
+})();
+
 
 
 
@@ -20409,16 +20647,20 @@ function updateModeBtnStats(){
     const finish = function(){
       if(finished) return;
       finished = true;
-      overlay.classList.add('fade-out');
-      // 演出を消すと同時にゲーム画面へ
-      setTimeout(function(){
-        window._isFirstDeal = true;
-        if(typeof newGame === 'function') newGame();
-      }, 100);
+      // Session 25: 順序入れ替え。 先にゲーム画面遷移 (overlay は不透明のまま画面下で screen-game に切替)
+      // → 切替完了後に fade-out で overlay を消すと「モード選択がチラつく」現象を防げる
+      window._isFirstDeal = true;
+      if(typeof newGame === 'function') newGame();
+      // 1フレーム後に fade-out 開始 (newGame の DOM 操作完了を待つ)
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          overlay.classList.add('fade-out');
+        });
+      });
       setTimeout(function(){
         overlay.classList.remove('show','fade-out');
         introInProgress = false;
-      }, 500);
+      }, 600);
     };
     
     // タップで即スキップ (アニメ全体 1.8s なので、タップスキップはその前)
@@ -24367,5 +24609,17 @@ body.bptune-enabled .bptune-active{
   console.error = function(){ sendLog('E', arguments); origErr.apply(console, arguments); };
 })();
 </script>
+<!-- Session 25: 結果バンド位置調整ツール -->
+<div class="rb-tuner-hud" id="rbTunerHud">
+  <div class="mode-label" id="rbtMode">MODE</div>
+  <div class="row">top: <span class="val" id="rbtTop">-</span></div>
+  <div class="row">left: <span class="val" id="rbtLeft">-</span></div>
+  <div class="row">width: <span class="val" id="rbtWidth">-</span></div>
+  <div class="row">height: <span class="val" id="rbtHeight">-</span></div>
+  <div class="btns">
+    <button id="rbtBtnSave" class="save-btn">保存</button>
+    <button id="rbtBtnClose">閉じる</button>
+  </div>
+</div>
 </body>
 </html>
