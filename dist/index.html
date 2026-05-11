@@ -1871,7 +1871,7 @@ html body.ui-v2.fl-mode .opp-card{
    - 「タップしたい感」: 軽いパルスアニメ + ゴールドのハロー光 + active 時の押し込み */
 .shop-fab{
   position: absolute;
-  top: calc(var(--safe-top, 0px) + 14px);
+  top: calc(var(--safe-top, 0px) - 6px);
   right: 14px;
   left: auto;
   bottom: auto;
@@ -22912,32 +22912,48 @@ body.bptune-enabled .bptune-active{
   }
 
   function attachLoopVideo(){
-    var v = document.getElementById('transitionLoopVideo');
-    if(!v) return false;
-    function markReady(){ loopReady = true; updateVisible(); }
-    function unmark(){ loopReady = false; updateVisible(); }
-    if(v.readyState >= 2) markReady();
-    v.addEventListener('loadeddata', markReady);
-    v.addEventListener('canplay', markReady);
-    v.addEventListener('playing', markReady);
-    v.addEventListener('emptied', unmark);
+    /* Session 25: transitionVideo の currentTime >= SFAB_LOOP_READY_SEC で loopReady=true。
+       ループ動画と遷移動画が並行再生される構造のため、 'playing' イベントは使えない。 */
+    var SFAB_LOOP_READY_SEC = 2.3;
+    var tv = document.getElementById('transitionVideo');
+    if(!tv) return false;
+    function setReady(){ loopReady = true; updateVisible(); }
+    function clearReady(){ loopReady = false; updateVisible(); }
+    tv.addEventListener('timeupdate', function(){
+      if(!loopReady && tv.currentTime >= SFAB_LOOP_READY_SEC) setReady();
+    });
+    tv.addEventListener('ended',   setReady);
+    tv.addEventListener('emptied', clearReady);
+    tv.addEventListener('seeking', function(){
+      if(tv.currentTime < SFAB_LOOP_READY_SEC) clearReady();
+    });
     return true;
   }
 
   function attachModeSelectWatch(){
-    var ms = document.getElementById('screen-mode-select');
-    if(!ms) return false;
+    /* Session 25: UI v2 以降、モード選択 UI は screen-title が担う。
+       screen-mode-select は旧UIの保険として両方監視。
+       どちらかが .active = 「モード選択画面表示中」とみなす。 */
+    var targetIds = ['screen-title', 'screen-mode-select'];
+    var targets = targetIds.map(function(id){ return document.getElementById(id); }).filter(Boolean);
+    if(targets.length === 0) return false;
     function check(){
-      modeSelectActive = ms.classList.contains('active');
+      var anyActive = false;
+      for(var i=0;i<targets.length;i++){
+        if(targets[i].classList.contains('active')){ anyActive = true; break; }
+      }
+      modeSelectActive = anyActive;
       updateVisible();
     }
     check();
-    var observer = new MutationObserver(function(mutations){
-      mutations.forEach(function(m){
-        if(m.attributeName === 'class') check();
+    targets.forEach(function(el){
+      var observer = new MutationObserver(function(mutations){
+        mutations.forEach(function(m){
+          if(m.attributeName === 'class') check();
+        });
       });
+      observer.observe(el, { attributes: true });
     });
-    observer.observe(ms, { attributes: true });
     /* transitionLayer の is-active 解除も検知 (画面遷移時の安全策) */
     var layer = document.getElementById('transitionLayer');
     if(layer){
@@ -22955,8 +22971,10 @@ body.bptune-enabled .bptune-active{
   }
 
   function init(){
-    if(!attachLoopVideo()) setTimeout(attachLoopVideo, 500);
-    if(!attachModeSelectWatch()) setTimeout(attachModeSelectWatch, 500);
+    var lv = attachLoopVideo();
+    var mw = attachModeSelectWatch();
+    if(!lv) setTimeout(attachLoopVideo, 500);
+    if(!mw) setTimeout(attachModeSelectWatch, 500);
   }
 
   if(document.readyState === 'loading'){
@@ -23713,7 +23731,7 @@ body.bptune-enabled .bptune-active{
 <!-- Session 24 dbg log (HTTP) -->
 <script>
 (function(){
-  var SERVER = 'http://192.168.0.115:9000/';
+  var SERVER = 'http://192.168.10.137:9000/';
   function sendLog(level, args){
     try {
       var msg = Array.from(args).map(function(a){
