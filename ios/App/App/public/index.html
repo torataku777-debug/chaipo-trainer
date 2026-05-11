@@ -18,8 +18,8 @@
 <style>
 :root {
   /* === Phase A-0: ショップシステム用 背景画像変数 === */
-  --bg-normal-url: url('assets/game/bg_v1.jpg');
-  --bg-fl-url: url('assets/game/bg_fl.png?v=1');
+  --bg-normal-url: url('assets/game/bg_v1.png');
+  --bg-fl-url: url('assets/game/bg_fl_v3.png?v=1');
   /* === ここまで === */
   --accent:#7170ff;--accent-bg:#5e6ad2;--gold:#f5a623;--gold-dim:#c47d10;
   --green:#10b981;--foul-color:#ff3b5c;
@@ -253,10 +253,10 @@ body.ui-v2 .score-bar{ background:rgba(255,255,255,0.78) !important; border:none
    Session 24 fix: チューナー調整値を反映 (相手平場のみ top/left を微調整) */
 body.ui-v2 .opp-area{
   position:absolute !important;
-  top:18.9% !important;
-  left:2.3% !important;
-  width:55.2% !important;
-  height:15.1% !important;
+  top:21.5% !important;
+  left:3.6% !important;
+  width:43.1% !important;
+  height:17.6% !important;
   right:auto !important;
   background:transparent !important;
   z-index:5;
@@ -455,11 +455,12 @@ html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="fullho
 html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="quads"],
 html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn[data-role="strflush"]  {background:linear-gradient(180deg,#fff5d6,#ffe89c) !important;color:#1a1a1a !important;text-shadow:none !important;border-color:rgba(0,0,0,0.18) !important;}
 html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-btn.active{
-  outline:2px solid #c8a030 !important;
+  outline:2px solid rgba(255,255,255,0.6) !important;
   outline-offset:1px !important;
   filter:brightness(1.05) !important;
-  box-shadow:0 0 10px rgba(200,160,48,0.6) !important;
-  background:linear-gradient(180deg,#ffd94a,#e8b923) !important;
+  box-shadow:0 0 10px rgba(255,255,255,0.4) !important;
+  background:linear-gradient(135deg,#0a0a0a,#1a1a1a) !important;
+  color:#ffffff !important;
 }
 /* v1.3 fix136: FL中のボードスロット枠線を視認性アップ */
 /* v1.3 fix152: 平場もFLも同じ「くぼみ」スタイルに統一 (点線廃止 → inset shadow で凹んだ見た目) */
@@ -712,6 +713,133 @@ html body.ui-v2 #screen-game .score-bar .btn-chip::before{
   font-weight:900;
   letter-spacing:0.12em;
 }
+/* === Session 25: Score Bar Frosted Glass === */
+html body.ui-v2 #screen-game .score-bar{
+  background: rgba(10, 12, 20, 0.42) !important;
+  background-color: rgba(10, 12, 20, 0.42) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(140%) !important;
+  backdrop-filter: blur(14px) saturate(140%) !important;
+  border: none !important;
+  border-radius: 14px !important;
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+  margin: 2px 10px 0 !important;
+  padding: 7px 14px !important;
+}
+html body.ui-v2 #screen-game .score-label{
+  color: rgba(255, 255, 255, 0.72) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+  font-weight: 700 !important;
+}
+html body.ui-v2 #screen-game .score-val{
+  color: #ffffff !important;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.6),
+    0 0 1px rgba(0, 0, 0, 0.8) !important;
+  font-weight: 900 !important;
+}
+html body.ui-v2 #screen-game .score-val.winning{
+  color: #FFE066 !important;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.6),
+    0 0 8px rgba(255, 215, 60, 0.55) !important;
+}
+html body.ui-v2 #screen-game .score-val.losing{
+  color: #FF6B6B !important;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.6),
+    0 0 6px rgba(255, 80, 80, 0.45) !important;
+}
+html body.ui-v2 #screen-game .score-sep{
+  color: rgba(255, 255, 255, 0.55) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+/* DLR ボタンは既存の黒ピルのままで OK、 むしろ frosted bar 上で映える */
+
+/* === Session 25: Hand Area Frosted Glass (スコアバーと同じ世界観) === */
+html body.ui-v2 #screen-game .hand-area,
+html body.ui-v2 #screen-game div.hand-area,
+html body.ui-v2 #screen-game .game-layout .hand-area{
+  background: rgba(10, 12, 20, 0.42) !important;
+  background-color: rgba(10, 12, 20, 0.42) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(140%) !important;
+  backdrop-filter: blur(14px) saturate(140%) !important;
+  border: none !important;
+  border-radius: 14px !important;
+  box-shadow:
+    0 -2px 14px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+  margin: 4px 10px 6px !important;
+  padding: 8px 12px 10px !important;
+}
+/* Session 25 (詳細度強化): ハンド配置後も枠が縮まないよう min-height を強制 */
+html body.ui-v2 #screen-game .game-layout .hand-area{
+  min-height: 170px !important;
+  height: 170px !important;
+  max-height: 170px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+html body.ui-v2 #screen-game .game-layout .hand-area .hand-cards{
+  min-height: 78px !important;
+  flex-shrink: 0 !important;
+}
+html body.ui-v2 #screen-game .game-layout .hand-area .action-bar{
+  min-height: 48px !important;
+  flex-shrink: 0 !important;
+}
+/* FL中も同じ frosted (既存の .fl-mode は背景白だったので上書き) */
+html body.ui-v2 #screen-game .hand-area.fl-mode{
+  background: rgba(10, 12, 20, 0.42) !important;
+  background-color: rgba(10, 12, 20, 0.42) !important;
+}
+/* phase-label, hand-meta 等の文字を白系に */
+html body.ui-v2 #screen-game .hand-area .phase-label,
+html body.ui-v2 #screen-game .hand-area .hand-meta,
+html body.ui-v2 #screen-game .hand-area .hand-info,
+html body.ui-v2 #screen-game .hand-area .turn-indicator{
+  color: rgba(255, 255, 255, 0.85) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* === Session 25: ハンバーガーメニュー frosted ピル === */
+html body.ui-v2 #screen-game .btn-menu{
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  background: rgba(10, 12, 20, 0.45) !important;
+  background-color: rgba(10, 12, 20, 0.45) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(140%) !important;
+  backdrop-filter: blur(14px) saturate(140%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+  gap: 5px !important;
+  transition: transform 0.15s, background 0.2s !important;
+}
+html body.ui-v2 #screen-game .btn-menu .btn-menu-line{
+  width: 18px !important;
+  height: 2px !important;
+  background: #ffffff !important;
+  border-radius: 1.5px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.55) !important;
+}
+html body.ui-v2 #screen-game .btn-menu:active{
+  background: rgba(255, 255, 255, 0.40) !important;
+  background-color: rgba(255, 255, 255, 0.40) !important;
+  transform: scale(0.92) !important;
+  box-shadow:
+    0 0 14px rgba(255, 255, 255, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+}
+html body.ui-v2 #screen-game .btn-menu:active .btn-menu-line{
+  background: #ffffff !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
+}
+
+
 /* YOU が button = btnChipYou → VS の左に配置 (left:50% から DLR 幅分左へ) */
 html body.ui-v2 #screen-game #btnChipYou.show{
   left:50% !important;
@@ -2001,13 +2129,18 @@ body.shop-fab-visible .shop-fab{
   transform: rotateY(180deg);
 }
 
-/* Session 24 fix: Tuner UI 完全非表示 (結果バンドの直接ドラッグに置換) */
-.bdt-toggle, .bdt-panel{ display: none !important; }
-.bdt-target, .bdt-handle{ display: none !important; }
-body.bdt-edit-mode .bdt-target,
-body.bdt-edit-mode .bdt-handle{ display: none !important; }
-body.bdt-edit-mode .bdt-target::after{ display: none !important; }
-body.bdt-edit-mode .bdt-target{ outline: none !important; }
+/* Session 24 fix: Tuner UI 完全非表示 (結果バンドの直接ドラッグに置換)
+   Session 25: html.ui-v2-tuner が付いた時のみ Tuner UI を有効化 */
+html:not(.ui-v2-tuner) .bdt-toggle,
+html:not(.ui-v2-tuner) .bdt-panel{ display: none !important; }
+html:not(.ui-v2-tuner) .bdt-target,
+html:not(.ui-v2-tuner) .bdt-handle{ display: none !important; }
+html:not(.ui-v2-tuner) body.bdt-edit-mode .bdt-target,
+html:not(.ui-v2-tuner) body.bdt-edit-mode .bdt-handle{ display: none !important; }
+html:not(.ui-v2-tuner) body.bdt-edit-mode .bdt-target::after{ display: none !important; }
+html:not(.ui-v2-tuner) body.bdt-edit-mode .bdt-target{ outline: none !important; }
+/* Tuner 有効化時のトグルボタンスタイル */
+html.ui-v2-tuner .bdt-toggle{ display: flex !important; }
 
 /* ドラッグ移動中のフィードバック */
 .bdt-toggle.bdt-dragging,
@@ -2268,7 +2401,7 @@ body.ui-v2 #screen-game .opp-row-tag{ display: none !important; }
 .game-bg-layer{
   position: absolute; inset: 0; z-index: 1;
   pointer-events: none;
-  background-image: var(--bg-normal-url, url("assets/game/bg_v1.jpg"));
+  background-image: var(--bg-normal-url, url("assets/game/bg_v1.png"));
   background-size: cover; background-position: center; background-repeat: no-repeat;
 }
 .game-board-layer{
@@ -2277,6 +2410,11 @@ body.ui-v2 #screen-game .opp-row-tag{ display: none !important; }
   background-image: url("assets/game/board_overlay.png");
   background-size: 100% 100%;
   background-position: center; background-repeat: no-repeat;
+}
+/* Session 25: FL中は背景レイヤーも FL背景に切替 (gameBgLayer が --bg-normal-url 固定だったバグ修正) */
+body.fl-mode .game-bg-layer,
+body.fl-practice-active .game-bg-layer{
+  background-image: var(--bg-fl-url, url("assets/game/bg_fl_v3.png")) !important;
 }
 /* Session 24: FL中は対戦FL用 (縮小ボード+相手大ボード) */
 body.fl-mode .game-board-layer{
@@ -2596,6 +2734,137 @@ body.shop-screen-active .shop-back-fab{
 .shop-preview-tag.summer{ background: linear-gradient(135deg, #B8E0FF 0%, #5BB0F0 100%); border-color: #2A78C0; color: #154070; }
 .shop-preview-tag.autumn{ background: linear-gradient(135deg, #FFC890 0%, #E89B45 100%); border-color: #B86010; color: #5C2D00; }
 .shop-preview-tag.winter{ background: linear-gradient(135deg, #DCEEFF 0%, #A8C8E8 100%); border-color: #5A88B0; color: #2A4060; }
+/* === Session 25 Tutorial T-0: チュートリアルセクション === */
+.tutorial-overview{
+  background: linear-gradient(135deg, rgba(255,247,224,0.85) 0%, rgba(245,233,200,0.6) 100%);
+  border: 1px solid rgba(232,185,35,0.4);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 0 4px 14px;
+}
+.tutorial-overview-title{
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  color: #7a4f10;
+  margin-bottom: 10px;
+}
+.tutorial-overview-progress{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tutorial-overview-bar{
+  flex: 1;
+  height: 6px;
+  background: rgba(232,185,35,0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.tutorial-overview-bar-fill{
+  height: 100%;
+  background: linear-gradient(90deg, #E8B923 0%, #E8651A 100%);
+  border-radius: 3px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tutorial-overview-progress-text{
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #7a4f10;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.tutorial-lesson-list{
+  list-style: none;
+  padding: 0;
+  margin: 0 4px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tutorial-lesson-item{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, rgba(255,247,224,0.6) 0%, rgba(245,233,200,0.4) 100%);
+  border: 1px solid rgba(232,185,35,0.3);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.tutorial-lesson-item:active{
+  transform: scale(0.98);
+}
+.tutorial-lesson-item[data-state="done"]{
+  background: linear-gradient(135deg, rgba(220,235,210,0.7) 0%, rgba(200,225,190,0.5) 100%);
+  border-color: rgba(94,140,80,0.4);
+}
+.tutorial-lesson-item[data-state="active"]{
+  border-color: rgba(232,101,26,0.6);
+  box-shadow: 0 0 0 2px rgba(232,101,26,0.15);
+}
+.tutorial-lesson-num{
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #E8B923 0%, #E8651A 100%);
+  color: #fff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+}
+.tutorial-lesson-item[data-state="done"] .tutorial-lesson-num{
+  background: linear-gradient(135deg, #7ba560 0%, #5e8c50 100%);
+}
+.tutorial-lesson-body{
+  flex: 1;
+  min-width: 0;
+}
+.tutorial-lesson-title{
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 700;
+  color: #4a3a1a;
+  margin-bottom: 2px;
+}
+.tutorial-lesson-desc{
+  font-family: var(--font-ui);
+  font-size: 11.5px;
+  color: #9c7c4a;
+  line-height: 1.4;
+}
+.tutorial-lesson-status{
+  flex-shrink: 0;
+  min-width: 36px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 12px;
+  background: rgba(232,185,35,0.15);
+  color: #9c7c4a;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tutorial-lesson-status[data-status="done"]{
+  background: linear-gradient(135deg, #7ba560 0%, #5e8c50 100%);
+  color: #fff;
+}
+.tutorial-lesson-status[data-status="active"]{
+  background: linear-gradient(135deg, #E8B923 0%, #E8651A 100%);
+  color: #fff;
+}
 .shop-roadmap-note{
   text-align: center;
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
@@ -2808,22 +3077,17 @@ body.shop-screen-active .shop-back-fab{
 }
 .fl-role-btn:active{
   transform:scale(0.94);
-  background:linear-gradient(180deg,#FFF5D6 0%,#FFE79C 100%);
-  color:#5a3d00;
-  box-shadow:0 0 0 2px rgba(232,185,35,0.5),0 0 14px rgba(232,185,35,0.3);
-}
-.fl-role-btn:active{
-  transform:scale(0.93);
-  background:#FFF8E0;
-  box-shadow:0 0 0 2px rgba(232,185,35,0.45),0 0 16px rgba(232,185,35,0.3);
+  background:linear-gradient(180deg,#ffffff 0%,#f0f0f0 100%);
+  color:#0a0a0a;
+  box-shadow:0 0 0 2px rgba(0,0,0,0.35),0 0 14px rgba(255,255,255,0.4);
 }
 .fl-role-btn.active{
   background:linear-gradient(135deg,#0a0a0a,#1a1a1a);
-  border-color:#E8B923;
-  color:#FFD94A;
-  box-shadow:0 0 0 2px #E8B923,0 4px 14px rgba(232,185,35,0.5),0 0 24px rgba(232,185,35,0.4);
+  border-color:rgba(255,255,255,0.65);
+  color:#ffffff;
+  box-shadow:0 0 0 2px rgba(255,255,255,0.55),0 4px 14px rgba(0,0,0,0.45),0 0 20px rgba(255,255,255,0.18);
   font-weight:800;
-  text-shadow:0 0 8px rgba(255,220,90,0.6);
+  text-shadow:0 0 6px rgba(255,255,255,0.35);
   transform:translateY(-1px);
 }
 .fl-role-btn.active:active{
@@ -2837,9 +3101,9 @@ body.shop-screen-active .shop-back-fab{
   bottom:3px;left:50%;
   transform:translateX(-50%);
   width:14px;height:2px;
-  background:#FFD94A;
+  background:#ffffff;
   border-radius:1px;
-  box-shadow:0 0 5px rgba(255,220,90,0.9);
+  box-shadow:0 0 6px rgba(255,255,255,0.7);
 }
 .fl-role-btn.unavail{
   opacity:0.35;
@@ -4433,156 +4697,202 @@ body.shop-screen-active .shop-back-fab{
 
 /* ===== v28.73 ゲーム開始スプラッシュ (ミニマル統一) ===== */
 .game-intro-overlay{
-  position:fixed;
-  inset:0;
-  z-index:3000;
+  position: fixed; inset: 0; z-index: 9000;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
   background:
-    radial-gradient(ellipse at center, rgba(26,15,8,0.98) 0%, rgba(0,0,0,0.99) 70%, #000 100%);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:20px;
-  opacity:0;
-  pointer-events:none;
-  transition:opacity 0.4s cubic-bezier(0.4,0,0.2,1);
+    radial-gradient(ellipse at 25% 20%, rgba(43,184,163,0.20) 0%, transparent 50%),
+    radial-gradient(ellipse at 78% 78%, rgba(232,101,26,0.22) 0%, transparent 50%),
+    linear-gradient(180deg, #F4ECD8 0%, #ECE2C8 100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+  overflow: hidden;
 }
 .game-intro-overlay.show{
-  opacity:1;
-  pointer-events:all;
+  opacity: 1;
+  pointer-events: auto;
 }
-.game-intro-overlay.fade-out{opacity:0;}
+.game-intro-overlay.fade-out{ opacity: 0; }
 
-/* 背景の薄いゴールドグリッド (動かない、静的) */
+/* ハーフトーンドット (ベンデイ印刷風) */
 .game-intro-overlay::before{
-  content:'';
-  position:absolute;
-  inset:0;
+  content: '';
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(0,0,0,0.07) 1.5px, transparent 1.5px);
+  background-size: 18px 18px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+/* ペイント飛沫装飾 (フェードイン) */
+.game-intro-overlay::after{
+  content: '';
+  position: absolute; inset: 0;
   background:
-    linear-gradient(rgba(232,185,35,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(232,185,35,0.03) 1px, transparent 1px);
-  background-size:40px 40px;
-  pointer-events:none;
-  mask-image:radial-gradient(ellipse at center, rgba(0,0,0,0.8) 0%, transparent 70%);
-  -webkit-mask-image:radial-gradient(ellipse at center, rgba(0,0,0,0.8) 0%, transparent 70%);
+    radial-gradient(circle at 6% 16%, rgba(232,101,26,0.42) 0px, transparent 26px),
+    radial-gradient(circle at 94% 18%, rgba(43,184,163,0.40) 0px, transparent 30px),
+    radial-gradient(circle at 10% 82%, rgba(43,184,163,0.36) 0px, transparent 26px),
+    radial-gradient(circle at 90% 84%, rgba(232,101,26,0.38) 0px, transparent 28px),
+    radial-gradient(circle at 50% 6%, rgba(10,10,10,0.16) 0px, transparent 9px),
+    radial-gradient(circle at 50% 94%, rgba(10,10,10,0.13) 0px, transparent 11px);
+  opacity: 0;
+  pointer-events: none;
+  animation: introSplatterIn 0.55s ease-out 0.2s forwards;
+}
+@keyframes introSplatterIn { to { opacity: 1; } }
+
+/* キラキラ ✦ ★ パーティクル */
+.game-intro-sparkles{
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.gi-spark{
+  position: absolute;
+  font-size: 22px;
+  color: #E8651A;
+  font-weight: 900;
+  text-shadow: 0 1px 0 #0A0A0A;
+  opacity: 0;
+  animation: sparkPop 1.4s ease-in-out infinite;
+}
+.gi-spark-1{ top: 18%; left: 18%; color: #E8651A; animation-delay: 0.4s; font-size: 26px; }
+.gi-spark-2{ top: 22%; right: 16%; color: #2BB8A3; animation-delay: 0.8s; font-size: 22px; }
+.gi-spark-3{ top: 42%; left: 10%; color: #2BB8A3; animation-delay: 1.1s; font-size: 18px; }
+.gi-spark-4{ top: 38%; right: 12%; color: #E8651A; animation-delay: 0.6s; font-size: 24px; }
+.gi-spark-5{ top: 62%; left: 22%; color: #FFD94A; animation-delay: 1.3s; font-size: 20px; }
+.gi-spark-6{ top: 58%; right: 24%; color: #FFD94A; animation-delay: 0.5s; font-size: 22px; }
+@keyframes sparkPop {
+  0%, 100% { opacity: 0; transform: scale(0.6) rotate(-12deg); }
+  40%      { opacity: 1; transform: scale(1.2) rotate(8deg); }
+  60%      { opacity: 1; transform: scale(1.0) rotate(0deg); }
 }
 
-/* 中央ゴールドリング (パイナップルロゴを囲む) */
-.game-intro-ring{
-  width:160px;
-  height:160px;
-  border-radius:50%;
-  border:2px solid rgba(232,185,35,0.7);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  position:relative;
-  box-shadow:
-    0 0 0 1px rgba(232,185,35,0.15),
-    0 0 40px rgba(232,185,35,0.35),
-    inset 0 0 24px rgba(232,185,35,0.1);
-  animation:giRingIn 0.7s cubic-bezier(0.16,1,0.3,1) both;
+/* キャラクター本体 */
+.game-intro-char-wrap{
+  position: relative;
+  width: 78vw;
+  max-width: 320px;
+  aspect-ratio: 1 / 1;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2;
 }
-@keyframes giRingIn{
-  0%{transform:scale(0.4);opacity:0;}
-  100%{transform:scale(1);opacity:1;}
+.game-intro-char{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(4px 6px 0 rgba(0,0,0,0.18))
+          drop-shadow(0 8px 24px rgba(0,0,0,0.15));
+  transform: translateY(60px) scale(0.5) rotate(-8deg);
+  opacity: 0;
+  animation:
+    introCharIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s forwards,
+    introCharHop 1.4s ease-in-out 0.95s infinite,
+    introCharShake 0.4s ease-in-out 1.4s 2;
 }
-/* リングの外側のサブリング (dashed 細め、スローローテート) */
-.game-intro-ring::before{
-  content:'';
-  position:absolute;
-  inset:-14px;
-  border-radius:50%;
-  border:1px dashed rgba(232,185,35,0.4);
-  animation:giSubRingRotate 24s linear infinite, giSubRingFade 0.8s 0.2s both;
-  pointer-events:none;
+@keyframes introCharIn {
+  0%   { transform: translateY(60px) scale(0.5) rotate(-8deg); opacity: 0; }
+  60%  { transform: translateY(-10px) scale(1.08) rotate(3deg); opacity: 1; }
+  100% { transform: translateY(0) scale(1) rotate(-1deg); opacity: 1; }
 }
-@keyframes giSubRingRotate{
-  0%{transform:rotate(0deg);}
-  100%{transform:rotate(360deg);}
+@keyframes introCharHop {
+  0%, 100% { transform: translateY(0) scale(1) rotate(-1deg); }
+  50%      { transform: translateY(-14px) scale(1.02) rotate(1deg); }
 }
-@keyframes giSubRingFade{
-  0%{opacity:0;}
-  100%{opacity:1;}
-}
-/* リング内側のパイナップル */
-.game-intro-ring-inner{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.game-intro-pine{
-  width:80px;
-  height:auto;
-  filter:drop-shadow(0 0 12px rgba(232,185,35,0.6));
-  animation:giPineIn 0.8s 0.2s cubic-bezier(0.16,1,0.3,1) both;
-}
-@keyframes giPineIn{
-  0%{opacity:0;transform:scale(0.7);}
-  100%{opacity:1;transform:scale(1);}
+@keyframes introCharShake {
+  0%, 100% { /* introCharHop と互換 */ }
+  25%      { transform: translateY(-6px) scale(1.03) rotate(2.5deg); }
+  75%      { transform: translateY(-6px) scale(1.03) rotate(-2.5deg); }
 }
 
-/* "READY" タイポグラフィ (ミニマル + 洗練) */
-.game-intro-word{
-  font-family:'Space Grotesk',sans-serif;
-  font-size:52px;
-  font-weight:300;
-  letter-spacing:0.35em;
-  padding-left:0.35em;  /* letter-spacing 分の左シフトを補正 */
-  color:transparent;
-  background:linear-gradient(180deg, #FFD94A 0%, #E8B923 45%, #B8890F 100%);
-  -webkit-background-clip:text;
-  background-clip:text;
-  text-shadow:none;
-  line-height:1;
-  animation:giWordIn 0.6s 0.45s both cubic-bezier(0.16,1,0.3,1);
-  opacity:0;
-  margin-top:8px;
+/* 床の影 (キャラに合わせて上下) */
+.game-intro-shadow{
+  position: absolute;
+  bottom: 4%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 56%;
+  height: 14px;
+  background: radial-gradient(ellipse at center,
+    rgba(0,0,0,0.32) 0%,
+    rgba(0,0,0,0.15) 40%,
+    transparent 70%);
+  filter: blur(2px);
+  opacity: 0;
+  animation: introShadowIn 0.7s ease-out 0.1s forwards,
+             introShadowPulse 1.4s ease-in-out 0.95s infinite;
+  z-index: 1;
 }
-@keyframes giWordIn{
-  0%{opacity:0;transform:translateY(14px);letter-spacing:0.5em;padding-left:0.5em;}
-  100%{opacity:1;transform:translateY(0);letter-spacing:0.35em;padding-left:0.35em;}
-}
-
-/* 短いゴールドの区切りライン */
-.game-intro-divider{
-  width:0;
-  height:1px;
-  background:linear-gradient(90deg, transparent, rgba(232,185,35,0.8), transparent);
-  animation:giDividerIn 0.5s 0.7s both cubic-bezier(0.4,0,0.2,1);
-  margin-top:2px;
-}
-@keyframes giDividerIn{
-  0%{width:0;opacity:0;}
-  100%{width:140px;opacity:1;}
+@keyframes introShadowIn { to { opacity: 1; } }
+@keyframes introShadowPulse {
+  0%, 100% { transform: translateX(-50%) scaleX(1); opacity: 0.85; }
+  50%      { transform: translateX(-50%) scaleX(0.7); opacity: 0.5; }
 }
 
-/* サブ情報 (AI · 1 vs 1 · 100pts 的な) */
+/* サブ "AI · 1 vs 1" */
 .game-intro-sub{
-  font-family:'JetBrains Mono',monospace;
-  font-size:12px;
-  font-weight:500;
-  color:rgba(232,185,35,0.85);
-  letter-spacing:0.3em;
-  text-transform:uppercase;
-  animation:giSubIn 0.5s 0.85s both;
-  opacity:0;
+  margin-top: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0A0A0A;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  background: rgba(255,255,255,0.55);
+  border: 2px solid #0A0A0A;
+  border-radius: 6px;
+  box-shadow: 3px 3px 0 #E8651A;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: introSubIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.55s forwards;
+  z-index: 2;
 }
-@keyframes giSubIn{
-  0%{opacity:0;transform:translateY(6px);}
-  100%{opacity:1;transform:translateY(0);}
+@keyframes introSubIn {
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* "TAP TO SKIP" 下部 */
+/* TAP TO SKIP */
 .game-intro-skip{
-  position:absolute;
-  bottom:calc(60px + var(--safe-bottom));
-  font-family:'JetBrains Mono',monospace;
-  font-size:10px;
-  color:rgba(255,255,255,0.3);
-  letter-spacing:0.25em;
-  animation:giSkipBlink 2s 1.4s infinite;
-  opacity:0;
+  position: absolute;
+  bottom: calc(40px + var(--safe-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(10,10,10,0.65);
+  letter-spacing: 0.32em;
+  padding: 8px 18px;
+  border: 1.5px solid rgba(10,10,10,0.45);
+  border-radius: 20px;
+  background: rgba(255,255,255,0.55);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  animation: introSkipIn 0.5s ease-out 0.95s forwards,
+             introSkipPulse 1.6s ease-in-out 1.5s infinite;
+  z-index: 2;
+}
+@keyframes introSkipIn { to { opacity: 1; } }
+@keyframes introSkipPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
+
+/* 旧 ring/pine/word/divider 系のCSSはもう使わないが残骸対策で display:none */
+.game-intro-ring,
+.game-intro-ring-inner,
+.game-intro-pine,
+.game-intro-word,
+.game-intro-divider{
+  display: none !important;
+}
+@keyframes introSkipIn {
+  to { opacity: 1; }
+}
+@keyframes introSkipPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
 }
 @keyframes giSkipBlink{
   0%,100%{opacity:0.25;}
@@ -8988,22 +9298,26 @@ body.debug-interactive .vmode-btn::before {
     var im = window.chaipoShop.itemsMaster;
     var existIds = new Set(im.map(function(x){ return x.id; }));
     var seeds = [
-      { id: 'bg_neighbors_v1', type: 'background_normal', name: 'ネイバーズ昼', preview_url: 'assets/game/bg_v1.jpg', asset_url: 'assets/game/bg_v1.jpg', is_default: true, price_coins: 0 },
-      { id: 'bg_neighbors_v2', type: 'background_normal', name: 'ネイバーズ夕',  preview_url: 'assets/game/bg_v2.jpg', asset_url: 'assets/game/bg_v2.jpg', is_default: true, price_coins: 0 }
+      { id: 'bg_neighbors_v1', type: 'background_normal', name: 'ネイバーズ町', preview_url: 'assets/game/bg_v1.png', asset_url: 'assets/game/bg_v1.png', is_default: true, price_coins: 0 }
     ];
     var added = 0;
     seeds.forEach(function(s){ if(!existIds.has(s.id)){ im.push(s); added++; } });
     if(added > 0){
       console.log('[shop] seeded ' + added + ' Neighbors backgrounds (Session 24)');
-      try { localStorage.setItem(SHOP_LS_KEYS.itemsMaster, JSON.stringify(im)); } catch(e){}
-    /* fix: 旧背景アイテムを itemsMaster と inventory から削除 (clean-up migration)
-       bg_default_normal: もう使わないクリア背景
-       bg_clear_green_normal: 同上
-       残すのは bg_neighbors_v1 / bg_neighbors_v2 のみ */
-    var LEGACY_BG_IDS = ['bg_default_normal', 'bg_clear_green_normal'];
+    }
+
+    /* === Session 25: 毎回必ず実行する マイグレーション === */
+    var LEGACY_BG_IDS = ['bg_default_normal', 'bg_clear_green_normal', 'bg_neighbors_v2', 'bg_clear_green_fl'];
     if(window.chaipoShop && Array.isArray(window.chaipoShop.itemsMaster)){
       window.chaipoShop.itemsMaster = window.chaipoShop.itemsMaster.filter(function(it){
         return LEGACY_BG_IDS.indexOf(it.id) === -1;
+      });
+      /* bg_default_fl の asset_url / preview_url を新パスに強制マイグレーション */
+      window.chaipoShop.itemsMaster.forEach(function(it){
+        if(it.id === 'bg_default_fl'){
+          it.asset_url   = 'assets/game/bg_fl_v3.png';
+          it.preview_url = 'assets/game/bg_fl_v3.png';
+        }
       });
     }
     if(window.chaipoShop && Array.isArray(window.chaipoShop.inventory)){
@@ -9011,14 +9325,34 @@ body.debug-interactive .vmode-btn::before {
         return LEGACY_BG_IDS.indexOf(inv.item_id) === -1;
       });
     }
-    /* もし装備中が legacy だったら bg_neighbors_v1 にフォールバック */
+    /* 装備中の legacy / 未設定をフォールバック */
     if(window.chaipoShop && window.chaipoShop.settings){
-      if(LEGACY_BG_IDS.indexOf(window.chaipoShop.settings.equipped_bg_normal) > -1){
+      var eqN = window.chaipoShop.settings.equipped_bg_normal;
+      if(!eqN || LEGACY_BG_IDS.indexOf(eqN) > -1){
         window.chaipoShop.settings.equipped_bg_normal = 'bg_neighbors_v1';
       }
+      var eqF = window.chaipoShop.settings.equipped_bg_fl;
+      if(!eqF || LEGACY_BG_IDS.indexOf(eqF) > -1){
+        window.chaipoShop.settings.equipped_bg_fl = 'bg_default_fl';
+      }
     }
+    /* localStorage キャッシュに古い bg_fl.png 参照が残ってたら破棄 */
+    try{
+      var rawCache = localStorage.getItem('chaipoShop_itemsMaster_v1');
+      if(rawCache && rawCache.indexOf('bg_fl.png') >= 0 && rawCache.indexOf('bg_fl_v3.png') < 0){
+        localStorage.removeItem('chaipoShop_itemsMaster_v1');
+      }
+    }catch(_){ }
 
-  }
+    /* マイグレーション完了後の itemsMaster と settings を再キャッシュ */
+    try {
+      localStorage.setItem(SHOP_LS_KEYS.itemsMaster, JSON.stringify(window.chaipoShop.itemsMaster));
+      localStorage.setItem(SHOP_LS_KEYS.settings, JSON.stringify(window.chaipoShop.settings));
+      if(window.chaipoShop.inventory){
+        localStorage.setItem(SHOP_LS_KEYS.inventory, JSON.stringify(window.chaipoShop.inventory));
+      }
+    } catch(e){}
+
     return added;
   }
 
@@ -9186,15 +9520,42 @@ body.debug-interactive .vmode-btn::before {
   function applyEquippedAssets(){
     const root = document.documentElement;
 
-    /* Session 24: bg_default_normal (asset_url=null) 装備中ならネイバーズ昼に自動移行 */
+    /* Session 25: equipped_bg_* が itemsMaster に存在しない or legacy ID なら強制フォールバック
+       (Supabase の user_settings に旧IDが残ってるケースに対応) */
     try{
       var s = window.chaipoShop && window.chaipoShop.settings;
-      if(s && s.equipped_bg_normal === "bg_default_normal"){
-        s.equipped_bg_normal = "bg_neighbors_v1";
-        try{ localStorage.setItem("chaipoShop_settings_v1", JSON.stringify(s)); }catch(_){ }
-        console.log("[shop] migrated default bg to bg_neighbors_v1");
+      var im = window.chaipoShop && window.chaipoShop.itemsMaster;
+      if(s && Array.isArray(im)){
+        var validIds = im.map(function(x){ return x.id; });
+        var LEGACY = ['bg_default_normal', 'bg_clear_green_normal', 'bg_neighbors_v2', 'bg_clear_green_fl'];
+        var changed = false;
+        if(!s.equipped_bg_normal || LEGACY.indexOf(s.equipped_bg_normal) > -1 || validIds.indexOf(s.equipped_bg_normal) === -1){
+          var old1 = s.equipped_bg_normal;
+          s.equipped_bg_normal = 'bg_neighbors_v1';
+          console.log('[shop] fallback equipped_bg_normal: ' + old1 + ' -> bg_neighbors_v1');
+          changed = true;
+        }
+        if(!s.equipped_bg_fl || LEGACY.indexOf(s.equipped_bg_fl) > -1 || validIds.indexOf(s.equipped_bg_fl) === -1){
+          var old2 = s.equipped_bg_fl;
+          s.equipped_bg_fl = 'bg_default_fl';
+          console.log('[shop] fallback equipped_bg_fl: ' + old2 + ' -> bg_default_fl');
+          changed = true;
+        }
+        if(changed){
+          try{ localStorage.setItem('chaipoShop_settings_v1', JSON.stringify(s)); }catch(_){ }
+          /* Supabase にも書き戻し (非同期、 失敗してもローカルは反映済み) */
+          try{
+            var O = window.chaipoOnline;
+            if(O && O.supabase && O.userId){
+              O.supabase.from('user_settings').update({
+                equipped_bg_normal: s.equipped_bg_normal,
+                equipped_bg_fl: s.equipped_bg_fl
+              }).eq('user_id', O.userId).then(function(){});
+            }
+          }catch(_){ }
+        }
       }
-    }catch(e){ console.warn("[shop] migration err", e); }
+    }catch(e){ console.warn('[shop] settings sanity err', e); }
 
     // 背景(通常)
     const bgNormalUrl = getEquippedAsset('bg_normal');
@@ -9267,10 +9628,9 @@ body.debug-interactive .vmode-btn::before {
   // デフォルトアイテム用のプレビュー画像フォールバック(preview_url が NULL の時)
   const SHOP_DEFAULT_PREVIEW = {
     'bg_default_normal': 'assets/game/bg.jpg',
-    'bg_default_fl':     'assets/game/bg_fl.png',
+    'bg_default_fl':     'assets/game/bg_fl_v3.png',
     /* Session 24: 新背景アイテム (デフォルト所持、誰でも切替可) */
-    'bg_neighbors_v1':   'assets/game/bg_v1.jpg',
-    'bg_neighbors_v2':   'assets/game/bg_v2.jpg'
+    'bg_neighbors_v1':   'assets/game/bg_v1.png'
   };
 
   function _shopGetPreviewUrl(item){
@@ -9403,7 +9763,81 @@ body.debug-interactive .vmode-btn::before {
     }
   }
 
+  /* === Session 25 Tutorial T-0: チュートリアル進捗管理 === */
+  var TUTORIAL_LESSONS = ['l1', 'l2', 'l3', 'l4', 'l5'];
+  var TUTORIAL_LS_KEY = 'chaipo_tutorial_progress';
+
+  function getTutorialProgress(){
+    try{
+      var raw = localStorage.getItem(TUTORIAL_LS_KEY);
+      if(!raw) return { completed: [], current: 'l1' };
+      var data = JSON.parse(raw);
+      return {
+        completed: Array.isArray(data.completed) ? data.completed : [],
+        current: typeof data.current === 'string' ? data.current : 'l1'
+      };
+    }catch(e){ return { completed: [], current: 'l1' }; }
+  }
+
+  function saveTutorialProgress(p){
+    try{ localStorage.setItem(TUTORIAL_LS_KEY, JSON.stringify(p)); }catch(e){}
+  }
+
+  function renderTutorialList(){
+    var p = getTutorialProgress();
+    var completedSet = {};
+    p.completed.forEach(function(id){ completedSet[id] = true; });
+
+    var items = document.querySelectorAll('.tutorial-lesson-item');
+    items.forEach(function(item){
+      var id = item.getAttribute('data-lesson');
+      var statusEl = item.querySelector('.tutorial-lesson-status');
+      if(completedSet[id]){
+        item.setAttribute('data-state', 'done');
+        if(statusEl){ statusEl.setAttribute('data-status', 'done'); statusEl.textContent = '完了'; }
+      } else if(id === p.current){
+        item.setAttribute('data-state', 'active');
+        if(statusEl){ statusEl.setAttribute('data-status', 'active'); statusEl.textContent = '進行中'; }
+      } else {
+        item.setAttribute('data-state', 'locked');
+        if(statusEl){ statusEl.setAttribute('data-status', 'locked'); statusEl.textContent = '未'; }
+      }
+    });
+
+    /* 全体進捗バー */
+    var total = TUTORIAL_LESSONS.length;
+    var done = p.completed.filter(function(id){ return TUTORIAL_LESSONS.indexOf(id) >= 0; }).length;
+    var pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    var bar = document.getElementById('tutorialOverviewBarFill');
+    if(bar) bar.style.width = pct + '%';
+    var txt = document.getElementById('tutorialOverviewProgressText');
+    if(txt) txt.textContent = done + ' / ' + total + ' 完了';
+  }
+
+  window.onTutorialLessonClick = function(lessonId){
+    if(typeof window.haptic === 'function') window.haptic(15);
+    /* T-0 段階: レッスン本体は次フェーズ。 今は動作確認用のダイアログのみ */
+    var titles = {
+      l1: 'ようこそ', l2: '配置の基本', l3: 'ファウルの罠',
+      l4: '役を作ろう', l5: 'ファンタジーランド入門'
+    };
+    var title = titles[lessonId] || lessonId;
+    if(typeof showToast === 'function'){
+      showToast('Lesson 「' + title + '」 は次のアップデートで実装予定');
+    } else {
+      alert('Lesson 「' + title + '」 は次のアップデートで実装予定');
+    }
+  };
+
+  /* ミッションタブを開いたときに進捗を再描画 */
+  window.refreshTutorialList = renderTutorialList;
+
   function switchShopTab(tabName){
+    /* Session 25 Tutorial T-0: missions タブを開いたらチュートリアル状態を再描画 */
+    if(tabName === 'missions'){
+      setTimeout(renderTutorialList, 0);
+    }
+
     if(typeof window.haptic === 'function') window.haptic(8);
     var tabs = document.querySelectorAll('.shop-tab');
     var panes = document.querySelectorAll('.shop-tab-pane');
@@ -9483,29 +9917,18 @@ body.debug-interactive .vmode-btn::before {
 
 <!-- v28.73: ゲーム開始スプラッシュ (ミニマル統一デザイン) -->
 <div class="game-intro-overlay" id="gameIntroOverlay">
-  <div class="game-intro-ring">
-    <div class="game-intro-ring-inner">
-      <svg class="game-intro-pine" viewBox="0 0 280 380" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g stroke="#E8B923" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-          <path d="M 140 118 L 140 8"/>
-          <path d="M 140 118 L 100 22"/>
-          <path d="M 140 118 L 180 22"/>
-          <path d="M 140 118 L 62 42"/>
-          <path d="M 140 118 L 218 42"/>
-          <ellipse cx="140" cy="248" rx="95" ry="108" stroke-width="6"/>
-          <path d="M 50 200 L 230 200" stroke-width="4"/>
-          <path d="M 52 260 L 228 260" stroke-width="4"/>
-          <path d="M 100 150 L 100 345" stroke-width="4"/>
-          <path d="M 140 145 L 140 350" stroke-width="4"/>
-          <path d="M 180 150 L 180 345" stroke-width="4"/>
-        </g>
-      </svg>
-    </div>
+  <div class="game-intro-sparkles">
+    <span class="gi-spark gi-spark-1">✦</span>
+    <span class="gi-spark gi-spark-2">✦</span>
+    <span class="gi-spark gi-spark-3">✦</span>
+    <span class="gi-spark gi-spark-4">✦</span>
+    <span class="gi-spark gi-spark-5">★</span>
+    <span class="gi-spark gi-spark-6">★</span>
   </div>
-  <div class="game-intro-word">READY</div>
-  <div class="game-intro-sub" id="gameIntroSub">AI · 1 vs 1</div>
-  <div class="game-intro-divider"></div>
-  <div class="game-intro-skip">TAP TO SKIP</div>
+  <div class="game-intro-char-wrap">
+    <div class="game-intro-shadow"></div>
+    <img class="game-intro-char" src="assets/game/ready_pom.png" alt="" draggable="false">
+  </div>
 </div>
 
 
@@ -10261,11 +10684,59 @@ body.debug-interactive .vmode-btn::before {
     </div>
 
     <div class="shop-tab-pane" id="shopPane-missions">
-      <div class="shop-coming-hero">
-        <div class="shop-coming-badge">Coming Soon</div>
-        <div class="shop-coming-title">ミッション</div>
-        <div class="shop-coming-desc">プレイ目標を達成してコインとアイテムを獲得</div>
+      <!-- Session 25 Tutorial T-0: チュートリアルセクション (ミッションの最上位) -->
+      <div class="shop-section-label">チュートリアル</div>
+      <div class="tutorial-overview">
+        <div class="tutorial-overview-title">チャイポの遊び方を5レッスンで</div>
+        <div class="tutorial-overview-progress">
+          <div class="tutorial-overview-bar"><div class="tutorial-overview-bar-fill" id="tutorialOverviewBarFill" style="width:0%"></div></div>
+          <div class="tutorial-overview-progress-text" id="tutorialOverviewProgressText">0 / 5 完了</div>
+        </div>
       </div>
+      <ul class="tutorial-lesson-list" id="tutorialLessonList">
+        <li class="tutorial-lesson-item" data-lesson="l1" onclick="onTutorialLessonClick('l1')">
+          <div class="tutorial-lesson-num">1</div>
+          <div class="tutorial-lesson-body">
+            <div class="tutorial-lesson-title">ようこそ</div>
+            <div class="tutorial-lesson-desc">チャイポの全体像をサクッと把握</div>
+          </div>
+          <div class="tutorial-lesson-status" data-status="locked">未</div>
+        </li>
+        <li class="tutorial-lesson-item" data-lesson="l2" onclick="onTutorialLessonClick('l2')">
+          <div class="tutorial-lesson-num">2</div>
+          <div class="tutorial-lesson-body">
+            <div class="tutorial-lesson-title">配置の基本</div>
+            <div class="tutorial-lesson-desc">カードを3段に置いてみよう</div>
+          </div>
+          <div class="tutorial-lesson-status" data-status="locked">未</div>
+        </li>
+        <li class="tutorial-lesson-item" data-lesson="l3" onclick="onTutorialLessonClick('l3')">
+          <div class="tutorial-lesson-num">3</div>
+          <div class="tutorial-lesson-body">
+            <div class="tutorial-lesson-title">ファウルの罠</div>
+            <div class="tutorial-lesson-desc">強さの順番ルールを身体で学ぶ</div>
+          </div>
+          <div class="tutorial-lesson-status" data-status="locked">未</div>
+        </li>
+        <li class="tutorial-lesson-item" data-lesson="l4" onclick="onTutorialLessonClick('l4')">
+          <div class="tutorial-lesson-num">4</div>
+          <div class="tutorial-lesson-body">
+            <div class="tutorial-lesson-title">役を作ろう</div>
+            <div class="tutorial-lesson-desc">ペア・スリーカード・スコアの見方</div>
+          </div>
+          <div class="tutorial-lesson-status" data-status="locked">未</div>
+        </li>
+        <li class="tutorial-lesson-item" data-lesson="l5" onclick="onTutorialLessonClick('l5')">
+          <div class="tutorial-lesson-num">5</div>
+          <div class="tutorial-lesson-body">
+            <div class="tutorial-lesson-title">ファンタジーランド入門</div>
+            <div class="tutorial-lesson-desc">チャイポの醍醐味、FL の体験</div>
+          </div>
+          <div class="tutorial-lesson-status" data-status="locked">未</div>
+        </li>
+      </ul>
+
+      <!-- 既存の Coming Soon セクション (デイリー/ウィークリー/シーズン) を下部に維持 -->
       <div class="shop-section-label">予定ミッション</div>
       <ul class="shop-preview-list">
         <li><span class="shop-preview-tag daily">デイリー</span>毎日3〜5個 (24h リセット)</li>
@@ -13714,6 +14185,42 @@ function renderGame(){
   if(state.flMode){
     pa.classList.add('fl-mode');pl.innerHTML='YOU <span class="fl-badge">FANTASY LAND</span>';ha.classList.add('fl-mode');
     document.body.classList.add('fl-mode'); // v1.3 Session21: FL専用背景切り替え用
+    /* Session 25 FL probe: 突入時の DOM 状態を実測 */
+    setTimeout(function(){
+      try{
+        var SRV='http://192.168.10.137:9000/';
+        function P(b){fetch(SRV,{method:'POST',body:b});}
+        P('[FLp] body.class=' + document.body.className.substring(0,120));
+        var sg = document.getElementById('screen-game');
+        if(sg){
+          var cs = getComputedStyle(sg);
+          P('[FLp] sg.bgImage=' + cs.backgroundImage.substring(0,200));
+          P('[FLp] sg.bgColor=' + cs.backgroundColor + ' / zIndex=' + cs.zIndex + ' / display=' + cs.display);
+        }
+        var bl = document.querySelector('.game-board-layer');
+        if(bl){
+          var bcs = getComputedStyle(bl);
+          P('[FLp] board-layer.bgImage=' + bcs.backgroundImage.substring(0,200) + ' / bgColor=' + bcs.backgroundColor + ' / zIndex=' + bcs.zIndex);
+        } else { P('[FLp] no .game-board-layer'); }
+        /* fl-mode 用のCSSルールが効いているか確認 */
+        var html_ = document.documentElement;
+        var rootCs = getComputedStyle(html_);
+        P('[FLp] --bg-fl-url=' + rootCs.getPropertyValue('--bg-fl-url').trim());
+        /* screen-game の上に重なってる可能性のある要素を列挙 */
+        var allChildren = sg ? sg.children : [];
+        var overlay = [];
+        for(var i=0;i<allChildren.length;i++){
+          var c = allChildren[i];
+          var ccs = getComputedStyle(c);
+          if(ccs.backgroundImage && ccs.backgroundImage !== 'none'){
+            overlay.push(c.tagName + '#' + c.id + '.' + c.className.substring(0,30) + ' bg=' + ccs.backgroundImage.substring(0,80));
+          }
+        }
+        P('[FLp] overlays_in_sg=' + JSON.stringify(overlay).substring(0, 500));
+      }catch(e){
+        fetch('http://192.168.10.137:9000/',{method:'POST',body:'[FLp] err='+e.message});
+      }
+    }, 500);
     document.getElementById('flEvalPanel').classList.add('show');
     document.getElementById('flHandWrap').classList.add('show');
     document.getElementById('flRoleBarOuter').classList.add('show');
@@ -16050,7 +16557,40 @@ function getHandCombinations(hand, role){
     for(const combo of candidateCombos){
       const ev=eval5(combo,false);
       // ストフラの場合はロイヤル(rank=9)も含める
-      if(ev.rank===target || (role==='strflush' && ev.rank===9)) results.push(combo);
+      if(ev.rank===target || (role==='strflush' && ev.rank===9)){
+        /* Session 25: 4カードは5枚目のキッカーを除いて 4枚だけ push する */
+        if(role==='quads'){
+          /* combo 5枚から 「主役4枚」を抽出 (ジョーカーで4枚揃えるケースも対応) */
+          var rc4 = {};
+          combo.forEach(function(c){
+            var r = c.isJoker ? 'JK' : c.r;
+            rc4[r] = (rc4[r] || 0) + 1;
+          });
+          var jkCnt = rc4['JK'] || 0;
+          var mainRank = null;
+          for(var rkey in rc4){
+            if(rkey === 'JK') continue;
+            if((rc4[rkey] || 0) + jkCnt >= 4){ mainRank = rkey; break; }
+          }
+          var fourCards;
+          if(mainRank){
+            /* 主役ランクの実カード + JK で 4枚作る */
+            var mainCards = combo.filter(function(c){ return !c.isJoker && c.r === mainRank; });
+            var jokerCards = combo.filter(function(c){ return c.isJoker; });
+            fourCards = mainCards.concat(jokerCards).slice(0, 4);
+          } else if(jkCnt >= 4){
+            /* JK4枚のみ (理論上ありえないが念のため) */
+            fourCards = combo.filter(function(c){ return c.isJoker; }).slice(0, 4);
+          } else {
+            /* 4枚揃わない異常ケース → そのまま push (フォールバック) */
+            fourCards = combo;
+          }
+          if(fourCards.length === 4) results.push(fourCards);
+          else results.push(combo);
+        } else {
+          results.push(combo);
+        }
+      }
     }
   }
 
@@ -16060,6 +16600,43 @@ function getHandCombinations(hand, role){
     if(!seen.has(k)){seen.add(k);unique.push(combo);}
   }
   unique.sort((a,b)=>{
+    /* Session 25: 2ペアは「大ペアrank → 小ペアrank → キッカー」の順で強い順ソート
+       (eval5 は4枚では効かないので専用比較を先に行う) */
+    if(role==='twopair'){
+      const getPairsAndKicker = (arr) => {
+        const rc = {};
+        arr.forEach(c => {
+          const r = c.isJoker ? 'JK' : c.r;
+          rc[r] = (rc[r] || 0) + 1;
+        });
+        const jkCnt = rc['JK'] || 0;
+        const pairRs = []; // ペアになっているランク (rankVal で数値化)
+        let kicker = 0;
+        // 実カード2枚以上のランクをペアとして抽出
+        for(const [r, cnt] of Object.entries(rc)){
+          if(r === 'JK') continue;
+          if(cnt >= 2) pairRs.push(rankVal(r));
+        }
+        // JK で補完される2ペア (実ペア1 + JK+単独カード)
+        if(jkCnt >= 1 && pairRs.length === 1){
+          // 単独カードを kicker 兼 ペア相方として扱う
+          for(const [r, cnt] of Object.entries(rc)){
+            if(r === 'JK') continue;
+            if(cnt === 1) pairRs.push(rankVal(r));
+          }
+        }
+        pairRs.sort((x,y) => y - x); // 降順
+        // キッカー = 残りのカードの最大ランク
+        // (今回 4枚なので 2ペア確定なら キッカー無し、 ただ将来5枚対応のため計算しておく)
+        return { high: pairRs[0] || 0, low: pairRs[1] || 0, kicker };
+      };
+      const pa = getPairsAndKicker(a);
+      const pb = getPairsAndKicker(b);
+      if(pb.high !== pa.high) return pb.high - pa.high;
+      if(pb.low  !== pa.low)  return pb.low  - pa.low;
+      if(pb.kicker !== pa.kicker) return pb.kicker - pa.kicker;
+      return 0;
+    }
     const ea=role==='pair'||role==='trips'?{royalty:0,rank:Math.max(...a.map(c=>rankVal(c.r)))}:eval5(a,false);
     const eb=role==='pair'||role==='trips'?{royalty:0,rank:Math.max(...b.map(c=>rankVal(c.r)))}:eval5(b,false);
     const baseCmp = (eb.royalty||eb.rank)-(ea.royalty||ea.rank);
@@ -22943,6 +23520,19 @@ body.bptune-enabled .bptune-active{
         if(targets[i].classList.contains('active')){ anyActive = true; break; }
       }
       modeSelectActive = anyActive;
+      /* Session 25: 一度でも loopReady=true になったセッションでは、
+         モード選択画面に戻った瞬間に再度 loopReady=true を復帰 → 即時表示
+         (動画再生の 2.3秒待ちは初回起動のみで済む) */
+      if(modeSelectActive && !loopReady){
+        try{
+          if(sessionStorage.getItem('shopFabSeenReady') === '1'){
+            loopReady = true;
+          }
+        }catch(_){ }
+      }
+      if(loopReady){
+        try{ sessionStorage.setItem('shopFabSeenReady', '1'); }catch(_){ }
+      }
       updateVisible();
     }
     check();
