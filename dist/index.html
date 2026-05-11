@@ -23665,32 +23665,34 @@ body.bptune-enabled .bptune-active{
 
 
 
-<!-- Session 24 dbg log -->
-<div id="dbgLogContent" style="position:fixed;bottom:0;left:0;right:0;height:90px;overflow-y:auto;background:rgba(0,0,0,0.85);color:#0f0;font-size:7px;font-family:monospace;padding:2px 4px;z-index:99998;line-height:1.15;border-top:1px solid #0f0;white-space:pre-wrap;word-break:break-all;pointer-events:none"></div>
+
+
+<!-- Session 24 dbg log (HTTP) -->
 <script>
 (function(){
-  var dbgLogs = [];
-  var dbgEl = null;
-  function pushLog(prefix, args){
+  var SERVER = 'http://192.168.0.115:9000/';
+  function sendLog(level, args){
     try {
-      var msg = prefix + ' ' + Array.from(args).map(function(a){
-        if(typeof a === 'object'){ try { return JSON.stringify(a).slice(0, 60); } catch(e){ return String(a); } }
+      var msg = Array.from(args).map(function(a){
+        if(typeof a === 'object'){ try { return JSON.stringify(a).slice(0, 200); } catch(e){ return String(a); } }
         return String(a);
-      }).join(' ');
+      }).join(' ').slice(0, 500);
+      /* FL/相手平場/演出/差分関連のみ送信 */
       if(/opp flat|opp-anim|FL|R[1-5]|deck|startFL|aiPineapple|button|render/i.test(msg)){
-        dbgLogs.push(msg.slice(0, 100));
-        if(dbgLogs.length > 14) dbgLogs.shift();
-        if(!dbgEl) dbgEl = document.getElementById('dbgLogContent');
-        if(dbgEl) dbgEl.textContent = dbgLogs.join('\n');
+        fetch(SERVER, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({level: level, msg: msg})
+        }).catch(function(){});
       }
     } catch(e){}
   }
   var origLog = console.log.bind(console);
   var origWarn = console.warn.bind(console);
   var origErr = console.error.bind(console);
-  console.log = function(){ pushLog('L', arguments); origLog.apply(console, arguments); };
-  console.warn = function(){ pushLog('W', arguments); origWarn.apply(console, arguments); };
-  console.error = function(){ pushLog('E', arguments); origErr.apply(console, arguments); };
+  console.log = function(){ sendLog('L', arguments); origLog.apply(console, arguments); };
+  console.warn = function(){ sendLog('W', arguments); origWarn.apply(console, arguments); };
+  console.error = function(){ sendLog('E', arguments); origErr.apply(console, arguments); };
 })();
 </script>
 </body>
