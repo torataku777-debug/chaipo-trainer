@@ -1422,6 +1422,7 @@ html body.ui-v2.fl-mode .opp-card{
   position:relative;
 }
 .card.in-hand{width:54px;height:74px;box-shadow:0 2px 8px rgba(0,0,0,0.1),0 4px 16px rgba(0,0,0,0.06)}
+.card.discarded{opacity:.35;filter:grayscale(80%);pointer-events:none;}
 .card.selected{
   transform:translateY(-9px) scale(1.05);
   box-shadow:0 0 0 2px #E8B923,0 8px 24px rgba(232,185,35,0.4),0 0 28px rgba(255,220,90,0.35);
@@ -13844,7 +13845,7 @@ async function newGame(onlineConfig){
     idx  = 0;
   }
   const deal = n => deck.slice(idx, idx += n);
-  state={phase:'place5',round:1,playerBoard:{top:[],mid:[],bot:[]},oppBoard:{top:[],mid:[],bot:[]},hand:[],discard:[],selectedCard:null,deck,deckIdx:idx,flMode:false,oppFlMode:false,flCards:0,flDiscard:[],gameOver:false,oppPendingBoard:null,oppPendingPlace:null,oppPlayedThisRound:false,wasFL:false,oppWasFL:false,oppSavedFlCards:0,oppFlPending:false,oppFlHand:null,oppPlayPending:false,oppFlPendingBoard:null,oppPendingFinalBoard:null,onlineMode:_isOnline,onlineMatch:_isOnline?onlineConfig.match:null,asHost:_isOnline?!!onlineConfig.asHost:false,myPlayerNum:_isOnline?(onlineConfig.asHost?0:1):null,onlineMustWait:(_isOnline && isPlayerButton),oppBoardPrefilledForRound:null};window._oppFlPendingCallback=null;window._oppPlayCallback=null;
+  state={phase:'place5',round:1,playerBoard:{top:[],mid:[],bot:[]},oppBoard:{top:[],mid:[],bot:[]},hand:[],discard:[],handDiscarded:[],selectedCard:null,deck,deckIdx:idx,flMode:false,oppFlMode:false,flCards:0,flDiscard:[],gameOver:false,oppPendingBoard:null,oppPendingPlace:null,oppPlayedThisRound:false,wasFL:false,oppWasFL:false,oppSavedFlCards:0,oppFlPending:false,oppFlHand:null,oppPlayPending:false,oppFlPendingBoard:null,oppPendingFinalBoard:null,onlineMode:_isOnline,onlineMatch:_isOnline?onlineConfig.match:null,asHost:_isOnline?!!onlineConfig.asHost:false,myPlayerNum:_isOnline?(onlineConfig.asHost?0:1):null,onlineMustWait:(_isOnline && isPlayerButton),oppBoardPrefilledForRound:null};window._oppFlPendingCallback=null;window._oppPlayCallback=null;
   if(_isOnline){
     const myStart = state.asHost ? 0 : 5;
     state.hand = deck.slice(myStart, myStart + 5);
@@ -14353,7 +14354,7 @@ function renderGame(){
   else{
     const placed=(state.placedThisRound||[]).length;
     const btnTxt2=isPlayerButton?'(ボタン・後置き)':'(ノンボタン・先置き)';
-    if(state.discardedThisRound){const dc=state.discard[state.discard.length-1];ph.textContent='R'+state.round+' · 配置'+placed+'/2 · 捨て: '+(dc.isJoker?'JK':dc.r+SUIT_SYMS[dc.s])+' '+btnTxt2;}
+    if(state.discardedThisRound){/* Session 26: handDiscarded を優先して読む (autoDiscard 後の表示) */var dc=(Array.isArray(state.handDiscarded)&&state.handDiscarded.length>0)?state.handDiscarded[state.handDiscarded.length-1]:(state.discard.length>0?state.discard[state.discard.length-1]:null);if(dc)ph.textContent='R'+state.round+' · 配置'+placed+'/2 · 捨て: '+(dc.isJoker?'JK':dc.r+SUIT_SYMS[dc.s])+' '+btnTxt2;}
     else{ph.textContent='R'+state.round+' · 配置'+placed+'/2 · 2枚置くと自動捨て '+btnTxt2;}
     ph.className='phase-label';
   }
@@ -14739,6 +14740,13 @@ function renderHand(){
     if(state.flMode&&flTapSel.includes(card.id)) ce.classList.add('fl-tap-sel');
     el.appendChild(ce);
   }
+  /* Session 26: 捨てカードをグレーアウト表示 (CONFIRM まで保持) */
+  if(Array.isArray(state.handDiscarded)){
+    for(const card of state.handDiscarded){
+      const ce=makeCard(card);ce.classList.add('in-hand','discarded');
+      el.appendChild(ce);
+    }
+  }
   if(state.flMode) setTimeout(applyOverlapLayout, 10);
 }
 function updateEvals(){
@@ -14874,7 +14882,7 @@ function retCard(card,row,idx){
   if(typeof window.haptic === "function") window.haptic(8);
   state.playerBoard[row].splice(idx,1);state.hand.push(card);
   if(state.placedThisRound)state.placedThisRound=state.placedThisRound.filter(c=>c.id!==card.id);
-  if(state.phase==='pineapple'&&state.discardedThisRound){const dc=state.discard.pop();if(dc)state.hand.push(dc);state.discardedThisRound=false;}
+  if(state.phase==='pineapple'&&state.discardedThisRound){/* Session 26: handDiscarded から戻す (旧: state.discard.pop) */if(Array.isArray(state.handDiscarded)&&state.handDiscarded.length>0){const dc=state.handDiscarded.pop();if(dc)state.hand.push(dc);}state.discardedThisRound=false;}
   state.selectedCard=null;
   /* v28.45: FL中は手札に戻したらランク順にソート */
   if(state.flMode && typeof sortFlHand==='function') sortFlHand();
@@ -14904,7 +14912,7 @@ function placeCard(card,row){
   if(typeof schedulePendingPush==='function') schedulePendingPush(); // fix58: pending update
   renderGame();
 }
-function autoDiscard(){const c=state.hand[0];state.hand=state.hand.filter(x=>x.id!==c.id);state.discard.push(c);state.discardedThisRound=true;if(typeof schedulePendingPush==='function') schedulePendingPush();}
+function autoDiscard(){const c=state.hand[0];state.hand=state.hand.filter(x=>x.id!==c.id);if(!Array.isArray(state.handDiscarded))state.handDiscarded=[];state.handDiscarded.push(c);state.discardedThisRound=true;if(typeof schedulePendingPush==='function') schedulePendingPush();}
 document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopChaipoTimer();}catch(e){}
   // v1.3 Session21 haptic: 確定ボタン (MEDIUM)
   if(typeof window.haptic === "function") window.haptic(20);
@@ -15151,6 +15159,8 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
     }
   }else{
     const pl=state.placedThisRound||[];if(pl.length<2){showToast('2枚配置してください');return;}if(!state.discardedThisRound){showToast('1枚捨ててください');return;}
+    /* Session 26: handDiscarded を確定して state.discard に移動 (オンライン送信より前にやることで discardForSend ロジックを維持) */
+    if(Array.isArray(state.handDiscarded)&&state.handDiscarded.length>0){for(const _dc of state.handDiscarded)state.discard.push(_dc);state.handDiscarded=[];}
     try{logRoundPlayerDiff(state.round);}catch(e){console.error('[log] playerDiff:',e);}
     // v29.0: online モードはここで送信と相手待機
     if(state.onlineMode){
@@ -16279,7 +16289,7 @@ function openOuts(){
   const table=document.getElementById('outsTable');
   const used=new Set();
   for(const row of['top','mid','bot']){state.playerBoard[row].forEach(c=>used.add(c.id));state.oppBoard[row].forEach(c=>used.add(c.id));}
-  state.discard.forEach(c=>used.add(c.id));state.hand.forEach(c=>used.add(c.id));
+  state.discard.forEach(c=>used.add(c.id));state.hand.forEach(c=>used.add(c.id));/* Session 26: handDiscarded も使用済みに含める */if(Array.isArray(state.handDiscarded))state.handDiscarded.forEach(c=>used.add(c.id));
   const sS={s:'♠',h:'♥',d:'♦',c:'♣'};const sC={s:'#1e293b',h:'#dc2626',d:'#1d4ed8',c:'#059669'};
   let html=`<div class="outs-suit-row"><div class="outs-suit-label outs-jk-icon"></div>`;
   for(let n=1;n<=2;n++){const id=`JK${n}`;html+=`<div class="outs-card-chip joker-chip ${used.has(id)?'used':'remaining'}">JK</div>`;}
