@@ -14654,6 +14654,15 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
 function startFL(flCards, skipIntro){
   console.log('startFL called with', flCards, 'cards, deckIdx='+state.deckIdx+', skipIntro='+!!skipIntro);
   state.flMode=true;state.flCards=flCards;
+  /* Session 24 fix: newGame で oppPendingBoard に保留された相手R1 を oppBoard に反映
+     (FL モードでは裏カード表示しないので保留のままだと R1 が消失する) */
+  if(state.oppPendingBoard){
+    state.oppBoard = state.oppPendingBoard;
+    state.oppPendingBoard = null;
+    state.oppPlayedThisRound = true;
+    console.log('[FL fix] R1 oppPendingBoard を oppBoard に反映: ' + 
+      (state.oppBoard.top.length + state.oppBoard.mid.length + state.oppBoard.bot.length) + '枚');
+  }
   // fix58: オンラインモードなら Supabase に FL 状態を反映
   if(state.onlineMode && typeof setFLActiveSupabase === 'function'){
     setFLActiveSupabase(flCards);
