@@ -370,21 +370,23 @@ html body.ui-v2 .row-eval.fl{
 /* v1.3 fix140: 画面右端、下揃え (一番下のボタンがボードの底辺と同じ高さ) */
 /* v1.3 fix150: 画面左端に変更 */
 html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter{
-  position:fixed !important;
+  /* Session 24: ハンドの下、 CONFIRM の上 (flow配置) */
+  position:static !important;
   top:auto !important;
-  /* v1.3 Session21: 横並びレイアウト — 画面下部、手札の上 */
-  left:50% !important;
+  left:auto !important;
   right:auto !important;
-  bottom:24vh !important;
-  transform:translateX(-50%) !important;
+  bottom:auto !important;
+  transform:none !important;
   width:auto !important;
   height:auto !important;
   max-height:none !important;
-  padding:4px !important;
-  margin:0 !important;
-  z-index:8;
+  padding:4px 6px !important;
+  margin:4px 0 !important;
+  z-index:auto;
   background:rgba(0,0,0,0.55) !important;
   border-radius:6px !important;
+  display:flex !important;
+  justify-content:center !important;
 }
 html:not(.ui-v2-tuner) body.ui-v2 #flRoleBarOuter .fl-role-bar{
   display:flex !important;
@@ -10463,6 +10465,13 @@ body.debug-interactive .vmode-btn::before {
     <div class="hand-area" id="handArea">
       <!-- v28.42: ソートバー削除 (常にランク順) -->
       <div class="fl-hand-wrap" id="flHandWrap" style="display:none!important;"></div>
+
+      <div class="fl-discard-bar" id="flDiscardBar" style="display:none !important;gap:4px;padding:0 8px;align-items:center;flex-shrink:0;">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#9a6e10;letter-spacing:0.1em;flex-shrink:0">捨て:</span>
+        <div id="flDiscardSlots" style="display:flex;gap:3px;flex-wrap:wrap;"></div>
+      </div>
+      <div class="phase-label" id="phaseLabel"></div>
+      <div class="hand-cards" id="handCards"></div>
       <div class="fl-role-bar-outer" id="flRoleBarOuter">
         <div class="fl-role-bar">
           <button class="fl-role-btn" data-role="pair">ペア</button>
@@ -10475,12 +10484,6 @@ body.debug-interactive .vmode-btn::before {
           <button class="fl-role-btn" data-role="strflush">ストフラ</button>
         </div>
       </div>
-      <div class="fl-discard-bar" id="flDiscardBar" style="display:none !important;gap:4px;padding:0 8px;align-items:center;flex-shrink:0;">
-        <span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#9a6e10;letter-spacing:0.1em;flex-shrink:0">捨て:</span>
-        <div id="flDiscardSlots" style="display:flex;gap:3px;flex-wrap:wrap;"></div>
-      </div>
-      <div class="phase-label" id="phaseLabel"></div>
-      <div class="hand-cards" id="handCards"></div>
       <div class="action-bar">
         <button class="btn-advice" id="btnAdvice">ADVICE</button>
         <button class="btn-outs" id="btnHandsheet" title="役早見表">
