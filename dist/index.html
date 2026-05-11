@@ -253,13 +253,22 @@ body.ui-v2 .score-bar{ background:rgba(255,255,255,0.78) !important; border:none
    Session 24 fix: チューナー調整値を反映 (相手平場のみ top/left を微調整) */
 body.ui-v2:not(.fl-mode):not(.fl-practice-active) .opp-area{
   position:absolute !important;
-  top:21.5% !important;
-  left:3.6% !important;
-  width:43.1% !important;
-  height:17.6% !important;
+  top:21.78% !important;
+  left:2.27% !important;
+  width:44.34% !important;
+  height:16.27% !important;
   right:auto !important;
   background:transparent !important;
   z-index:5;
+}
+/* Session 25: FL中の相手ボード位置 (チューナーで決定した値) */
+html body.ui-v2.fl-mode .opp-area,
+html body.ui-v2.fl-practice-active .opp-area{
+  position: absolute !important;
+  top: 18.85% !important;
+  left: 1.94% !important;
+  width: 100.00% !important;
+  height: 16.95% !important;
 }
 body.ui-v2 .opp-area-inner{
   background:transparent !important;
@@ -15470,6 +15479,10 @@ function closeDrawer(){document.getElementById('drawerSheet').classList.remove('
 window.openDrawer = openDrawer;
 window.closeDrawer = closeDrawer;
 document.getElementById('btnMenu').addEventListener('click', function(){ window.openDrawer(); });
+
+
+
+
 document.getElementById('drawerBackdrop').addEventListener('click',closeDrawer);
 // v28.16: ドロワー 制限時間 / 初期点数 / スタッツ のハンドラ
 (function(){
