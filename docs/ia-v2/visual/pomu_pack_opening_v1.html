@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<!--
+  ファイル: pomu_pack_opening_v1.html
+  作成日: 2026-05-14
+  作成者: Claude (初稿)
+  対応仕様書: NEXT_SESSION_HANDOFF_2026-05-14_v2.md (Phase C: 開封演出)
+  バージョン: v1
+
+  目的: ガチャパック開封演出のプロトタイプ
+   - 暗背景・ステートマシン式(intro → animating → reveal[1-5] → complete)
+   - ガチャ v3 のカード束モチーフを継承
+   - 報酬カードは背景パック例(5枚: 朝霧/夕焼け/星空/渋谷ナイト/桜並木)
+   - デモ用ステート切替ボタンで全シーン確認可能
+
+  初稿の方針: 構造とトーンを確立。本格演出は Codex 磨き v2 で。
+-->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>VISUAL: 開封演出 (v1)</title>
+  <style>
+    :root {
+      /* ぽむタウン共通トークン */
+      --sky-100:        #e6f4fb;
+      --sky-200:        #c5e2f0;
+      --cloud-white:    #ffffff;
+      --cloud-soft:     #f6fbfd;
+      --pomu-yellow:    #fbbf24;
+      --pomu-orange:    #f59e0b;
+      --leaf-green:     #65c466;
+      --ink-900:        #1a1f2c;
+      --ink-500:        #6b7280;
+      --ink-300:        #d1d5db;
+      --ready-glow:     #ffd24a;
+      --ready-glow-soft: rgba(255, 210, 74, 0.35);
+
+      /* 開封演出専用トークン */
+      --opening-night-top:    #0b1632;
+      --opening-night-mid:    #1a2d52;
+      --opening-night-bottom: #2a4775;
+      --opening-flash:        #fff8db;
+      --opening-text:         #f6fbfd;
+      --opening-text-soft:    rgba(246, 251, 253, 0.62);
+
+      /* レアリティ別アクセント */
+      --rarity-n:        #9ca3af;
+      --rarity-n-soft:   rgba(156, 163, 175, 0.30);
+      --rarity-r:        #60a5fa;
+      --rarity-r-soft:   rgba(96, 165, 250, 0.34);
+      --rarity-sr:       #fbbf24;
+      --rarity-sr-soft:  rgba(255, 210, 74, 0.42);
+
+      --card-shadow: 0 4px 12px rgba(26, 31, 44, 0.06),
+                     0 1px 3px rgba(26, 31, 44, 0.04);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background: #ecf3f7;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Noto Sans JP", sans-serif;
+      color: var(--ink-900);
+      letter-spacing: 0.02em;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .device {
+      width: 393px;
+      height: 852px;
+      margin: 24px auto;
+      background: linear-gradient(180deg, var(--opening-night-top) 0%, var(--opening-night-mid) 56%, var(--opening-night-bottom) 100%);
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 60px rgba(11, 22, 50, 0.42),
+                  0 4px 12px rgba(11, 22, 50, 0.22);
+      isolation: isolate;
+    }
+
+    /* 背景の星粒(intro/reveal で見える、animatingで明るく) */
+    .opening-stars {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+
+    /* 中央からの放射光(reveal 時) */
+    .opening-rays {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 600px; height: 600px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.42s ease;
+      z-index: 0;
+    }
+    .device[data-stage="reveal"] .opening-rays {
+      opacity: 0.78;
+    }
+    .device[data-stage="reveal"][data-rarity="sr"] .opening-rays {
+      opacity: 1;
+    }
+
+    /* ステータスバー */
+    .status-bar {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--opening-text);
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ヘッダー(戻る + 進捗) */
+    .opening-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 20px 12px;
+      position: relative;
+      z-index: 2;
+    }
+    .opening-back {
+      background: rgba(255, 255, 255, 0.10);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      padding: 7px 13px 7px 11px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--opening-text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      letter-spacing: 0.04em;
+    }
+    .opening-back:active { background: rgba(255, 255, 255, 0.18); }
+
+    .opening-progress {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .progress-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .progress-dot.is-done {
+      background: var(--opening-text);
+      border-color: var(--opening-text);
+    }
+    .progress-dot.is-current {
+      background: var(--pomu-yellow);
+      border-color: var(--pomu-yellow);
+      transform: scale(1.16);
+      box-shadow: 0 0 10px var(--ready-glow-soft);
+    }
+    /* intro/animating/complete では進捗を隠す */
+    .device[data-stage="intro"] .opening-progress,
+    .device[data-stage="animating"] .opening-progress,
+    .device[data-stage="complete"] .opening-progress {
+      display: none;
+    }
+
+    /* メインコンテンツエリア */
+    .opening-main {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 24px;
+      z-index: 1;
+    }
+
+    /* === ステージ共通 === */
+    .opening-stage {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 24px;
+      gap: 24px;
+    }
+    .device[data-stage="intro"]     .stage-intro,
+    .device[data-stage="animating"] .stage-animating,
+    .device[data-stage="reveal"]    .stage-reveal,
+    .device[data-stage="complete"]  .stage-complete {
+      display: flex;
+    }
+
+    /* タップヒント */
+    .opening-hint {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--opening-text-soft);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      animation: hintPulse 1.6s ease-in-out infinite;
+    }
+    @keyframes hintPulse {
+      0%, 100% { opacity: 0.55; }
+      50%      { opacity: 1; }
+    }
+
+    /* === STAGE 1: intro (パック表示) === */
+    .stage-intro .opening-pack-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      color: var(--pomu-yellow);
+      text-shadow: 0 0 12px var(--ready-glow-soft);
+    }
+    .stage-intro .opening-pack-name {
+      font-size: 21px;
+      font-weight: 800;
+      color: var(--opening-text);
+      letter-spacing: 0.04em;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.42);
+    }
+    .opening-pack-wrap {
+      width: 226px;
+      height: 286px;
+      position: relative;
+      cursor: pointer;
+      filter: drop-shadow(0 22px 40px rgba(0,0,0,0.48))
+              drop-shadow(0 0 28px var(--ready-glow-soft));
+    }
+    .opening-pack-wrap svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    @keyframes packBigSway {
+      0%, 100% { transform: rotate(-2.4deg) translateY(0); }
+      50%      { transform: rotate(2.4deg)  translateY(-6px); }
+    }
+    .stage-intro .opening-pack-wrap > svg > .pack-bundle-big {
+      transform-box: fill-box;
+      transform-origin: center bottom;
+      animation: packBigSway 3.2s ease-in-out infinite;
+    }
+    .opening-pack-wrap:active {
+      transform: scale(1.04);
+      transition: transform 0.1s ease-out;
+    }
+
+    /* === STAGE 2: animating (開封演出) === */
+    .stage-animating { gap: 0; }
+    .opening-burst {
+      width: 380px;
+      height: 380px;
+      position: relative;
+    }
+    @keyframes burstFlash {
+      0%   { opacity: 0; transform: scale(0.4); }
+      40%  { opacity: 1; transform: scale(1.1); }
+      70%  { opacity: 1; transform: scale(1.0); }
+      100% { opacity: 0.6; transform: scale(1.0); }
+    }
+    @keyframes packBurstDispel {
+      0%   { opacity: 1; transform: scale(1) rotate(0deg); }
+      60%  { opacity: 0.7; transform: scale(0.7) rotate(-12deg); }
+      100% { opacity: 0; transform: scale(0.2) rotate(-24deg); }
+    }
+    .opening-burst-flash {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center,
+        rgba(255, 248, 219, 0.96) 0%,
+        rgba(255, 210, 74, 0.62) 28%,
+        rgba(255, 210, 74, 0.18) 52%,
+        rgba(255, 210, 74, 0) 78%);
+      animation: burstFlash 1.4s ease-out forwards;
+      transform-origin: center;
+    }
+    .opening-burst-pack {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 226px; height: 286px;
+      transform: translate(-50%, -50%);
+      animation: packBurstDispel 1.2s ease-in forwards;
+    }
+    .opening-burst-pack svg { width: 100%; height: 100%; }
+    .stage-animating .opening-hint { display: none; }
+
+    /* === STAGE 3: reveal (報酬カード) === */
+    .stage-reveal { gap: 20px; }
+
+    .reward-card-wrap {
+      perspective: 1000px;
+      position: relative;
+    }
+    .reward-card {
+      width: 226px;
+      height: 304px;
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      background: linear-gradient(180deg, #f6fbfd 0%, #ffffff 100%);
+      transform-style: preserve-3d;
+    }
+    @keyframes rewardEnter {
+      0%   { opacity: 0; transform: translateY(60px) scale(0.78) rotate(-6deg); }
+      55%  { opacity: 1; transform: translateY(-8px) scale(1.06) rotate(2deg); }
+      100% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+    }
+    .device[data-stage="reveal"] .reward-card {
+      animation: rewardEnter 0.62s cubic-bezier(0.16, 0.84, 0.32, 1.05) forwards;
+    }
+
+    /* レアリティ別フレーム */
+    .reward-card[data-rarity="n"] {
+      box-shadow:
+        0 0 0 2px #e5e7eb,
+        0 0 0 6px rgba(229, 231, 235, 0.42),
+        0 18px 36px rgba(0,0,0,0.42);
+    }
+    .reward-card[data-rarity="r"] {
+      box-shadow:
+        0 0 0 2px var(--rarity-r),
+        0 0 0 6px var(--rarity-r-soft),
+        0 0 28px var(--rarity-r-soft),
+        0 18px 36px rgba(0,0,0,0.42);
+    }
+    .reward-card[data-rarity="sr"] {
+      box-shadow:
+        0 0 0 3px var(--rarity-sr),
+        0 0 0 8px var(--rarity-sr-soft),
+        0 0 36px var(--rarity-sr-soft),
+        0 0 64px var(--rarity-sr-soft),
+        0 18px 36px rgba(0,0,0,0.42);
+    }
+
+    .reward-card-art {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .reward-card-art svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .reward-card-rarity-strip {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      color: #1a1f2c;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.62),
+        0 2px 5px rgba(0,0,0,0.32);
+    }
+    .reward-card[data-rarity="n"]  .reward-card-rarity-strip {
+      background: linear-gradient(180deg, #ffffff 0%, #d1d5db 100%);
+    }
+    .reward-card[data-rarity="r"]  .reward-card-rarity-strip {
+      background: linear-gradient(180deg, #bfdbfe 0%, #60a5fa 100%);
+      color: #0c2c70;
+    }
+    .reward-card[data-rarity="sr"] .reward-card-rarity-strip {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0) 50%),
+        linear-gradient(180deg, var(--pomu-yellow) 0%, var(--pomu-orange) 100%);
+      color: #4a2900;
+    }
+
+    .reward-info {
+      text-align: center;
+      color: var(--opening-text);
+    }
+    .reward-name {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.42);
+    }
+    .reward-category {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      color: var(--opening-text-soft);
+      margin-top: 6px;
+    }
+    .reward-rarity-stars {
+      display: flex;
+      justify-content: center;
+      gap: 3px;
+      margin-top: 8px;
+      font-size: 14px;
+      color: var(--pomu-yellow);
+      text-shadow: 0 0 6px var(--ready-glow-soft);
+    }
+    .reward-rarity-stars .star-dim {
+      color: rgba(255,255,255,0.22);
+      text-shadow: none;
+    }
+
+    /* === STAGE 4: complete (完了画面) === */
+    .stage-complete { gap: 18px; }
+    .complete-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--opening-text);
+      text-align: center;
+      letter-spacing: 0.04em;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.42);
+    }
+    .complete-title .em {
+      color: var(--pomu-yellow);
+      font-size: 28px;
+    }
+    .complete-sub {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--opening-text-soft);
+      text-align: center;
+      letter-spacing: 0.06em;
+    }
+    .complete-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      width: 100%;
+      max-width: 320px;
+    }
+    .complete-grid-cell {
+      aspect-ratio: 3 / 4;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.42);
+    }
+    .complete-grid-cell[data-rarity="r"] {
+      box-shadow: 0 0 0 1.5px var(--rarity-r), 0 4px 12px rgba(0,0,0,0.42);
+    }
+    .complete-grid-cell[data-rarity="sr"] {
+      box-shadow: 0 0 0 1.5px var(--rarity-sr), 0 0 12px var(--rarity-sr-soft), 0 4px 12px rgba(0,0,0,0.42);
+    }
+    .complete-grid-cell svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .complete-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      max-width: 320px;
+    }
+    .complete-btn {
+      width: 100%;
+      height: 48px;
+      border: none;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      transition: transform 0.08s ease, filter 0.18s ease;
+    }
+    .complete-btn.primary {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.52) 0%, rgba(255,255,255,0.16) 28%, rgba(255,255,255,0) 38%),
+        radial-gradient(circle at 28% 18%, #ffe38a 0%, rgba(255,227,138,0.5) 34%, rgba(255,227,138,0) 60%),
+        linear-gradient(180deg, var(--pomu-yellow) 0%, #ffb11e 55%, var(--pomu-orange) 100%);
+      color: #fff;
+      box-shadow:
+        0 5px 12px rgba(245, 158, 11, 0.42),
+        0 0 18px rgba(255, 210, 74, 0.30),
+        inset 0 1px 0 rgba(255,255,255,0.78);
+      text-shadow: 0 1px 0 rgba(146, 64, 14, 0.32);
+    }
+    .complete-btn.primary:active { transform: translateY(1px); filter: brightness(0.96); }
+    .complete-btn.secondary {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--opening-text);
+      border: 1px solid rgba(255, 255, 255, 0.20);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .complete-btn.secondary:active { background: rgba(255, 255, 255, 0.20); }
+
+    /* === デモ用ステート切替バー(プロトタイプ専用) === */
+    .demo-stage-controls {
+      max-width: 560px;
+      margin: 16px auto 60px;
+      padding: 14px 18px;
+      background: #fff;
+      border: 1px dashed #ccc;
+      border-radius: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+      color: #444;
+      line-height: 1.5;
+    }
+    .demo-stage-controls strong { margin-right: 6px; }
+    .demo-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      background: #f6f6f6;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+    }
+    .demo-btn.active {
+      background: var(--ink-900);
+      color: #fff;
+      border-color: var(--ink-900);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="device" data-stage="intro" data-rarity="r" data-reveal-index="1" role="application" aria-label="ガチャ開封演出">
+
+  <!-- 背景の星粒(opening専用) -->
+  <svg class="opening-stars" viewBox="0 0 393 852" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+    <g fill="#fff7d6">
+      <circle cx="36"  cy="88"  r="0.9" opacity="0.62"/>
+      <circle cx="96"  cy="60"  r="0.7" opacity="0.48"/>
+      <circle cx="148" cy="108" r="1.0" opacity="0.55"/>
+      <circle cx="198" cy="78"  r="0.8" opacity="0.62"/>
+      <circle cx="272" cy="56"  r="0.7" opacity="0.50"/>
+      <circle cx="331" cy="130" r="0.9" opacity="0.55"/>
+      <circle cx="42"  cy="184" r="0.8" opacity="0.42"/>
+      <circle cx="312" cy="220" r="1.0" opacity="0.62"/>
+      <circle cx="120" cy="252" r="0.7" opacity="0.40"/>
+      <circle cx="226" cy="708" r="0.9" opacity="0.50"/>
+      <circle cx="80"  cy="780" r="0.8" opacity="0.45"/>
+      <circle cx="340" cy="760" r="0.7" opacity="0.42"/>
+    </g>
+    <g fill="#fde68a" opacity="0.72">
+      <circle cx="76"  cy="42"  r="1.2"/>
+      <circle cx="248" cy="184" r="1.1"/>
+      <circle cx="324" cy="312" r="1.3"/>
+      <circle cx="58"  cy="640" r="1.1"/>
+    </g>
+  </svg>
+
+  <!-- 中央放射光(reveal) -->
+  <svg class="opening-rays" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <radialGradient id="rayCenter" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0%"   stop-color="#fff8db" stop-opacity="0.85"/>
+        <stop offset="22%"  stop-color="#ffd24a" stop-opacity="0.45"/>
+        <stop offset="55%"  stop-color="#fbbf24" stop-opacity="0.16"/>
+        <stop offset="100%" stop-color="#fbbf24" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <circle cx="300" cy="300" r="280" fill="url(#rayCenter)"/>
+    <g stroke="#ffe38a" stroke-width="1.4" stroke-linecap="round" opacity="0.42">
+      <line x1="300" y1="40"  x2="300" y2="120"/>
+      <line x1="300" y1="480" x2="300" y2="560"/>
+      <line x1="40"  y1="300" x2="120" y2="300"/>
+      <line x1="480" y1="300" x2="560" y2="300"/>
+      <line x1="120" y1="120" x2="172" y2="172"/>
+      <line x1="428" y1="120" x2="480" y2="172"/>
+      <line x1="120" y1="480" x2="172" y2="428"/>
+      <line x1="428" y1="480" x2="480" y2="428"/>
+    </g>
+  </svg>
+
+  <!-- ステータスバー -->
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>📶 100%</span>
+  </div>
+
+  <!-- ヘッダー -->
+  <div class="opening-header">
+    <button class="opening-back" data-action="back">‹ 戻る</button>
+    <div class="opening-progress" aria-label="開封進捗">
+      <span class="progress-dot is-current" data-step="1"></span>
+      <span class="progress-dot" data-step="2"></span>
+      <span class="progress-dot" data-step="3"></span>
+      <span class="progress-dot" data-step="4"></span>
+      <span class="progress-dot" data-step="5"></span>
+    </div>
+  </div>
+
+  <!-- メインコンテンツ -->
+  <div class="opening-main">
+
+    <!-- === STAGE 1: intro === -->
+    <div class="opening-stage stage-intro">
+      <div class="opening-pack-label">PINEAPPLE BACKGROUND PACK</div>
+      <div class="opening-pack-name">パイナップル背景パック</div>
+      <div class="opening-pack-wrap" data-action="open">
+        <svg viewBox="0 0 226 286" xmlns="http://www.w3.org/2000/svg" aria-label="背景パック">
+          <defs>
+            <linearGradient id="openDeckBack" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#c5e2f0"/>
+              <stop offset="100%" stop-color="#8fc8e0"/>
+            </linearGradient>
+            <pattern id="openPackCloud" width="48" height="36" patternUnits="userSpaceOnUse">
+              <g fill="#ffffff" opacity="0.58">
+                <ellipse cx="14" cy="18" rx="10.4" ry="4.4"/>
+                <ellipse cx="24" cy="15"  rx="9.6"  ry="5.6"/>
+                <ellipse cx="34" cy="19"  rx="11.2" ry="4.2"/>
+              </g>
+              <path d="M8 23 C16 26 31 26 42 23" stroke="#d8edf5" stroke-width="1.2" stroke-linecap="round" opacity="0.32"/>
+            </pattern>
+            <filter id="openDeckShadow" x="-22%" y="-20%" width="150%" height="150%">
+              <feDropShadow dx="1.4" dy="2.8" stdDeviation="2" flood-color="#0b1632" flood-opacity="0.42"/>
+            </filter>
+          </defs>
+
+          <g class="pack-bundle-big">
+            <ellipse cx="96" cy="260" rx="64" ry="9" fill="#0b1632" opacity="0.42"/>
+            <!-- 背後のカード4枚(扇形) -->
+            <g opacity="0.62" transform="rotate(-13 95 158)">
+              <rect x="36" y="84" width="112" height="156" rx="13" fill="url(#openDeckBack)" stroke="#4e94b4" stroke-width="2" filter="url(#openDeckShadow)"/>
+              <rect x="36" y="84" width="112" height="156" rx="13" fill="url(#openPackCloud)" opacity="0.5"/>
+            </g>
+            <g opacity="0.72" transform="rotate(-6 97 158)">
+              <rect x="42" y="78" width="112" height="156" rx="13" fill="url(#openDeckBack)" stroke="#4e94b4" stroke-width="2" filter="url(#openDeckShadow)"/>
+              <rect x="42" y="78" width="112" height="156" rx="13" fill="url(#openPackCloud)" opacity="0.5"/>
+            </g>
+            <g opacity="0.72" transform="rotate(7 100 158)">
+              <rect x="52" y="80" width="112" height="156" rx="13" fill="url(#openDeckBack)" stroke="#4e94b4" stroke-width="2" filter="url(#openDeckShadow)"/>
+              <rect x="52" y="80" width="112" height="156" rx="13" fill="url(#openPackCloud)" opacity="0.5"/>
+            </g>
+            <g opacity="0.58" transform="rotate(13 103 160)">
+              <rect x="60" y="86" width="112" height="156" rx="13" fill="url(#openDeckBack)" stroke="#4e94b4" stroke-width="2" filter="url(#openDeckShadow)"/>
+              <rect x="60" y="86" width="112" height="156" rx="13" fill="url(#openPackCloud)" opacity="0.46"/>
+            </g>
+            <!-- 前面のメインカード -->
+            <g filter="url(#openDeckShadow)">
+              <rect x="50" y="74" width="116" height="160" rx="14" fill="url(#openDeckBack)" stroke="#0b1632" stroke-width="2.4"/>
+              <rect x="50" y="74" width="116" height="160" rx="14" fill="url(#openPackCloud)" opacity="0.62"/>
+              <rect x="58" y="82" width="100" height="144" rx="10" fill="none" stroke="#ffffff" stroke-width="2.2" opacity="0.66"/>
+              <path d="M58 82 C82 74 134 74 158 82" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+              <g transform="translate(0, 6)">
+                <path d="M62 178 L88 142 L106 162 L128 132 L156 178 Z"
+                      fill="#f8fcff" stroke="#0b1632" stroke-width="2.4" stroke-linejoin="round"/>
+                <g fill="#ffffff" stroke="#0b1632" stroke-width="1.8" opacity="0.94">
+                  <ellipse cx="124" cy="138" rx="13" ry="5.4"/>
+                  <ellipse cx="136" cy="135" rx="8.6" ry="6.8"/>
+                  <ellipse cx="146" cy="139" rx="10.8" ry="4.8"/>
+                </g>
+              </g>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="opening-hint">タップして開封</div>
+    </div>
+
+    <!-- === STAGE 2: animating === -->
+    <div class="opening-stage stage-animating">
+      <div class="opening-burst">
+        <div class="opening-burst-flash"></div>
+        <div class="opening-burst-pack">
+          <svg viewBox="0 0 226 286" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <use href="#dummy"/>
+            <g>
+              <rect x="50" y="74" width="116" height="160" rx="14" fill="#c5e2f0" stroke="#0b1632" stroke-width="2.4"/>
+              <path d="M62 178 L88 142 L106 162 L128 132 L156 178 Z" fill="#f8fcff" stroke="#0b1632" stroke-width="2.4" stroke-linejoin="round"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- === STAGE 3: reveal === -->
+    <div class="opening-stage stage-reveal">
+      <div class="reward-card-wrap">
+        <div class="reward-card" id="rewardCard" data-rarity="r">
+          <div class="reward-card-art" id="rewardArt">
+            <!-- JSで動的に差し替え -->
+          </div>
+          <div class="reward-card-rarity-strip" id="rewardRarityStrip">R</div>
+        </div>
+      </div>
+      <div class="reward-info">
+        <div class="reward-category" id="rewardCategory">BACKGROUND</div>
+        <div class="reward-name" id="rewardName">夕焼け</div>
+        <div class="reward-rarity-stars" id="rewardStars">
+          <span>★</span><span>★</span><span class="star-dim">★</span>
+        </div>
+      </div>
+      <div class="opening-hint">タップで次へ</div>
+    </div>
+
+    <!-- === STAGE 4: complete === -->
+    <div class="opening-stage stage-complete">
+      <div class="complete-title">5種類を <span class="em">獲得!</span></div>
+      <div class="complete-sub">パイナップル背景パック</div>
+
+      <div class="complete-grid">
+        <div class="complete-grid-cell" data-rarity="n">
+          <svg viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs><linearGradient id="cgAsa" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#dbeafe"/><stop offset="100%" stop-color="#bae6fd"/></linearGradient></defs>
+            <rect width="30" height="40" fill="url(#cgAsa)"/>
+            <path d="M0 30 L8 22 L14 28 L22 18 L30 30 Z" fill="#ffffff" opacity="0.78"/>
+            <ellipse cx="6" cy="12" rx="5" ry="2" fill="#fff" opacity="0.7"/>
+            <ellipse cx="22" cy="8" rx="6" ry="2.4" fill="#fff" opacity="0.6"/>
+          </svg>
+        </div>
+        <div class="complete-grid-cell" data-rarity="r">
+          <svg viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs><linearGradient id="cgYu" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fde68a"/><stop offset="50%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#dc2626"/></linearGradient></defs>
+            <rect width="30" height="40" fill="url(#cgYu)"/>
+            <circle cx="22" cy="22" r="4" fill="#fffaeb" opacity="0.94"/>
+            <path d="M0 32 L8 24 L14 30 L22 22 L30 30 Z" fill="#1a1f2c" opacity="0.7"/>
+          </svg>
+        </div>
+        <div class="complete-grid-cell" data-rarity="r">
+          <svg viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs><linearGradient id="cgHo" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1e1b4b"/><stop offset="100%" stop-color="#3730a3"/></linearGradient></defs>
+            <rect width="30" height="40" fill="url(#cgHo)"/>
+            <circle cx="22" cy="8"  r="0.8" fill="#fff"/>
+            <circle cx="8"  cy="14" r="0.6" fill="#fff"/>
+            <circle cx="16" cy="12" r="0.5" fill="#fff"/>
+            <circle cx="24" cy="18" r="0.7" fill="#fff"/>
+            <circle cx="10" cy="22" r="0.5" fill="#fff"/>
+            <circle cx="20" cy="26" r="0.6" fill="#fff"/>
+            <path d="M0 32 L30 32 L30 40 L0 40 Z" fill="#0c0a3e"/>
+          </svg>
+        </div>
+        <div class="complete-grid-cell" data-rarity="sr">
+          <svg viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs><linearGradient id="cgNy" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#172d52"/><stop offset="100%" stop-color="#315987"/></linearGradient></defs>
+            <rect width="30" height="40" fill="url(#cgNy)"/>
+            <circle cx="22" cy="6" r="2" fill="#fff5e1"/>
+            <g fill="#0b182d">
+              <rect x="2"  y="20" width="4" height="20"/>
+              <rect x="8"  y="16" width="3" height="24"/>
+              <rect x="14" y="22" width="3" height="18"/>
+              <rect x="18" y="12" width="4" height="28"/>
+              <rect x="24" y="20" width="4" height="20"/>
+            </g>
+            <g fill="#fbbf24"><rect x="3"  y="22" width="1" height="1"/><rect x="9"  y="20" width="1" height="1"/><rect x="19" y="18" width="1" height="1"/><rect x="25" y="22" width="1" height="1"/></g>
+          </svg>
+        </div>
+        <div class="complete-grid-cell" data-rarity="sr">
+          <svg viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs><linearGradient id="cgSa" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fce7f3"/><stop offset="100%" stop-color="#fbcfe8"/></linearGradient></defs>
+            <rect width="30" height="40" fill="url(#cgSa)"/>
+            <g fill="#f472b6"><circle cx="6" cy="8" r="1.2"/><circle cx="14" cy="6" r="1"/><circle cx="22" cy="10" r="1.4"/><circle cx="10" cy="18" r="1"/><circle cx="20" cy="20" r="1.2"/></g>
+            <path d="M0 32 L14 22 L22 26 L30 24 L30 40 L0 40 Z" fill="#ec4899" opacity="0.78"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="complete-actions">
+        <button class="complete-btn primary" data-action="open-again">もう一回 開ける(100コイン)</button>
+        <button class="complete-btn secondary" data-action="back-to-gacha">ガチャに戻る</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- デモ用ステート切替バー -->
+<div class="demo-stage-controls">
+  <strong>DEMO:</strong>
+  <button class="demo-btn active" data-set-stage="intro">1. パック表示</button>
+  <button class="demo-btn"        data-set-stage="animating">2. 開封演出</button>
+  <button class="demo-btn"        data-set-stage="reveal">3. 報酬カード</button>
+  <button class="demo-btn"        data-set-stage="complete">4. 完了</button>
+  <span style="margin-left: 12px;">|</span>
+  <button class="demo-btn" data-set-rarity="n">N</button>
+  <button class="demo-btn" data-set-rarity="r">R</button>
+  <button class="demo-btn" data-set-rarity="sr">SR</button>
+  <span style="margin-left: 12px;">|</span>
+  <button class="demo-btn" data-reveal-step="1">card 1</button>
+  <button class="demo-btn" data-reveal-step="2">2</button>
+  <button class="demo-btn" data-reveal-step="3">3</button>
+  <button class="demo-btn" data-reveal-step="4">4</button>
+  <button class="demo-btn" data-reveal-step="5">5</button>
+</div>
+
+<script>
+  const device = document.querySelector('.device');
+
+  // 5枚の報酬データ
+  const rewards = [
+    { name: '朝霧',        category: 'BACKGROUND', rarity: 'n',  stars: 1 },
+    { name: '夕焼け',      category: 'BACKGROUND', rarity: 'r',  stars: 2 },
+    { name: '星空',        category: 'BACKGROUND', rarity: 'r',  stars: 2 },
+    { name: '渋谷ナイト',  category: 'BACKGROUND', rarity: 'sr', stars: 3 },
+    { name: '桜並木',      category: 'BACKGROUND', rarity: 'sr', stars: 3 }
+  ];
+
+  // 各報酬のSVGアート(reveal で差し替え)
+  const rewardArts = {
+    '朝霧': `<svg viewBox="0 0 226 304" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="raAsa" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#dbeafe"/><stop offset="100%" stop-color="#bae6fd"/></linearGradient></defs>
+      <rect width="226" height="304" fill="url(#raAsa)"/>
+      <ellipse cx="50"  cy="80"  rx="44" ry="13" fill="#fff" opacity="0.82"/>
+      <ellipse cx="156" cy="60"  rx="56" ry="16" fill="#fff" opacity="0.78"/>
+      <ellipse cx="190" cy="118" rx="40" ry="12" fill="#fff" opacity="0.62"/>
+      <path d="M0 232 L60 168 L100 200 L150 150 L226 218 L226 304 L0 304 Z" fill="#ffffff" stroke="#1a1f2c" stroke-width="1.6" stroke-linejoin="round" opacity="0.85"/>
+      <path d="M0 256 L226 256 L226 304 L0 304 Z" fill="#e6f4fb" opacity="0.8"/>
+    </svg>`,
+    '夕焼け': `<svg viewBox="0 0 226 304" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="raYu" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fde68a"/><stop offset="50%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#dc2626"/></linearGradient></defs>
+      <rect width="226" height="304" fill="url(#raYu)"/>
+      <circle cx="168" cy="138" r="32" fill="#fffaeb" opacity="0.94"/>
+      <path d="M0 236 L60 168 L100 208 L168 142 L226 224 L226 304 L0 304 Z" fill="#1a1f2c" opacity="0.78"/>
+      <path d="M0 264 L226 264 L226 304 L0 304 Z" fill="#1a1f2c" opacity="0.62"/>
+    </svg>`,
+    '星空': `<svg viewBox="0 0 226 304" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="raHo" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1e1b4b"/><stop offset="100%" stop-color="#3730a3"/></linearGradient></defs>
+      <rect width="226" height="304" fill="url(#raHo)"/>
+      <g fill="#fff">
+        <circle cx="32"  cy="60"  r="1.4"/>
+        <circle cx="78"  cy="36"  r="1.0"/>
+        <circle cx="142" cy="48"  r="1.6"/>
+        <circle cx="184" cy="78"  r="1.0"/>
+        <circle cx="202" cy="36"  r="1.4"/>
+        <circle cx="56"  cy="108" r="1.2"/>
+        <circle cx="116" cy="90"  r="0.9"/>
+        <circle cx="170" cy="120" r="1.3"/>
+        <circle cx="22"  cy="158" r="1.1"/>
+        <circle cx="92"  cy="148" r="1.4"/>
+        <circle cx="200" cy="170" r="0.9"/>
+      </g>
+      <g fill="#fde68a" opacity="0.88">
+        <circle cx="44"  cy="86"  r="1.6"/>
+        <circle cx="156" cy="68"  r="1.8"/>
+        <circle cx="68"  cy="200" r="1.3"/>
+      </g>
+      <path d="M0 244 L226 244 L226 304 L0 304 Z" fill="#0c0a3e"/>
+      <path d="M0 252 C40 248 90 254 130 250 C170 246 200 252 226 250 L226 304 L0 304 Z" fill="#1e1b4b"/>
+    </svg>`,
+    '渋谷ナイト': `<svg viewBox="0 0 226 304" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="raNy" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#172d52"/><stop offset="100%" stop-color="#315987"/></linearGradient></defs>
+      <rect width="226" height="304" fill="url(#raNy)"/>
+      <circle cx="172" cy="56" r="14" fill="#fff5e1"/>
+      <g fill="#0b182d">
+        <rect x="6"   y="156" width="36" height="148"/>
+        <rect x="48"  y="124" width="28" height="180"/>
+        <rect x="82"  y="178" width="20" height="126"/>
+        <rect x="110" y="98"  width="36" height="206"/>
+        <rect x="152" y="146" width="28" height="158"/>
+        <rect x="186" y="180" width="34" height="124"/>
+      </g>
+      <g fill="#fbbf24">
+        <rect x="14" y="180" width="6" height="6"/>
+        <rect x="26" y="220" width="6" height="6"/>
+        <rect x="56" y="148" width="6" height="6"/>
+        <rect x="62" y="200" width="6" height="6"/>
+        <rect x="88" y="200" width="6" height="6"/>
+        <rect x="116" y="124" width="6" height="6"/>
+        <rect x="128" y="170" width="6" height="6"/>
+        <rect x="158" y="174" width="6" height="6"/>
+        <rect x="166" y="220" width="6" height="6"/>
+        <rect x="192" y="208" width="6" height="6"/>
+        <rect x="204" y="248" width="6" height="6"/>
+      </g>
+    </svg>`,
+    '桜並木': `<svg viewBox="0 0 226 304" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="raSa" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fce7f3"/><stop offset="100%" stop-color="#fbcfe8"/></linearGradient></defs>
+      <rect width="226" height="304" fill="url(#raSa)"/>
+      <g fill="#f472b6">
+        <circle cx="34"  cy="56"  r="6"/>
+        <circle cx="78"  cy="32"  r="5"/>
+        <circle cx="142" cy="62"  r="7"/>
+        <circle cx="186" cy="36"  r="5"/>
+        <circle cx="58"  cy="104" r="5"/>
+        <circle cx="118" cy="118" r="6"/>
+        <circle cx="180" cy="124" r="5"/>
+        <circle cx="22"  cy="166" r="5"/>
+        <circle cx="98"  cy="180" r="6"/>
+        <circle cx="204" cy="170" r="5"/>
+      </g>
+      <g fill="#ec4899" opacity="0.78">
+        <ellipse cx="50"  cy="232" rx="40" ry="22"/>
+        <ellipse cx="130" cy="220" rx="44" ry="26"/>
+        <ellipse cx="200" cy="240" rx="32" ry="18"/>
+      </g>
+      <g stroke="#7c2d12" stroke-width="3" stroke-linecap="round">
+        <line x1="50"  y1="254" x2="50"  y2="304"/>
+        <line x1="130" y1="246" x2="130" y2="304"/>
+        <line x1="200" y1="258" x2="200" y2="304"/>
+      </g>
+      <path d="M0 280 L226 280 L226 304 L0 304 Z" fill="#fda4af" opacity="0.72"/>
+    </svg>`
+  };
+
+  function stars(n) {
+    return Array.from({length: 3}, (_, i) =>
+      i < n ? '<span>\u2605</span>' : '<span class="star-dim">\u2605</span>'
+    ).join('');
+  }
+
+  function rarityStripLabel(r) {
+    return { n: 'N', r: 'R', sr: 'SR' }[r] || 'N';
+  }
+
+  function setRevealIndex(idx) {
+    const reward = rewards[idx - 1];
+    if (!reward) return;
+    device.dataset.revealIndex = String(idx);
+    device.dataset.rarity = reward.rarity;
+
+    document.getElementById('rewardArt').innerHTML = rewardArts[reward.name] || '';
+    document.getElementById('rewardName').textContent = reward.name;
+    document.getElementById('rewardCategory').textContent = reward.category;
+    document.getElementById('rewardStars').innerHTML = stars(reward.stars);
+
+    const strip = document.getElementById('rewardRarityStrip');
+    strip.textContent = rarityStripLabel(reward.rarity);
+
+    document.getElementById('rewardCard').dataset.rarity = reward.rarity;
+
+    // 進捗ドット更新
+    document.querySelectorAll('.progress-dot').forEach(dot => {
+      const step = Number(dot.dataset.step);
+      dot.classList.toggle('is-done', step < idx);
+      dot.classList.toggle('is-current', step === idx);
+    });
+
+    // reveal アニメ再トリガー
+    const card = document.getElementById('rewardCard');
+    card.style.animation = 'none';
+    void card.offsetWidth;
+    card.style.animation = '';
+  }
+
+  function setStage(stage) {
+    device.dataset.stage = stage;
+    document.querySelectorAll('.demo-btn[data-set-stage]').forEach(b =>
+      b.classList.toggle('active', b.dataset.setStage === stage)
+    );
+    if (stage === 'reveal') {
+      const idx = Number(device.dataset.revealIndex) || 1;
+      setRevealIndex(idx);
+    }
+  }
+
+  // 初期化: reveal 用カード1
+  setRevealIndex(1);
+
+  // パックタップで開封開始
+  document.querySelector('[data-action="open"]')?.addEventListener('click', () => {
+    setStage('animating');
+    setTimeout(() => {
+      setStage('reveal');
+      setRevealIndex(1);
+    }, 1400);
+  });
+
+  // reveal でタップ → 次のカード or 完了
+  document.querySelector('.stage-reveal')?.addEventListener('click', e => {
+    if (e.target.closest('.opening-back, .demo-btn')) return;
+    const idx = Number(device.dataset.revealIndex) || 1;
+    if (idx < 5) {
+      setRevealIndex(idx + 1);
+    } else {
+      setStage('complete');
+    }
+  });
+
+  // 戻る
+  document.querySelector('[data-action="back"]')?.addEventListener('click', () => {
+    alert('[ガチャ画面に戻る]');
+  });
+
+  // 完了画面のアクション
+  document.querySelector('[data-action="open-again"]')?.addEventListener('click', () => {
+    setStage('intro');
+    setRevealIndex(1);
+  });
+  document.querySelector('[data-action="back-to-gacha"]')?.addEventListener('click', () => {
+    alert('[ガチャ画面に戻る]');
+  });
+
+  // === デモ用ステート切替 ===
+  document.querySelectorAll('.demo-btn[data-set-stage]').forEach(btn => {
+    btn.addEventListener('click', () => setStage(btn.dataset.setStage));
+  });
+  document.querySelectorAll('.demo-btn[data-set-rarity]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      device.dataset.rarity = btn.dataset.setRarity;
+      document.getElementById('rewardCard').dataset.rarity = btn.dataset.setRarity;
+      document.getElementById('rewardRarityStrip').textContent = rarityStripLabel(btn.dataset.setRarity);
+    });
+  });
+  document.querySelectorAll('.demo-btn[data-reveal-step]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setStage('reveal');
+      setRevealIndex(Number(btn.dataset.revealStep));
+    });
+  });
+</script>
+
+</body>
+</html>

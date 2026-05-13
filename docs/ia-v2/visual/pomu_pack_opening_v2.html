@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<!--
+  ファイル: pomu_pack_opening_v2.html
+  改善日: 2026-05-14
+  改善者: Codex / GPT
+  バージョン: v2
+
+  v1 からの変更点:
+   - intro パックを大型化し、二重ゴールドグロー、金粒子、タイトル微光を追加
+   - animating を多層フラッシュ、放射光線、リング波紋、放射パーティクルに刷新
+   - 報酬カード5種(朝霧/夕焼け/星空/渋谷ナイト/桜並木)のSVG背景を精細化
+   - SR報酬に二重金縁、虹色ハイライト、金粒子、バッジスパークルを追加
+   - complete に紙吹雪、ミニパック、サムネ金グロー、強い再開封ボタン発光を追加
+-->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>VISUAL: 開封演出 (v2)</title>
+  <style>
+    :root {
+      /* ぽむタウン共通トークン */
+      --sky-100:        #e6f4fb;
+      --sky-200:        #c5e2f0;
+      --cloud-white:    #ffffff;
+      --cloud-soft:     #f6fbfd;
+      --pomu-yellow:    #fbbf24;
+      --pomu-orange:    #f59e0b;
+      --leaf-green:     #65c466;
+      --ink-900:        #1a1f2c;
+      --ink-500:        #6b7280;
+      --ink-300:        #d1d5db;
+      --ready-glow:     #ffd24a;
+      --ready-glow-soft: rgba(255, 210, 74, 0.35);
+
+      /* 開封演出専用トークン */
+      --opening-night-top:    #0b1632;
+      --opening-night-mid:    #1a2d52;
+      --opening-night-bottom: #2a4775;
+      --opening-flash:        #fff8db;
+      --opening-text:         #f6fbfd;
+      --opening-text-soft:    rgba(246, 251, 253, 0.62);
+      --opening-gold:         #ffd24a;
+      --opening-gold-hot:     #fff0a6;
+      --opening-cyan:         #8de8ff;
+      --opening-gold-dust:    rgba(255, 226, 138, 0.92);
+      --opening-cyan-dust:    rgba(141, 232, 255, 0.72);
+
+      /* レアリティ別アクセント */
+      --rarity-n:        #9ca3af;
+      --rarity-n-soft:   rgba(156, 163, 175, 0.30);
+      --rarity-r:        #60a5fa;
+      --rarity-r-soft:   rgba(96, 165, 250, 0.34);
+      --rarity-sr:       #fbbf24;
+      --rarity-sr-soft:  rgba(255, 210, 74, 0.42);
+      --rarity-sr-hot:   rgba(255, 240, 166, 0.88);
+      --rarity-sr-rainbow: linear-gradient(90deg,
+        rgba(255,255,255,0),
+        rgba(255,255,255,0.72),
+        rgba(141,232,255,0.48),
+        rgba(255,210,74,0.62),
+        rgba(255,255,255,0));
+
+      --card-shadow: 0 4px 12px rgba(26, 31, 44, 0.06),
+                     0 1px 3px rgba(26, 31, 44, 0.04);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background: #ecf3f7;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Noto Sans JP", sans-serif;
+      color: var(--ink-900);
+      letter-spacing: 0.02em;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .device {
+      width: 393px;
+      height: 852px;
+      margin: 24px auto;
+      background: linear-gradient(180deg, var(--opening-night-top) 0%, var(--opening-night-mid) 56%, var(--opening-night-bottom) 100%);
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 60px rgba(11, 22, 50, 0.42),
+                  0 4px 12px rgba(11, 22, 50, 0.22);
+      isolation: isolate;
+    }
+
+    /* 背景の星粒(intro/reveal で見える、animatingで明るく) */
+    .opening-stars {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+    .opening-gold-dust {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.72;
+      mix-blend-mode: screen;
+    }
+    .opening-gold-dust circle {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: dustTwinkle 3.4s ease-in-out infinite;
+    }
+    .opening-gold-dust circle:nth-child(2n) { animation-delay: -1.2s; }
+    .opening-gold-dust circle:nth-child(3n) { animation-delay: -2.1s; }
+    @keyframes dustTwinkle {
+      0%, 100% { opacity: 0.32; transform: scale(0.78); }
+      45%      { opacity: 1;    transform: scale(1.22); }
+      70%      { opacity: 0.58; transform: scale(0.92); }
+    }
+
+    /* 中央からの放射光(reveal 時) */
+    .opening-rays {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 600px; height: 600px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.42s ease;
+      z-index: 0;
+    }
+    .opening-rays g {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: slowRaySpin 16s linear infinite;
+    }
+    @keyframes slowRaySpin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    .device[data-stage="reveal"] .opening-rays {
+      opacity: 0.78;
+    }
+    .device[data-stage="reveal"][data-rarity="sr"] .opening-rays {
+      opacity: 1;
+    }
+
+    /* ステータスバー */
+    .status-bar {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--opening-text);
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ヘッダー(戻る + 進捗) */
+    .opening-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 20px 12px;
+      position: relative;
+      z-index: 2;
+    }
+    .opening-back {
+      min-height: 38px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.20), rgba(255,255,255,0.08));
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 999px;
+      padding: 7px 14px 7px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--opening-text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      backdrop-filter: blur(14px) saturate(1.25);
+      -webkit-backdrop-filter: blur(14px) saturate(1.25);
+      letter-spacing: 0.04em;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.22),
+        0 6px 16px rgba(0,0,0,0.16);
+      transition: transform 0.08s ease, background 0.16s ease, box-shadow 0.16s ease;
+    }
+    .opening-back svg {
+      width: 14px;
+      height: 14px;
+      stroke-width: 2.8;
+    }
+    .opening-back:active {
+      transform: translateY(1px) scale(0.98);
+      background: rgba(255, 255, 255, 0.18);
+      box-shadow:
+        inset 0 2px 4px rgba(0,0,0,0.18),
+        0 3px 10px rgba(0,0,0,0.16);
+    }
+
+    .opening-progress {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .progress-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.10);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+    .progress-dot.is-done {
+      background: linear-gradient(180deg, #fff8db 0%, var(--opening-gold) 100%);
+      border-color: rgba(255, 246, 199, 0.96);
+      box-shadow:
+        0 0 8px rgba(255, 210, 74, 0.68),
+        inset 0 1px 0 rgba(255,255,255,0.72);
+    }
+    .progress-dot.is-current {
+      background: var(--pomu-yellow);
+      border-color: var(--pomu-yellow);
+      transform: scale(1.28);
+      box-shadow:
+        0 0 0 4px rgba(255, 210, 74, 0.16),
+        0 0 14px rgba(255, 210, 74, 0.86),
+        inset 0 1px 0 rgba(255,255,255,0.62);
+      animation: progressCurrentPulse 1.4s ease-in-out infinite;
+    }
+    @keyframes progressCurrentPulse {
+      0%, 100% { transform: scale(1.18); }
+      50%      { transform: scale(1.38); }
+    }
+    /* intro/animating/complete では進捗を隠す */
+    .device[data-stage="intro"] .opening-progress,
+    .device[data-stage="animating"] .opening-progress,
+    .device[data-stage="complete"] .opening-progress {
+      display: none;
+    }
+
+    /* メインコンテンツエリア */
+    .opening-main {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 24px;
+      z-index: 1;
+    }
+
+    /* === ステージ共通 === */
+    .opening-stage {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 24px;
+      gap: 24px;
+    }
+    .device[data-stage="intro"]     .stage-intro,
+    .device[data-stage="animating"] .stage-animating,
+    .device[data-stage="reveal"]    .stage-reveal,
+    .device[data-stage="complete"]  .stage-complete {
+      display: flex;
+    }
+
+    /* タップヒント */
+    .opening-hint {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--opening-text-soft);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      animation: hintPulse 1.6s ease-in-out infinite;
+    }
+    @keyframes hintPulse {
+      0%, 100% { opacity: 0.55; }
+      50%      { opacity: 1; }
+    }
+
+    /* === STAGE 1: intro (パック表示) === */
+    .stage-intro {
+      gap: 20px;
+      padding-bottom: 28px;
+    }
+    .stage-intro .opening-pack-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      color: var(--pomu-yellow);
+      text-shadow:
+        0 0 8px rgba(255, 210, 74, 0.56),
+        0 0 18px rgba(255, 210, 74, 0.28);
+    }
+    .stage-intro .opening-pack-name {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--opening-text);
+      letter-spacing: 0.04em;
+      text-shadow:
+        0 2px 8px rgba(0,0,0,0.42),
+        0 0 14px rgba(255, 210, 74, 0.22);
+    }
+    .opening-pack-wrap {
+      width: 260px;
+      height: 320px;
+      position: relative;
+      cursor: pointer;
+      filter:
+        drop-shadow(0 24px 44px rgba(0,0,0,0.50))
+        drop-shadow(0 0 26px rgba(255, 210, 74, 0.42))
+        drop-shadow(0 0 58px rgba(255, 210, 74, 0.22));
+      z-index: 1;
+    }
+    .opening-pack-wrap::before,
+    .opening-pack-wrap::after {
+      content: "";
+      position: absolute;
+      inset: 28px 4px 12px;
+      border-radius: 46%;
+      pointer-events: none;
+      z-index: -1;
+    }
+    .opening-pack-wrap::before {
+      background:
+        radial-gradient(circle at 50% 46%, rgba(255, 240, 166, 0.44), rgba(255, 210, 74, 0.16) 46%, rgba(255, 210, 74, 0) 72%);
+      filter: blur(8px);
+      animation: packAuraPulse 2.6s ease-in-out infinite;
+    }
+    .opening-pack-wrap::after {
+      inset: 48px 18px 24px;
+      border: 1px solid rgba(255, 240, 166, 0.32);
+      box-shadow:
+        0 0 28px rgba(255, 210, 74, 0.30),
+        inset 0 0 28px rgba(255, 210, 74, 0.10);
+      opacity: 0.58;
+      transform: rotate(-4deg);
+    }
+    .opening-pack-wrap svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    @keyframes packBigSway {
+      0%, 100% { transform: rotate(-2.4deg) translateY(0); }
+      50%      { transform: rotate(2.4deg)  translateY(-6px); }
+    }
+    .stage-intro .opening-pack-wrap > svg > .pack-bundle-big {
+      transform-box: fill-box;
+      transform-origin: center bottom;
+      animation: packBigSway 3.2s ease-in-out infinite;
+    }
+    @keyframes packAuraPulse {
+      0%, 100% { opacity: 0.62; transform: scale(0.96); }
+      50%      { opacity: 1;    transform: scale(1.05); }
+    }
+    .opening-pack-wrap:active {
+      transform: scale(1.04);
+      transition: transform 0.1s ease-out;
+    }
+
+    /* === STAGE 2: animating (開封演出) === */
+    .stage-animating { gap: 0; }
+    .opening-burst {
+      width: 430px;
+      height: 430px;
+      position: relative;
+    }
+    @keyframes burstFlash {
+      0%   { opacity: 0; transform: scale(0.22); filter: blur(10px); }
+      18%  { opacity: 0.72; transform: scale(0.58); filter: blur(4px); }
+      42%  { opacity: 1; transform: scale(1.08); filter: blur(0); }
+      68%  { opacity: 0.95; transform: scale(1.22); }
+      100% { opacity: 0.34; transform: scale(1.38); filter: blur(2px); }
+    }
+    @keyframes packBurstDispel {
+      0%   { opacity: 1; transform: translate(-50%, -50%) scale(0.95) rotate(0deg); filter: brightness(1); }
+      8%   { opacity: 1; transform: translate(calc(-50% - 7px), calc(-50% + 2px)) scale(0.96) rotate(-3deg); }
+      16%  { opacity: 1; transform: translate(calc(-50% + 7px), calc(-50% - 3px)) scale(0.98) rotate(3deg); }
+      28%  { opacity: 1; transform: translate(-50%, calc(-50% - 26px)) scale(1.04) rotate(-8deg); }
+      48%  { opacity: 0.94; transform: translate(-50%, calc(-50% - 42px)) scale(0.86) rotate(14deg); filter: brightness(1.28); }
+      72%  { opacity: 0.46; transform: translate(-50%, calc(-50% - 18px)) scale(0.48) rotate(33deg); filter: brightness(1.85) blur(1px); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.08) rotate(54deg); filter: brightness(2.4) blur(3px); }
+    }
+    .opening-burst-flash {
+      position: absolute;
+      inset: 16px;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at center,
+        rgba(255, 255, 255, 0.98) 0%,
+        rgba(255, 248, 219, 0.95) 14%,
+        rgba(255, 210, 74, 0.62) 30%,
+        rgba(255, 210, 74, 0.18) 52%,
+        rgba(141, 232, 255, 0.12) 64%,
+        rgba(255, 210, 74, 0) 78%);
+      animation: burstFlash 1.4s ease-out forwards;
+      transform-origin: center;
+      mix-blend-mode: screen;
+    }
+    .opening-burst-rays {
+      position: absolute;
+      inset: -22px;
+      border-radius: 999px;
+      background:
+        repeating-conic-gradient(from -7deg,
+          rgba(255, 226, 138, 0) 0deg,
+          rgba(255, 226, 138, 0.78) 5deg,
+          rgba(255, 226, 138, 0.18) 10deg,
+          rgba(255, 226, 138, 0) 30deg);
+      mask-image: radial-gradient(circle at center, transparent 0 16%, #000 17% 72%, transparent 74%);
+      -webkit-mask-image: radial-gradient(circle at center, transparent 0 16%, #000 17% 72%, transparent 74%);
+      opacity: 0;
+      animation: burstRays 1.36s cubic-bezier(0.15,0.82,0.22,1) forwards;
+      transform-origin: center;
+      mix-blend-mode: screen;
+    }
+    .opening-burst-ring {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 116px;
+      height: 116px;
+      border-radius: 999px;
+      border: 2px solid rgba(255, 240, 166, 0.72);
+      box-shadow:
+        0 0 18px rgba(255, 210, 74, 0.54),
+        inset 0 0 18px rgba(255, 210, 74, 0.24);
+      transform: translate(-50%, -50%) scale(0.25);
+      opacity: 0;
+      animation: burstRing 1.22s ease-out forwards;
+    }
+    .opening-burst-ring.ring-2 {
+      width: 82px;
+      height: 82px;
+      border-color: rgba(141, 232, 255, 0.48);
+      box-shadow:
+        0 0 20px rgba(141, 232, 255, 0.34),
+        inset 0 0 18px rgba(255,255,255,0.14);
+      animation-delay: 0.18s;
+    }
+    .burst-particles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 4;
+    }
+    .burst-particles .particle {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: var(--s, 7px);
+      height: var(--s, 7px);
+      border-radius: 999px;
+      background: var(--c, var(--opening-gold-dust));
+      box-shadow: 0 0 12px var(--c, var(--opening-gold-dust));
+      transform: translate(-50%, -50%) scale(0.2);
+      opacity: 0;
+      animation: particleFly 1.12s cubic-bezier(0.12,0.76,0.22,1) forwards;
+      animation-delay: var(--d, 0.36s);
+    }
+    .burst-particles .particle.is-spark {
+      border-radius: 2px;
+      transform: translate(-50%, -50%) rotate(45deg) scale(0.2);
+    }
+    .opening-burst-pack {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 260px; height: 320px;
+      transform: translate(-50%, -50%);
+      animation: packBurstDispel 1.2s ease-in forwards;
+      z-index: 3;
+      filter:
+        drop-shadow(0 20px 42px rgba(0,0,0,0.48))
+        drop-shadow(0 0 34px rgba(255, 210, 74, 0.38));
+    }
+    .opening-burst-pack svg { width: 100%; height: 100%; }
+    .stage-animating .opening-hint { display: none; }
+    @keyframes burstRays {
+      0%   { opacity: 0; transform: scale(0.42) rotate(-18deg); }
+      30%  { opacity: 0.92; transform: scale(0.86) rotate(4deg); }
+      68%  { opacity: 0.78; transform: scale(1.10) rotate(18deg); }
+      100% { opacity: 0.04; transform: scale(1.26) rotate(32deg); }
+    }
+    @keyframes burstRing {
+      0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.22); }
+      22%  { opacity: 0.86; }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(3.1); }
+    }
+    @keyframes particleFly {
+      0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.16); }
+      14%  { opacity: 1; }
+      72%  { opacity: 0.92; }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(0.2); }
+    }
+
+    /* === STAGE 3: reveal (報酬カード) === */
+    .stage-reveal { gap: 20px; }
+
+    .reward-card-wrap {
+      perspective: 1000px;
+      position: relative;
+    }
+    .device[data-stage="reveal"][data-rarity="sr"] .reward-card-wrap::before {
+      content: "";
+      position: absolute;
+      inset: -46px -52px;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at center, rgba(255, 240, 166, 0.24), rgba(255, 210, 74, 0.13) 38%, rgba(255, 210, 74, 0) 70%);
+      filter: blur(2px);
+      animation: srHaloPulse 1.8s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .sr-particles,
+    .reward-entry-sparkles {
+      position: absolute;
+      inset: -42px;
+      pointer-events: none;
+      z-index: 4;
+      display: none;
+    }
+    .device[data-stage="reveal"][data-rarity="sr"] .sr-particles,
+    .device[data-stage="reveal"][data-rarity="sr"] .reward-entry-sparkles {
+      display: block;
+    }
+    .sr-particles span {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      width: var(--s, 5px);
+      height: var(--s, 5px);
+      border-radius: 999px;
+      background: var(--opening-gold-hot);
+      box-shadow:
+        0 0 8px rgba(255, 210, 74, 0.88),
+        0 0 18px rgba(255, 210, 74, 0.42);
+      opacity: 0;
+      animation: srParticlePulse 1.9s ease-in-out infinite;
+      animation-delay: var(--d, 0s);
+    }
+    .reward-entry-sparkles span {
+      position: absolute;
+      width: var(--s, 13px);
+      height: var(--s, 13px);
+      left: var(--x);
+      top: var(--y);
+      opacity: 0;
+      transform: scale(0.2) rotate(45deg);
+      animation: entrySparkPop 0.72s cubic-bezier(0.12,0.78,0.24,1) forwards;
+      animation-delay: var(--d, 0.08s);
+    }
+    .reward-entry-sparkles span::before,
+    .reward-entry-sparkles span::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      margin: auto;
+      background: var(--opening-gold-hot);
+      box-shadow: 0 0 10px rgba(255, 210, 74, 0.9);
+      border-radius: 999px;
+    }
+    .reward-entry-sparkles span::before {
+      width: 100%;
+      height: 22%;
+      top: 39%;
+    }
+    .reward-entry-sparkles span::after {
+      width: 22%;
+      height: 100%;
+      left: 39%;
+    }
+    .reward-card {
+      width: 226px;
+      height: 304px;
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      background: linear-gradient(180deg, #f6fbfd 0%, #ffffff 100%);
+      transform-style: preserve-3d;
+    }
+    .reward-card::before,
+    .reward-card::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      z-index: 2;
+      opacity: 0;
+    }
+    .reward-card::before {
+      left: 14px;
+      right: 14px;
+      top: 0;
+      height: 8px;
+      border-radius: 0 0 999px 999px;
+      background: var(--rarity-sr-rainbow);
+      filter: blur(0.2px);
+    }
+    .reward-card::after {
+      inset: 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 248, 219, 0.66);
+      box-shadow: inset 0 0 16px rgba(255, 210, 74, 0.22);
+    }
+    @keyframes rewardEnter {
+      0%   { opacity: 0; transform: translateY(60px) scale(0.78) rotate(-6deg); }
+      55%  { opacity: 1; transform: translateY(-8px) scale(1.06) rotate(2deg); }
+      100% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+    }
+    .device[data-stage="reveal"] .reward-card {
+      animation: rewardEnter 0.62s cubic-bezier(0.16, 0.84, 0.32, 1.05) forwards;
+    }
+
+    /* レアリティ別フレーム */
+    .reward-card[data-rarity="n"] {
+      box-shadow:
+        0 0 0 2px #e5e7eb,
+        0 0 0 6px rgba(229, 231, 235, 0.42),
+        0 18px 36px rgba(0,0,0,0.42);
+    }
+    .reward-card[data-rarity="r"] {
+      box-shadow:
+        0 0 0 2px var(--rarity-r),
+        0 0 0 6px var(--rarity-r-soft),
+        0 0 28px var(--rarity-r-soft),
+        0 18px 36px rgba(0,0,0,0.42);
+    }
+    .reward-card[data-rarity="sr"] {
+      box-shadow:
+        0 0 0 2px #fff3b0,
+        0 0 0 5px var(--rarity-sr),
+        0 0 0 9px rgba(255, 210, 74, 0.24),
+        0 0 30px rgba(255, 210, 74, 0.56),
+        0 0 68px rgba(255, 210, 74, 0.30),
+        0 18px 36px rgba(0,0,0,0.42);
+    }
+    .reward-card[data-rarity="sr"]::before,
+    .reward-card[data-rarity="sr"]::after {
+      opacity: 1;
+    }
+
+    .reward-card-art {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .reward-card-art svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .reward-card-rarity-strip {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      color: #1a1f2c;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.62),
+        0 2px 5px rgba(0,0,0,0.32);
+      z-index: 3;
+    }
+    .reward-card[data-rarity="n"]  .reward-card-rarity-strip {
+      background: linear-gradient(180deg, #ffffff 0%, #d1d5db 100%);
+    }
+    .reward-card[data-rarity="r"]  .reward-card-rarity-strip {
+      background: linear-gradient(180deg, #bfdbfe 0%, #60a5fa 100%);
+      color: #0c2c70;
+    }
+    .reward-card[data-rarity="sr"] .reward-card-rarity-strip {
+      padding: 5px 12px;
+      font-size: 11px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0) 50%),
+        linear-gradient(180deg, var(--pomu-yellow) 0%, var(--pomu-orange) 100%);
+      color: #4a2900;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.82),
+        0 0 0 1px rgba(255, 247, 202, 0.66),
+        0 4px 10px rgba(0,0,0,0.34),
+        0 0 18px rgba(255, 210, 74, 0.62);
+    }
+    .reward-card[data-rarity="sr"] .reward-card-rarity-strip::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      right: 5px;
+      width: 4px;
+      height: 4px;
+      border-radius: 999px;
+      background: #fff8db;
+      box-shadow: 0 0 8px #fff8db;
+      animation: badgeSpark 1.15s ease-in-out infinite;
+    }
+
+    .reward-info {
+      text-align: center;
+      color: var(--opening-text);
+    }
+    .reward-name {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.42);
+    }
+    .reward-category {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      color: var(--opening-text-soft);
+      margin-top: 6px;
+    }
+    .reward-rarity-stars {
+      display: flex;
+      justify-content: center;
+      gap: 3px;
+      margin-top: 8px;
+      font-size: 14px;
+      color: var(--pomu-yellow);
+      text-shadow: 0 0 6px var(--ready-glow-soft);
+    }
+    .reward-rarity-stars .star-dim {
+      color: rgba(255,255,255,0.22);
+      text-shadow: none;
+    }
+    @keyframes srHaloPulse {
+      0%, 100% { opacity: 0.62; transform: scale(0.96); }
+      50%      { opacity: 1;    transform: scale(1.04); }
+    }
+    @keyframes srParticlePulse {
+      0%, 100% { opacity: 0.28; transform: translateY(0) scale(0.76); }
+      45%      { opacity: 1; transform: translateY(-4px) scale(1.18); }
+      72%      { opacity: 0.52; transform: translateY(2px) scale(0.9); }
+    }
+    @keyframes entrySparkPop {
+      0%   { opacity: 0; transform: scale(0.16) rotate(30deg); }
+      38%  { opacity: 1; transform: scale(1.15) rotate(45deg); }
+      100% { opacity: 0; transform: scale(0.62) rotate(72deg); }
+    }
+    @keyframes badgeSpark {
+      0%, 100% { opacity: 0.36; transform: scale(0.82); }
+      50%      { opacity: 1; transform: scale(1.34); }
+    }
+
+    /* === STAGE 4: complete (完了画面) === */
+    .stage-complete { gap: 18px; }
+    .complete-title-wrap {
+      position: relative;
+      width: 100%;
+      min-height: 74px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-top: 26px;
+    }
+    .complete-confetti {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 236px;
+      height: 66px;
+      transform: translateX(-50%);
+      overflow: visible;
+      pointer-events: none;
+    }
+    .complete-confetti rect,
+    .complete-confetti path,
+    .complete-confetti circle {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: confettiFloat 2.8s ease-in-out infinite;
+    }
+    .complete-confetti *:nth-child(2n) { animation-delay: -0.8s; }
+    .complete-confetti *:nth-child(3n) { animation-delay: -1.6s; }
+    .complete-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--opening-text);
+      text-align: center;
+      letter-spacing: 0.04em;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.42);
+    }
+    .complete-title .em {
+      color: var(--pomu-yellow);
+      font-size: 28px;
+      position: relative;
+      text-shadow:
+        0 2px 8px rgba(0,0,0,0.34),
+        0 0 14px rgba(255, 210, 74, 0.66),
+        0 0 28px rgba(255, 210, 74, 0.30);
+    }
+    .complete-title .em::before,
+    .complete-title .em::after {
+      content: "";
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      background: #fff8db;
+      box-shadow: 0 0 10px rgba(255, 210, 74, 0.92);
+      animation: dustTwinkle 1.8s ease-in-out infinite;
+    }
+    .complete-title .em::before {
+      left: -13px;
+      top: 2px;
+    }
+    .complete-title .em::after {
+      right: -12px;
+      bottom: 8px;
+      animation-delay: -0.7s;
+    }
+    .complete-sub {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--opening-text-soft);
+      text-align: center;
+      letter-spacing: 0.06em;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.10);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .complete-pack-mini {
+      width: 30px;
+      height: 34px;
+      flex: 0 0 auto;
+      filter:
+        drop-shadow(0 4px 8px rgba(0,0,0,0.24))
+        drop-shadow(0 0 8px rgba(255, 210, 74, 0.32));
+    }
+    .complete-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      width: 100%;
+      max-width: 320px;
+    }
+    .complete-grid-cell {
+      aspect-ratio: 3 / 4;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.10),
+        0 4px 12px rgba(0,0,0,0.42);
+    }
+    .complete-grid-cell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.46);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .complete-grid-cell[data-rarity="r"] {
+      box-shadow:
+        0 0 0 1.5px var(--rarity-r),
+        0 0 12px rgba(96, 165, 250, 0.22),
+        0 4px 12px rgba(0,0,0,0.42);
+    }
+    .complete-grid-cell[data-rarity="sr"] {
+      box-shadow:
+        0 0 0 1.5px #fff3b0,
+        0 0 0 3px rgba(255, 210, 74, 0.48),
+        0 0 18px rgba(255, 210, 74, 0.56),
+        0 0 34px rgba(255, 210, 74, 0.20),
+        0 4px 12px rgba(0,0,0,0.42);
+    }
+    .complete-grid-cell[data-rarity="sr"]::after {
+      content: "";
+      position: absolute;
+      left: 6px;
+      right: 6px;
+      top: 0;
+      height: 4px;
+      border-radius: 0 0 999px 999px;
+      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,248,219,0.9), rgba(255,255,255,0));
+      z-index: 2;
+    }
+    .complete-grid-cell svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .complete-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      max-width: 320px;
+    }
+    .complete-btn {
+      width: 100%;
+      height: 48px;
+      border: none;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      transition: transform 0.08s ease, filter 0.18s ease;
+    }
+    .complete-btn.primary {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.52) 0%, rgba(255,255,255,0.16) 28%, rgba(255,255,255,0) 38%),
+        radial-gradient(circle at 28% 18%, #ffe38a 0%, rgba(255,227,138,0.5) 34%, rgba(255,227,138,0) 60%),
+        linear-gradient(180deg, var(--pomu-yellow) 0%, #ffb11e 55%, var(--pomu-orange) 100%);
+      color: #fff;
+      box-shadow:
+        0 5px 12px rgba(245, 158, 11, 0.46),
+        0 0 0 2px rgba(255, 210, 74, 0.18),
+        0 0 24px rgba(255, 210, 74, 0.46),
+        0 0 44px rgba(255, 210, 74, 0.22),
+        inset 0 1px 0 rgba(255,255,255,0.78);
+      text-shadow: 0 1px 0 rgba(146, 64, 14, 0.32);
+      animation: primaryGlowBreath 2.2s ease-in-out infinite;
+    }
+    .complete-btn.primary:active { transform: translateY(1px); filter: brightness(0.96); }
+    .complete-btn.secondary {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--opening-text);
+      border: 1px solid rgba(255, 255, 255, 0.20);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .complete-btn.secondary:active { background: rgba(255, 255, 255, 0.20); }
+    @keyframes confettiFloat {
+      0%, 100% { transform: translateY(0) rotate(-2deg); opacity: 0.72; }
+      50%      { transform: translateY(5px) rotate(7deg); opacity: 1; }
+    }
+    @keyframes primaryGlowBreath {
+      0%, 100% { filter: brightness(1); }
+      50%      { filter: brightness(1.06); }
+    }
+
+    /* === デモ用ステート切替バー(プロトタイプ専用) === */
+    .demo-stage-controls {
+      max-width: 560px;
+      margin: 16px auto 60px;
+      padding: 14px 18px;
+      background: #fff;
+      border: 1px dashed #ccc;
+      border-radius: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+      color: #444;
+      line-height: 1.5;
+    }
+    .demo-stage-controls strong { margin-right: 6px; }
+    .demo-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      background: #f6f6f6;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+    }
+    .demo-btn.active {
+      background: var(--ink-900);
+      color: #fff;
+      border-color: var(--ink-900);
+    }
+
+    @media (max-width: 430px) {
+      .device {
+        margin: 0 auto;
+      }
+      .demo-stage-controls {
+        margin: 16px 12px 48px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="device" data-stage="intro" data-rarity="r" data-reveal-index="1" role="application" aria-label="ガチャ開封演出">
+
+  <!-- 背景の星粒(opening専用) -->
+  <svg class="opening-stars" viewBox="0 0 393 852" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+    <g fill="#fff7d6">
+      <circle cx="36"  cy="88"  r="0.9" opacity="0.62"/>
+      <circle cx="96"  cy="60"  r="0.7" opacity="0.48"/>
+      <circle cx="148" cy="108" r="1.0" opacity="0.55"/>
+      <circle cx="198" cy="78"  r="0.8" opacity="0.62"/>
+      <circle cx="272" cy="56"  r="0.7" opacity="0.50"/>
+      <circle cx="331" cy="130" r="0.9" opacity="0.55"/>
+      <circle cx="42"  cy="184" r="0.8" opacity="0.42"/>
+      <circle cx="312" cy="220" r="1.0" opacity="0.62"/>
+      <circle cx="120" cy="252" r="0.7" opacity="0.40"/>
+      <circle cx="226" cy="708" r="0.9" opacity="0.50"/>
+      <circle cx="80"  cy="780" r="0.8" opacity="0.45"/>
+      <circle cx="340" cy="760" r="0.7" opacity="0.42"/>
+    </g>
+    <g fill="#fde68a" opacity="0.72">
+      <circle cx="76"  cy="42"  r="1.2"/>
+      <circle cx="248" cy="184" r="1.1"/>
+      <circle cx="324" cy="312" r="1.3"/>
+      <circle cx="58"  cy="640" r="1.1"/>
+    </g>
+  </svg>
+  <svg class="opening-gold-dust" viewBox="0 0 393 852" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+    <g fill="#ffd24a">
+      <circle cx="64" cy="142" r="1.7"/>
+      <circle cx="312" cy="164" r="1.5"/>
+      <circle cx="84" cy="328" r="1.3"/>
+      <circle cx="320" cy="392" r="1.8"/>
+      <circle cx="54" cy="612" r="1.5"/>
+      <circle cx="298" cy="676" r="1.2"/>
+      <circle cx="170" cy="704" r="1.6"/>
+      <circle cx="334" cy="786" r="1.3"/>
+    </g>
+    <g fill="#fff0a6" opacity="0.82">
+      <circle cx="126" cy="206" r="1.1"/>
+      <circle cx="244" cy="286" r="1.0"/>
+      <circle cx="138" cy="534" r="1.2"/>
+      <circle cx="250" cy="804" r="1.0"/>
+    </g>
+  </svg>
+
+  <!-- 中央放射光(reveal) -->
+  <svg class="opening-rays" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <radialGradient id="rayCenter" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0%"   stop-color="#fff8db" stop-opacity="0.85"/>
+        <stop offset="22%"  stop-color="#ffd24a" stop-opacity="0.45"/>
+        <stop offset="55%"  stop-color="#fbbf24" stop-opacity="0.16"/>
+        <stop offset="100%" stop-color="#fbbf24" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <circle cx="300" cy="300" r="280" fill="url(#rayCenter)"/>
+    <g stroke="#ffe38a" stroke-width="1.4" stroke-linecap="round" opacity="0.42">
+      <line x1="300" y1="40"  x2="300" y2="120"/>
+      <line x1="300" y1="480" x2="300" y2="560"/>
+      <line x1="40"  y1="300" x2="120" y2="300"/>
+      <line x1="480" y1="300" x2="560" y2="300"/>
+      <line x1="120" y1="120" x2="172" y2="172"/>
+      <line x1="428" y1="120" x2="480" y2="172"/>
+      <line x1="120" y1="480" x2="172" y2="428"/>
+      <line x1="428" y1="480" x2="480" y2="428"/>
+    </g>
+  </svg>
+
+  <!-- ステータスバー -->
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>📶 100%</span>
+  </div>
+
+  <!-- ヘッダー -->
+  <div class="opening-header">
+    <button class="opening-back" data-action="back">
+      <svg viewBox="0 0 16 16" aria-hidden="true" fill="none">
+        <path d="M10 3.5 5.5 8l4.5 4.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>戻る</span>
+    </button>
+    <div class="opening-progress" aria-label="開封進捗">
+      <span class="progress-dot is-current" data-step="1"></span>
+      <span class="progress-dot" data-step="2"></span>
+      <span class="progress-dot" data-step="3"></span>
+      <span class="progress-dot" data-step="4"></span>
+      <span class="progress-dot" data-step="5"></span>
+    </div>
+  </div>
+
+  <!-- メインコンテンツ -->
+  <div class="opening-main">
+
+    <!-- === STAGE 1: intro === -->
+    <div class="opening-stage stage-intro">
+      <div class="opening-pack-label">PINEAPPLE BACKGROUND PACK</div>
+      <div class="opening-pack-name">パイナップル背景パック</div>
+      <div class="opening-pack-wrap" data-action="open">
+        <svg viewBox="0 0 226 286" xmlns="http://www.w3.org/2000/svg" aria-label="背景パック">
+          <defs>
+            <linearGradient id="openDeckBack" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#f7fdff"/>
+              <stop offset="42%" stop-color="#c5e2f0"/>
+              <stop offset="100%" stop-color="#75b8d5"/>
+            </linearGradient>
+            <pattern id="openPackCloud" width="48" height="36" patternUnits="userSpaceOnUse">
+              <g fill="#ffffff" opacity="0.58">
+                <ellipse cx="14" cy="18" rx="10.4" ry="4.4"/>
+                <ellipse cx="24" cy="15"  rx="9.6"  ry="5.6"/>
+                <ellipse cx="34" cy="19"  rx="11.2" ry="4.2"/>
+              </g>
+              <path d="M8 23 C16 26 31 26 42 23" stroke="#d8edf5" stroke-width="1.2" stroke-linecap="round" opacity="0.32"/>
+            </pattern>
+            <filter id="openDeckShadow" x="-22%" y="-20%" width="150%" height="150%">
+              <feDropShadow dx="1.4" dy="3.2" stdDeviation="2.5" flood-color="#0b1632" flood-opacity="0.46"/>
+              <feDropShadow dx="0" dy="0" stdDeviation="2.6" flood-color="#ffd24a" flood-opacity="0.22"/>
+            </filter>
+          </defs>
+
+          <g class="pack-bundle-big">
+            <ellipse cx="96" cy="260" rx="64" ry="9" fill="#0b1632" opacity="0.42"/>
+            <!-- 背後のカード4枚(扇形) -->
+            <g opacity="0.62" transform="rotate(-13 95 158)">
+              <rect x="36" y="84" width="112" height="156" rx="13" fill="url(#openDeckBack)" stroke="#4e94b4" stroke-width="2" filter="url(#openDeckShadow)"/>
+              <rect x="36" y="84" width="112" height="156" rx="13" fill="url(#openPackCloud)" opacity="0.5"/>
+            </g>
+            <g opacity="0.72" transform="rotate(-6 97 158)">
+              <rect x="42" y="78" width="112" height="156" rx="13" fill="url(#openDeckBack)" stroke="#4e94b4" stroke-width="2" filter="url(#openDeckShadow)"/>
+              <rect x="42" y="78" width="112" height="156" rx="13" fill="url(#openPackCloud)" opacity="0.5"/>
+            </g>
+            <g opacity="0.72" transform="rotate(7 100 158)">
+              <rect x="52" y="80" width="112" height="156" rx="13" fill="url(#openDeckBack)" stroke="#4e94b4" stroke-width="2" filter="url(#openDeckShadow)"/>
+              <rect x="52" y="80" width="112" height="156" rx="13" fill="url(#openPackCloud)" opacity="0.5"/>
+            </g>
+            <g opacity="0.58" transform="rotate(13 103 160)">
+              <rect x="60" y="86" width="112" height="156" rx="13" fill="url(#openDeckBack)" stroke="#4e94b4" stroke-width="2" filter="url(#openDeckShadow)"/>
+              <rect x="60" y="86" width="112" height="156" rx="13" fill="url(#openPackCloud)" opacity="0.46"/>
+            </g>
+            <!-- 前面のメインカード -->
+            <g filter="url(#openDeckShadow)">
+              <rect x="46" y="70" width="124" height="168" rx="17" fill="none" stroke="#fff0a6" stroke-width="3" opacity="0.38"/>
+              <rect x="50" y="74" width="116" height="160" rx="14" fill="url(#openDeckBack)" stroke="#0b1632" stroke-width="2.4"/>
+              <rect x="50" y="74" width="116" height="160" rx="14" fill="url(#openPackCloud)" opacity="0.62"/>
+              <rect x="56" y="80" width="104" height="148" rx="11" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.76"/>
+              <rect x="62" y="86" width="92" height="136" rx="8" fill="none" stroke="#0b1632" stroke-width="0.9" opacity="0.14"/>
+              <path d="M58 82 C82 72 134 72 158 82" stroke="#ffffff" stroke-width="3.6" stroke-linecap="round" opacity="0.84"/>
+              <path d="M64 90 C88 84 130 84 152 90" stroke="#fff8db" stroke-width="1.6" stroke-linecap="round" opacity="0.72"/>
+              <g transform="translate(0, 6)">
+                <path d="M62 178 L88 142 L106 162 L128 132 L156 178 Z"
+                      fill="#f8fcff" stroke="#0b1632" stroke-width="2.4" stroke-linejoin="round"/>
+                <g fill="#ffffff" stroke="#0b1632" stroke-width="1.8" opacity="0.94">
+                  <ellipse cx="124" cy="138" rx="13" ry="5.4"/>
+                  <ellipse cx="136" cy="135" rx="8.6" ry="6.8"/>
+                  <ellipse cx="146" cy="139" rx="10.8" ry="4.8"/>
+                </g>
+              </g>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="opening-hint">タップして開封</div>
+    </div>
+
+    <!-- === STAGE 2: animating === -->
+    <div class="opening-stage stage-animating">
+      <div class="opening-burst">
+        <div class="opening-burst-rays"></div>
+        <div class="opening-burst-ring ring-1"></div>
+        <div class="opening-burst-ring ring-2"></div>
+        <div class="opening-burst-flash"></div>
+        <div class="burst-particles" aria-hidden="true">
+          <span class="particle" style="--x:-148px;--y:-118px;--s:7px;--d:0.32s;--c:var(--opening-gold-dust);"></span>
+          <span class="particle is-spark" style="--x:-92px;--y:-176px;--s:8px;--d:0.38s;--c:var(--opening-cyan-dust);"></span>
+          <span class="particle" style="--x:-16px;--y:-194px;--s:5px;--d:0.34s;--c:var(--opening-gold-hot);"></span>
+          <span class="particle" style="--x:72px;--y:-172px;--s:6px;--d:0.42s;--c:var(--opening-gold-dust);"></span>
+          <span class="particle is-spark" style="--x:152px;--y:-112px;--s:9px;--d:0.36s;--c:var(--opening-gold-dust);"></span>
+          <span class="particle" style="--x:180px;--y:-20px;--s:5px;--d:0.45s;--c:var(--opening-cyan-dust);"></span>
+          <span class="particle" style="--x:154px;--y:82px;--s:7px;--d:0.40s;--c:var(--opening-gold-hot);"></span>
+          <span class="particle is-spark" style="--x:92px;--y:154px;--s:8px;--d:0.48s;--c:var(--opening-cyan-dust);"></span>
+          <span class="particle" style="--x:14px;--y:186px;--s:5px;--d:0.37s;--c:var(--opening-gold-dust);"></span>
+          <span class="particle" style="--x:-74px;--y:160px;--s:6px;--d:0.43s;--c:var(--opening-gold-hot);"></span>
+          <span class="particle is-spark" style="--x:-142px;--y:98px;--s:9px;--d:0.39s;--c:var(--opening-gold-dust);"></span>
+          <span class="particle" style="--x:-184px;--y:4px;--s:5px;--d:0.46s;--c:var(--opening-cyan-dust);"></span>
+          <span class="particle" style="--x:-116px;--y:-54px;--s:6px;--d:0.50s;--c:var(--opening-gold-hot);"></span>
+          <span class="particle" style="--x:118px;--y:42px;--s:5px;--d:0.52s;--c:var(--opening-gold-dust);"></span>
+          <span class="particle is-spark" style="--x:34px;--y:-118px;--s:7px;--d:0.44s;--c:var(--opening-cyan-dust);"></span>
+          <span class="particle" style="--x:-36px;--y:118px;--s:6px;--d:0.41s;--c:var(--opening-gold-dust);"></span>
+        </div>
+        <div class="opening-burst-pack">
+          <svg viewBox="0 0 226 286" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="burstDeckBack" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#d8edf5"/>
+                <stop offset="58%" stop-color="#9bd3e8"/>
+                <stop offset="100%" stop-color="#65aeca"/>
+              </linearGradient>
+              <pattern id="burstPackCloud" width="48" height="36" patternUnits="userSpaceOnUse">
+                <g fill="#ffffff" opacity="0.58">
+                  <ellipse cx="14" cy="18" rx="10.4" ry="4.4"/>
+                  <ellipse cx="24" cy="15"  rx="9.6"  ry="5.6"/>
+                  <ellipse cx="34" cy="19"  rx="11.2" ry="4.2"/>
+                </g>
+              </pattern>
+              <filter id="burstCardShadow" x="-25%" y="-25%" width="155%" height="155%">
+                <feDropShadow dx="1.4" dy="3" stdDeviation="2.2" flood-color="#0b1632" flood-opacity="0.44"/>
+              </filter>
+            </defs>
+            <g>
+              <ellipse cx="104" cy="262" rx="68" ry="10" fill="#0b1632" opacity="0.32"/>
+              <g opacity="0.64" transform="rotate(-12 95 158)">
+                <rect x="36" y="84" width="112" height="156" rx="13" fill="url(#burstDeckBack)" stroke="#4e94b4" stroke-width="2" filter="url(#burstCardShadow)"/>
+                <rect x="36" y="84" width="112" height="156" rx="13" fill="url(#burstPackCloud)" opacity="0.48"/>
+              </g>
+              <g opacity="0.66" transform="rotate(11 103 160)">
+                <rect x="60" y="86" width="112" height="156" rx="13" fill="url(#burstDeckBack)" stroke="#4e94b4" stroke-width="2" filter="url(#burstCardShadow)"/>
+                <rect x="60" y="86" width="112" height="156" rx="13" fill="url(#burstPackCloud)" opacity="0.48"/>
+              </g>
+              <g filter="url(#burstCardShadow)">
+                <rect x="50" y="74" width="116" height="160" rx="14" fill="url(#burstDeckBack)" stroke="#0b1632" stroke-width="2.4"/>
+                <rect x="50" y="74" width="116" height="160" rx="14" fill="url(#burstPackCloud)" opacity="0.62"/>
+                <rect x="58" y="82" width="100" height="144" rx="10" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.72"/>
+                <path d="M58 82 C82 73 134 73 158 82" stroke="#ffffff" stroke-width="3.4" stroke-linecap="round" opacity="0.82"/>
+                <path d="M62 178 L88 142 L106 162 L128 132 L156 178 Z" fill="#f8fcff" stroke="#0b1632" stroke-width="2.4" stroke-linejoin="round"/>
+                <g fill="#ffffff" stroke="#0b1632" stroke-width="1.6" opacity="0.94">
+                  <ellipse cx="124" cy="144" rx="13" ry="5.4"/>
+                  <ellipse cx="136" cy="141" rx="8.6" ry="6.8"/>
+                  <ellipse cx="146" cy="145" rx="10.8" ry="4.8"/>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- === STAGE 3: reveal === -->
+    <div class="opening-stage stage-reveal">
+      <div class="reward-card-wrap">
+        <div class="sr-particles" aria-hidden="true">
+          <span style="--x:4%;--y:25%;--s:5px;--d:-0.2s;"></span>
+          <span style="--x:16%;--y:2%;--s:4px;--d:-0.7s;"></span>
+          <span style="--x:43%;--y:-3%;--s:6px;--d:-1.1s;"></span>
+          <span style="--x:76%;--y:4%;--s:5px;--d:-0.4s;"></span>
+          <span style="--x:95%;--y:28%;--s:5px;--d:-1.5s;"></span>
+          <span style="--x:92%;--y:66%;--s:4px;--d:-0.9s;"></span>
+          <span style="--x:76%;--y:96%;--s:6px;--d:-1.3s;"></span>
+          <span style="--x:48%;--y:104%;--s:5px;--d:-0.5s;"></span>
+          <span style="--x:17%;--y:92%;--s:4px;--d:-1.7s;"></span>
+          <span style="--x:-2%;--y:62%;--s:6px;--d:-1.0s;"></span>
+        </div>
+        <div class="reward-entry-sparkles" id="rewardEntrySparkles" aria-hidden="true">
+          <span style="--x:10%;--y:18%;--s:15px;--d:0.08s;"></span>
+          <span style="--x:82%;--y:12%;--s:12px;--d:0.16s;"></span>
+          <span style="--x:88%;--y:74%;--s:14px;--d:0.22s;"></span>
+        </div>
+        <div class="reward-card" id="rewardCard" data-rarity="r">
+          <div class="reward-card-art" id="rewardArt">
+            <!-- JSで動的に差し替え -->
+          </div>
+          <div class="reward-card-rarity-strip" id="rewardRarityStrip">R</div>
+        </div>
+      </div>
+      <div class="reward-info">
+        <div class="reward-category" id="rewardCategory">BACKGROUND</div>
+        <div class="reward-name" id="rewardName">夕焼け</div>
+        <div class="reward-rarity-stars" id="rewardStars">
+          <span>★</span><span>★</span><span class="star-dim">★</span>
+        </div>
+      </div>
+      <div class="opening-hint">タップで次へ</div>
+    </div>
+
+    <!-- === STAGE 4: complete === -->
+    <div class="opening-stage stage-complete">
+      <div class="complete-title-wrap">
+        <svg class="complete-confetti" viewBox="0 0 236 66" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="22" y="20" width="6" height="12" rx="1.5" fill="#ffd24a" transform="rotate(-20 25 26)"/>
+          <rect x="54" y="5" width="5" height="10" rx="1.2" fill="#8de8ff" transform="rotate(18 56.5 10)"/>
+          <path d="M80 22 L87 18 L88 26 Z" fill="#f472b6"/>
+          <circle cx="112" cy="12" r="3" fill="#fff8db"/>
+          <rect x="134" y="4" width="5" height="12" rx="1.2" fill="#65c466" transform="rotate(-14 136.5 10)"/>
+          <rect x="164" y="20" width="7" height="10" rx="1.4" fill="#ffd24a" transform="rotate(24 167.5 25)"/>
+          <path d="M196 16 L204 20 L198 25 Z" fill="#8de8ff"/>
+          <rect x="210" y="36" width="5" height="10" rx="1.2" fill="#f472b6" transform="rotate(-28 212.5 41)"/>
+          <circle cx="32" cy="46" r="2.5" fill="#fff8db"/>
+          <path d="M126 42 L132 38 L134 46 Z" fill="#ffd24a"/>
+        </svg>
+        <div class="complete-title">5種類を <span class="em">獲得!</span></div>
+      </div>
+      <div class="complete-sub">
+        <svg class="complete-pack-mini" viewBox="0 0 30 34" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="completeMiniPack" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#d8edf5"/>
+              <stop offset="100%" stop-color="#75b8d5"/>
+            </linearGradient>
+          </defs>
+          <g opacity="0.55" transform="rotate(-12 13 18)">
+            <rect x="5" y="7" width="17" height="23" rx="3" fill="url(#completeMiniPack)" stroke="#4e94b4" stroke-width="0.7"/>
+          </g>
+          <g opacity="0.62" transform="rotate(10 17 18)">
+            <rect x="9" y="7" width="17" height="23" rx="3" fill="url(#completeMiniPack)" stroke="#4e94b4" stroke-width="0.7"/>
+          </g>
+          <rect x="7" y="5" width="18" height="25" rx="3.5" fill="url(#completeMiniPack)" stroke="#0b1632" stroke-width="0.9"/>
+          <path d="M9 23 L14 16 L17 20 L21 14 L25 23 Z" fill="#f8fcff" stroke="#0b1632" stroke-width="0.8" stroke-linejoin="round"/>
+          <path d="M10 8 C14 6 19 6 23 8" stroke="#fff" stroke-width="1.2" stroke-linecap="round" opacity="0.78"/>
+        </svg>
+        <span>パイナップル背景パック</span>
+      </div>
+
+      <div class="complete-grid">
+        <div class="complete-grid-cell" data-rarity="n">
+          <svg viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="cgAsa2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#eef9ff"/><stop offset="100%" stop-color="#a8d7ec"/></linearGradient>
+              <linearGradient id="cgAsaGround2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#d8edf5"/></linearGradient>
+            </defs>
+            <rect width="30" height="40" fill="url(#cgAsa2)"/>
+            <g fill="#fff" opacity="0.66">
+              <ellipse cx="7" cy="8" rx="6" ry="2"/>
+              <ellipse cx="21" cy="11" rx="7" ry="2.4"/>
+              <ellipse cx="12" cy="17" rx="8" ry="1.8"/>
+            </g>
+            <path d="M0 29 L7 22 L12 25 L17 19 L30 30 L30 40 L0 40 Z" fill="url(#cgAsaGround2)" opacity="0.9"/>
+            <path d="M0 33 C8 31 16 34 30 31 L30 40 L0 40 Z" fill="#e6f4fb" opacity="0.9"/>
+          </svg>
+        </div>
+        <div class="complete-grid-cell" data-rarity="r">
+          <svg viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="cgYu2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fde68a"/><stop offset="48%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#7c2d12"/></linearGradient>
+              <radialGradient id="cgYuSun2" cx="0.72" cy="0.45" r="0.42"><stop offset="0%" stop-color="#fff8db"/><stop offset="45%" stop-color="#ffd24a" stop-opacity="0.35"/><stop offset="100%" stop-color="#ffd24a" stop-opacity="0"/></radialGradient>
+            </defs>
+            <rect width="30" height="40" fill="url(#cgYu2)"/>
+            <rect width="30" height="40" fill="url(#cgYuSun2)"/>
+            <circle cx="22" cy="21" r="4.2" fill="#fff8db" opacity="0.94"/>
+            <path d="M0 31 L8 23 L14 29 L22 21 L30 30 L30 40 L0 40 Z" fill="#1a1f2c" opacity="0.78"/>
+            <path d="M0 35 C10 32 18 36 30 33 L30 40 L0 40 Z" fill="#120f16" opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="complete-grid-cell" data-rarity="r">
+          <svg viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs><linearGradient id="cgHo2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#111339"/><stop offset="100%" stop-color="#3940a5"/></linearGradient></defs>
+            <rect width="30" height="40" fill="url(#cgHo2)"/>
+            <path d="M19 6 L25 3" stroke="#fff8db" stroke-width="0.8" stroke-linecap="round" opacity="0.8"/>
+            <g fill="#fff">
+              <circle cx="5" cy="7" r="0.6" opacity="0.7"/><circle cx="11" cy="4" r="0.8"/><circle cx="18" cy="10" r="0.5" opacity="0.7"/>
+              <circle cx="25" cy="9" r="0.8"/><circle cx="8" cy="16" r="0.7"/><circle cx="16" cy="20" r="0.6" opacity="0.7"/>
+            </g>
+            <path d="M0 29 C8 27 15 29 30 26 L30 40 L0 40 Z" fill="#0c0a3e"/>
+            <path d="M4 29 L6 25 L8 29 Z M22 28 L24 24 L26 28 Z" fill="#090923"/>
+          </svg>
+        </div>
+        <div class="complete-grid-cell" data-rarity="sr">
+          <svg viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs><linearGradient id="cgNy2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#132345"/><stop offset="100%" stop-color="#315987"/></linearGradient></defs>
+            <rect width="30" height="40" fill="url(#cgNy2)"/>
+            <circle cx="23" cy="7" r="2" fill="#fff5e1"/>
+            <g fill="#0b182d">
+              <path d="M1 22 L6 22 L6 40 L1 40 Z"/>
+              <path d="M8 16 L12 14 L12 40 L8 40 Z"/>
+              <rect x="14" y="23" width="3" height="17"/>
+              <path d="M18 12 L23 12 L23 40 L18 40 Z"/>
+              <rect x="25" y="21" width="4" height="19"/>
+            </g>
+            <g fill="#ffd24a">
+              <rect x="3" y="24" width="1" height="1"/><rect x="9" y="19" width="1" height="1"/><rect x="19" y="17" width="1" height="1"/>
+              <rect x="21" y="24" width="1" height="1"/><rect x="26" y="25" width="1" height="1"/>
+            </g>
+            <g><rect x="2" y="19" width="4" height="1.4" fill="#8de8ff" opacity="0.7"/><rect x="18" y="10" width="5" height="1.3" fill="#ffd24a" opacity="0.8"/></g>
+          </svg>
+        </div>
+        <div class="complete-grid-cell" data-rarity="sr">
+          <svg viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs><linearGradient id="cgSa2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff7fb"/><stop offset="100%" stop-color="#fbcfe8"/></linearGradient></defs>
+            <rect width="30" height="40" fill="url(#cgSa2)"/>
+            <g stroke="#7c2d12" stroke-width="0.8" stroke-linecap="round"><path d="M5 26 C6 30 5 35 4 40"/><path d="M23 24 C22 30 23 35 24 40"/><path d="M15 27 C15 32 14 36 14 40"/></g>
+            <g fill="#f9a8d4" opacity="0.9">
+              <ellipse cx="5" cy="17" rx="6" ry="4"/><ellipse cx="12" cy="15" rx="7" ry="4"/><ellipse cx="19" cy="16" rx="6" ry="4"/><ellipse cx="25" cy="18" rx="5" ry="3.6"/>
+            </g>
+            <g fill="#f472b6"><circle cx="6" cy="9" r="1.2"/><circle cx="14" cy="7" r="1"/><circle cx="22" cy="10" r="1.4"/><circle cx="10" cy="20" r="1"/><circle cx="20" cy="21" r="1.2"/></g>
+            <path d="M0 31 C8 28 16 32 30 28 L30 40 L0 40 Z" fill="#f472b6" opacity="0.46"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="complete-actions">
+        <button class="complete-btn primary" data-action="open-again">もう一回 開ける(100コイン)</button>
+        <button class="complete-btn secondary" data-action="back-to-gacha">ガチャに戻る</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- デモ用ステート切替バー -->
+<div class="demo-stage-controls">
+  <strong>DEMO:</strong>
+  <button class="demo-btn active" data-set-stage="intro">1. パック表示</button>
+  <button class="demo-btn"        data-set-stage="animating">2. 開封演出</button>
+  <button class="demo-btn"        data-set-stage="reveal">3. 報酬カード</button>
+  <button class="demo-btn"        data-set-stage="complete">4. 完了</button>
+  <span style="margin-left: 12px;">|</span>
+  <button class="demo-btn" data-set-rarity="n">N</button>
+  <button class="demo-btn" data-set-rarity="r">R</button>
+  <button class="demo-btn" data-set-rarity="sr">SR</button>
+  <span style="margin-left: 12px;">|</span>
+  <button class="demo-btn" data-reveal-step="1">card 1</button>
+  <button class="demo-btn" data-reveal-step="2">2</button>
+  <button class="demo-btn" data-reveal-step="3">3</button>
+  <button class="demo-btn" data-reveal-step="4">4</button>
+  <button class="demo-btn" data-reveal-step="5">5</button>
+</div>
+
+<script>
+  const device = document.querySelector('.device');
+
+  // 5枚の報酬データ
+  const rewards = [
+    { name: '朝霧',        category: 'BACKGROUND', rarity: 'n',  stars: 1 },
+    { name: '夕焼け',      category: 'BACKGROUND', rarity: 'r',  stars: 2 },
+    { name: '星空',        category: 'BACKGROUND', rarity: 'r',  stars: 2 },
+    { name: '渋谷ナイト',  category: 'BACKGROUND', rarity: 'sr', stars: 3 },
+    { name: '桜並木',      category: 'BACKGROUND', rarity: 'sr', stars: 3 }
+  ];
+
+  // 各報酬のSVGアート(reveal で差し替え)
+  const rewardArts = {
+    '朝霧': `<svg viewBox="0 0 226 304" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="raAsaSky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#eef9ff"/>
+          <stop offset="46%" stop-color="#d7eff9"/>
+          <stop offset="100%" stop-color="#a8d7ec"/>
+        </linearGradient>
+        <linearGradient id="raAsaGround" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#eef9ff" stop-opacity="0.78"/>
+          <stop offset="100%" stop-color="#c7e8f4" stop-opacity="0.98"/>
+        </linearGradient>
+        <linearGradient id="raAsaMountainFar" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#f8fcff"/>
+          <stop offset="100%" stop-color="#c6e6f2"/>
+        </linearGradient>
+        <linearGradient id="raAsaMountainMid" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="100%" stop-color="#d8edf5"/>
+        </linearGradient>
+        <filter id="raAsaCloudBlur" x="-20%" y="-40%" width="140%" height="180%">
+          <feGaussianBlur stdDeviation="2.4"/>
+        </filter>
+      </defs>
+      <rect width="226" height="304" fill="url(#raAsaSky)"/>
+      <g fill="#fff" filter="url(#raAsaCloudBlur)">
+        <g opacity="0.74">
+          <ellipse cx="46" cy="58" rx="34" ry="9"/>
+          <ellipse cx="74" cy="55" rx="26" ry="11"/>
+          <ellipse cx="102" cy="61" rx="38" ry="8"/>
+        </g>
+        <g opacity="0.64">
+          <ellipse cx="136" cy="96" rx="38" ry="10"/>
+          <ellipse cx="168" cy="92" rx="32" ry="12"/>
+          <ellipse cx="198" cy="100" rx="30" ry="8"/>
+        </g>
+        <g opacity="0.52">
+          <ellipse cx="20" cy="126" rx="38" ry="8"/>
+          <ellipse cx="54" cy="123" rx="30" ry="10"/>
+          <ellipse cx="84" cy="129" rx="36" ry="8"/>
+        </g>
+      </g>
+      <path d="M0 212 L34 170 L62 188 L96 146 L132 180 L164 138 L226 206 L226 304 L0 304 Z" fill="url(#raAsaMountainFar)" opacity="0.72"/>
+      <path d="M0 232 L52 166 L82 202 L124 154 L168 202 L200 176 L226 198 L226 304 L0 304 Z" fill="url(#raAsaMountainMid)" stroke="#2b445e" stroke-width="1.4" stroke-linejoin="round" opacity="0.9"/>
+      <path d="M34 190 L52 166 L68 186 C56 181 44 184 34 190 Z" fill="#ffffff" opacity="0.72"/>
+      <path d="M110 170 L124 154 L142 178 C132 174 120 174 110 170 Z" fill="#ffffff" opacity="0.76"/>
+      <path d="M0 244 C38 232 76 248 116 238 C158 228 190 238 226 230 L226 304 L0 304 Z" fill="url(#raAsaGround)"/>
+      <path d="M0 252 C48 246 74 258 116 250 C158 242 186 252 226 244" fill="none" stroke="#ffffff" stroke-width="11" stroke-linecap="round" opacity="0.36"/>
+      <path d="M0 274 C48 264 92 278 134 268 C176 260 202 266 226 260 L226 304 L0 304 Z" fill="#e6f4fb" opacity="0.72"/>
+      <g fill="#ffffff" opacity="0.48">
+        <ellipse cx="42" cy="220" rx="32" ry="8"/>
+        <ellipse cx="158" cy="226" rx="46" ry="10"/>
+      </g>
+      <rect y="0" width="226" height="304" fill="none" stroke="rgba(255,255,255,0.38)" stroke-width="2"/>
+    </svg>`,
+    '夕焼け': `<svg viewBox="0 0 226 304" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="raYuSky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#fde68a"/>
+          <stop offset="42%" stop-color="#f59e0b"/>
+          <stop offset="78%" stop-color="#c2410c"/>
+          <stop offset="100%" stop-color="#3f1f1a"/>
+        </linearGradient>
+        <radialGradient id="raYuSun" cx="0.72" cy="0.40" r="0.34">
+          <stop offset="0%" stop-color="#fffdf0"/>
+          <stop offset="24%" stop-color="#fff7c7" stop-opacity="0.96"/>
+          <stop offset="58%" stop-color="#ffd24a" stop-opacity="0.34"/>
+          <stop offset="100%" stop-color="#ffd24a" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="raYuFar" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#713f12" stop-opacity="0.42"/>
+          <stop offset="100%" stop-color="#1a1f2c" stop-opacity="0.54"/>
+        </linearGradient>
+        <linearGradient id="raYuNear" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#3b211b"/>
+          <stop offset="100%" stop-color="#1f171a"/>
+        </linearGradient>
+      </defs>
+      <rect width="226" height="304" fill="url(#raYuSky)"/>
+      <rect width="226" height="304" fill="url(#raYuSun)"/>
+      <circle cx="165" cy="126" r="33" fill="#fff8db" opacity="0.94"/>
+      <circle cx="165" cy="126" r="52" fill="none" stroke="#fff1a8" stroke-width="2" opacity="0.28"/>
+      <g opacity="0.42" stroke="#fff8db" stroke-width="2" stroke-linecap="round">
+        <path d="M20 76 C64 68 96 76 138 70"/>
+        <path d="M4 112 C52 104 90 112 138 106"/>
+        <path d="M78 154 C118 146 168 152 220 142"/>
+      </g>
+      <path d="M0 222 L48 176 L84 206 L124 162 L162 204 L198 174 L226 196 L226 304 L0 304 Z" fill="url(#raYuFar)"/>
+      <path d="M0 238 L60 166 L104 214 L166 144 L226 228 L226 304 L0 304 Z" fill="url(#raYuNear)" opacity="0.94"/>
+      <path d="M0 260 C46 250 78 264 116 256 C154 248 184 260 226 250 L226 304 L0 304 Z" fill="#1a1f2c" opacity="0.74"/>
+      <path d="M0 238 C44 226 76 238 112 232 C150 226 184 234 226 226" stroke="#fbbf24" stroke-width="3" opacity="0.24" fill="none"/>
+      <path d="M0 279 L226 279 L226 304 L0 304 Z" fill="#120f16" opacity="0.62"/>
+      <rect y="0" width="226" height="304" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+    </svg>`,
+    '星空': `<svg viewBox="0 0 226 304" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="raHoSky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#111339"/>
+          <stop offset="48%" stop-color="#211b62"/>
+          <stop offset="100%" stop-color="#3940a5"/>
+        </linearGradient>
+        <radialGradient id="raHoGlow" cx="0.5" cy="0.34" r="0.7">
+          <stop offset="0%" stop-color="#8de8ff" stop-opacity="0.18"/>
+          <stop offset="54%" stop-color="#4338ca" stop-opacity="0.08"/>
+          <stop offset="100%" stop-color="#111339" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="raHoHorizon" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1e1b4b"/>
+          <stop offset="100%" stop-color="#0c0a3e"/>
+        </linearGradient>
+      </defs>
+      <rect width="226" height="304" fill="url(#raHoSky)"/>
+      <rect width="226" height="304" fill="url(#raHoGlow)"/>
+      <g stroke="#fff8db" stroke-linecap="round" opacity="0.78">
+        <path d="M152 42 L188 22" stroke-width="2.1"/>
+        <path d="M145 46 L166 34" stroke-width="0.9" opacity="0.5"/>
+      </g>
+      <g fill="#ffffff">
+        <circle cx="28" cy="50" r="1.0" opacity="0.72"/>
+        <circle cx="58" cy="30" r="1.5" opacity="0.9"/>
+        <circle cx="104" cy="46" r="0.8" opacity="0.58"/>
+        <circle cx="138" cy="70" r="1.3" opacity="0.84"/>
+        <circle cx="202" cy="42" r="1.5" opacity="0.86"/>
+        <circle cx="36" cy="104" r="1.6" opacity="0.9"/>
+        <circle cx="78" cy="82" r="0.9" opacity="0.56"/>
+        <circle cx="116" cy="116" r="1.2" opacity="0.74"/>
+        <circle cx="178" cy="104" r="1.0" opacity="0.62"/>
+        <circle cx="206" cy="132" r="1.8" opacity="0.92"/>
+        <circle cx="20" cy="168" r="0.9" opacity="0.64"/>
+        <circle cx="72" cy="154" r="1.2" opacity="0.8"/>
+        <circle cx="130" cy="162" r="0.8" opacity="0.52"/>
+        <circle cx="188" cy="174" r="1.3" opacity="0.74"/>
+      </g>
+      <g fill="#fde68a">
+        <path d="M82 118 L84 123 L89 123 L85 126 L87 131 L82 128 L77 131 L79 126 L75 123 L80 123 Z" opacity="0.9"/>
+        <path d="M44 190 L45.5 194 L50 194 L46.5 196.5 L48 201 L44 198.5 L40 201 L41.5 196.5 L38 194 L42.5 194 Z" opacity="0.74"/>
+        <circle cx="156" cy="132" r="1.7" opacity="0.86"/>
+        <circle cx="100" cy="200" r="1.1" opacity="0.7"/>
+      </g>
+      <path d="M0 222 C38 208 72 218 112 206 C148 196 184 212 226 198 L226 304 L0 304 Z" fill="url(#raHoHorizon)" opacity="0.72"/>
+      <g fill="#090923">
+        <path d="M0 248 C36 236 70 248 106 238 C150 226 184 240 226 232 L226 304 L0 304 Z"/>
+        <path d="M22 242 L28 226 L34 242 Z"/>
+        <path d="M48 246 L54 226 L62 246 Z"/>
+        <path d="M166 236 L174 214 L182 236 Z"/>
+        <path d="M194 238 L202 218 L210 238 Z"/>
+      </g>
+      <path d="M0 258 C46 252 86 262 130 254 C168 248 198 256 226 252" stroke="#5b63d6" stroke-width="2" opacity="0.24" fill="none"/>
+      <rect y="0" width="226" height="304" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2"/>
+    </svg>`,
+    '渋谷ナイト': `<svg viewBox="0 0 226 304" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="raNySky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#132345"/>
+          <stop offset="58%" stop-color="#213f70"/>
+          <stop offset="100%" stop-color="#315987"/>
+        </linearGradient>
+        <radialGradient id="raNyMoon" cx="0.78" cy="0.17" r="0.28">
+          <stop offset="0%" stop-color="#fff8db" stop-opacity="0.92"/>
+          <stop offset="42%" stop-color="#fff8db" stop-opacity="0.24"/>
+          <stop offset="100%" stop-color="#fff8db" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="raNyGlass" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#10213f"/>
+          <stop offset="100%" stop-color="#071226"/>
+        </linearGradient>
+      </defs>
+      <rect width="226" height="304" fill="url(#raNySky)"/>
+      <rect width="226" height="304" fill="url(#raNyMoon)"/>
+      <circle cx="176" cy="54" r="15" fill="#fff5e1"/>
+      <g fill="#fff7d6" opacity="0.66">
+        <circle cx="38" cy="54" r="1"/>
+        <circle cx="86" cy="76" r="1.3"/>
+        <circle cx="134" cy="38" r="0.9"/>
+        <circle cx="206" cy="100" r="1.2"/>
+      </g>
+      <g fill="url(#raNyGlass)">
+        <path d="M4 164 L38 164 L38 304 L4 304 Z"/>
+        <path d="M44 134 L77 134 L77 304 L44 304 Z"/>
+        <path d="M83 188 L105 188 L105 304 L83 304 Z"/>
+        <path d="M112 108 L148 108 L148 304 L112 304 Z"/>
+        <path d="M154 156 L181 145 L181 304 L154 304 Z"/>
+        <path d="M188 184 L222 184 L222 304 L188 304 Z"/>
+      </g>
+      <path d="M44 134 L60 118 L77 134 Z" fill="#0a1730"/>
+      <path d="M112 108 L130 92 L148 108 Z" fill="#0a1730"/>
+      <path d="M130 90 L130 62" stroke="#8de8ff" stroke-width="1" opacity="0.42"/>
+      <g fill="#fbbf24">
+        <rect x="14" y="182" width="6" height="6" opacity="0.95"/>
+        <rect x="26" y="222" width="6" height="6" opacity="0.62"/>
+        <rect x="52" y="154" width="7" height="6" opacity="0.96"/>
+        <rect x="64" y="206" width="5" height="6" opacity="0.7"/>
+        <rect x="90" y="206" width="6" height="6" opacity="0.86"/>
+        <rect x="120" y="126" width="7" height="7" opacity="0.92"/>
+        <rect x="132" y="174" width="6" height="6" opacity="0.8"/>
+        <rect x="160" y="172" width="6" height="6" opacity="0.96"/>
+        <rect x="168" y="220" width="6" height="6" opacity="0.7"/>
+        <rect x="196" y="208" width="6" height="6" opacity="0.9"/>
+        <rect x="208" y="250" width="6" height="6" opacity="0.78"/>
+      </g>
+      <g>
+        <rect x="11" y="154" width="21" height="8" rx="2" fill="#8de8ff" opacity="0.72"/>
+        <rect x="51" y="142" width="19" height="8" rx="2" fill="#f472b6" opacity="0.8"/>
+        <rect x="156" y="134" width="20" height="8" rx="2" fill="#ffd24a" opacity="0.88"/>
+        <rect x="190" y="172" width="24" height="8" rx="2" fill="#8de8ff" opacity="0.58"/>
+      </g>
+      <path d="M0 274 C54 268 96 280 142 270 C178 262 202 270 226 266 L226 304 L0 304 Z" fill="#060d1d" opacity="0.7"/>
+      <path d="M8 272 L218 272" stroke="#8de8ff" stroke-width="1.2" opacity="0.22"/>
+      <rect y="0" width="226" height="304" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="2"/>
+    </svg>`,
+    '桜並木': `<svg viewBox="0 0 226 304" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="raSaSky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#fff7fb"/>
+          <stop offset="48%" stop-color="#fce7f3"/>
+          <stop offset="100%" stop-color="#fbcfe8"/>
+        </linearGradient>
+        <linearGradient id="raSaPath" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ffe4ec"/>
+          <stop offset="100%" stop-color="#f9a8d4"/>
+        </linearGradient>
+        <filter id="raSaSoft" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="1.4"/>
+        </filter>
+      </defs>
+      <rect width="226" height="304" fill="url(#raSaSky)"/>
+      <path d="M0 208 C48 192 88 204 124 190 C164 176 196 188 226 176 L226 304 L0 304 Z" fill="#ffd6e7" opacity="0.62"/>
+      <g stroke="#7c2d12" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+        <path d="M40 198 C44 232 42 270 38 304"/>
+        <path d="M40 218 C24 202 16 190 6 170"/>
+        <path d="M43 214 C58 194 72 180 92 166"/>
+        <path d="M184 194 C178 230 180 268 186 304"/>
+        <path d="M184 214 C164 194 148 182 130 168"/>
+        <path d="M182 214 C198 194 208 180 222 160"/>
+        <path d="M112 214 C114 246 112 276 108 304"/>
+        <path d="M113 228 C96 208 84 196 66 184"/>
+        <path d="M114 226 C132 206 146 192 166 182"/>
+      </g>
+      <g fill="#f9a8d4" filter="url(#raSaSoft)" opacity="0.9">
+        <ellipse cx="30" cy="146" rx="48" ry="32"/>
+        <ellipse cx="76" cy="134" rx="42" ry="28"/>
+        <ellipse cx="128" cy="148" rx="48" ry="34"/>
+        <ellipse cx="178" cy="132" rx="44" ry="30"/>
+        <ellipse cx="212" cy="162" rx="32" ry="24"/>
+      </g>
+      <g fill="#f472b6" opacity="0.88">
+        <circle cx="24" cy="122" r="7"/>
+        <circle cx="52" cy="144" r="8"/>
+        <circle cx="82" cy="108" r="6"/>
+        <circle cx="120" cy="126" r="8"/>
+        <circle cx="146" cy="152" r="7"/>
+        <circle cx="174" cy="110" r="7"/>
+        <circle cx="202" cy="140" r="8"/>
+        <circle cx="96" cy="166" r="6"/>
+      </g>
+      <g fill="#fff7fb" opacity="0.78">
+        <ellipse cx="58" cy="58" rx="4" ry="2.4" transform="rotate(-24 58 58)"/>
+        <ellipse cx="126" cy="72" rx="3.8" ry="2.2" transform="rotate(18 126 72)"/>
+        <ellipse cx="188" cy="52" rx="4.5" ry="2.5" transform="rotate(-12 188 52)"/>
+        <ellipse cx="30" cy="92" rx="3.4" ry="2" transform="rotate(22 30 92)"/>
+        <ellipse cx="172" cy="92" rx="3.8" ry="2.2" transform="rotate(26 172 92)"/>
+        <ellipse cx="210" cy="190" rx="3.5" ry="2.1" transform="rotate(-18 210 190)"/>
+      </g>
+      <path d="M0 232 C34 220 70 232 112 222 C154 212 190 224 226 214 L226 304 L0 304 Z" fill="url(#raSaPath)" opacity="0.82"/>
+      <path d="M74 304 C86 262 100 234 114 214 C128 238 142 266 154 304 Z" fill="#fff7fb" opacity="0.42"/>
+      <path d="M0 278 C46 266 78 280 118 270 C158 260 190 274 226 264 L226 304 L0 304 Z" fill="#f472b6" opacity="0.35"/>
+      <g fill="#fff1f7" opacity="0.62">
+        <ellipse cx="36" cy="248" rx="10" ry="3"/>
+        <ellipse cx="82" cy="258" rx="14" ry="4"/>
+        <ellipse cx="154" cy="246" rx="16" ry="4"/>
+        <ellipse cx="198" cy="258" rx="12" ry="3"/>
+      </g>
+      <rect y="0" width="226" height="304" fill="none" stroke="rgba(255,255,255,0.32)" stroke-width="2"/>
+    </svg>`
+  };
+
+  function stars(n) {
+    return Array.from({length: 3}, (_, i) =>
+      i < n ? '<span>\u2605</span>' : '<span class="star-dim">\u2605</span>'
+    ).join('');
+  }
+
+  function rarityStripLabel(r) {
+    return { n: 'N', r: 'R', sr: 'SR' }[r] || 'N';
+  }
+
+  function setRevealIndex(idx) {
+    const reward = rewards[idx - 1];
+    if (!reward) return;
+    device.dataset.revealIndex = String(idx);
+    device.dataset.rarity = reward.rarity;
+
+    document.getElementById('rewardArt').innerHTML = rewardArts[reward.name] || '';
+    document.getElementById('rewardName').textContent = reward.name;
+    document.getElementById('rewardCategory').textContent = reward.category;
+    document.getElementById('rewardStars').innerHTML = stars(reward.stars);
+
+    const strip = document.getElementById('rewardRarityStrip');
+    strip.textContent = rarityStripLabel(reward.rarity);
+
+    document.getElementById('rewardCard').dataset.rarity = reward.rarity;
+
+    // 進捗ドット更新
+    document.querySelectorAll('.progress-dot').forEach(dot => {
+      const step = Number(dot.dataset.step);
+      dot.classList.toggle('is-done', step < idx);
+      dot.classList.toggle('is-current', step === idx);
+    });
+
+    // reveal アニメ再トリガー
+    const card = document.getElementById('rewardCard');
+    card.style.animation = 'none';
+    void card.offsetWidth;
+    card.style.animation = '';
+
+    const sparkles = document.getElementById('rewardEntrySparkles');
+    sparkles?.querySelectorAll('span').forEach(sparkle => {
+      sparkle.style.animation = 'none';
+      void sparkle.offsetWidth;
+      sparkle.style.animation = '';
+    });
+  }
+
+  function setStage(stage) {
+    device.dataset.stage = stage;
+    document.querySelectorAll('.demo-btn[data-set-stage]').forEach(b =>
+      b.classList.toggle('active', b.dataset.setStage === stage)
+    );
+    if (stage === 'reveal') {
+      const idx = Number(device.dataset.revealIndex) || 1;
+      setRevealIndex(idx);
+    }
+  }
+
+  // 初期化: reveal 用カード1
+  setRevealIndex(1);
+
+  // パックタップで開封開始
+  document.querySelector('[data-action="open"]')?.addEventListener('click', () => {
+    setStage('animating');
+    setTimeout(() => {
+      setStage('reveal');
+      setRevealIndex(1);
+    }, 1400);
+  });
+
+  // reveal でタップ → 次のカード or 完了
+  document.querySelector('.stage-reveal')?.addEventListener('click', e => {
+    if (e.target.closest('.opening-back, .demo-btn')) return;
+    const idx = Number(device.dataset.revealIndex) || 1;
+    if (idx < 5) {
+      setRevealIndex(idx + 1);
+    } else {
+      setStage('complete');
+    }
+  });
+
+  // 戻る
+  document.querySelector('[data-action="back"]')?.addEventListener('click', () => {
+    alert('[ガチャ画面に戻る]');
+  });
+
+  // 完了画面のアクション
+  document.querySelector('[data-action="open-again"]')?.addEventListener('click', () => {
+    setStage('intro');
+    setRevealIndex(1);
+  });
+  document.querySelector('[data-action="back-to-gacha"]')?.addEventListener('click', () => {
+    alert('[ガチャ画面に戻る]');
+  });
+
+  // === デモ用ステート切替 ===
+  document.querySelectorAll('.demo-btn[data-set-stage]').forEach(btn => {
+    btn.addEventListener('click', () => setStage(btn.dataset.setStage));
+  });
+  document.querySelectorAll('.demo-btn[data-set-rarity]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      device.dataset.rarity = btn.dataset.setRarity;
+      document.getElementById('rewardCard').dataset.rarity = btn.dataset.setRarity;
+      document.getElementById('rewardRarityStrip').textContent = rarityStripLabel(btn.dataset.setRarity);
+    });
+  });
+  document.querySelectorAll('.demo-btn[data-reveal-step]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setStage('reveal');
+      setRevealIndex(Number(btn.dataset.revealStep));
+    });
+  });
+</script>
+
+</body>
+</html>
