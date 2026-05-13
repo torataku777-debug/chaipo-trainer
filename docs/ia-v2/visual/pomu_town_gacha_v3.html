@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<!--
+  ファイル: pomu_town_gacha_v3.html
+  改善日: 2026-05-14
+  改善者: Codex / GPT-5
+  対応仕様書: ~/Desktop/claude/codex_handoff/POMU_TOWN_GACHA_VISUAL_SPEC.md
+  バージョン: v3
+
+  v2 からの変更点:
+   - 巾着袋シルエットをクラシックなカード束に置換
+-->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>VISUAL: ぽむタウン > ガチャ (v3)</title>
+  <style>
+    :root {
+      --sky-100:        #e6f4fb;
+      --sky-200:        #c5e2f0;
+      --sky-300:        #8fc8e0;
+      --cloud-white:    #ffffff;
+      --cloud-soft:     #f6fbfd;
+      --pomu-yellow:    #fbbf24;
+      --pomu-orange:    #f59e0b;
+      --leaf-green:     #65c466;
+      --ink-900:        #1a1f2c;
+      --ink-500:        #6b7280;
+      --ink-300:        #d1d5db;
+      --ready-glow:     #ffd24a;
+      --ready-glow-soft: rgba(255, 210, 74, 0.35);
+
+      --card-shadow: 0 4px 12px rgba(26, 31, 44, 0.06),
+                     0 1px 3px rgba(26, 31, 44, 0.04);
+      --btn-shadow:  0 2px 6px rgba(26, 31, 44, 0.08);
+      --pack-shadow: 0 8px 18px rgba(110, 140, 170, 0.18);
+      --ready-card-shadow: 0 4px 12px rgba(26, 31, 44, 0.06),
+                           0 0 0 2px var(--ready-glow-soft),
+                           0 0 24px var(--ready-glow-soft);
+      --btn-inner-glow: inset 0 0 14px rgba(255, 255, 255, 0.26);
+      --btn-bottom-shade: inset 0 -3px 0 rgba(146, 64, 14, 0.18);
+      --secondary-inner-line: rgba(143, 200, 224, 0.26);
+      --cloth-highlight: rgba(255, 255, 255, 0.46);
+      --cloth-shadow: rgba(38, 84, 112, 0.16);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background: #ecf3f7;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Noto Sans JP", sans-serif;
+      color: var(--ink-900);
+      letter-spacing: 0.02em;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .device {
+      width: 393px;
+      min-height: 852px;
+      margin: 24px auto;
+      background: linear-gradient(180deg, var(--sky-100) 0%, var(--sky-200) 100%);
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 60px rgba(60, 90, 120, 0.18),
+                  0 4px 12px rgba(60, 90, 120, 0.08);
+    }
+
+    .sky-clouds {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      right: 0;
+      height: 220px;
+      pointer-events: none;
+      opacity: 0.68;
+      z-index: 0;
+    }
+
+    .status-bar {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-900);
+      position: relative;
+      z-index: 1;
+    }
+
+    .town-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 20px 12px;
+      position: relative;
+      z-index: 1;
+    }
+    .screen-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: var(--ink-900);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+    }
+    .currency-row {
+      display: flex;
+      gap: 8px;
+    }
+    .currency-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px 6px 8px;
+      background: var(--cloud-white);
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 800;
+      box-shadow: 0 1px 3px rgba(26,31,44,0.06);
+      font-variant-numeric: tabular-nums;
+      color: var(--ink-900);
+    }
+    .currency-icon {
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sub-tabs-wrap {
+      margin: 0 20px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 14px;
+      padding: 4px;
+      display: flex;
+      position: relative;
+      z-index: 1;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6);
+    }
+    .sub-tab {
+      flex: 1;
+      padding: 10px 0;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-500);
+      cursor: pointer;
+      border-radius: 10px;
+      transition: background 0.18s ease, color 0.18s ease;
+    }
+    .sub-tab.active {
+      background: var(--cloud-white);
+      color: var(--ink-900);
+      box-shadow: 0 1px 4px rgba(26,31,44,0.08);
+    }
+
+    .screen-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px 100px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .gacha-info {
+      text-align: center;
+      padding: 6px 0 18px;
+      font-size: 12px;
+      color: var(--ink-500);
+      font-weight: 600;
+    }
+    .gacha-info .hilite {
+      color: var(--pomu-orange);
+      font-weight: 800;
+    }
+
+    .pack-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .pack-card {
+      background: linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 60%);
+      border-radius: 16px;
+      padding: 14px 14px 12px;
+      box-shadow: var(--card-shadow);
+      position: relative;
+      transition: box-shadow 0.3s ease, transform 0.12s ease;
+    }
+    .pack-card.is-ready {
+      box-shadow: var(--ready-card-shadow);
+      margin: 2px 0 3px;
+      padding-top: 16px;
+      padding-bottom: 14px;
+    }
+    .pack-card.is-locked {
+      opacity: 0.95;
+    }
+
+    .pack-top {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .pack-visual {
+      width: 104px;
+      height: 132px;
+      flex-shrink: 0;
+      position: relative;
+      cursor: pointer;
+      filter: drop-shadow(0 8px 18px rgba(110, 140, 170, 0.18));
+    }
+    .pack-visual svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    .pack-card.is-locked .pack-visual {
+      filter: saturate(0.7) brightness(1.04) drop-shadow(0 4px 8px rgba(110, 140, 170, 0.12));
+    }
+
+    @keyframes packSway {
+      0%, 100% { transform: rotate(-1.6deg); }
+      50%      { transform: rotate(1.6deg); }
+    }
+    .pack-card.is-ready .pack-bundle {
+      transform-box: fill-box;
+      transform-origin: center bottom;
+      animation: packSway 2s ease-in-out infinite;
+    }
+
+    @keyframes starPulse {
+      0%, 100% { opacity: 0.45; transform: scale(0.92); }
+      50%      { opacity: 1;    transform: scale(1.06); }
+    }
+    .pack-card.is-ready .pack-stars > * {
+      transform-box: fill-box;
+      transform-origin: center center;
+      animation: starPulse 1.4s ease-in-out infinite;
+    }
+    .pack-card.is-ready .pack-stars > *:nth-child(2) {
+      animation-delay: 0.6s;
+    }
+    .pack-card.is-locked .pack-stars {
+      display: none;
+    }
+    /* ぽむは静止 (包みだけ揺れる) */
+    .pack-pomu-img {
+      pointer-events: none;
+    }
+
+    .pack-visual:active {
+      transform: scale(1.05);
+      transition: transform 0.1s ease-out;
+    }
+
+    .pack-info {
+      flex: 1;
+      min-width: 0;
+      padding-top: 4px;
+    }
+    .pack-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--ink-900);
+      line-height: 1.2;
+    }
+    .pack-desc {
+      font-size: 12px;
+      color: var(--ink-500);
+      margin-top: 6px;
+      line-height: 1.45;
+      font-weight: 500;
+    }
+    .pack-status {
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .pack-status.ready {
+      color: var(--pomu-orange);
+    }
+    .pack-status.ready::before {
+      content: "●";
+      font-size: 9px;
+      transform: translateY(-1px);
+    }
+    .pack-status.timer {
+      color: var(--ink-500);
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+
+    .pack-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .pack-btn {
+      flex: 1;
+      height: 44px;
+      border: none;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.18s ease, filter 0.18s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      letter-spacing: 0.04em;
+      position: relative;
+      overflow: hidden;
+    }
+    .pack-btn.primary {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.52) 0%, rgba(255,255,255,0.16) 28%, rgba(255,255,255,0) 38%),
+        radial-gradient(circle at 28% 18%, #ffe38a 0%, rgba(255,227,138,0.5) 34%, rgba(255,227,138,0) 60%),
+        linear-gradient(180deg, var(--pomu-yellow) 0%, #ffb11e 55%, var(--pomu-orange) 100%);
+      color: #fff;
+      box-shadow: var(--btn-shadow), inset 0 1px 0 rgba(255,255,255,0.72), var(--btn-bottom-shade);
+      text-shadow: 0 1px 0 rgba(146, 64, 14, 0.2);
+    }
+    .pack-card.is-ready .pack-btn.primary {
+      box-shadow:
+        0 5px 12px rgba(245, 158, 11, 0.2),
+        0 0 0 2px rgba(255, 210, 74, 0.16),
+        0 0 18px rgba(255, 210, 74, 0.3),
+        inset 0 1px 0 rgba(255,255,255,0.78),
+        var(--btn-inner-glow),
+        var(--btn-bottom-shade);
+    }
+    .pack-btn.primary:active {
+      transform: translateY(1px);
+      filter: brightness(0.96);
+    }
+    .pack-btn.secondary {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(246,251,253,0.92) 100%);
+      color: var(--ink-900);
+      border: 1px solid var(--ink-300);
+      box-shadow:
+        inset 0 0 0 2px var(--secondary-inner-line),
+        inset 0 1px 0 rgba(255,255,255,0.95),
+        0 1px 3px rgba(26,31,44,0.04);
+    }
+    .pack-btn.secondary:active {
+      transform: translateY(1px);
+      background: #f4f6f8;
+    }
+    .pack-btn.disabled,
+    .pack-btn[disabled] {
+      background: #e5e7eb;
+      color: #9ca3af;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+    .pack-btn.disabled:active {
+      transform: none;
+    }
+    .pack-btn-coin-icon {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    .gacha-history {
+      margin-top: 22px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.55);
+      border-radius: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-900);
+      transition: background 0.18s ease;
+    }
+    .gacha-history:active {
+      background: rgba(255, 255, 255, 0.8);
+    }
+    .gacha-history-arrow {
+      color: var(--ink-500);
+      font-size: 16px;
+    }
+
+    .sub-content { display: none; }
+    .sub-content.active { display: block; }
+
+    .placeholder-note {
+      margin-top: 20px;
+      padding: 24px 16px;
+      background: rgba(255, 255, 255, 0.55);
+      border-radius: 14px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--ink-500);
+      font-weight: 600;
+    }
+    .placeholder-note strong {
+      color: var(--ink-900);
+    }
+
+    .bottom-nav {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 76px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      box-shadow: 0 -2px 12px rgba(60, 90, 120, 0.08);
+      z-index: 2;
+      padding-bottom: 8px;
+    }
+    .nav-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink-500);
+      cursor: pointer;
+      position: relative;
+      padding-top: 6px;
+    }
+    .nav-tab .nav-icon {
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+      opacity: 0.65;
+    }
+    .nav-tab--active {
+      color: var(--ink-900);
+      font-weight: 800;
+    }
+    .nav-tab--active .nav-icon {
+      opacity: 1;
+    }
+    .nav-tab--active::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 30%;
+      right: 30%;
+      height: 3px;
+      background: var(--pomu-yellow);
+      border-radius: 0 0 2px 2px;
+    }
+    .nav-badge {
+      position: absolute;
+      top: 4px;
+      right: calc(50% - 18px);
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      background: #ef4444;
+      color: #fff;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #fff;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    }
+
+    .dev-note {
+      max-width: 500px;
+      margin: 16px auto 60px;
+      padding: 18px;
+      background: #fff;
+      border: 1px dashed #ccc;
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+
+<div class="device" role="application" aria-label="ぽむタウン > ガチャ画面">
+
+  <svg class="sky-clouds" viewBox="0 0 393 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <linearGradient id="skyCloudPaint" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="62%" stop-color="#ffffff"/>
+        <stop offset="100%" stop-color="#edf6fa"/>
+      </linearGradient>
+      <filter id="skyCloudSoft" x="-8%" y="-30%" width="116%" height="170%">
+        <feGaussianBlur stdDeviation="0.4"/>
+      </filter>
+    </defs>
+    <g filter="url(#skyCloudSoft)">
+      <g fill="url(#skyCloudPaint)" opacity="0.92">
+        <ellipse cx="36" cy="39" rx="29" ry="11"/>
+        <ellipse cx="66" cy="32" rx="32" ry="14"/>
+        <ellipse cx="100" cy="44" rx="47" ry="15"/>
+        <ellipse cx="127" cy="49" rx="23" ry="9"/>
+      </g>
+      <path d="M16 49 C44 56 99 59 148 52" stroke="#d5eaf2" stroke-width="4" stroke-linecap="round" opacity="0.3"/>
+
+      <g fill="url(#skyCloudPaint)" opacity="0.88">
+        <ellipse cx="286" cy="106" rx="32" ry="12"/>
+        <ellipse cx="320" cy="98" rx="45" ry="16"/>
+        <ellipse cx="360" cy="113" rx="34" ry="13"/>
+        <ellipse cx="389" cy="123" rx="29" ry="10"/>
+      </g>
+      <path d="M262 116 C292 124 357 127 407 119" stroke="#d5eaf2" stroke-width="4" stroke-linecap="round" opacity="0.28"/>
+
+      <g fill="url(#skyCloudPaint)" opacity="0.7">
+        <ellipse cx="160" cy="171" rx="28" ry="9"/>
+        <ellipse cx="197" cy="164" rx="46" ry="13"/>
+        <ellipse cx="238" cy="173" rx="32" ry="10"/>
+      </g>
+      <path d="M138 177 C170 184 218 184 262 178" stroke="#d5eaf2" stroke-width="3" stroke-linecap="round" opacity="0.22"/>
+    </g>
+  </svg>
+
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>📶 100%</span>
+  </div>
+
+  <div class="town-header">
+    <div class="screen-title">ぽむタウン</div>
+    <div class="currency-row">
+      <div class="currency-pill" aria-label="コイン 1250">
+        <span class="currency-icon" aria-hidden="true">
+          <svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="9" cy="9" r="7.5" fill="#fbbf24" stroke="#92400e" stroke-width="1"/>
+            <circle cx="9" cy="9" r="5"   fill="#fcd34d" stroke="#92400e" stroke-width="0.8"/>
+            <path d="M10.8 6.5 C10.2 5.9 9.3 5.7 8.4 5.9 C6.6 6.2 5.7 7.6 5.9 9.1 C6.1 10.8 7.5 11.8 9.1 11.5 C9.8 11.4 10.5 11.1 10.9 10.6"
+                  fill="none" stroke="#92400e" stroke-width="1.25" stroke-linecap="round"/>
+            <path d="M8.9 4.8 L8.9 13.1" stroke="#92400e" stroke-width="0.9" stroke-linecap="round"/>
+          </svg>
+        </span>
+        1,250
+      </div>
+      <div class="currency-pill" aria-label="ジェム 12">
+        <span class="currency-icon" aria-hidden="true">
+          <svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 2 L15 7 L9 16 L3 7 Z" fill="#34d399" stroke="#065f46" stroke-width="1" stroke-linejoin="round"/>
+            <path d="M3 7 L15 7 M9 2 L9 16 M6 7 L9 12 L12 7" stroke="#065f46" stroke-width="0.6" fill="none"/>
+          </svg>
+        </span>
+        12
+      </div>
+    </div>
+  </div>
+
+  <div class="sub-tabs-wrap">
+    <div class="sub-tab active" data-sub="gacha">ガチャ</div>
+    <div class="sub-tab"        data-sub="shop">ショップ</div>
+    <div class="sub-tab"        data-sub="collection">所持</div>
+  </div>
+
+  <div class="screen-body">
+
+    <div class="sub-content active" id="sub-gacha">
+
+      <div class="gacha-info">
+        無料パック残り: <span class="hilite">1 / 3</span> ・ 次のリセット: <span class="hilite">8時間44分後</span>
+      </div>
+
+      <div class="pack-list">
+
+        <!-- Pack 1: 背景パック (ready) -->
+        <div class="pack-card is-ready" data-pack="background">
+          <div class="pack-top">
+            <div class="pack-visual" role="img" aria-label="背景パック・無料で開封可能">
+              <svg viewBox="0 0 104 132" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <radialGradient id="bgPackBody" cx="30%" cy="22%" r="78%">
+                    <stop offset="0%"   stop-color="#f7fdff"/>
+                    <stop offset="28%"  stop-color="#cfeaf5"/>
+                    <stop offset="68%"  stop-color="#98cfe5"/>
+                    <stop offset="100%" stop-color="#75b8d5"/>
+                  </radialGradient>
+                  <linearGradient id="bgPackBottom" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#75b8d5" stop-opacity="0"/>
+                    <stop offset="100%" stop-color="#3f8caf" stop-opacity="0.46"/>
+                  </linearGradient>
+                  <linearGradient id="bgRibbon" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#bfe5f4"/>
+                    <stop offset="100%" stop-color="#6aaed0"/>
+                  </linearGradient>
+                  <filter id="bgSoftBlur" x="-20%" y="-20%" width="140%" height="150%">
+                    <feGaussianBlur stdDeviation="1.2"/>
+                  </filter>
+                  <filter id="bgPomuShadow" x="-40%" y="-80%" width="180%" height="260%">
+                    <feGaussianBlur stdDeviation="1.5"/>
+                  </filter>
+                  <pattern id="bgPackCloud" width="24" height="18" patternUnits="userSpaceOnUse">
+                    <g fill="#ffffff" opacity="0.58">
+                      <ellipse cx="7" cy="9" rx="5.2" ry="2.2"/>
+                      <ellipse cx="12" cy="7.6" rx="4.8" ry="2.8"/>
+                      <ellipse cx="16.8" cy="9.4" rx="5.6" ry="2.1"/>
+                    </g>
+                    <path d="M4 11.4 C8 12.8 15.5 12.8 21 11.5" stroke="#d8edf5" stroke-width="0.7" stroke-linecap="round" opacity="0.32"/>
+                  </pattern>
+                </defs>
+
+                <g class="pack-bundle">
+                  <defs>
+                    <linearGradient id="bgDeckBack" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#c5e2f0"/>
+                      <stop offset="100%" stop-color="#8fc8e0"/>
+                    </linearGradient>
+                    <filter id="bgDeckCardShadow" x="-22%" y="-20%" width="150%" height="150%">
+                      <feDropShadow dx="0.9" dy="1.4" stdDeviation="1" flood-color="#1a1f2c" flood-opacity="0.16"/>
+                    </filter>
+                  </defs>
+                  <ellipse cx="44" cy="120" rx="32" ry="4.5" fill="#1a1f2c" opacity="0.12" filter="url(#bgSoftBlur)"/>
+                  <g opacity="0.58" transform="rotate(-12 43 74)">
+                    <rect x="15" y="40" width="52" height="72" rx="6" fill="url(#bgDeckBack)" stroke="#4e94b4" stroke-width="1" filter="url(#bgDeckCardShadow)"/>
+                    <rect x="15" y="40" width="52" height="72" rx="6" fill="url(#bgPackCloud)" opacity="0.52"/>
+                  </g>
+                  <g opacity="0.68" transform="rotate(-6 44 74)">
+                    <rect x="18" y="37" width="52" height="72" rx="6" fill="url(#bgDeckBack)" stroke="#4e94b4" stroke-width="1" filter="url(#bgDeckCardShadow)"/>
+                    <rect x="18" y="37" width="52" height="72" rx="6" fill="url(#bgPackCloud)" opacity="0.5"/>
+                  </g>
+                  <g opacity="0.68" transform="rotate(7 47 74)">
+                    <rect x="22" y="38" width="52" height="72" rx="6" fill="url(#bgDeckBack)" stroke="#4e94b4" stroke-width="1" filter="url(#bgDeckCardShadow)"/>
+                    <rect x="22" y="38" width="52" height="72" rx="6" fill="url(#bgPackCloud)" opacity="0.5"/>
+                  </g>
+                  <g opacity="0.54" transform="rotate(12 48 75)">
+                    <rect x="26" y="41" width="52" height="72" rx="6" fill="url(#bgDeckBack)" stroke="#4e94b4" stroke-width="1" filter="url(#bgDeckCardShadow)"/>
+                    <rect x="26" y="41" width="52" height="72" rx="6" fill="url(#bgPackCloud)" opacity="0.46"/>
+                  </g>
+                  <g filter="url(#bgDeckCardShadow)">
+                    <rect x="21" y="35" width="52" height="72" rx="6" fill="url(#bgDeckBack)" stroke="#1a1f2c" stroke-width="1.4"/>
+                    <rect x="21" y="35" width="52" height="72" rx="6" fill="url(#bgPackCloud)" opacity="0.62"/>
+                    <rect x="25" y="39" width="44" height="64" rx="4" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.62"/>
+                    <rect x="28" y="42" width="38" height="58" rx="3" fill="none" stroke="#1a1f2c" stroke-width="0.7" opacity="0.15"/>
+                    <path d="M28 42 C39 38 55 38 66 42" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>
+                    <g transform="translate(0, 2)">
+                      <path d="M30 77 L40 62 L48 72 L57 58 L68 77 Z"
+                            fill="#f8fcff" stroke="#1a1f2c" stroke-width="1.2" stroke-linejoin="round" opacity="0.95"/>
+                      <g fill="#ffffff" stroke="#1a1f2c" stroke-width="0.9" opacity="0.94">
+                        <ellipse cx="56" cy="62" rx="5.8" ry="2.4"/>
+                        <ellipse cx="61" cy="60.8" rx="3.8" ry="3"/>
+                        <ellipse cx="65" cy="62.4" rx="4.8" ry="2.1"/>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+
+                <ellipse class="pomu-ground-shadow" cx="76" cy="121" rx="23" ry="4.4" fill="#1a1f2c" opacity="0.14" filter="url(#bgPomuShadow)"/>
+
+                <!-- ぽむ (PNG埋め込み、静止) -->
+                <image class="pack-pomu-img"
+                       href="assets/pomu_pose_6.png"
+                       x="46" y="64" width="62" height="62"
+                       preserveAspectRatio="xMidYMid meet"
+                       aria-hidden="true"/>
+
+                <g class="pack-stars">
+                  <path d="M22 12 L24 18 L30 18 L25 22 L27 28 L22 24 L17 28 L19 22 L14 18 L20 18 Z"
+                        fill="#ffd24a" stroke="#f59e0b" stroke-width="0.8" stroke-linejoin="round"/>
+                  <path d="M82 30 L83.5 34 L88 34 L84.5 36.5 L86 40.5 L82 38 L78 40.5 L79.5 36.5 L76 34 L80.5 34 Z"
+                        fill="#ffd24a" stroke="#f59e0b" stroke-width="0.6" stroke-linejoin="round" opacity="0.85"/>
+                </g>
+              </svg>
+            </div>
+
+            <div class="pack-info">
+              <div class="pack-name">パイナップル背景パック</div>
+              <div class="pack-desc">渋谷・夕景・夜景など多彩な背景アイテム5種を獲得</div>
+              <div class="pack-status ready">無料パック使用可能!</div>
+            </div>
+          </div>
+          <div class="pack-actions">
+            <button class="pack-btn primary" data-action="open-free">無料で開ける</button>
+            <button class="pack-btn secondary" data-action="open-coin">
+              <svg class="pack-btn-coin-icon" viewBox="0 0 14 14" aria-hidden="true">
+                <circle cx="7" cy="7" r="6" fill="#fbbf24" stroke="#92400e" stroke-width="0.8"/>
+                <circle cx="7" cy="7" r="3.9" fill="#fcd34d" stroke="#92400e" stroke-width="0.55"/>
+                <path d="M8.5 5.2 C8 4.8 7.3 4.7 6.7 4.9 C5.4 5.2 4.8 6.2 5.1 7.4 C5.3 8.5 6.3 9.2 7.5 8.9 C8 8.8 8.5 8.5 8.8 8.1"
+                      fill="none" stroke="#92400e" stroke-width="0.9" stroke-linecap="round"/>
+                <path d="M7 4.2 L7 9.8" stroke="#92400e" stroke-width="0.65" stroke-linecap="round"/>
+              </svg>
+              100
+            </button>
+          </div>
+        </div>
+
+        <!-- Pack 2: フレームパック (locked) -->
+        <div class="pack-card is-locked" data-pack="frame">
+          <div class="pack-top">
+            <div class="pack-visual" role="img" aria-label="フレームパック・クールダウン中">
+              <svg viewBox="0 0 104 132" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <radialGradient id="frPackBody" cx="30%" cy="21%" r="78%">
+                    <stop offset="0%"   stop-color="#fffdf4"/>
+                    <stop offset="30%"  stop-color="#fef3c7"/>
+                    <stop offset="70%"  stop-color="#f8dc7f"/>
+                    <stop offset="100%" stop-color="#e6bd56"/>
+                  </radialGradient>
+                  <linearGradient id="frPackBottom" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#f8dc7f" stop-opacity="0"/>
+                    <stop offset="100%" stop-color="#b7791f" stop-opacity="0.36"/>
+                  </linearGradient>
+                  <linearGradient id="frRibbon" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#f6b65b"/>
+                    <stop offset="100%" stop-color="#c45f13"/>
+                  </linearGradient>
+                  <filter id="frSoftBlur" x="-20%" y="-20%" width="140%" height="150%">
+                    <feGaussianBlur stdDeviation="1.2"/>
+                  </filter>
+                  <filter id="frPomuShadow" x="-40%" y="-80%" width="180%" height="260%">
+                    <feGaussianBlur stdDeviation="1.5"/>
+                  </filter>
+                  <pattern id="frPackGrid" width="8" height="8" patternUnits="userSpaceOnUse">
+                    <path d="M0 0 L8 0 M0 0 L0 8" stroke="#a16207" stroke-width="0.4" opacity="0.4"/>
+                  </pattern>
+                </defs>
+
+                <g class="pack-bundle">
+                  <defs>
+                    <linearGradient id="frDeckBack" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#fef3c7"/>
+                      <stop offset="100%" stop-color="#fde68a"/>
+                    </linearGradient>
+                    <filter id="frDeckCardShadow" x="-22%" y="-20%" width="150%" height="150%">
+                      <feDropShadow dx="0.9" dy="1.4" stdDeviation="1" flood-color="#1a1f2c" flood-opacity="0.15"/>
+                    </filter>
+                  </defs>
+                  <ellipse cx="44" cy="120" rx="32" ry="4.5" fill="#1a1f2c" opacity="0.12" filter="url(#frSoftBlur)"/>
+                  <g opacity="0.58" transform="rotate(-12 43 74)">
+                    <rect x="15" y="40" width="52" height="72" rx="6" fill="url(#frDeckBack)" stroke="#b7791f" stroke-width="1" filter="url(#frDeckCardShadow)"/>
+                    <rect x="15" y="40" width="52" height="72" rx="6" fill="url(#frPackGrid)" opacity="0.52"/>
+                  </g>
+                  <g opacity="0.68" transform="rotate(-6 44 74)">
+                    <rect x="18" y="37" width="52" height="72" rx="6" fill="url(#frDeckBack)" stroke="#b7791f" stroke-width="1" filter="url(#frDeckCardShadow)"/>
+                    <rect x="18" y="37" width="52" height="72" rx="6" fill="url(#frPackGrid)" opacity="0.5"/>
+                  </g>
+                  <g opacity="0.68" transform="rotate(7 47 74)">
+                    <rect x="22" y="38" width="52" height="72" rx="6" fill="url(#frDeckBack)" stroke="#b7791f" stroke-width="1" filter="url(#frDeckCardShadow)"/>
+                    <rect x="22" y="38" width="52" height="72" rx="6" fill="url(#frPackGrid)" opacity="0.5"/>
+                  </g>
+                  <g opacity="0.54" transform="rotate(12 48 75)">
+                    <rect x="26" y="41" width="52" height="72" rx="6" fill="url(#frDeckBack)" stroke="#b7791f" stroke-width="1" filter="url(#frDeckCardShadow)"/>
+                    <rect x="26" y="41" width="52" height="72" rx="6" fill="url(#frPackGrid)" opacity="0.46"/>
+                  </g>
+                  <g filter="url(#frDeckCardShadow)">
+                    <rect x="21" y="35" width="52" height="72" rx="6" fill="url(#frDeckBack)" stroke="#1a1f2c" stroke-width="1.4"/>
+                    <rect x="21" y="35" width="52" height="72" rx="6" fill="url(#frPackGrid)" opacity="0.58"/>
+                    <rect x="25" y="39" width="44" height="64" rx="4" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.66"/>
+                    <rect x="28" y="42" width="38" height="58" rx="3" fill="none" stroke="#7c4a03" stroke-width="0.7" opacity="0.18"/>
+                    <path d="M28 42 C39 38 55 38 66 42" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.72"/>
+                    <g transform="translate(0, 2)">
+                      <rect x="32" y="61" width="30" height="26" rx="5" fill="#fffef7" stroke="#1a1f2c" stroke-width="1.3"/>
+                      <rect x="36" y="65" width="22" height="18" rx="3" fill="none" stroke="#1a1f2c" stroke-width="0.85" stroke-dasharray="2 2" opacity="0.48"/>
+                      <circle cx="35" cy="64" r="1.1" fill="#1a1f2c"/>
+                      <circle cx="59" cy="64" r="1.1" fill="#1a1f2c"/>
+                      <circle cx="35" cy="84" r="1.1" fill="#1a1f2c"/>
+                      <circle cx="59" cy="84" r="1.1" fill="#1a1f2c"/>
+                    </g>
+                  </g>
+                </g>
+
+                <ellipse class="pomu-ground-shadow" cx="76" cy="121" rx="23" ry="4.4" fill="#1a1f2c" opacity="0.13" filter="url(#frPomuShadow)"/>
+
+                <image class="pack-pomu-img"
+                       href="assets/pomu_pose_5.png"
+                       x="46" y="64" width="62" height="62"
+                       preserveAspectRatio="xMidYMid meet"
+                       aria-hidden="true"/>
+
+                <g class="pack-locked-icon">
+                  <circle cx="44" cy="72" r="14" fill="#ffffff" opacity="0.85" stroke="#1a1f2c" stroke-width="1.4"/>
+                  <circle cx="44" cy="72" r="11" fill="none" stroke="#1a1f2c" stroke-width="1"/>
+                  <path d="M44 64 L44 72 L50 75" stroke="#1a1f2c" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+                </g>
+              </svg>
+            </div>
+
+            <div class="pack-info">
+              <div class="pack-name">チップフレームパック</div>
+              <div class="pack-desc">カード裏面・縁取りデザインを5種獲得</div>
+              <div class="pack-status timer">⌛ 次の無料パックまで 03:24:11</div>
+            </div>
+          </div>
+          <div class="pack-actions">
+            <button class="pack-btn primary disabled" disabled>無料で開ける</button>
+            <button class="pack-btn secondary" data-action="open-coin">
+              <svg class="pack-btn-coin-icon" viewBox="0 0 14 14" aria-hidden="true">
+                <circle cx="7" cy="7" r="6" fill="#fbbf24" stroke="#92400e" stroke-width="0.8"/>
+                <circle cx="7" cy="7" r="3.9" fill="#fcd34d" stroke="#92400e" stroke-width="0.55"/>
+                <path d="M8.5 5.2 C8 4.8 7.3 4.7 6.7 4.9 C5.4 5.2 4.8 6.2 5.1 7.4 C5.3 8.5 6.3 9.2 7.5 8.9 C8 8.8 8.5 8.5 8.8 8.1"
+                      fill="none" stroke="#92400e" stroke-width="0.9" stroke-linecap="round"/>
+                <path d="M7 4.2 L7 9.8" stroke="#92400e" stroke-width="0.65" stroke-linecap="round"/>
+              </svg>
+              100
+            </button>
+          </div>
+        </div>
+
+        <!-- Pack 3: アバターパック (locked) -->
+        <div class="pack-card is-locked" data-pack="avatar">
+          <div class="pack-top">
+            <div class="pack-visual" role="img" aria-label="ぽむアバターパック・クールダウン中">
+              <svg viewBox="0 0 104 132" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <radialGradient id="avPackBody" cx="30%" cy="21%" r="78%">
+                    <stop offset="0%"   stop-color="#fff4b8"/>
+                    <stop offset="30%"  stop-color="#fcd34d"/>
+                    <stop offset="70%"  stop-color="#f9b321"/>
+                    <stop offset="100%" stop-color="#e78907"/>
+                  </radialGradient>
+                  <linearGradient id="avPackBottom" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#f9b321" stop-opacity="0"/>
+                    <stop offset="100%" stop-color="#b85a0f" stop-opacity="0.4"/>
+                  </linearGradient>
+                  <linearGradient id="avRibbon" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#9be17c"/>
+                    <stop offset="100%" stop-color="#4fa849"/>
+                  </linearGradient>
+                  <filter id="avSoftBlur" x="-20%" y="-20%" width="140%" height="150%">
+                    <feGaussianBlur stdDeviation="1.2"/>
+                  </filter>
+                  <filter id="avPomuShadow" x="-40%" y="-80%" width="180%" height="260%">
+                    <feGaussianBlur stdDeviation="1.5"/>
+                  </filter>
+                  <pattern id="avPackLeaf" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <path d="M10 3 L7.8 8 L10 6.3 L12.2 8 Z" fill="#65c466" opacity="0.56"/>
+                    <path d="M3.5 12 L1.5 16 L3.7 14.6 L5.6 16.5 Z" fill="#65c466" opacity="0.38"/>
+                    <path d="M16 12 L14 16.5 L16.2 14.7 L18.3 16.3 Z" fill="#65c466" opacity="0.42"/>
+                  </pattern>
+                </defs>
+
+                <g class="pack-bundle">
+                  <defs>
+                    <linearGradient id="avDeckBack" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#fcd34d"/>
+                      <stop offset="100%" stop-color="#f59e0b"/>
+                    </linearGradient>
+                    <filter id="avDeckCardShadow" x="-22%" y="-20%" width="150%" height="150%">
+                      <feDropShadow dx="0.9" dy="1.4" stdDeviation="1" flood-color="#1a1f2c" flood-opacity="0.16"/>
+                    </filter>
+                  </defs>
+                  <ellipse cx="44" cy="120" rx="32" ry="4.5" fill="#1a1f2c" opacity="0.12" filter="url(#avSoftBlur)"/>
+                  <g opacity="0.58" transform="rotate(-12 43 74)">
+                    <rect x="15" y="40" width="52" height="72" rx="6" fill="url(#avDeckBack)" stroke="#b85a0f" stroke-width="1" filter="url(#avDeckCardShadow)"/>
+                    <rect x="15" y="40" width="52" height="72" rx="6" fill="url(#avPackLeaf)" opacity="0.5"/>
+                  </g>
+                  <g opacity="0.68" transform="rotate(-6 44 74)">
+                    <rect x="18" y="37" width="52" height="72" rx="6" fill="url(#avDeckBack)" stroke="#b85a0f" stroke-width="1" filter="url(#avDeckCardShadow)"/>
+                    <rect x="18" y="37" width="52" height="72" rx="6" fill="url(#avPackLeaf)" opacity="0.5"/>
+                  </g>
+                  <g opacity="0.68" transform="rotate(7 47 74)">
+                    <rect x="22" y="38" width="52" height="72" rx="6" fill="url(#avDeckBack)" stroke="#b85a0f" stroke-width="1" filter="url(#avDeckCardShadow)"/>
+                    <rect x="22" y="38" width="52" height="72" rx="6" fill="url(#avPackLeaf)" opacity="0.48"/>
+                  </g>
+                  <g opacity="0.54" transform="rotate(12 48 75)">
+                    <rect x="26" y="41" width="52" height="72" rx="6" fill="url(#avDeckBack)" stroke="#b85a0f" stroke-width="1" filter="url(#avDeckCardShadow)"/>
+                    <rect x="26" y="41" width="52" height="72" rx="6" fill="url(#avPackLeaf)" opacity="0.44"/>
+                  </g>
+                  <g filter="url(#avDeckCardShadow)">
+                    <rect x="21" y="35" width="52" height="72" rx="6" fill="url(#avDeckBack)" stroke="#1a1f2c" stroke-width="1.4"/>
+                    <rect x="21" y="35" width="52" height="72" rx="6" fill="url(#avPackLeaf)" opacity="0.56"/>
+                    <rect x="25" y="39" width="44" height="64" rx="4" fill="none" stroke="#fff7d6" stroke-width="1.2" opacity="0.72"/>
+                    <rect x="28" y="42" width="38" height="58" rx="3" fill="none" stroke="#7c2d12" stroke-width="0.7" opacity="0.16"/>
+                    <path d="M28 42 C39 38 55 38 66 42" stroke="#fff9df" stroke-width="1.8" stroke-linecap="round" opacity="0.76"/>
+                    <g transform="translate(0, 2)">
+                      <ellipse cx="47" cy="75" rx="12.5" ry="11" fill="#ffffff" stroke="#1a1f2c" stroke-width="1.25"/>
+                      <path d="M41 66 Q41 60 47 60 Q53 60 53 66 Q53 67 52 67 L42 67 Q41 67 41 66 Z"
+                            fill="#fbbf24" stroke="#1a1f2c" stroke-width="1"/>
+                      <path d="M43 60 L42 55 L44.2 57 L47 53 L49.8 57 L52 55 L51 60 Z"
+                            fill="#65c466" stroke="#1a1f2c" stroke-width="0.75" stroke-linejoin="round"/>
+                      <circle cx="44.2" cy="74" r="1.25" fill="#1a1f2c"/>
+                      <circle cx="49.8" cy="74" r="1.25" fill="#1a1f2c"/>
+                    </g>
+                  </g>
+                </g>
+
+                <ellipse class="pomu-ground-shadow" cx="76" cy="121" rx="23" ry="4.4" fill="#1a1f2c" opacity="0.13" filter="url(#avPomuShadow)"/>
+
+                <image class="pack-pomu-img"
+                       href="assets/pomu_pose_7.png"
+                       x="46" y="64" width="62" height="62"
+                       preserveAspectRatio="xMidYMid meet"
+                       aria-hidden="true"/>
+
+                <g class="pack-locked-icon">
+                  <circle cx="44" cy="72" r="14" fill="#ffffff" opacity="0.85" stroke="#1a1f2c" stroke-width="1.4"/>
+                  <circle cx="44" cy="72" r="11" fill="none" stroke="#1a1f2c" stroke-width="1"/>
+                  <path d="M44 64 L44 72 L48 76" stroke="#1a1f2c" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+                </g>
+              </svg>
+            </div>
+
+            <div class="pack-info">
+              <div class="pack-name">ぽむアバターパック</div>
+              <div class="pack-desc">ぽむの表情・ポーズ・カラーバリエーション5種を獲得</div>
+              <div class="pack-status timer">⌛ 次の無料パックまで 11:08:53</div>
+            </div>
+          </div>
+          <div class="pack-actions">
+            <button class="pack-btn primary disabled" disabled>無料で開ける</button>
+            <button class="pack-btn secondary" data-action="open-coin">
+              <svg class="pack-btn-coin-icon" viewBox="0 0 14 14" aria-hidden="true">
+                <circle cx="7" cy="7" r="6" fill="#fbbf24" stroke="#92400e" stroke-width="0.8"/>
+                <circle cx="7" cy="7" r="3.9" fill="#fcd34d" stroke="#92400e" stroke-width="0.55"/>
+                <path d="M8.5 5.2 C8 4.8 7.3 4.7 6.7 4.9 C5.4 5.2 4.8 6.2 5.1 7.4 C5.3 8.5 6.3 9.2 7.5 8.9 C8 8.8 8.5 8.5 8.8 8.1"
+                      fill="none" stroke="#92400e" stroke-width="0.9" stroke-linecap="round"/>
+                <path d="M7 4.2 L7 9.8" stroke="#92400e" stroke-width="0.65" stroke-linecap="round"/>
+              </svg>
+              100
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="gacha-history" role="button" tabindex="0">
+        <span>📜 ガチャ履歴を見る</span>
+        <span class="gacha-history-arrow">›</span>
+      </div>
+    </div>
+
+    <div class="sub-content" id="sub-shop">
+      <div class="placeholder-note">
+        <strong>ショップ画面</strong><br>
+        視覚仕上げは次の段階で実施。
+      </div>
+    </div>
+
+    <div class="sub-content" id="sub-collection">
+      <div class="placeholder-note">
+        <strong>所持画面</strong><br>
+        視覚仕上げは次の段階で実施。
+      </div>
+    </div>
+
+  </div>
+
+  <nav class="bottom-nav" aria-label="メインナビゲーション">
+    <div class="nav-tab" data-tab="home">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 11 L12 4 L21 11 V20 a1 1 0 0 1 -1 1 H15 V14 H9 V21 H4 a1 1 0 0 1 -1 -1 Z"/>
+        </svg>
+      </div>
+      ホーム
+    </div>
+    <div class="nav-tab nav-tab--active" data-tab="town">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="8" width="18" height="13" rx="1"/>
+          <path d="M3 11 H21"/>
+          <path d="M12 8 V21"/>
+          <path d="M7.5 8 Q9 4 12 4 Q15 4 16.5 8"/>
+        </svg>
+      </div>
+      ぽむタウン
+      <span class="nav-badge">1</span>
+    </div>
+    <div class="nav-tab" data-tab="battle">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 4 L20 4 L20 10 M14 4 L4 14 L8 18 L20 6 M10 14 L14 18"/>
+        </svg>
+      </div>
+      対戦
+    </div>
+    <div class="nav-tab" data-tab="friends">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="8" r="3.5"/>
+          <path d="M3 20 c0 -3 3 -5 6 -5 s6 2 6 5"/>
+          <circle cx="17" cy="9" r="2.5"/>
+          <path d="M14 17 c1 -2 3 -3 5 -3 s2 1 2 3"/>
+        </svg>
+      </div>
+      フレンド
+    </div>
+    <div class="nav-tab" data-tab="more">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 7 H20 M4 12 H20 M4 17 H20"/>
+        </svg>
+      </div>
+      その他
+    </div>
+  </nav>
+
+</div>
+
+<div class="dev-note">
+  <strong>VISUAL v3: ぽむタウン > ガチャ</strong><br>
+  v2 からの変更: 巾着袋シルエットをクラシックなカード束に置換。<br><br>
+  <em>ぽむPNGは変更せず、既存画像の位置も維持。</em>
+</div>
+
+<script>
+  document.querySelectorAll('.sub-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.dataset.sub;
+      document.querySelectorAll('.sub-content').forEach(el => el.classList.remove('active'));
+      document.getElementById('sub-' + target).classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('.pack-btn:not(.disabled):not([disabled])').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const card = e.target.closest('.pack-card');
+      const packName = card?.querySelector('.pack-name')?.textContent || 'パック';
+      const action = e.currentTarget.dataset.action === 'open-free' ? '無料で開封' : '100コインで開封';
+      alert(`[${packName}] ${action} → 開封演出画面へ(Phase B)`);
+    });
+  });
+
+  document.querySelectorAll('.pack-visual').forEach(el => {
+    el.addEventListener('click', () => {
+      const bundle = el.querySelector('.pack-bundle');
+      if (!bundle) return;
+      bundle.style.animation = 'none';
+      void bundle.offsetWidth;
+      bundle.animate(
+        [
+          { transform: 'rotate(0deg)' },
+          { transform: 'rotate(-6deg)' },
+          { transform: 'rotate(6deg)' },
+          { transform: 'rotate(-3deg)' },
+          { transform: 'rotate(0deg)' }
+        ],
+        { duration: 420, easing: 'ease-out' }
+      ).onfinish = () => {
+        bundle.style.animation = '';
+      };
+    });
+  });
+
+  document.querySelector('.gacha-history')?.addEventListener('click', () => {
+    alert('[ガチャ履歴画面へ]');
+  });
+</script>
+
+</body>
+</html>

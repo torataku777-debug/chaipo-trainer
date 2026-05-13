@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<!--
+  ファイル: pomu_home_v2.html
+  バージョン: v2
+  改善日: 2026-05-14
+  改善者: Codex / GPT-5
+  対応ワイヤー: ~/Desktop/claude/codex_handoff/wireframes/home_tab.html
+  トーン継承: pomu_town_v5.html
+
+  v1 からの変更点:
+   - PRIMARY CTA に上端/下端ハイライト、光源オーブ、グリッター、黄色矢印ボタンのCG質感を追加
+   - ガチャリマインダーのカード束SVGをv3背景パック寄りの雲柄・ハイライト・影付きに精緻化
+   - ぽむアバターを細い金/オレンジ二重リングと空色の内側背景に調整
+   - ミッション完了祝福、XPコインバッジ、ログイン報酬、ニュース/通知アイコンをv5品質に polish
+   - BottomNav構造と既存JSハンドラは維持
+-->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>VISUAL: ホームタブ (v2)</title>
+  <style>
+    :root {
+      --sky-100:        #e6f4fb;
+      --sky-200:        #c5e2f0;
+      --sky-300:        #8fc8e0;
+      --cloud-white:    #ffffff;
+      --cloud-soft:     #f6fbfd;
+      --pomu-yellow:    #fbbf24;
+      --pomu-orange:    #f59e0b;
+      --leaf-green:     #65c466;
+      --ink-900:        #1a1f2c;
+      --ink-500:        #6b7280;
+      --ink-300:        #d1d5db;
+      --ready-glow:     #ffd24a;
+      --ready-glow-soft: rgba(255, 210, 74, 0.35);
+      --notif-red:       #ef4444;
+      --cta-navy:        #24365f;
+      --cta-indigo:      #4b63a7;
+      --cta-purple:      #766fb8;
+      --cta-gold:        #fbbf24;
+      --cta-gold-soft:   rgba(255, 210, 74, 0.38);
+      --btn-inner-glow: inset 0 0 14px rgba(255, 255, 255, 0.26);
+      --btn-bottom-shade: inset 0 -3px 0 rgba(146, 64, 14, 0.18);
+      --home-card-edge: rgba(255, 255, 255, 0.78);
+      --home-card-highlight: rgba(255, 255, 255, 0.72);
+      --home-press-shadow: 0 2px 7px rgba(76, 108, 135, 0.10);
+      --coin-edge: #92400e;
+
+      --card-shadow: 0 4px 12px rgba(26, 31, 44, 0.06),
+                     0 1px 3px rgba(26, 31, 44, 0.04);
+      --btn-shadow:  0 2px 6px rgba(26, 31, 44, 0.08);
+      --pack-shadow: 0 8px 18px rgba(110, 140, 170, 0.18);
+      --ready-card-shadow: 0 4px 12px rgba(26, 31, 44, 0.06),
+                           0 0 0 2px var(--ready-glow-soft),
+                           0 0 24px var(--ready-glow-soft);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background: #ecf3f7;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Noto Sans JP", sans-serif;
+      color: var(--ink-900);
+      letter-spacing: 0.02em;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .device {
+      width: 393px;
+      min-height: 852px;
+      margin: 24px auto;
+      background: linear-gradient(180deg, var(--sky-100) 0%, var(--sky-200) 100%);
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 60px rgba(60, 90, 120, 0.18),
+                  0 4px 12px rgba(60, 90, 120, 0.08);
+    }
+
+    .sky-clouds {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      right: 0;
+      height: 220px;
+      pointer-events: none;
+      opacity: 0.68;
+      z-index: 0;
+    }
+
+    .status-bar {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-900);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* === HOME HEADER === */
+    .home-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 18px 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .pomu-avatar-wrap {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      padding: 2px;
+      background:
+        radial-gradient(circle at 32% 24%, #fff7d6 0%, #fbbf24 48%, #f59e0b 100%);
+      box-shadow:
+        0 5px 12px rgba(76,108,135,0.16),
+        0 1px 2px rgba(146,64,14,0.14),
+        0 0 0 1px rgba(245, 158, 11, 0.44),
+        0 0 0 3px rgba(255, 247, 214, 0.36),
+        inset 0 1px 0 rgba(255,255,255,0.76);
+      overflow: visible;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .pomu-avatar-wrap::after {
+      content: "";
+      position: absolute;
+      inset: 4px 5px auto 8px;
+      height: 18px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.74), rgba(255,255,255,0));
+      pointer-events: none;
+      z-index: 2;
+    }
+    .pomu-avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 50% 35%;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 44% 28%, #ffffff 0%, #f8fdff 34%, #e8f6fb 100%);
+      box-shadow:
+        inset 0 -3px 8px rgba(143,200,224,0.18),
+        inset 0 0 0 1px rgba(255,255,255,0.88),
+        0 0 0 1px rgba(255,255,255,0.72);
+    }
+
+    .player-info .rank {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--ink-900);
+      letter-spacing: 0.02em;
+    }
+    .player-info .rate {
+      font-size: 12px;
+      color: var(--ink-500);
+      margin-top: 2px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .header-right {
+      display: flex;
+      gap: 8px;
+    }
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(246,251,253,0.96) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.82);
+      box-shadow:
+        0 5px 12px rgba(76,108,135,0.13),
+        0 1px 2px rgba(26,31,44,0.04),
+        inset 0 1px 0 rgba(255,255,255,0.96);
+      transition: transform 0.1s ease, box-shadow 0.16s ease, filter 0.16s ease;
+    }
+    .icon-btn::before {
+      content: "";
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      top: 4px;
+      height: 12px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+    .icon-btn:active {
+      transform: translateY(1px) scale(0.95);
+      filter: brightness(0.98);
+      box-shadow:
+        var(--home-press-shadow),
+        inset 0 2px 5px rgba(76, 108, 135, 0.08);
+    }
+    .icon-btn svg {
+      width: 20px;
+      height: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .icon-btn .notif-dot {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 9px;
+      height: 9px;
+      background: radial-gradient(circle at 35% 30%, #fecaca 0%, var(--notif-red) 58%, #dc2626 100%);
+      border-radius: 50%;
+      border: 2px solid var(--cloud-white);
+      box-shadow: 0 1px 4px rgba(239, 68, 68, 0.34);
+      animation: notifPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes notifPulse {
+      0%, 100% { opacity: 0.64; transform: scale(0.94); }
+      50%      { opacity: 1;    transform: scale(1.08); }
+    }
+
+    .screen-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 18px 100px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* === PRIMARY CTA === */
+    .primary-cta {
+      position: relative;
+      background:
+        radial-gradient(circle at 82% 18%, rgba(255, 229, 157, 0.34) 0%, rgba(255, 229, 157, 0.12) 20%, rgba(255, 229, 157, 0) 38%),
+        radial-gradient(circle at 8% 100%, rgba(255, 210, 74, 0.26) 0%, rgba(255, 210, 74, 0) 46%),
+        linear-gradient(132deg, var(--cta-navy) 0%, var(--cta-indigo) 39%, var(--cta-purple) 66%, #dea23b 118%);
+      border-radius: 18px;
+      padding: 22px 24px 24px;
+      min-height: 168px;
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.2s ease;
+      box-shadow:
+        0 12px 26px rgba(62, 78, 137, 0.28),
+        0 0 0 1px rgba(255, 223, 139, 0.42),
+        0 0 24px rgba(255, 210, 74, 0.14),
+        inset 0 1px 0 rgba(255,255,255,0.44),
+        inset 0 -18px 30px rgba(26, 31, 44, 0.12);
+      overflow: hidden;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      margin-top: 10px;
+      isolation: isolate;
+      border: 1px solid rgba(255, 239, 185, 0.22);
+    }
+    .primary-cta::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,0.72) 0 0.8px, transparent 1px),
+        radial-gradient(circle, rgba(255,210,74,0.76) 0 0.7px, transparent 1px);
+      background-size: 32px 32px, 46px 46px;
+      background-position: 7px 9px, 24px 18px;
+      opacity: 0.24;
+      mix-blend-mode: screen;
+    }
+    .primary-cta::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.26) 0%, rgba(255,255,255,0.04) 34%, rgba(255,255,255,0) 64%),
+        linear-gradient(90deg, rgba(255,210,74,0.12) 0%, rgba(255,210,74,0) 32%, rgba(255,210,74,0.15) 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.13),
+        inset 0 9px 0 rgba(255,255,255,0.05),
+        inset 0 -1px 0 rgba(255,247,214,0.26),
+        inset 0 -18px 32px rgba(38, 48, 93, 0.13);
+    }
+    .primary-cta > * {
+      position: relative;
+      z-index: 1;
+    }
+    .primary-cta[data-mode="continue"] {
+      background:
+        radial-gradient(circle at 82% 18%, rgba(255, 229, 157, 0.32) 0%, rgba(255, 229, 157, 0.10) 22%, rgba(255, 229, 157, 0) 40%),
+        radial-gradient(circle at 14% 100%, rgba(101, 196, 102, 0.22) 0%, rgba(101, 196, 102, 0) 46%),
+        linear-gradient(132deg, #24516b 0%, #3f7fa2 45%, #6aaed0 74%, #f0b33d 118%);
+    }
+    .primary-cta:active {
+      transform: translateY(1px) scale(0.988);
+      box-shadow:
+        0 7px 16px rgba(62, 78, 137, 0.22),
+        0 0 0 1px rgba(255, 223, 139, 0.36),
+        0 0 18px rgba(255, 210, 74, 0.12),
+        inset 0 1px 0 rgba(255,255,255,0.24),
+        inset 0 -12px 22px rgba(26, 31, 44, 0.13);
+    }
+    /* CTA decorative shapes */
+    .cta-deco {
+      position: absolute;
+      pointer-events: none;
+      opacity: 0.52;
+      z-index: 0;
+    }
+    .cta-deco-1 {
+      top: -42px;
+      right: -36px;
+      width: 152px;
+      height: 152px;
+      background:
+        conic-gradient(from 12deg, transparent 0deg, rgba(255,255,255,0.28) 8deg, transparent 16deg, transparent 52deg, rgba(255,247,214,0.26) 62deg, transparent 72deg, transparent 122deg, rgba(255,255,255,0.20) 132deg, transparent 144deg, transparent 214deg, rgba(255,247,214,0.22) 224deg, transparent 234deg, transparent 360deg),
+        radial-gradient(circle, rgba(255,247,214,0.62) 0%, rgba(255,247,214,0.20) 34%, transparent 72%);
+      border-radius: 50%;
+    }
+    .cta-deco-1::after {
+      content: "";
+      position: absolute;
+      left: 52px;
+      top: 52px;
+      width: 22px;
+      height: 22px;
+      background: radial-gradient(circle, rgba(255,255,255,0.96) 0%, rgba(255,247,214,0.44) 34%, transparent 66%);
+      border-radius: 50%;
+      box-shadow:
+        24px 18px 0 -8px rgba(255,247,214,0.36),
+        -14px 28px 0 -9px rgba(255,255,255,0.28);
+    }
+    .cta-deco-2 {
+      bottom: -52px;
+      left: -24px;
+      width: 128px;
+      height: 128px;
+      background:
+        radial-gradient(circle at 38% 38%, rgba(255,247,214,0.40) 0 3px, transparent 4px),
+        radial-gradient(circle at 65% 30%, rgba(255,255,255,0.28) 0 1.6px, transparent 2.5px),
+        radial-gradient(circle, rgba(251, 191, 36, 0.34) 0%, rgba(251, 191, 36, 0.08) 42%, transparent 74%);
+      border-radius: 50%;
+    }
+    .cta-season-emblem {
+      position: absolute;
+      right: 16px;
+      top: 28px;
+      width: 96px;
+      height: 76px;
+      opacity: 0.17;
+      filter: drop-shadow(0 4px 5px rgba(6, 16, 32, 0.28));
+      z-index: 0;
+    }
+    .cta-label-top {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      width: fit-content;
+      padding: 4px 10px 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(253, 230, 138, 0.48);
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.24em;
+      color: rgba(255, 247, 214, 0.96);
+      text-shadow: 0 1px 3px rgba(6, 16, 32, 0.38);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.22),
+        0 2px 5px rgba(26,31,44,0.10);
+    }
+    .cta-label-top::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      flex: 0 0 8px;
+      background: linear-gradient(180deg, #fff0a8 0%, var(--cta-gold) 100%);
+      clip-path: polygon(50% 0%, 62% 34%, 98% 35%, 69% 56%, 79% 91%, 50% 70%, 21% 91%, 31% 56%, 2% 35%, 38% 34%);
+      filter: drop-shadow(0 1px 1px rgba(146, 64, 14, 0.3));
+    }
+    .cta-title {
+      position: relative;
+      font-size: 33px;
+      font-weight: 900;
+      margin-top: 9px;
+      letter-spacing: 0.055em;
+      line-height: 1.08;
+      text-shadow:
+        0 3px 0 rgba(35, 47, 91, 0.24),
+        0 5px 12px rgba(6, 16, 32, 0.42),
+        0 0 16px rgba(255, 255, 255, 0.16);
+    }
+    .cta-meta {
+      position: relative;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.94);
+      margin-top: 12px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      text-shadow: 0 1px 3px rgba(6, 16, 32, 0.34);
+    }
+    .cta-meta::before {
+      content: "◆";
+      color: #ffe38a;
+      font-size: 10px;
+      text-shadow: 0 1px 2px rgba(146,64,14,0.36);
+    }
+    .primary-cta[data-mode="continue"] .cta-meta::before {
+      content: "↻";
+      color: #e8fbff;
+      font-size: 12px;
+    }
+    .cta-arrow {
+      position: absolute;
+      right: 21px;
+      bottom: 21px;
+      width: 44px;
+      height: 44px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.56) 0%, rgba(255,255,255,0.14) 30%, rgba(255,255,255,0) 42%),
+        radial-gradient(circle at 32% 18%, #fff0a8 0%, rgba(255,240,168,0.48) 34%, rgba(255,240,168,0) 62%),
+        linear-gradient(180deg, var(--pomu-yellow) 0%, #ffb11e 56%, var(--pomu-orange) 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink-900);
+      font-size: 22px;
+      font-weight: 900;
+      border: 1px solid rgba(255,255,255,0.34);
+      overflow: hidden;
+      box-shadow:
+        0 9px 16px rgba(62, 38, 9, 0.30),
+        0 2px 4px rgba(26,31,44,0.18),
+        inset 0 1px 0 rgba(255,255,255,0.78),
+        var(--btn-inner-glow),
+        var(--btn-bottom-shade);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.34);
+    }
+    .cta-arrow::before {
+      content: "";
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      top: 6px;
+      height: 12px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+    .primary-cta:active .cta-arrow {
+      box-shadow:
+        0 5px 10px rgba(62, 38, 9, 0.26),
+        0 1px 3px rgba(26,31,44,0.16),
+        inset 0 1px 0 rgba(255,255,255,0.62),
+        inset 0 -2px 0 rgba(146, 64, 14, 0.20);
+    }
+
+    .cta-toggle {
+      position: absolute;
+      top: 9px;
+      right: 13px;
+      font-size: 10px;
+      color: rgba(255,255,255,0.82);
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      z-index: 2;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      text-shadow: 0 1px 2px rgba(6, 16, 32, 0.28);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.16),
+        0 2px 5px rgba(6,16,32,0.10);
+    }
+    .cta-toggle:hover {
+      color: rgba(255,255,255,1);
+      background: rgba(255,255,255,0.17);
+    }
+
+    /* === GACHA REMINDER === */
+    .gacha-reminder {
+      margin-top: 12px;
+      padding: 14px 16px;
+      background:
+        radial-gradient(circle at 8% 16%, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.24) 38%, rgba(255,255,255,0) 62%),
+        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 62%, #ffffff 100%);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      position: relative;
+      overflow: visible;
+      box-shadow:
+        0 10px 22px rgba(76, 108, 135, 0.11),
+        0 2px 5px rgba(26, 31, 44, 0.05),
+        inset 0 1px 0 var(--home-card-highlight);
+      transition: transform 0.1s ease;
+      border: 1px solid var(--home-card-edge);
+    }
+    .gacha-reminder:active { transform: scale(0.99); }
+    .gacha-reminder.is-ready {
+      box-shadow: var(--ready-card-shadow);
+    }
+    .gacha-reminder.is-ready::before {
+      content: "!";
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 22px;
+      height: 22px;
+      background:
+        radial-gradient(circle at 35% 28%, #fecaca 0%, var(--notif-red) 54%, #dc2626 100%);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 900;
+      border: 2px solid var(--cloud-white);
+      box-shadow:
+        0 3px 7px rgba(239, 68, 68, 0.30),
+        inset 0 1px 0 rgba(255,255,255,0.42);
+      text-shadow: 0 1px 1px rgba(127, 29, 29, 0.38);
+    }
+    .gacha-mini-icon {
+      width: 48px;
+      height: 48px;
+      flex-shrink: 0;
+      position: relative;
+      filter: drop-shadow(0 5px 8px rgba(76, 108, 135, 0.18));
+    }
+    .gacha-mini-icon::after {
+      content: "";
+      position: absolute;
+      right: 1px;
+      top: 2px;
+      width: 12px;
+      height: 12px;
+      background: linear-gradient(180deg, #fff7d6, var(--ready-glow));
+      clip-path: polygon(50% 0%, 61% 35%, 98% 36%, 68% 56%, 79% 93%, 50% 70%, 21% 93%, 32% 56%, 2% 36%, 39% 35%);
+      filter: drop-shadow(0 1px 2px rgba(245, 158, 11, 0.28));
+    }
+    .gacha-mini-icon svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    @keyframes gachaSway {
+      0%, 100% { transform: rotate(-1.5deg); }
+      50%      { transform: rotate(1.5deg); }
+    }
+    .gacha-reminder.is-ready .gacha-mini-icon {
+      animation: gachaSway 2.4s ease-in-out infinite;
+      transform-origin: center bottom;
+    }
+    .gacha-body { flex: 1; min-width: 0; }
+    .gacha-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--ink-900);
+    }
+    .gacha-sub {
+      font-size: 11px;
+      color: var(--ink-500);
+      margin-top: 3px;
+      font-weight: 500;
+    }
+    .gacha-arrow {
+      font-size: 22px;
+      color: var(--ink-500);
+      flex-shrink: 0;
+    }
+
+    /* === SECTION HEADER === */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 22px 4px 10px;
+    }
+    .section-title {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      color: var(--ink-500);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section-title .section-emoji {
+      font-size: 14px;
+    }
+    .section-badge {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 10px;
+      background: var(--cloud-white);
+      border-radius: 11px;
+      color: var(--pomu-orange);
+      box-shadow: 0 1px 2px rgba(26,31,44,0.06);
+      font-variant-numeric: tabular-nums;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .section-badge.streak::before {
+      content: "★";
+      font-size: 9px;
+      color: var(--pomu-yellow);
+      text-shadow: 0 1px 1px rgba(146,64,14,0.22);
+    }
+
+    /* === MISSION === */
+    .mission-card {
+      background:
+        radial-gradient(circle at 8% 0%, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.24) 34%, rgba(255,255,255,0) 58%),
+        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 62%, #ffffff 100%);
+      border-radius: 14px;
+      padding: 6px 16px;
+      border: 1px solid var(--home-card-edge);
+      box-shadow:
+        0 10px 22px rgba(76, 108, 135, 0.10),
+        0 2px 5px rgba(26, 31, 44, 0.05),
+        inset 0 1px 0 var(--home-card-highlight);
+    }
+    .mission-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(26,31,44,0.06);
+      position: relative;
+    }
+    .mission-row:last-child { border-bottom: none; }
+    .mission-row.done {
+      margin: 0 -8px;
+      padding: 12px 8px;
+      border-radius: 12px;
+      background:
+        radial-gradient(circle at 9% 35%, rgba(255, 210, 74, 0.22) 0%, rgba(255, 210, 74, 0.08) 32%, rgba(255, 210, 74, 0) 58%),
+        linear-gradient(90deg, rgba(255, 247, 214, 0.58) 0%, rgba(255, 247, 214, 0.22) 52%, rgba(255,255,255,0) 100%);
+    }
+    .mission-row.done::after {
+      content: "";
+      position: absolute;
+      inset: 4px 8px;
+      border-radius: 10px;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(255,210,74,0.38) 0 1.3px, transparent 2px),
+        radial-gradient(circle at 66% 28%, rgba(255,255,255,0.62) 0 1.1px, transparent 2px),
+        radial-gradient(circle at 82% 70%, rgba(251,191,36,0.24) 0 1.2px, transparent 2px);
+      opacity: 0.72;
+    }
+    .mission-row > * {
+      position: relative;
+      z-index: 1;
+    }
+    .mission-check {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #cfd8df;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, #ffffff 0%, #f6fbfd 100%);
+      box-shadow:
+        inset 0 2px 4px rgba(76, 108, 135, 0.14),
+        0 1px 0 rgba(255,255,255,0.78);
+      position: relative;
+      overflow: hidden;
+    }
+    .mission-row.done .mission-check {
+      background:
+        radial-gradient(circle at 35% 22%, #fff0a8 0%, rgba(255,240,168,0.42) 31%, rgba(255,240,168,0) 54%),
+        linear-gradient(180deg, var(--pomu-yellow), var(--pomu-orange));
+      border-color: var(--pomu-orange);
+      color: #fff;
+      box-shadow:
+        0 2px 5px rgba(245, 158, 11, 0.30),
+        inset 0 1px 0 rgba(255,255,255,0.62),
+        inset 0 -2px 0 rgba(146, 64, 14, 0.12);
+    }
+    .mission-row.done .mission-check::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      right: 4px;
+      top: 3px;
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.66), rgba(255,255,255,0));
+    }
+    .mission-row.done .mission-check svg {
+      width: 14px;
+      height: 14px;
+      position: relative;
+      z-index: 1;
+      filter: drop-shadow(0 1px 1px rgba(146, 64, 14, 0.28));
+    }
+    .mission-row.done .mission-text {
+      text-decoration: line-through;
+      color: var(--ink-500);
+      opacity: 0.75;
+    }
+    .mission-text {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-900);
+    }
+    .mission-reward {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--pomu-orange);
+      padding: 3px 9px;
+      background: rgba(251, 191, 36, 0.15);
+      border-radius: 10px;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.58);
+    }
+    .mission-reward::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 34% 28%, #fff0a8 0%, #fcd34d 38%, transparent 40%),
+        linear-gradient(180deg, var(--pomu-yellow), var(--pomu-orange));
+      border: 1px solid var(--coin-edge);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.26);
+    }
+
+    /* === BONUS === */
+    .bonus-card {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 8% 18%, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.32) 34%, rgba(255,255,255,0) 58%),
+        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 64%, #fff 100%);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid var(--home-card-edge);
+      box-shadow:
+        0 10px 22px rgba(76, 108, 135, 0.10),
+        0 2px 5px rgba(26, 31, 44, 0.05),
+        inset 0 1px 0 var(--home-card-highlight);
+    }
+    .bonus-card::before {
+      content: "";
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      top: 0;
+      height: 18px;
+      border-radius: 0 0 18px 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.76), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+    .bonus-icon {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .bonus-icon svg { width: 100%; height: 100%; }
+    .bonus-text {
+      flex: 1;
+      min-width: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .bonus-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--ink-900);
+    }
+    .bonus-sub {
+      font-size: 11px;
+      color: var(--ink-500);
+      margin-top: 2px;
+      font-weight: 500;
+    }
+    .bonus-button {
+      padding: 9px 18px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.56) 0%, rgba(255,255,255,0.16) 30%, rgba(255,255,255,0) 42%),
+        radial-gradient(circle at 30% 18%, #ffe38a 0%, rgba(255,227,138,0.48) 34%, rgba(255,227,138,0) 62%),
+        linear-gradient(180deg, var(--pomu-yellow) 0%, #ffb11e 56%, var(--pomu-orange) 100%);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      min-height: 44px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      box-shadow:
+        0 6px 13px rgba(245, 158, 11, 0.22),
+        0 2px 4px rgba(26,31,44,0.10),
+        inset 0 1px 0 rgba(255,255,255,0.78),
+        var(--btn-inner-glow),
+        var(--btn-bottom-shade);
+      text-shadow: 0 1px 0 rgba(146, 64, 14, 0.22);
+      flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,0.34);
+      position: relative;
+      z-index: 1;
+      transition: transform 0.1s ease, filter 0.1s ease, box-shadow 0.1s ease;
+      touch-action: manipulation;
+    }
+    .bonus-button:active {
+      transform: translateY(1px) scale(0.97);
+      filter: brightness(0.96);
+      box-shadow:
+        0 3px 8px rgba(245, 158, 11, 0.20),
+        0 1px 2px rgba(26,31,44,0.10),
+        inset 0 1px 0 rgba(255,255,255,0.62),
+        inset 0 -2px 0 rgba(146, 64, 14, 0.20);
+    }
+
+    /* === NEWS === */
+    .news-banner {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.22) 36%, rgba(255,255,255,0) 60%),
+        rgba(255, 255, 255, 0.55);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: background 0.18s ease;
+      border: 1px solid rgba(255,255,255,0.64);
+      box-shadow:
+        0 6px 14px rgba(76, 108, 135, 0.08),
+        inset 0 1px 0 rgba(255,255,255,0.66);
+    }
+    .news-banner::before {
+      content: "";
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      top: 0;
+      height: 16px;
+      border-radius: 0 0 16px 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.66), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+    .news-banner:active { background: rgba(255, 255, 255, 0.8); }
+    .news-icon {
+      width: 30px;
+      height: 30px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at 35% 24%, #fff0a8 0%, rgba(255,240,168,0.42) 30%, rgba(255,240,168,0) 54%),
+        linear-gradient(180deg, var(--pomu-yellow), var(--pomu-orange));
+      color: var(--ink-900);
+      border-radius: 50%;
+      font-size: 14px;
+      font-weight: 900;
+      box-shadow:
+        0 4px 8px rgba(245, 158, 11, 0.28),
+        inset 0 1px 0 rgba(255,255,255,0.70),
+        inset 0 -2px 0 rgba(146,64,14,0.13);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.36);
+      border: 1px solid rgba(146, 64, 14, 0.36);
+      position: relative;
+      z-index: 1;
+    }
+    .news-text {
+      flex: 1;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-900);
+      position: relative;
+      z-index: 1;
+    }
+    .news-arrow {
+      color: var(--ink-500);
+      font-size: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* === BOTTOM NAV === */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 76px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      box-shadow: 0 -2px 12px rgba(60, 90, 120, 0.08);
+      z-index: 2;
+      padding-bottom: 8px;
+    }
+    .nav-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink-500);
+      cursor: pointer;
+      position: relative;
+      padding-top: 6px;
+    }
+    .nav-tab .nav-icon {
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+      opacity: 0.65;
+    }
+    .nav-tab--active {
+      color: var(--ink-900);
+      font-weight: 800;
+    }
+    .nav-tab--active .nav-icon {
+      opacity: 1;
+    }
+    .nav-tab--active::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 30%;
+      right: 30%;
+      height: 3px;
+      background: var(--pomu-yellow);
+      border-radius: 0 0 2px 2px;
+    }
+    .nav-badge {
+      position: absolute;
+      top: 4px;
+      right: calc(50% - 18px);
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      background: var(--notif-red);
+      color: #fff;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #fff;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    }
+
+    .dev-note {
+      max-width: 500px;
+      margin: 16px auto 60px;
+      padding: 18px;
+      background: #fff;
+      border: 1px dashed #ccc;
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+
+<div class="device" role="application" aria-label="ホーム画面">
+
+  <svg class="sky-clouds" viewBox="0 0 393 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <linearGradient id="skyCloudPaint" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="62%" stop-color="#ffffff"/>
+        <stop offset="100%" stop-color="#edf6fa"/>
+      </linearGradient>
+      <filter id="skyCloudSoft" x="-8%" y="-30%" width="116%" height="170%">
+        <feGaussianBlur stdDeviation="0.4"/>
+      </filter>
+    </defs>
+    <g filter="url(#skyCloudSoft)">
+      <g fill="url(#skyCloudPaint)" opacity="0.92">
+        <ellipse cx="36" cy="39" rx="29" ry="11"/>
+        <ellipse cx="66" cy="32" rx="32" ry="14"/>
+        <ellipse cx="100" cy="44" rx="47" ry="15"/>
+        <ellipse cx="127" cy="49" rx="23" ry="9"/>
+      </g>
+      <path d="M16 49 C44 56 99 59 148 52" stroke="#d5eaf2" stroke-width="4" stroke-linecap="round" opacity="0.3"/>
+
+      <g fill="url(#skyCloudPaint)" opacity="0.88">
+        <ellipse cx="286" cy="106" rx="32" ry="12"/>
+        <ellipse cx="320" cy="98" rx="45" ry="16"/>
+        <ellipse cx="360" cy="113" rx="34" ry="13"/>
+        <ellipse cx="389" cy="123" rx="29" ry="10"/>
+      </g>
+      <path d="M262 116 C292 124 357 127 407 119" stroke="#d5eaf2" stroke-width="4" stroke-linecap="round" opacity="0.28"/>
+
+      <g fill="url(#skyCloudPaint)" opacity="0.7">
+        <ellipse cx="160" cy="171" rx="28" ry="9"/>
+        <ellipse cx="197" cy="164" rx="46" ry="13"/>
+        <ellipse cx="238" cy="173" rx="32" ry="10"/>
+      </g>
+      <path d="M138 177 C170 184 218 184 262 178" stroke="#d5eaf2" stroke-width="3" stroke-linecap="round" opacity="0.22"/>
+    </g>
+  </svg>
+
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>📶 100%</span>
+  </div>
+
+  <!-- HOME HEADER -->
+  <div class="home-header">
+    <div class="header-left">
+      <div class="pomu-avatar-wrap" aria-label="プロフィール">
+        <img class="pomu-avatar-img" src="assets/pomu_pose_1.png" alt="ぽむ"/>
+      </div>
+      <div class="player-info">
+        <div class="rank">プラチナ 3</div>
+        <div class="rate">レート 1,247</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="icon-btn" data-action="notifications" aria-label="通知">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 16 L6 16 L6 12 a6 6 0 0 1 12 0 Z"/>
+          <path d="M9 19 a3 3 0 0 0 6 0"/>
+          <line x1="12" y1="3" x2="12" y2="5"/>
+        </svg>
+        <span class="notif-dot"></span>
+      </div>
+      <div class="icon-btn" data-action="giftbox" aria-label="受け取りボックス">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="8" width="18" height="13" rx="1.5"/>
+          <line x1="3" y1="13" x2="21" y2="13"/>
+          <line x1="12" y1="8" x2="12" y2="21"/>
+          <path d="M8 8 a2 2 0 0 1 0 -4 c2 0 4 4 4 4"/>
+          <path d="M16 8 a2 2 0 0 0 0 -4 c-2 0 -4 4 -4 4"/>
+        </svg>
+        <span class="notif-dot"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen-body">
+
+    <!-- PRIMARY CTA -->
+    <div id="cta-default" class="primary-cta" data-mode="rank">
+      <span class="cta-deco cta-deco-1"></span>
+      <span class="cta-deco cta-deco-2"></span>
+      <svg class="cta-season-emblem" viewBox="0 0 110 86" aria-hidden="true">
+        <defs>
+          <linearGradient id="ctaEmblemGold" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#fff0a8"/>
+            <stop offset="58%" stop-color="#fbbf24"/>
+            <stop offset="100%" stop-color="#f59e0b"/>
+          </linearGradient>
+        </defs>
+        <path d="M55 7 L67 30 L93 23 L78 48 L88 76 H22 L32 48 L17 23 L43 30 Z"
+              fill="url(#ctaEmblemGold)" stroke="#fff7d6" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M35 76 H75 L72 83 H38 Z" fill="url(#ctaEmblemGold)" stroke="#fff7d6" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M39 50 H71 M44 60 H66" stroke="#fff7d6" stroke-width="4" stroke-linecap="round" opacity="0.72"/>
+      </svg>
+      <span class="cta-toggle" id="cta-toggle">→ 中断ありver を見る</span>
+      <div>
+        <div class="cta-label-top" id="cta-label">RANK MATCH</div>
+        <div class="cta-title" id="cta-title">ランクマッチ</div>
+      </div>
+      <div class="cta-meta" id="cta-meta">シーズン1 ・ 残り12日</div>
+      <div class="cta-arrow" aria-hidden="true">→</div>
+    </div>
+
+    <!-- GACHA REMINDER -->
+    <div class="gacha-reminder is-ready" data-action="goto-town" role="button" tabindex="0">
+      <div class="gacha-mini-icon">
+        <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <radialGradient id="homeMiniCardBg" cx="30%" cy="18%" r="82%">
+              <stop offset="0%" stop-color="#f7fdff"/>
+              <stop offset="34%" stop-color="#cfeaf5"/>
+              <stop offset="72%" stop-color="#98cfe5"/>
+              <stop offset="100%" stop-color="#75b8d5"/>
+            </radialGradient>
+            <linearGradient id="homeMiniCardEdge" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ffffff" stop-opacity="0.72"/>
+              <stop offset="100%" stop-color="#3f8caf" stop-opacity="0.24"/>
+            </linearGradient>
+            <pattern id="homeMiniCloud" width="18" height="14" patternUnits="userSpaceOnUse">
+              <g fill="#ffffff" opacity="0.58">
+                <ellipse cx="5.4" cy="7" rx="3.9" ry="1.7"/>
+                <ellipse cx="9.2" cy="6" rx="3.4" ry="2.1"/>
+                <ellipse cx="12.8" cy="7.2" rx="4.1" ry="1.6"/>
+              </g>
+              <path d="M3 9 C6.2 10 11.7 10 15.7 9.1" stroke="#d8edf5" stroke-width="0.55" stroke-linecap="round" opacity="0.34"/>
+            </pattern>
+            <filter id="homeMiniCardShadow" x="-22%" y="-22%" width="150%" height="155%">
+              <feDropShadow dx="0.7" dy="1.25" stdDeviation="0.85" flood-color="#1a1f2c" flood-opacity="0.17"/>
+            </filter>
+          </defs>
+          <ellipse cx="30" cy="55" rx="18" ry="2.3" fill="#1a1f2c" opacity="0.12"/>
+          <g opacity="0.68" transform="rotate(-9 25 35)" filter="url(#homeMiniCardShadow)">
+            <rect x="10" y="14" width="32" height="42" rx="4.2" fill="url(#homeMiniCardBg)" stroke="#4e94b4" stroke-width="0.9"/>
+            <rect x="10" y="14" width="32" height="42" rx="4.2" fill="url(#homeMiniCloud)" opacity="0.56"/>
+          </g>
+          <g opacity="0.76" transform="rotate(8 36 35)" filter="url(#homeMiniCardShadow)">
+            <rect x="18" y="14" width="32" height="42" rx="4.2" fill="url(#homeMiniCardBg)" stroke="#4e94b4" stroke-width="0.9"/>
+            <rect x="18" y="14" width="32" height="42" rx="4.2" fill="url(#homeMiniCloud)" opacity="0.50"/>
+          </g>
+          <g filter="url(#homeMiniCardShadow)">
+            <rect x="14" y="10" width="32" height="42" rx="4.2" fill="url(#homeMiniCardBg)" stroke="#1a1f2c" stroke-width="1.25"/>
+            <rect x="14" y="10" width="32" height="42" rx="4.2" fill="url(#homeMiniCloud)" opacity="0.58"/>
+            <rect x="17" y="13" width="26" height="36" rx="3" fill="none" stroke="#ffffff" stroke-width="0.95" opacity="0.66"/>
+            <rect x="19.2" y="15.2" width="21.6" height="31.6" rx="2.3" fill="none" stroke="#1a1f2c" stroke-width="0.45" opacity="0.15"/>
+            <path d="M18 14 C24 12.2 36 12.2 42 14" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" opacity="0.72"/>
+            <path d="M20 38 L26 29 L30 34 L35 26 L41 38 Z"
+                  fill="#f8fcff" stroke="#1a1f2c" stroke-width="0.95" stroke-linejoin="round" opacity="0.96"/>
+            <g fill="#ffffff" stroke="#1a1f2c" stroke-width="0.65" opacity="0.94">
+              <ellipse cx="33.8" cy="26.4" rx="3.5" ry="1.4"/>
+              <ellipse cx="36.6" cy="25.5" rx="2.4" ry="1.9"/>
+              <ellipse cx="39" cy="26.7" rx="3" ry="1.25"/>
+            </g>
+            <rect x="14.8" y="10.8" width="30.4" height="6.8" rx="3.2" fill="url(#homeMiniCardEdge)" opacity="0.86"/>
+          </g>
+        </svg>
+      </div>
+      <div class="gacha-body">
+        <div class="gacha-title">無料パックが受け取れます</div>
+        <div class="gacha-sub">パイナップル背景パック × 1</div>
+      </div>
+      <div class="gacha-arrow" aria-hidden="true">›</div>
+    </div>
+
+    <!-- MISSIONS -->
+    <div class="section-header">
+      <div class="section-title">
+        <span class="section-emoji">📅</span>
+        <span>今日のミッション</span>
+      </div>
+      <div class="section-badge">1 / 3</div>
+    </div>
+    <div class="mission-card">
+      <div class="mission-row done">
+        <div class="mission-check">
+          <svg viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="3,7 6,10 11,4"/>
+          </svg>
+        </div>
+        <div class="mission-text">対戦を1回プレイする</div>
+        <div class="mission-reward">+10 XP</div>
+      </div>
+      <div class="mission-row">
+        <div class="mission-check"></div>
+        <div class="mission-text">1勝する</div>
+        <div class="mission-reward">+30 XP</div>
+      </div>
+      <div class="mission-row">
+        <div class="mission-check"></div>
+        <div class="mission-text">FLに到達する</div>
+        <div class="mission-reward">+50 XP</div>
+      </div>
+    </div>
+
+    <!-- LOGIN BONUS -->
+    <div class="section-header">
+      <div class="section-title">
+        <span class="section-emoji">🎁</span>
+        <span>ログインボーナス</span>
+      </div>
+      <div class="section-badge streak">5日連続</div>
+    </div>
+    <div class="bonus-card">
+      <div class="bonus-icon" aria-hidden="true">
+        <svg viewBox="0 0 44 44">
+          <defs>
+            <linearGradient id="homeGiftBody" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stop-color="#ffe38a"/>
+              <stop offset="54%"  stop-color="#fbbf24"/>
+              <stop offset="100%" stop-color="#f59e0b"/>
+            </linearGradient>
+            <linearGradient id="homeGiftSide" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%"   stop-color="#fcd34d"/>
+              <stop offset="100%" stop-color="#e28b08"/>
+            </linearGradient>
+            <linearGradient id="homeGiftLid" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stop-color="#fff0a8"/>
+              <stop offset="48%"  stop-color="#fbbf24"/>
+              <stop offset="100%" stop-color="#f59e0b"/>
+            </linearGradient>
+            <linearGradient id="homeGiftRibbon" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#fb7185"/>
+              <stop offset="100%" stop-color="#dc2626"/>
+            </linearGradient>
+            <linearGradient id="homeGiftKnot" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#fecdd3"/>
+              <stop offset="100%" stop-color="#b91c1c"/>
+            </linearGradient>
+            <filter id="homeGiftShadow" x="-22%" y="-22%" width="144%" height="150%">
+              <feDropShadow dx="0.7" dy="1.6" stdDeviation="1" flood-color="#1a1f2c" flood-opacity="0.18"/>
+            </filter>
+          </defs>
+          <ellipse cx="22" cy="40" rx="16" ry="2.3" fill="#1a1f2c" opacity="0.12"/>
+          <g filter="url(#homeGiftShadow)">
+            <rect x="6.5" y="20" width="31" height="19.5" rx="2.2" fill="url(#homeGiftBody)" stroke="#92400e" stroke-width="1.15"/>
+            <path d="M29 20 H37.5 V39.5 H29 Z" fill="url(#homeGiftSide)" opacity="0.36"/>
+            <path d="M6.5 21.5 H37.5" stroke="#fff7c2" stroke-width="1.1" stroke-linecap="round" opacity="0.46"/>
+            <rect x="18.9" y="20" width="6.2" height="19.5" fill="url(#homeGiftRibbon)" stroke="#7f1d1d" stroke-width="0.7"/>
+            <path d="M18.9 20 H25.1 V39.5 H18.9 Z" fill="#ffffff" opacity="0.12"/>
+            <rect x="4" y="15" width="36" height="8.8" rx="1.9" fill="url(#homeGiftLid)" stroke="#92400e" stroke-width="1.15"/>
+            <path d="M5.2 23.8 H38.8" stroke="#7c2d12" stroke-width="1.1" stroke-linecap="round" opacity="0.26"/>
+            <rect x="18.8" y="15" width="6.4" height="8.8" fill="url(#homeGiftRibbon)" stroke="#7f1d1d" stroke-width="0.7"/>
+            <rect x="5.2" y="15.7" width="33.6" height="2.3" rx="1" fill="#ffffff" opacity="0.46"/>
+            <path d="M21.9 14.2 C16.6 9.1 12.6 8.4 12.2 12 C11.8 15.7 16.8 16.8 21.9 14.2 Z"
+                  fill="url(#homeGiftRibbon)" stroke="#7f1d1d" stroke-width="1.05" stroke-linejoin="round"/>
+            <path d="M22.1 14.2 C27.4 9.1 31.4 8.4 31.8 12 C32.2 15.7 27.2 16.8 22.1 14.2 Z"
+                  fill="url(#homeGiftRibbon)" stroke="#7f1d1d" stroke-width="1.05" stroke-linejoin="round"/>
+            <path d="M14.7 12 C17 11.8 19.2 12.6 21.2 14" stroke="#fecdd3" stroke-width="1" stroke-linecap="round" opacity="0.62"/>
+            <path d="M29.3 12 C27 11.8 24.8 12.6 22.8 14" stroke="#fecdd3" stroke-width="1" stroke-linecap="round" opacity="0.62"/>
+            <ellipse cx="22" cy="14.5" rx="3" ry="2.4" fill="url(#homeGiftKnot)" stroke="#7f1d1d" stroke-width="0.95"/>
+            <ellipse cx="21.2" cy="13.6" rx="1" ry="0.6" fill="#ffffff" opacity="0.42"/>
+          </g>
+        </svg>
+      </div>
+      <div class="bonus-text">
+        <div class="bonus-title">本日の報酬</div>
+        <div class="bonus-sub">100コイン + ぽむスタンプ</div>
+      </div>
+      <button class="bonus-button">受け取る</button>
+    </div>
+
+    <!-- NEWS -->
+    <div class="section-header">
+      <div class="section-title">
+        <span class="section-emoji">📣</span>
+        <span>お知らせ</span>
+      </div>
+    </div>
+    <div class="news-banner" role="button" tabindex="0">
+      <div class="news-icon">!</div>
+      <div class="news-text">シーズン1 開幕! 5/15まで報酬2倍キャンペーン中</div>
+      <div class="news-arrow" aria-hidden="true">›</div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV: 5タブ (ホーム active) -->
+  <nav class="bottom-nav" aria-label="メインナビゲーション">
+    <div class="nav-tab nav-tab--active" data-tab="home">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 11 L12 4 L21 11 V20 a1 1 0 0 1 -1 1 H15 V14 H9 V21 H4 a1 1 0 0 1 -1 -1 Z"/>
+        </svg>
+      </div>
+      ホーム
+    </div>
+    <div class="nav-tab" data-tab="town">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="8" width="18" height="13" rx="1"/>
+          <path d="M3 11 H21"/>
+          <path d="M12 8 V21"/>
+          <path d="M7.5 8 Q9 4 12 4 Q15 4 16.5 8"/>
+        </svg>
+      </div>
+      ぽむタウン
+      <span class="nav-badge">1</span>
+    </div>
+    <div class="nav-tab" data-tab="battle">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 4 L20 4 L20 10 M14 4 L4 14 L8 18 L20 6 M10 14 L14 18"/>
+        </svg>
+      </div>
+      対戦
+    </div>
+    <div class="nav-tab" data-tab="friends">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="8" r="3.5"/>
+          <path d="M3 20 c0 -3 3 -5 6 -5 s6 2 6 5"/>
+          <circle cx="17" cy="9" r="2.5"/>
+          <path d="M14 17 c1 -2 3 -3 5 -3 s2 1 2 3"/>
+        </svg>
+      </div>
+      フレンド
+    </div>
+    <div class="nav-tab" data-tab="more">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 7 H20 M4 12 H20 M4 17 H20"/>
+        </svg>
+      </div>
+      その他
+    </div>
+  </nav>
+
+</div>
+
+<div class="dev-note">
+  <strong>VISUAL v2: ホームタブ (Codex 仕上げ)</strong><br><br>
+  <strong>構成</strong>: ヘッダー(ぽむアバター+ランク+通知/ギフト) / PRIMARY CTA(ランクマッチ ⇄ 続きから動的切替) / ガチャリマインダー(無料パック準備完了強調) / 今日のミッション / ログインボーナス / お知らせ<br><br>
+  <strong>v2 polish</strong>: PRIMARY CTA、カード束SVG、ぽむアバター枠、プレゼント箱、ミッションチェック、お知らせアイコンの質感を pomu_town_v5 に合わせて調整
+</div>
+
+<script>
+  let ctaState = 'rank';
+
+  function toggleCTA() {
+    const cta = document.getElementById('cta-default');
+    const label = document.getElementById('cta-label');
+    const title = document.getElementById('cta-title');
+    const meta = document.getElementById('cta-meta');
+    const toggle = document.getElementById('cta-toggle');
+
+    if (ctaState === 'rank') {
+      cta.dataset.mode = 'continue';
+      label.textContent = 'CONTINUE MATCH';
+      title.textContent = '続きから';
+      meta.textContent = 'vs プレイヤーX ・ ラウンド 3';
+      toggle.textContent = '→ 通常 ver に戻る';
+      ctaState = 'continue';
+    } else {
+      cta.dataset.mode = 'rank';
+      label.textContent = 'RANK MATCH';
+      title.textContent = 'ランクマッチ';
+      meta.textContent = 'シーズン1 ・ 残り12日';
+      toggle.textContent = '→ 中断ありver を見る';
+      ctaState = 'rank';
+    }
+  }
+
+  document.getElementById('cta-toggle').addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleCTA();
+  });
+
+  document.getElementById('cta-default').addEventListener('click', () => {
+    alert(ctaState === 'rank' ? '[ランクマッチ開始]' : '[中断試合に復帰]');
+  });
+
+  document.querySelector('[data-action="goto-town"]').addEventListener('click', () => {
+    alert('[ぽむタウン → ガチャ画面に遷移]');
+  });
+
+  document.querySelector('[data-action="notifications"]').addEventListener('click', () => {
+    alert('[通知一覧画面へ]');
+  });
+
+  document.querySelector('[data-action="giftbox"]').addEventListener('click', () => {
+    alert('[受け取りボックス画面へ]');
+  });
+
+  document.querySelector('.bonus-button').addEventListener('click', (e) => {
+    e.stopPropagation();
+    alert('[ログイン報酬を受け取り → カード非表示]');
+  });
+
+  document.querySelector('.news-banner').addEventListener('click', () => {
+    alert('[お知らせ詳細へ]');
+  });
+
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      console.log('Nav tapped:', tab.dataset.tab);
+    });
+  });
+</script>
+
+</body>
+</html>

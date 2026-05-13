@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<!--
+  ファイル: pomu_town_v5.html
+  改善日: 2026-05-14
+  改善者: Codex / GPT-5
+  対応仕様書: ~/Desktop/claude/codex_handoff/CODEX_BRIEF_SHOP_V5.md
+  バージョン: v5
+
+  v4 からの変更点:
+   - ショップサブタブの Featured バナー夜景を精密化
+   - ショップ内ボタン、カテゴリカード、アイコン、コイン購入カードを仕上げ
+   - ガチャサブタブ(v3のpack-card部分)は変更なし
+-->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>VISUAL: ぽむタウン (v5: ショップ仕上げ)</title>
+  <style>
+    :root {
+      --sky-100:        #e6f4fb;
+      --sky-200:        #c5e2f0;
+      --sky-300:        #8fc8e0;
+      --cloud-white:    #ffffff;
+      --cloud-soft:     #f6fbfd;
+      --pomu-yellow:    #fbbf24;
+      --pomu-orange:    #f59e0b;
+      --leaf-green:     #65c466;
+      --ink-900:        #1a1f2c;
+      --ink-500:        #6b7280;
+      --ink-300:        #d1d5db;
+      --ready-glow:     #ffd24a;
+      --ready-glow-soft: rgba(255, 210, 74, 0.35);
+
+      --card-shadow: 0 4px 12px rgba(26, 31, 44, 0.06),
+                     0 1px 3px rgba(26, 31, 44, 0.04);
+      --btn-shadow:  0 2px 6px rgba(26, 31, 44, 0.08);
+      --pack-shadow: 0 8px 18px rgba(110, 140, 170, 0.18);
+      --ready-card-shadow: 0 4px 12px rgba(26, 31, 44, 0.06),
+                           0 0 0 2px var(--ready-glow-soft),
+                           0 0 24px var(--ready-glow-soft);
+      --btn-inner-glow: inset 0 0 14px rgba(255, 255, 255, 0.26);
+      --btn-bottom-shade: inset 0 -3px 0 rgba(146, 64, 14, 0.18);
+      --secondary-inner-line: rgba(143, 200, 224, 0.26);
+      --cloth-highlight: rgba(255, 255, 255, 0.46);
+      --cloth-shadow: rgba(38, 84, 112, 0.16);
+      --shop-card-edge: rgba(255, 255, 255, 0.78);
+      --shop-card-highlight: rgba(255, 255, 255, 0.72);
+      --shop-gold-glow: rgba(255, 210, 74, 0.38);
+      --shop-press-shadow: 0 2px 7px rgba(76, 108, 135, 0.10);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background: #ecf3f7;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Noto Sans JP", sans-serif;
+      color: var(--ink-900);
+      letter-spacing: 0.02em;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .device {
+      width: 393px;
+      min-height: 852px;
+      margin: 24px auto;
+      background: linear-gradient(180deg, var(--sky-100) 0%, var(--sky-200) 100%);
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 60px rgba(60, 90, 120, 0.18),
+                  0 4px 12px rgba(60, 90, 120, 0.08);
+    }
+
+    .sky-clouds {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      right: 0;
+      height: 220px;
+      pointer-events: none;
+      opacity: 0.68;
+      z-index: 0;
+    }
+
+    .status-bar {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-900);
+      position: relative;
+      z-index: 1;
+    }
+
+    .town-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 20px 12px;
+      position: relative;
+      z-index: 1;
+    }
+    .screen-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: var(--ink-900);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+    }
+    .currency-row {
+      display: flex;
+      gap: 8px;
+    }
+    .currency-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px 6px 8px;
+      background: var(--cloud-white);
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 800;
+      box-shadow: 0 1px 3px rgba(26,31,44,0.06);
+      font-variant-numeric: tabular-nums;
+      color: var(--ink-900);
+    }
+    .currency-icon {
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sub-tabs-wrap {
+      margin: 0 20px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 14px;
+      padding: 4px;
+      display: flex;
+      position: relative;
+      z-index: 1;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6);
+    }
+    .sub-tab {
+      flex: 1;
+      padding: 10px 0;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-500);
+      cursor: pointer;
+      border-radius: 10px;
+      transition: background 0.18s ease, color 0.18s ease;
+    }
+    .sub-tab.active {
+      background: var(--cloud-white);
+      color: var(--ink-900);
+      box-shadow: 0 1px 4px rgba(26,31,44,0.08);
+    }
+
+    .screen-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px 100px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .gacha-info {
+      text-align: center;
+      padding: 6px 0 18px;
+      font-size: 12px;
+      color: var(--ink-500);
+      font-weight: 600;
+    }
+    .gacha-info .hilite {
+      color: var(--pomu-orange);
+      font-weight: 800;
+    }
+
+    .pack-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .pack-card {
+      background: linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 60%);
+      border-radius: 16px;
+      padding: 14px 14px 12px;
+      box-shadow: var(--card-shadow);
+      position: relative;
+      transition: box-shadow 0.3s ease, transform 0.12s ease;
+    }
+    .pack-card.is-ready {
+      box-shadow: var(--ready-card-shadow);
+      margin: 2px 0 3px;
+      padding-top: 16px;
+      padding-bottom: 14px;
+    }
+    .pack-card.is-locked {
+      opacity: 0.95;
+    }
+
+    .pack-top {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .pack-visual {
+      width: 104px;
+      height: 132px;
+      flex-shrink: 0;
+      position: relative;
+      cursor: pointer;
+      filter: drop-shadow(0 8px 18px rgba(110, 140, 170, 0.18));
+    }
+    .pack-visual svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    .pack-card.is-locked .pack-visual {
+      filter: saturate(0.7) brightness(1.04) drop-shadow(0 4px 8px rgba(110, 140, 170, 0.12));
+    }
+
+    @keyframes packSway {
+      0%, 100% { transform: rotate(-1.6deg); }
+      50%      { transform: rotate(1.6deg); }
+    }
+    .pack-card.is-ready .pack-bundle {
+      transform-box: fill-box;
+      transform-origin: center bottom;
+      animation: packSway 2s ease-in-out infinite;
+    }
+
+    @keyframes starPulse {
+      0%, 100% { opacity: 0.45; transform: scale(0.92); }
+      50%      { opacity: 1;    transform: scale(1.06); }
+    }
+    .pack-card.is-ready .pack-stars > * {
+      transform-box: fill-box;
+      transform-origin: center center;
+      animation: starPulse 1.4s ease-in-out infinite;
+    }
+    .pack-card.is-ready .pack-stars > *:nth-child(2) {
+      animation-delay: 0.6s;
+    }
+    .pack-card.is-locked .pack-stars {
+      display: none;
+    }
+    /* ぽむは静止 (包みだけ揺れる) */
+    .pack-pomu-img {
+      pointer-events: none;
+    }
+
+    .pack-visual:active {
+      transform: scale(1.05);
+      transition: transform 0.1s ease-out;
+    }
+
+    .pack-info {
+      flex: 1;
+      min-width: 0;
+      padding-top: 4px;
+    }
+    .pack-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--ink-900);
+      line-height: 1.2;
+    }
+    .pack-desc {
+      font-size: 12px;
+      color: var(--ink-500);
+      margin-top: 6px;
+      line-height: 1.45;
+      font-weight: 500;
+    }
+    .pack-status {
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .pack-status.ready {
+      color: var(--pomu-orange);
+    }
+    .pack-status.ready::before {
+      content: "●";
+      font-size: 9px;
+      transform: translateY(-1px);
+    }
+    .pack-status.timer {
+      color: var(--ink-500);
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+
+    .pack-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .pack-btn {
+      flex: 1;
+      height: 44px;
+      border: none;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.18s ease, filter 0.18s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      letter-spacing: 0.04em;
+      position: relative;
+      overflow: hidden;
+    }
+    .pack-btn.primary {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.52) 0%, rgba(255,255,255,0.16) 28%, rgba(255,255,255,0) 38%),
+        radial-gradient(circle at 28% 18%, #ffe38a 0%, rgba(255,227,138,0.5) 34%, rgba(255,227,138,0) 60%),
+        linear-gradient(180deg, var(--pomu-yellow) 0%, #ffb11e 55%, var(--pomu-orange) 100%);
+      color: #fff;
+      box-shadow: var(--btn-shadow), inset 0 1px 0 rgba(255,255,255,0.72), var(--btn-bottom-shade);
+      text-shadow: 0 1px 0 rgba(146, 64, 14, 0.2);
+    }
+    .pack-card.is-ready .pack-btn.primary {
+      box-shadow:
+        0 5px 12px rgba(245, 158, 11, 0.2),
+        0 0 0 2px rgba(255, 210, 74, 0.16),
+        0 0 18px rgba(255, 210, 74, 0.3),
+        inset 0 1px 0 rgba(255,255,255,0.78),
+        var(--btn-inner-glow),
+        var(--btn-bottom-shade);
+    }
+    .pack-btn.primary:active {
+      transform: translateY(1px);
+      filter: brightness(0.96);
+    }
+    .pack-btn.secondary {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(246,251,253,0.92) 100%);
+      color: var(--ink-900);
+      border: 1px solid var(--ink-300);
+      box-shadow:
+        inset 0 0 0 2px var(--secondary-inner-line),
+        inset 0 1px 0 rgba(255,255,255,0.95),
+        0 1px 3px rgba(26,31,44,0.04);
+    }
+    .pack-btn.secondary:active {
+      transform: translateY(1px);
+      background: #f4f6f8;
+    }
+    .pack-btn.disabled,
+    .pack-btn[disabled] {
+      background: #e5e7eb;
+      color: #9ca3af;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+    .pack-btn.disabled:active {
+      transform: none;
+    }
+    .pack-btn-coin-icon {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    .gacha-history {
+      margin-top: 22px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.55);
+      border-radius: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-900);
+      transition: background 0.18s ease;
+    }
+    .gacha-history:active {
+      background: rgba(255, 255, 255, 0.8);
+    }
+    .gacha-history-arrow {
+      color: var(--ink-500);
+      font-size: 16px;
+    }
+
+    .sub-content { display: none; }
+    .sub-content.active { display: block; }
+
+    .placeholder-note {
+      margin-top: 20px;
+      padding: 24px 16px;
+      background: rgba(255, 255, 255, 0.55);
+      border-radius: 14px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--ink-500);
+      font-weight: 600;
+    }
+    .placeholder-note strong {
+      color: var(--ink-900);
+    }
+
+    .bottom-nav {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 76px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      box-shadow: 0 -2px 12px rgba(60, 90, 120, 0.08);
+      z-index: 2;
+      padding-bottom: 8px;
+    }
+    .nav-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink-500);
+      cursor: pointer;
+      position: relative;
+      padding-top: 6px;
+    }
+    .nav-tab .nav-icon {
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+      opacity: 0.65;
+    }
+    .nav-tab--active {
+      color: var(--ink-900);
+      font-weight: 800;
+    }
+    .nav-tab--active .nav-icon {
+      opacity: 1;
+    }
+    .nav-tab--active::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 30%;
+      right: 30%;
+      height: 3px;
+      background: var(--pomu-yellow);
+      border-radius: 0 0 2px 2px;
+    }
+    .nav-badge {
+      position: absolute;
+      top: 4px;
+      right: calc(50% - 18px);
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      background: #ef4444;
+      color: #fff;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #fff;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    }
+
+    .dev-note {
+      max-width: 500px;
+      margin: 16px auto 60px;
+      padding: 18px;
+      background: #fff;
+      border: 1px dashed #ccc;
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #444;
+    }
+  
+    /* === SHOP SUBTAB === */
+    .featured-banner {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      box-shadow:
+        0 12px 24px rgba(149, 100, 11, 0.16),
+        0 0 0 1px rgba(251, 191, 36, 0.52),
+        0 0 24px var(--shop-gold-glow),
+        inset 0 1px 0 rgba(255,255,255,0.16);
+      background: #1e3a5f;
+      color: #fff;
+      min-height: 138px;
+      transition: transform 0.12s ease, box-shadow 0.18s ease;
+      isolation: isolate;
+    }
+    .featured-banner::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: 1;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.20) 0%, rgba(255,255,255,0.02) 34%, rgba(255,255,255,0) 62%),
+        linear-gradient(90deg, rgba(255,210,74,0.15) 0%, rgba(255,210,74,0) 28%, rgba(255,210,74,0.12) 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 239, 185, 0.24),
+        inset 0 -18px 28px rgba(6, 16, 32, 0.22);
+    }
+    .featured-banner:active {
+      transform: translateY(1px) scale(0.985);
+      box-shadow:
+        0 7px 16px rgba(149, 100, 11, 0.14),
+        0 0 0 1px rgba(251, 191, 36, 0.46),
+        0 0 18px rgba(255, 210, 74, 0.30),
+        inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+    .featured-bg {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+    .featured-tag-row {
+      position: relative;
+      z-index: 2;
+    }
+    .featured-label {
+      display: inline-block;
+      padding: 3px 8px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0) 45%),
+        linear-gradient(180deg, var(--pomu-yellow), var(--pomu-orange));
+      color: #1a1f2c;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      border-radius: 10px;
+      box-shadow:
+        0 2px 5px rgba(0,0,0,0.18),
+        inset 0 1px 0 rgba(255,255,255,0.58);
+    }
+    .featured-title {
+      position: relative;
+      z-index: 2;
+      font-size: 22px;
+      font-weight: 800;
+      margin-top: 10px;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.48), 0 0 10px rgba(255,255,255,0.12);
+      letter-spacing: 0.04em;
+    }
+    .featured-meta {
+      position: relative;
+      z-index: 2;
+      font-size: 12px;
+      opacity: 0.88;
+      margin-top: 4px;
+      font-weight: 600;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.44);
+    }
+    .featured-price-row {
+      position: relative;
+      z-index: 2;
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .featured-price {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 17px;
+      font-weight: 800;
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    }
+    .coin-mini-icon { width: 18px; height: 18px; }
+    .featured-buy-btn {
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      min-height: 44px;
+      padding: 9px 20px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      border: 1px solid rgba(255,255,255,0.34);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.56) 0%, rgba(255,255,255,0.16) 30%, rgba(255,255,255,0) 42%),
+        radial-gradient(circle at 30% 18%, #ffe38a 0%, rgba(255,227,138,0.48) 34%, rgba(255,227,138,0) 62%),
+        linear-gradient(180deg, var(--pomu-yellow) 0%, #ffb11e 56%, var(--pomu-orange) 100%);
+      box-shadow:
+        0 6px 13px rgba(245, 158, 11, 0.26),
+        0 2px 4px rgba(26,31,44,0.18),
+        inset 0 1px 0 rgba(255,255,255,0.78),
+        var(--btn-inner-glow),
+        var(--btn-bottom-shade);
+      text-shadow: 0 1px 0 rgba(146, 64, 14, 0.22);
+      transition: transform 0.1s ease, filter 0.1s ease, box-shadow 0.1s ease;
+      touch-action: manipulation;
+    }
+    .featured-buy-btn:active {
+      transform: translateY(1px) scale(0.97);
+      filter: brightness(0.96);
+      box-shadow:
+        0 3px 8px rgba(245, 158, 11, 0.22),
+        0 1px 2px rgba(26,31,44,0.16),
+        inset 0 1px 0 rgba(255,255,255,0.62),
+        inset 0 -2px 0 rgba(146, 64, 14, 0.20);
+    }
+
+    .shop-categories {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .shop-category {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 22% 0%, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.48) 36%, rgba(255,255,255,0) 66%),
+        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 62%, #ffffff 100%);
+      border-radius: 14px;
+      border: 1px solid var(--shop-card-edge);
+      padding: 14px 10px 12px;
+      min-height: 112px;
+      text-align: center;
+      cursor: pointer;
+      box-shadow:
+        0 10px 22px rgba(76, 108, 135, 0.13),
+        0 2px 5px rgba(26, 31, 44, 0.06),
+        inset 0 1px 0 var(--shop-card-highlight);
+      transition: transform 0.1s ease, box-shadow 0.18s ease;
+      touch-action: manipulation;
+    }
+    .shop-category::before {
+      content: "";
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      top: 0;
+      height: 22px;
+      border-radius: 0 0 20px 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.76), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+    .shop-category::after {
+      content: "";
+      position: absolute;
+      inset: auto 12px 7px 12px;
+      height: 8px;
+      border-radius: 999px;
+      background: radial-gradient(ellipse at center, rgba(143, 200, 224, 0.16), rgba(143, 200, 224, 0));
+      pointer-events: none;
+    }
+    .shop-category:active {
+      transform: translateY(2px) scale(0.975);
+      box-shadow:
+        var(--shop-press-shadow),
+        inset 0 2px 5px rgba(76, 108, 135, 0.08),
+        inset 0 1px 0 rgba(255,255,255,0.62);
+    }
+    .shop-cat-icon {
+      position: relative;
+      z-index: 1;
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 8px;
+      filter: drop-shadow(0 3px 4px rgba(76, 108, 135, 0.12));
+    }
+    .shop-cat-icon svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    .shop-cat-name {
+      position: relative;
+      z-index: 1;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--ink-900);
+      letter-spacing: 0.02em;
+    }
+    .shop-cat-count {
+      position: relative;
+      z-index: 1;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-500);
+      margin-top: 2px;
+    }
+
+    .coin-card {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 8% 18%, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.34) 34%, rgba(255,255,255,0) 58%),
+        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 64%, #fff 100%);
+      border-radius: 14px;
+      border: 1px solid var(--shop-card-edge);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      min-height: 64px;
+      box-shadow:
+        0 10px 22px rgba(76, 108, 135, 0.13),
+        0 2px 5px rgba(26, 31, 44, 0.06),
+        inset 0 1px 0 var(--shop-card-highlight);
+      transition: transform 0.1s ease, box-shadow 0.18s ease;
+      touch-action: manipulation;
+    }
+    .coin-card::before {
+      content: "";
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      top: 0;
+      height: 18px;
+      border-radius: 0 0 18px 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+    .coin-card:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow:
+        var(--shop-press-shadow),
+        inset 0 2px 5px rgba(76, 108, 135, 0.08);
+    }
+    .coin-card-icon {
+      position: relative;
+      z-index: 1;
+      width: 52px;
+      height: 42px;
+      flex-shrink: 0;
+      filter: drop-shadow(0 3px 4px rgba(76, 108, 135, 0.12));
+    }
+    .coin-card-icon svg { width: 100%; height: 100%; }
+    .coin-card-text {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      min-width: 0;
+    }
+    .coin-card-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--ink-900);
+    }
+    .coin-card-sub {
+      font-size: 11px;
+      color: var(--ink-500);
+      margin-top: 2px;
+      font-weight: 500;
+    }
+    .coin-card-btn {
+      position: relative;
+      z-index: 1;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.56) 0%, rgba(255,255,255,0.16) 30%, rgba(255,255,255,0) 42%),
+        radial-gradient(circle at 30% 18%, #ffe38a 0%, rgba(255,227,138,0.48) 34%, rgba(255,227,138,0) 62%),
+        linear-gradient(180deg, var(--pomu-yellow) 0%, #ffb11e 56%, var(--pomu-orange) 100%);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      min-width: 62px;
+      min-height: 44px;
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      border: 1px solid rgba(255,255,255,0.34);
+      box-shadow:
+        0 6px 13px rgba(245, 158, 11, 0.22),
+        0 2px 4px rgba(26,31,44,0.10),
+        inset 0 1px 0 rgba(255,255,255,0.78),
+        var(--btn-inner-glow),
+        var(--btn-bottom-shade);
+      text-shadow: 0 1px 0 rgba(146, 64, 14, 0.22);
+      transition: transform 0.1s ease, filter 0.1s ease, box-shadow 0.1s ease;
+      touch-action: manipulation;
+    }
+    .coin-card-btn:active {
+      transform: translateY(1px) scale(0.97);
+      filter: brightness(0.96);
+      box-shadow:
+        0 3px 8px rgba(245, 158, 11, 0.20),
+        0 1px 2px rgba(26,31,44,0.10),
+        inset 0 1px 0 rgba(255,255,255,0.62),
+        inset 0 -2px 0 rgba(146, 64, 14, 0.20);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="device" role="application" aria-label="ぽむタウン > ガチャ画面">
+
+  <svg class="sky-clouds" viewBox="0 0 393 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <linearGradient id="skyCloudPaint" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="62%" stop-color="#ffffff"/>
+        <stop offset="100%" stop-color="#edf6fa"/>
+      </linearGradient>
+      <filter id="skyCloudSoft" x="-8%" y="-30%" width="116%" height="170%">
+        <feGaussianBlur stdDeviation="0.4"/>
+      </filter>
+    </defs>
+    <g filter="url(#skyCloudSoft)">
+      <g fill="url(#skyCloudPaint)" opacity="0.92">
+        <ellipse cx="36" cy="39" rx="29" ry="11"/>
+        <ellipse cx="66" cy="32" rx="32" ry="14"/>
+        <ellipse cx="100" cy="44" rx="47" ry="15"/>
+        <ellipse cx="127" cy="49" rx="23" ry="9"/>
+      </g>
+      <path d="M16 49 C44 56 99 59 148 52" stroke="#d5eaf2" stroke-width="4" stroke-linecap="round" opacity="0.3"/>
+
+      <g fill="url(#skyCloudPaint)" opacity="0.88">
+        <ellipse cx="286" cy="106" rx="32" ry="12"/>
+        <ellipse cx="320" cy="98" rx="45" ry="16"/>
+        <ellipse cx="360" cy="113" rx="34" ry="13"/>
+        <ellipse cx="389" cy="123" rx="29" ry="10"/>
+      </g>
+      <path d="M262 116 C292 124 357 127 407 119" stroke="#d5eaf2" stroke-width="4" stroke-linecap="round" opacity="0.28"/>
+
+      <g fill="url(#skyCloudPaint)" opacity="0.7">
+        <ellipse cx="160" cy="171" rx="28" ry="9"/>
+        <ellipse cx="197" cy="164" rx="46" ry="13"/>
+        <ellipse cx="238" cy="173" rx="32" ry="10"/>
+      </g>
+      <path d="M138 177 C170 184 218 184 262 178" stroke="#d5eaf2" stroke-width="3" stroke-linecap="round" opacity="0.22"/>
+    </g>
+  </svg>
+
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>📶 100%</span>
+  </div>
+
+  <div class="town-header">
+    <div class="screen-title">ぽむタウン</div>
+    <div class="currency-row">
+      <div class="currency-pill" aria-label="コイン 1250">
+        <span class="currency-icon" aria-hidden="true">
+          <svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="9" cy="9" r="7.5" fill="#fbbf24" stroke="#92400e" stroke-width="1"/>
+            <circle cx="9" cy="9" r="5"   fill="#fcd34d" stroke="#92400e" stroke-width="0.8"/>
+            <path d="M10.8 6.5 C10.2 5.9 9.3 5.7 8.4 5.9 C6.6 6.2 5.7 7.6 5.9 9.1 C6.1 10.8 7.5 11.8 9.1 11.5 C9.8 11.4 10.5 11.1 10.9 10.6"
+                  fill="none" stroke="#92400e" stroke-width="1.25" stroke-linecap="round"/>
+            <path d="M8.9 4.8 L8.9 13.1" stroke="#92400e" stroke-width="0.9" stroke-linecap="round"/>
+          </svg>
+        </span>
+        1,250
+      </div>
+      <div class="currency-pill" aria-label="ジェム 12">
+        <span class="currency-icon" aria-hidden="true">
+          <svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 2 L15 7 L9 16 L3 7 Z" fill="#34d399" stroke="#065f46" stroke-width="1" stroke-linejoin="round"/>
+            <path d="M3 7 L15 7 M9 2 L9 16 M6 7 L9 12 L12 7" stroke="#065f46" stroke-width="0.6" fill="none"/>
+          </svg>
+        </span>
+        12
+      </div>
+    </div>
+  </div>
+
+  <div class="sub-tabs-wrap">
+    <div class="sub-tab active" data-sub="gacha">ガチャ</div>
+    <div class="sub-tab"        data-sub="shop">ショップ</div>
+    <div class="sub-tab"        data-sub="collection">所持</div>
+  </div>
+
+  <div class="screen-body">
+
+    <div class="sub-content active" id="sub-gacha">
+
+      <div class="gacha-info">
+        無料パック残り: <span class="hilite">1 / 3</span> ・ 次のリセット: <span class="hilite">8時間44分後</span>
+      </div>
+
+      <div class="pack-list">
+
+        <!-- Pack 1: 背景パック (ready) -->
+        <div class="pack-card is-ready" data-pack="background">
+          <div class="pack-top">
+            <div class="pack-visual" role="img" aria-label="背景パック・無料で開封可能">
+              <svg viewBox="0 0 104 132" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <radialGradient id="bgPackBody" cx="30%" cy="22%" r="78%">
+                    <stop offset="0%"   stop-color="#f7fdff"/>
+                    <stop offset="28%"  stop-color="#cfeaf5"/>
+                    <stop offset="68%"  stop-color="#98cfe5"/>
+                    <stop offset="100%" stop-color="#75b8d5"/>
+                  </radialGradient>
+                  <linearGradient id="bgPackBottom" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#75b8d5" stop-opacity="0"/>
+                    <stop offset="100%" stop-color="#3f8caf" stop-opacity="0.46"/>
+                  </linearGradient>
+                  <linearGradient id="bgRibbon" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#bfe5f4"/>
+                    <stop offset="100%" stop-color="#6aaed0"/>
+                  </linearGradient>
+                  <filter id="bgSoftBlur" x="-20%" y="-20%" width="140%" height="150%">
+                    <feGaussianBlur stdDeviation="1.2"/>
+                  </filter>
+                  <filter id="bgPomuShadow" x="-40%" y="-80%" width="180%" height="260%">
+                    <feGaussianBlur stdDeviation="1.5"/>
+                  </filter>
+                  <pattern id="bgPackCloud" width="24" height="18" patternUnits="userSpaceOnUse">
+                    <g fill="#ffffff" opacity="0.58">
+                      <ellipse cx="7" cy="9" rx="5.2" ry="2.2"/>
+                      <ellipse cx="12" cy="7.6" rx="4.8" ry="2.8"/>
+                      <ellipse cx="16.8" cy="9.4" rx="5.6" ry="2.1"/>
+                    </g>
+                    <path d="M4 11.4 C8 12.8 15.5 12.8 21 11.5" stroke="#d8edf5" stroke-width="0.7" stroke-linecap="round" opacity="0.32"/>
+                  </pattern>
+                </defs>
+
+                <g class="pack-bundle">
+                  <defs>
+                    <linearGradient id="bgDeckBack" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#c5e2f0"/>
+                      <stop offset="100%" stop-color="#8fc8e0"/>
+                    </linearGradient>
+                    <filter id="bgDeckCardShadow" x="-22%" y="-20%" width="150%" height="150%">
+                      <feDropShadow dx="0.9" dy="1.4" stdDeviation="1" flood-color="#1a1f2c" flood-opacity="0.16"/>
+                    </filter>
+                  </defs>
+                  <ellipse cx="44" cy="120" rx="32" ry="4.5" fill="#1a1f2c" opacity="0.12" filter="url(#bgSoftBlur)"/>
+                  <g opacity="0.58" transform="rotate(-12 43 74)">
+                    <rect x="15" y="40" width="52" height="72" rx="6" fill="url(#bgDeckBack)" stroke="#4e94b4" stroke-width="1" filter="url(#bgDeckCardShadow)"/>
+                    <rect x="15" y="40" width="52" height="72" rx="6" fill="url(#bgPackCloud)" opacity="0.52"/>
+                  </g>
+                  <g opacity="0.68" transform="rotate(-6 44 74)">
+                    <rect x="18" y="37" width="52" height="72" rx="6" fill="url(#bgDeckBack)" stroke="#4e94b4" stroke-width="1" filter="url(#bgDeckCardShadow)"/>
+                    <rect x="18" y="37" width="52" height="72" rx="6" fill="url(#bgPackCloud)" opacity="0.5"/>
+                  </g>
+                  <g opacity="0.68" transform="rotate(7 47 74)">
+                    <rect x="22" y="38" width="52" height="72" rx="6" fill="url(#bgDeckBack)" stroke="#4e94b4" stroke-width="1" filter="url(#bgDeckCardShadow)"/>
+                    <rect x="22" y="38" width="52" height="72" rx="6" fill="url(#bgPackCloud)" opacity="0.5"/>
+                  </g>
+                  <g opacity="0.54" transform="rotate(12 48 75)">
+                    <rect x="26" y="41" width="52" height="72" rx="6" fill="url(#bgDeckBack)" stroke="#4e94b4" stroke-width="1" filter="url(#bgDeckCardShadow)"/>
+                    <rect x="26" y="41" width="52" height="72" rx="6" fill="url(#bgPackCloud)" opacity="0.46"/>
+                  </g>
+                  <g filter="url(#bgDeckCardShadow)">
+                    <rect x="21" y="35" width="52" height="72" rx="6" fill="url(#bgDeckBack)" stroke="#1a1f2c" stroke-width="1.4"/>
+                    <rect x="21" y="35" width="52" height="72" rx="6" fill="url(#bgPackCloud)" opacity="0.62"/>
+                    <rect x="25" y="39" width="44" height="64" rx="4" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.62"/>
+                    <rect x="28" y="42" width="38" height="58" rx="3" fill="none" stroke="#1a1f2c" stroke-width="0.7" opacity="0.15"/>
+                    <path d="M28 42 C39 38 55 38 66 42" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>
+                    <g transform="translate(0, 2)">
+                      <path d="M30 77 L40 62 L48 72 L57 58 L68 77 Z"
+                            fill="#f8fcff" stroke="#1a1f2c" stroke-width="1.2" stroke-linejoin="round" opacity="0.95"/>
+                      <g fill="#ffffff" stroke="#1a1f2c" stroke-width="0.9" opacity="0.94">
+                        <ellipse cx="56" cy="62" rx="5.8" ry="2.4"/>
+                        <ellipse cx="61" cy="60.8" rx="3.8" ry="3"/>
+                        <ellipse cx="65" cy="62.4" rx="4.8" ry="2.1"/>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+
+                <ellipse class="pomu-ground-shadow" cx="76" cy="121" rx="23" ry="4.4" fill="#1a1f2c" opacity="0.14" filter="url(#bgPomuShadow)"/>
+
+                <!-- ぽむ (PNG埋め込み、静止) -->
+                <image class="pack-pomu-img"
+                       href="assets/pomu_pose_6.png"
+                       x="46" y="64" width="62" height="62"
+                       preserveAspectRatio="xMidYMid meet"
+                       aria-hidden="true"/>
+
+                <g class="pack-stars">
+                  <path d="M22 12 L24 18 L30 18 L25 22 L27 28 L22 24 L17 28 L19 22 L14 18 L20 18 Z"
+                        fill="#ffd24a" stroke="#f59e0b" stroke-width="0.8" stroke-linejoin="round"/>
+                  <path d="M82 30 L83.5 34 L88 34 L84.5 36.5 L86 40.5 L82 38 L78 40.5 L79.5 36.5 L76 34 L80.5 34 Z"
+                        fill="#ffd24a" stroke="#f59e0b" stroke-width="0.6" stroke-linejoin="round" opacity="0.85"/>
+                </g>
+              </svg>
+            </div>
+
+            <div class="pack-info">
+              <div class="pack-name">パイナップル背景パック</div>
+              <div class="pack-desc">渋谷・夕景・夜景など多彩な背景アイテム5種を獲得</div>
+              <div class="pack-status ready">無料パック使用可能!</div>
+            </div>
+          </div>
+          <div class="pack-actions">
+            <button class="pack-btn primary" data-action="open-free">無料で開ける</button>
+            <button class="pack-btn secondary" data-action="open-coin">
+              <svg class="pack-btn-coin-icon" viewBox="0 0 14 14" aria-hidden="true">
+                <circle cx="7" cy="7" r="6" fill="#fbbf24" stroke="#92400e" stroke-width="0.8"/>
+                <circle cx="7" cy="7" r="3.9" fill="#fcd34d" stroke="#92400e" stroke-width="0.55"/>
+                <path d="M8.5 5.2 C8 4.8 7.3 4.7 6.7 4.9 C5.4 5.2 4.8 6.2 5.1 7.4 C5.3 8.5 6.3 9.2 7.5 8.9 C8 8.8 8.5 8.5 8.8 8.1"
+                      fill="none" stroke="#92400e" stroke-width="0.9" stroke-linecap="round"/>
+                <path d="M7 4.2 L7 9.8" stroke="#92400e" stroke-width="0.65" stroke-linecap="round"/>
+              </svg>
+              100
+            </button>
+          </div>
+        </div>
+
+        <!-- Pack 2: フレームパック (locked) -->
+        <div class="pack-card is-locked" data-pack="frame">
+          <div class="pack-top">
+            <div class="pack-visual" role="img" aria-label="フレームパック・クールダウン中">
+              <svg viewBox="0 0 104 132" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <radialGradient id="frPackBody" cx="30%" cy="21%" r="78%">
+                    <stop offset="0%"   stop-color="#fffdf4"/>
+                    <stop offset="30%"  stop-color="#fef3c7"/>
+                    <stop offset="70%"  stop-color="#f8dc7f"/>
+                    <stop offset="100%" stop-color="#e6bd56"/>
+                  </radialGradient>
+                  <linearGradient id="frPackBottom" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#f8dc7f" stop-opacity="0"/>
+                    <stop offset="100%" stop-color="#b7791f" stop-opacity="0.36"/>
+                  </linearGradient>
+                  <linearGradient id="frRibbon" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#f6b65b"/>
+                    <stop offset="100%" stop-color="#c45f13"/>
+                  </linearGradient>
+                  <filter id="frSoftBlur" x="-20%" y="-20%" width="140%" height="150%">
+                    <feGaussianBlur stdDeviation="1.2"/>
+                  </filter>
+                  <filter id="frPomuShadow" x="-40%" y="-80%" width="180%" height="260%">
+                    <feGaussianBlur stdDeviation="1.5"/>
+                  </filter>
+                  <pattern id="frPackGrid" width="8" height="8" patternUnits="userSpaceOnUse">
+                    <path d="M0 0 L8 0 M0 0 L0 8" stroke="#a16207" stroke-width="0.4" opacity="0.4"/>
+                  </pattern>
+                </defs>
+
+                <g class="pack-bundle">
+                  <defs>
+                    <linearGradient id="frDeckBack" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#fef3c7"/>
+                      <stop offset="100%" stop-color="#fde68a"/>
+                    </linearGradient>
+                    <filter id="frDeckCardShadow" x="-22%" y="-20%" width="150%" height="150%">
+                      <feDropShadow dx="0.9" dy="1.4" stdDeviation="1" flood-color="#1a1f2c" flood-opacity="0.15"/>
+                    </filter>
+                  </defs>
+                  <ellipse cx="44" cy="120" rx="32" ry="4.5" fill="#1a1f2c" opacity="0.12" filter="url(#frSoftBlur)"/>
+                  <g opacity="0.58" transform="rotate(-12 43 74)">
+                    <rect x="15" y="40" width="52" height="72" rx="6" fill="url(#frDeckBack)" stroke="#b7791f" stroke-width="1" filter="url(#frDeckCardShadow)"/>
+                    <rect x="15" y="40" width="52" height="72" rx="6" fill="url(#frPackGrid)" opacity="0.52"/>
+                  </g>
+                  <g opacity="0.68" transform="rotate(-6 44 74)">
+                    <rect x="18" y="37" width="52" height="72" rx="6" fill="url(#frDeckBack)" stroke="#b7791f" stroke-width="1" filter="url(#frDeckCardShadow)"/>
+                    <rect x="18" y="37" width="52" height="72" rx="6" fill="url(#frPackGrid)" opacity="0.5"/>
+                  </g>
+                  <g opacity="0.68" transform="rotate(7 47 74)">
+                    <rect x="22" y="38" width="52" height="72" rx="6" fill="url(#frDeckBack)" stroke="#b7791f" stroke-width="1" filter="url(#frDeckCardShadow)"/>
+                    <rect x="22" y="38" width="52" height="72" rx="6" fill="url(#frPackGrid)" opacity="0.5"/>
+                  </g>
+                  <g opacity="0.54" transform="rotate(12 48 75)">
+                    <rect x="26" y="41" width="52" height="72" rx="6" fill="url(#frDeckBack)" stroke="#b7791f" stroke-width="1" filter="url(#frDeckCardShadow)"/>
+                    <rect x="26" y="41" width="52" height="72" rx="6" fill="url(#frPackGrid)" opacity="0.46"/>
+                  </g>
+                  <g filter="url(#frDeckCardShadow)">
+                    <rect x="21" y="35" width="52" height="72" rx="6" fill="url(#frDeckBack)" stroke="#1a1f2c" stroke-width="1.4"/>
+                    <rect x="21" y="35" width="52" height="72" rx="6" fill="url(#frPackGrid)" opacity="0.58"/>
+                    <rect x="25" y="39" width="44" height="64" rx="4" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.66"/>
+                    <rect x="28" y="42" width="38" height="58" rx="3" fill="none" stroke="#7c4a03" stroke-width="0.7" opacity="0.18"/>
+                    <path d="M28 42 C39 38 55 38 66 42" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.72"/>
+                    <g transform="translate(0, 2)">
+                      <rect x="32" y="61" width="30" height="26" rx="5" fill="#fffef7" stroke="#1a1f2c" stroke-width="1.3"/>
+                      <rect x="36" y="65" width="22" height="18" rx="3" fill="none" stroke="#1a1f2c" stroke-width="0.85" stroke-dasharray="2 2" opacity="0.48"/>
+                      <circle cx="35" cy="64" r="1.1" fill="#1a1f2c"/>
+                      <circle cx="59" cy="64" r="1.1" fill="#1a1f2c"/>
+                      <circle cx="35" cy="84" r="1.1" fill="#1a1f2c"/>
+                      <circle cx="59" cy="84" r="1.1" fill="#1a1f2c"/>
+                    </g>
+                  </g>
+                </g>
+
+                <ellipse class="pomu-ground-shadow" cx="76" cy="121" rx="23" ry="4.4" fill="#1a1f2c" opacity="0.13" filter="url(#frPomuShadow)"/>
+
+                <image class="pack-pomu-img"
+                       href="assets/pomu_pose_5.png"
+                       x="46" y="64" width="62" height="62"
+                       preserveAspectRatio="xMidYMid meet"
+                       aria-hidden="true"/>
+
+                <g class="pack-locked-icon">
+                  <circle cx="44" cy="72" r="14" fill="#ffffff" opacity="0.85" stroke="#1a1f2c" stroke-width="1.4"/>
+                  <circle cx="44" cy="72" r="11" fill="none" stroke="#1a1f2c" stroke-width="1"/>
+                  <path d="M44 64 L44 72 L50 75" stroke="#1a1f2c" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+                </g>
+              </svg>
+            </div>
+
+            <div class="pack-info">
+              <div class="pack-name">チップフレームパック</div>
+              <div class="pack-desc">カード裏面・縁取りデザインを5種獲得</div>
+              <div class="pack-status timer">⌛ 次の無料パックまで 03:24:11</div>
+            </div>
+          </div>
+          <div class="pack-actions">
+            <button class="pack-btn primary disabled" disabled>無料で開ける</button>
+            <button class="pack-btn secondary" data-action="open-coin">
+              <svg class="pack-btn-coin-icon" viewBox="0 0 14 14" aria-hidden="true">
+                <circle cx="7" cy="7" r="6" fill="#fbbf24" stroke="#92400e" stroke-width="0.8"/>
+                <circle cx="7" cy="7" r="3.9" fill="#fcd34d" stroke="#92400e" stroke-width="0.55"/>
+                <path d="M8.5 5.2 C8 4.8 7.3 4.7 6.7 4.9 C5.4 5.2 4.8 6.2 5.1 7.4 C5.3 8.5 6.3 9.2 7.5 8.9 C8 8.8 8.5 8.5 8.8 8.1"
+                      fill="none" stroke="#92400e" stroke-width="0.9" stroke-linecap="round"/>
+                <path d="M7 4.2 L7 9.8" stroke="#92400e" stroke-width="0.65" stroke-linecap="round"/>
+              </svg>
+              100
+            </button>
+          </div>
+        </div>
+
+        <!-- Pack 3: アバターパック (locked) -->
+        <div class="pack-card is-locked" data-pack="avatar">
+          <div class="pack-top">
+            <div class="pack-visual" role="img" aria-label="ぽむアバターパック・クールダウン中">
+              <svg viewBox="0 0 104 132" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <radialGradient id="avPackBody" cx="30%" cy="21%" r="78%">
+                    <stop offset="0%"   stop-color="#fff4b8"/>
+                    <stop offset="30%"  stop-color="#fcd34d"/>
+                    <stop offset="70%"  stop-color="#f9b321"/>
+                    <stop offset="100%" stop-color="#e78907"/>
+                  </radialGradient>
+                  <linearGradient id="avPackBottom" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#f9b321" stop-opacity="0"/>
+                    <stop offset="100%" stop-color="#b85a0f" stop-opacity="0.4"/>
+                  </linearGradient>
+                  <linearGradient id="avRibbon" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#9be17c"/>
+                    <stop offset="100%" stop-color="#4fa849"/>
+                  </linearGradient>
+                  <filter id="avSoftBlur" x="-20%" y="-20%" width="140%" height="150%">
+                    <feGaussianBlur stdDeviation="1.2"/>
+                  </filter>
+                  <filter id="avPomuShadow" x="-40%" y="-80%" width="180%" height="260%">
+                    <feGaussianBlur stdDeviation="1.5"/>
+                  </filter>
+                  <pattern id="avPackLeaf" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <path d="M10 3 L7.8 8 L10 6.3 L12.2 8 Z" fill="#65c466" opacity="0.56"/>
+                    <path d="M3.5 12 L1.5 16 L3.7 14.6 L5.6 16.5 Z" fill="#65c466" opacity="0.38"/>
+                    <path d="M16 12 L14 16.5 L16.2 14.7 L18.3 16.3 Z" fill="#65c466" opacity="0.42"/>
+                  </pattern>
+                </defs>
+
+                <g class="pack-bundle">
+                  <defs>
+                    <linearGradient id="avDeckBack" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#fcd34d"/>
+                      <stop offset="100%" stop-color="#f59e0b"/>
+                    </linearGradient>
+                    <filter id="avDeckCardShadow" x="-22%" y="-20%" width="150%" height="150%">
+                      <feDropShadow dx="0.9" dy="1.4" stdDeviation="1" flood-color="#1a1f2c" flood-opacity="0.16"/>
+                    </filter>
+                  </defs>
+                  <ellipse cx="44" cy="120" rx="32" ry="4.5" fill="#1a1f2c" opacity="0.12" filter="url(#avSoftBlur)"/>
+                  <g opacity="0.58" transform="rotate(-12 43 74)">
+                    <rect x="15" y="40" width="52" height="72" rx="6" fill="url(#avDeckBack)" stroke="#b85a0f" stroke-width="1" filter="url(#avDeckCardShadow)"/>
+                    <rect x="15" y="40" width="52" height="72" rx="6" fill="url(#avPackLeaf)" opacity="0.5"/>
+                  </g>
+                  <g opacity="0.68" transform="rotate(-6 44 74)">
+                    <rect x="18" y="37" width="52" height="72" rx="6" fill="url(#avDeckBack)" stroke="#b85a0f" stroke-width="1" filter="url(#avDeckCardShadow)"/>
+                    <rect x="18" y="37" width="52" height="72" rx="6" fill="url(#avPackLeaf)" opacity="0.5"/>
+                  </g>
+                  <g opacity="0.68" transform="rotate(7 47 74)">
+                    <rect x="22" y="38" width="52" height="72" rx="6" fill="url(#avDeckBack)" stroke="#b85a0f" stroke-width="1" filter="url(#avDeckCardShadow)"/>
+                    <rect x="22" y="38" width="52" height="72" rx="6" fill="url(#avPackLeaf)" opacity="0.48"/>
+                  </g>
+                  <g opacity="0.54" transform="rotate(12 48 75)">
+                    <rect x="26" y="41" width="52" height="72" rx="6" fill="url(#avDeckBack)" stroke="#b85a0f" stroke-width="1" filter="url(#avDeckCardShadow)"/>
+                    <rect x="26" y="41" width="52" height="72" rx="6" fill="url(#avPackLeaf)" opacity="0.44"/>
+                  </g>
+                  <g filter="url(#avDeckCardShadow)">
+                    <rect x="21" y="35" width="52" height="72" rx="6" fill="url(#avDeckBack)" stroke="#1a1f2c" stroke-width="1.4"/>
+                    <rect x="21" y="35" width="52" height="72" rx="6" fill="url(#avPackLeaf)" opacity="0.56"/>
+                    <rect x="25" y="39" width="44" height="64" rx="4" fill="none" stroke="#fff7d6" stroke-width="1.2" opacity="0.72"/>
+                    <rect x="28" y="42" width="38" height="58" rx="3" fill="none" stroke="#7c2d12" stroke-width="0.7" opacity="0.16"/>
+                    <path d="M28 42 C39 38 55 38 66 42" stroke="#fff9df" stroke-width="1.8" stroke-linecap="round" opacity="0.76"/>
+                    <g transform="translate(0, 2)">
+                      <ellipse cx="47" cy="75" rx="12.5" ry="11" fill="#ffffff" stroke="#1a1f2c" stroke-width="1.25"/>
+                      <path d="M41 66 Q41 60 47 60 Q53 60 53 66 Q53 67 52 67 L42 67 Q41 67 41 66 Z"
+                            fill="#fbbf24" stroke="#1a1f2c" stroke-width="1"/>
+                      <path d="M43 60 L42 55 L44.2 57 L47 53 L49.8 57 L52 55 L51 60 Z"
+                            fill="#65c466" stroke="#1a1f2c" stroke-width="0.75" stroke-linejoin="round"/>
+                      <circle cx="44.2" cy="74" r="1.25" fill="#1a1f2c"/>
+                      <circle cx="49.8" cy="74" r="1.25" fill="#1a1f2c"/>
+                    </g>
+                  </g>
+                </g>
+
+                <ellipse class="pomu-ground-shadow" cx="76" cy="121" rx="23" ry="4.4" fill="#1a1f2c" opacity="0.13" filter="url(#avPomuShadow)"/>
+
+                <image class="pack-pomu-img"
+                       href="assets/pomu_pose_7.png"
+                       x="46" y="64" width="62" height="62"
+                       preserveAspectRatio="xMidYMid meet"
+                       aria-hidden="true"/>
+
+                <g class="pack-locked-icon">
+                  <circle cx="44" cy="72" r="14" fill="#ffffff" opacity="0.85" stroke="#1a1f2c" stroke-width="1.4"/>
+                  <circle cx="44" cy="72" r="11" fill="none" stroke="#1a1f2c" stroke-width="1"/>
+                  <path d="M44 64 L44 72 L48 76" stroke="#1a1f2c" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+                </g>
+              </svg>
+            </div>
+
+            <div class="pack-info">
+              <div class="pack-name">ぽむアバターパック</div>
+              <div class="pack-desc">ぽむの表情・ポーズ・カラーバリエーション5種を獲得</div>
+              <div class="pack-status timer">⌛ 次の無料パックまで 11:08:53</div>
+            </div>
+          </div>
+          <div class="pack-actions">
+            <button class="pack-btn primary disabled" disabled>無料で開ける</button>
+            <button class="pack-btn secondary" data-action="open-coin">
+              <svg class="pack-btn-coin-icon" viewBox="0 0 14 14" aria-hidden="true">
+                <circle cx="7" cy="7" r="6" fill="#fbbf24" stroke="#92400e" stroke-width="0.8"/>
+                <circle cx="7" cy="7" r="3.9" fill="#fcd34d" stroke="#92400e" stroke-width="0.55"/>
+                <path d="M8.5 5.2 C8 4.8 7.3 4.7 6.7 4.9 C5.4 5.2 4.8 6.2 5.1 7.4 C5.3 8.5 6.3 9.2 7.5 8.9 C8 8.8 8.5 8.5 8.8 8.1"
+                      fill="none" stroke="#92400e" stroke-width="0.9" stroke-linecap="round"/>
+                <path d="M7 4.2 L7 9.8" stroke="#92400e" stroke-width="0.65" stroke-linecap="round"/>
+              </svg>
+              100
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="gacha-history" role="button" tabindex="0">
+        <span>📜 ガチャ履歴を見る</span>
+        <span class="gacha-history-arrow">›</span>
+      </div>
+    </div>
+
+    <div class="sub-content" id="sub-shop">
+
+      <!-- Featured Banner -->
+      <div class="featured-banner" role="button" tabindex="0">
+        <svg class="featured-bg" viewBox="0 0 360 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="shopFeaturedSky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stop-color="#172d52"/>
+              <stop offset="54%"  stop-color="#315987"/>
+              <stop offset="100%" stop-color="#607fa9"/>
+            </linearGradient>
+            <radialGradient id="shopMoonHalo" cx="0.84" cy="0.22" r="0.28">
+              <stop offset="0%"   stop-color="#fff8db" stop-opacity="0.58"/>
+              <stop offset="48%"  stop-color="#fbbf24" stop-opacity="0.16"/>
+              <stop offset="100%" stop-color="#fbbf24" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="shopFeaturedGlow" cx="0.74" cy="0.72" r="0.8">
+              <stop offset="0%"   stop-color="#fbbf24" stop-opacity="0.24"/>
+              <stop offset="100%" stop-color="#fbbf24" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="shopMist" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stop-color="#ffffff" stop-opacity="0"/>
+              <stop offset="56%"  stop-color="#ffffff" stop-opacity="0.13"/>
+              <stop offset="100%" stop-color="#ffffff" stop-opacity="0.26"/>
+            </linearGradient>
+            <linearGradient id="shopSignGold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#fde68a"/>
+              <stop offset="100%" stop-color="#f59e0b"/>
+            </linearGradient>
+            <filter id="shopSoftLight" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="1.4"/>
+            </filter>
+          </defs>
+          <rect x="0" y="0" width="360" height="140" fill="url(#shopFeaturedSky)"/>
+          <rect x="0" y="0" width="360" height="140" fill="url(#shopFeaturedGlow)"/>
+          <rect x="0" y="0" width="360" height="140" fill="url(#shopMoonHalo)"/>
+          <g fill="#fff7d6">
+            <circle cx="36" cy="26" r="1.1" opacity="0.55"/>
+            <circle cx="96" cy="20" r="0.8" opacity="0.48"/>
+            <circle cx="148" cy="32" r="1.0" opacity="0.42"/>
+            <circle cx="198" cy="22" r="0.9" opacity="0.50"/>
+            <circle cx="272" cy="17" r="0.8" opacity="0.40"/>
+            <circle cx="331" cy="48" r="0.9" opacity="0.46"/>
+          </g>
+          <g filter="url(#shopSoftLight)" opacity="0.55">
+            <circle cx="305" cy="32" r="19" fill="#fff2bc"/>
+          </g>
+          <circle cx="305" cy="32" r="14" fill="#fff5e1" opacity="0.97"/>
+          <circle cx="300" cy="29" r="3" fill="#e8dbb5" opacity="0.58"/>
+          <circle cx="311" cy="37" r="2" fill="#e8dbb5" opacity="0.32"/>
+
+          <g opacity="0.95">
+            <polygon points="0,84 19,76 42,80 42,140 0,140" fill="#0b182d"/>
+            <rect x="48" y="54" width="38" height="86" fill="#0c1d34"/>
+            <polygon points="92,72 114,64 124,78 124,140 92,140" fill="#071426"/>
+            <polygon points="130,60 162,56 174,66 174,140 130,140" fill="#0b1b31"/>
+            <rect x="180" y="78" width="30" height="62" fill="#08162a"/>
+            <polygon points="218,48 250,48 258,58 258,140 218,140" fill="#0a1a30"/>
+            <rect x="264" y="88" width="22" height="52" fill="#0c2038"/>
+            <polygon points="292,66 326,66 330,74 330,140 292,140" fill="#09172a"/>
+            <polygon points="336,82 356,74 360,78 360,140 336,140" fill="#071426"/>
+          </g>
+          <g stroke="#0b182d" stroke-width="1.4" stroke-linecap="round" opacity="0.9">
+            <path d="M67 54 V43"/>
+            <path d="M64 44 H70"/>
+            <path d="M235 48 V34"/>
+            <path d="M235 34 L241 39"/>
+            <path d="M314 66 V54"/>
+          </g>
+          <g font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif" font-weight="800" text-anchor="middle">
+            <rect x="54" y="64" width="24" height="10" rx="2" fill="url(#shopSignGold)" opacity="0.96"/>
+            <text x="66" y="72" font-size="6.3" fill="#1a1f2c">ぽむ</text>
+            <rect x="138" y="68" width="28" height="10" rx="2" fill="#38bdf8" opacity="0.72"/>
+            <text x="152" y="76" font-size="5.8" fill="#06101e">CAFE</text>
+            <rect x="226" y="58" width="20" height="12" rx="2" fill="#65c466" opacity="0.78"/>
+            <text x="236" y="67" font-size="8" fill="#06101e">P</text>
+            <rect x="298" y="78" width="22" height="8" rx="1.5" fill="#fbbf24" opacity="0.82"/>
+            <text x="309" y="84" font-size="5" fill="#1a1f2c">OPEN</text>
+          </g>
+          <g fill="#fbbf24">
+            <rect x="10" y="94" width="3" height="3" opacity="0.92"/>
+            <rect x="21" y="105" width="2.4" height="2.4" opacity="0.55"/>
+            <rect x="31" y="89" width="3.3" height="3.3" opacity="0.76"/>
+            <rect x="12" y="119" width="3" height="3" opacity="0.86"/>
+            <rect x="55" y="82" width="3" height="3" opacity="0.64"/>
+            <rect x="66" y="91" width="3.2" height="3.2" opacity="0.92"/>
+            <rect x="76" y="103" width="2.5" height="2.5" opacity="0.50"/>
+            <rect x="56" y="117" width="3.2" height="3.2" opacity="0.78"/>
+            <rect x="98" y="84" width="3" height="3" opacity="0.86"/>
+            <rect x="110" y="102" width="2.6" height="2.6" opacity="0.60"/>
+            <rect x="116" y="121" width="3.2" height="3.2" opacity="0.78"/>
+            <rect x="136" y="84" width="3" height="3" opacity="0.70"/>
+            <rect x="151" y="91" width="3.2" height="3.2" opacity="0.94"/>
+            <rect x="164" y="108" width="2.5" height="2.5" opacity="0.52"/>
+            <rect x="139" y="124" width="3.2" height="3.2" opacity="0.82"/>
+            <rect x="188" y="91" width="3.1" height="3.1" opacity="0.64"/>
+            <rect x="199" y="113" width="3.2" height="3.2" opacity="0.88"/>
+            <rect x="224" y="78" width="3.2" height="3.2" opacity="0.78"/>
+            <rect x="238" y="86" width="3" height="3" opacity="0.48"/>
+            <rect x="250" y="102" width="3.2" height="3.2" opacity="0.88"/>
+            <rect x="226" y="122" width="3" height="3" opacity="0.62"/>
+            <rect x="271" y="99" width="3" height="3" opacity="0.74"/>
+            <rect x="281" y="116" width="2.6" height="2.6" opacity="0.48"/>
+            <rect x="299" y="95" width="3.2" height="3.2" opacity="0.88"/>
+            <rect x="314" y="105" width="3" height="3" opacity="0.58"/>
+            <rect x="322" y="123" width="3.2" height="3.2" opacity="0.82"/>
+            <rect x="343" y="94" width="3" height="3" opacity="0.78"/>
+            <rect x="353" y="113" width="2.5" height="2.5" opacity="0.56"/>
+          </g>
+          <g fill="#fde68a" opacity="0.72">
+            <rect x="63" y="111" width="2.4" height="2.4"/>
+            <rect x="145" y="101" width="2.2" height="2.2"/>
+            <rect x="232" y="109" width="2.3" height="2.3"/>
+            <rect x="305" y="115" width="2.2" height="2.2"/>
+          </g>
+          <rect x="0" y="98" width="360" height="42" fill="url(#shopMist)"/>
+          <path d="M0 132 C48 126 98 135 142 130 C190 124 236 136 286 130 C320 126 342 129 360 127 V140 H0 Z" fill="#ffffff" opacity="0.12"/>
+        </svg>
+        <div class="featured-tag-row">
+          <span class="featured-label">SEASON 1 LIMITED</span>
+        </div>
+        <div class="featured-title">渋谷ナイトパック</div>
+        <div class="featured-meta">背景 3点 + フレーム 2点</div>
+        <div class="featured-price-row">
+          <span class="featured-price">
+            <svg class="coin-mini-icon" viewBox="0 0 14 14" aria-hidden="true">
+              <circle cx="7" cy="7" r="6" fill="#fbbf24" stroke="#92400e" stroke-width="0.8"/>
+              <circle cx="7" cy="7" r="4" fill="#fcd34d" stroke="#92400e" stroke-width="0.6"/>
+              <text x="7" y="9.2" text-anchor="middle" font-size="6" font-weight="800" fill="#92400e">¢</text>
+            </svg>
+            500
+          </span>
+          <button class="featured-buy-btn">購入する</button>
+        </div>
+      </div>
+
+      <!-- Category Grid -->
+      <div class="shop-categories">
+        <div class="shop-category" role="button" tabindex="0" data-category="bg">
+          <div class="shop-cat-icon">
+            <svg viewBox="0 0 44 44" aria-hidden="true">
+              <defs>
+                <linearGradient id="shopCatBgSky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#f6fbfd"/>
+                  <stop offset="100%" stop-color="#d9f0fa"/>
+                </linearGradient>
+                <clipPath id="shopCatBgClip">
+                  <rect x="1" y="1" width="42" height="42" rx="9"/>
+                </clipPath>
+              </defs>
+              <rect x="1" y="1" width="42" height="42" rx="9" fill="url(#shopCatBgSky)" stroke="#8fc8e0" stroke-width="1.3"/>
+              <g clip-path="url(#shopCatBgClip)">
+                <path d="M1 11 C8 7 17 9 23 12 C29 15 36 12 43 8 V1 H1 Z" fill="#ffffff" opacity="0.48"/>
+                <circle cx="31.5" cy="13" r="4.1" fill="#fff8e6" stroke="#1a1f2c" stroke-width="0.9"/>
+                <circle cx="30.1" cy="11.7" r="1.2" fill="#e8dbb5" opacity="0.55"/>
+                <path d="M6 32 L17 19 L23 25 L31 15 L38 32 Z" fill="#ffffff" stroke="#1a1f2c" stroke-width="1.25" stroke-linejoin="round"/>
+                <path d="M17 19 L20 27 L23 25 L31 15 L28 32 L6 32 Z" fill="#e6f4fb" opacity="0.65"/>
+                <path d="M4 34 C9 31 14 31 18 33 C23 35 29 34 36 32 C39 31 42 31 44 32 V44 H4 Z" fill="#ffffff" opacity="0.72"/>
+                <ellipse cx="15" cy="36" rx="5.6" ry="1.35" fill="#fff" stroke="#1a1f2c" stroke-width="0.8" opacity="0.58"/>
+              </g>
+              <rect x="3" y="3" width="38" height="13" rx="7" fill="#ffffff" opacity="0.26"/>
+            </svg>
+          </div>
+          <div class="shop-cat-name">背景</div>
+          <div class="shop-cat-count">42種</div>
+        </div>
+
+        <div class="shop-category" role="button" tabindex="0" data-category="frame">
+          <div class="shop-cat-icon">
+            <svg viewBox="0 0 44 44" aria-hidden="true">
+              <defs>
+                <linearGradient id="shopCatFrameFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#fff7d9"/>
+                  <stop offset="100%" stop-color="#f8dc8d"/>
+                </linearGradient>
+              </defs>
+              <rect x="3.5" y="3.5" width="37" height="37" rx="7" fill="url(#shopCatFrameFill)" stroke="#a16207" stroke-width="1.3"/>
+              <rect x="10" y="10" width="24" height="24" rx="4" fill="none" stroke="#a16207" stroke-width="1.1" opacity="0.72"/>
+              <path d="M12 17 V12 H17 M27 12 H32 V17 M32 27 V32 H27 M17 32 H12 V27" fill="none" stroke="#a16207" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M22 6.8 L24.1 8.9 L22 11 L19.9 8.9 Z" fill="#f59e0b" stroke="#a16207" stroke-width="0.8"/>
+              <path d="M22 33 L24.1 35.1 L22 37.2 L19.9 35.1 Z" fill="#f59e0b" stroke="#a16207" stroke-width="0.8"/>
+              <path d="M6.8 22 L8.9 19.9 L11 22 L8.9 24.1 Z" fill="#fbbf24" stroke="#a16207" stroke-width="0.8"/>
+              <path d="M33 22 L35.1 19.9 L37.2 22 L35.1 24.1 Z" fill="#fbbf24" stroke="#a16207" stroke-width="0.8"/>
+              <rect x="6" y="6" width="32" height="10" rx="5" fill="#ffffff" opacity="0.20"/>
+            </svg>
+          </div>
+          <div class="shop-cat-name">カードフレーム</div>
+          <div class="shop-cat-count">28種</div>
+        </div>
+
+        <div class="shop-category" role="button" tabindex="0" data-category="avatar">
+          <div class="shop-cat-icon">
+            <svg viewBox="0 0 44 44" aria-hidden="true">
+              <defs>
+                <linearGradient id="shopCatAvatarFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#fff7d9"/>
+                  <stop offset="100%" stop-color="#ffe4a3"/>
+                </linearGradient>
+              </defs>
+              <rect x="1" y="1" width="42" height="42" rx="9" fill="url(#shopCatAvatarFill)" stroke="#f59e0b" stroke-width="1.3"/>
+              <rect x="4" y="4" width="36" height="12" rx="6" fill="#ffffff" opacity="0.24"/>
+              <ellipse cx="22" cy="37" rx="11" ry="2.4" fill="#92400e" opacity="0.10"/>
+              <image href="assets/pomu_pose_6.png" x="4" y="4" width="36" height="36" preserveAspectRatio="xMidYMid meet"/>
+            </svg>
+          </div>
+          <div class="shop-cat-name">ぽむアバター</div>
+          <div class="shop-cat-count">35種</div>
+        </div>
+
+        <div class="shop-category" role="button" tabindex="0" data-category="effect">
+          <div class="shop-cat-icon">
+            <svg viewBox="0 0 44 44" aria-hidden="true">
+              <defs>
+                <linearGradient id="shopCatEffectFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#ffffff"/>
+                  <stop offset="100%" stop-color="#e6f4fb"/>
+                </linearGradient>
+                <filter id="shopSparkGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="0.7"/>
+                </filter>
+              </defs>
+              <rect x="1" y="1" width="42" height="42" rx="9" fill="url(#shopCatEffectFill)" stroke="#8fc8e0" stroke-width="1.3"/>
+              <g filter="url(#shopSparkGlow)" fill="#ffd24a" opacity="0.34">
+                <path d="M22 8 L24.6 18.2 L35 21 L24.6 23.8 L22 34 L19.4 23.8 L9 21 L19.4 18.2 Z"/>
+              </g>
+              <path d="M22 8 L24.6 18.2 L35 21 L24.6 23.8 L22 34 L19.4 23.8 L9 21 L19.4 18.2 Z" fill="#ffd24a" stroke="#f59e0b" stroke-width="1.05"/>
+              <path d="M34 7 L35.2 11 L39 12.2 L35.2 13.4 L34 17.4 L32.8 13.4 L29 12.2 L32.8 11 Z" fill="#fbbf24" stroke="#f59e0b" stroke-width="0.75" opacity="0.92"/>
+              <path d="M12 8 L12.9 11 L16 12 L12.9 13 L12 16 L11.1 13 L8 12 L11.1 11 Z" fill="#fde68a" stroke="#f59e0b" stroke-width="0.62" opacity="0.78"/>
+              <path d="M10 29 L10.8 31.4 L13.2 32.2 L10.8 33 L10 35.4 L9.2 33 L6.8 32.2 L9.2 31.4 Z" fill="#fbbf24" stroke="#f59e0b" stroke-width="0.56" opacity="0.72"/>
+              <path d="M33 30 L33.7 32 L35.8 32.7 L33.7 33.4 L33 35.5 L32.3 33.4 L30.2 32.7 L32.3 32 Z" fill="#ffe38a" stroke="#f59e0b" stroke-width="0.5" opacity="0.64"/>
+              <circle cx="29" cy="24" r="1" fill="#fbbf24" opacity="0.62"/>
+              <rect x="4" y="4" width="36" height="12" rx="6" fill="#ffffff" opacity="0.25"/>
+            </svg>
+          </div>
+          <div class="shop-cat-name">配置エフェクト</div>
+          <div class="shop-cat-count">15種</div>
+        </div>
+      </div>
+
+      <!-- Coin Purchase Card -->
+      <div class="coin-card" role="button" tabindex="0">
+        <div class="coin-card-icon" aria-hidden="true">
+          <svg viewBox="0 0 58 42">
+            <defs>
+              <linearGradient id="shopCoinGold" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ffe38a"/>
+                <stop offset="52%" stop-color="#fbbf24"/>
+                <stop offset="100%" stop-color="#f59e0b"/>
+              </linearGradient>
+              <linearGradient id="shopCoinInner" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#fff0a8"/>
+                <stop offset="100%" stop-color="#fbbf24"/>
+              </linearGradient>
+              <linearGradient id="shopGemFill" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#8cf0ca"/>
+                <stop offset="48%" stop-color="#34d399"/>
+                <stop offset="100%" stop-color="#0f8b62"/>
+              </linearGradient>
+              <linearGradient id="shopGemShade" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.58"/>
+                <stop offset="100%" stop-color="#064e3b" stop-opacity="0.22"/>
+              </linearGradient>
+            </defs>
+            <ellipse cx="19" cy="35" rx="14" ry="2.5" fill="#1a1f2c" opacity="0.10"/>
+            <ellipse cx="42" cy="35" rx="11" ry="2.2" fill="#1a1f2c" opacity="0.10"/>
+            <circle cx="18" cy="22" r="13" fill="url(#shopCoinGold)" stroke="#92400e" stroke-width="1.2"/>
+            <circle cx="18" cy="22" r="8.7" fill="url(#shopCoinInner)" stroke="#92400e" stroke-width="0.9"/>
+            <path d="M12 14 C15 10.5 21 10 25 13" stroke="#fff7c2" stroke-width="1.6" stroke-linecap="round" opacity="0.72"/>
+            <text x="18" y="26" text-anchor="middle" font-size="12" font-weight="800" fill="#92400e">¢</text>
+            <path d="M42 10 L53 21 L42 33 L31 21 Z" fill="url(#shopGemFill)" stroke="#065f46" stroke-width="1.2" stroke-linejoin="round"/>
+            <path d="M42 10 L46.2 21 L42 33 L37.8 21 Z" fill="url(#shopGemShade)" opacity="0.72"/>
+            <path d="M31 21 H53 M36.5 15.5 L42 21 L47.5 15.5 M36.5 26.5 L42 21 L47.5 26.5" stroke="#065f46" stroke-width="0.72" fill="none" opacity="0.75"/>
+            <path d="M36.5 15.5 L42 10 L47.5 15.5" fill="#a7f3d0" opacity="0.55"/>
+            <circle cx="37" cy="16" r="1.4" fill="#ffffff" opacity="0.75"/>
+          </svg>
+        </div>
+        <div class="coin-card-text">
+          <div class="coin-card-title">コイン・ジェムを購入</div>
+          <div class="coin-card-sub">課金してアイテムを直接入手</div>
+        </div>
+        <button class="coin-card-btn">購入</button>
+      </div>
+
+    </div>
+
+    <div class="sub-content" id="sub-collection">
+      <div class="placeholder-note">
+        <strong>所持画面</strong><br>
+        視覚仕上げは次の段階で実施。
+      </div>
+    </div>
+
+  </div>
+
+  <nav class="bottom-nav" aria-label="メインナビゲーション">
+    <div class="nav-tab" data-tab="home">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 11 L12 4 L21 11 V20 a1 1 0 0 1 -1 1 H15 V14 H9 V21 H4 a1 1 0 0 1 -1 -1 Z"/>
+        </svg>
+      </div>
+      ホーム
+    </div>
+    <div class="nav-tab nav-tab--active" data-tab="town">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="8" width="18" height="13" rx="1"/>
+          <path d="M3 11 H21"/>
+          <path d="M12 8 V21"/>
+          <path d="M7.5 8 Q9 4 12 4 Q15 4 16.5 8"/>
+        </svg>
+      </div>
+      ぽむタウン
+      <span class="nav-badge">1</span>
+    </div>
+    <div class="nav-tab" data-tab="battle">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 4 L20 4 L20 10 M14 4 L4 14 L8 18 L20 6 M10 14 L14 18"/>
+        </svg>
+      </div>
+      対戦
+    </div>
+    <div class="nav-tab" data-tab="friends">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="8" r="3.5"/>
+          <path d="M3 20 c0 -3 3 -5 6 -5 s6 2 6 5"/>
+          <circle cx="17" cy="9" r="2.5"/>
+          <path d="M14 17 c1 -2 3 -3 5 -3 s2 1 2 3"/>
+        </svg>
+      </div>
+      フレンド
+    </div>
+    <div class="nav-tab" data-tab="more">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 7 H20 M4 12 H20 M4 17 H20"/>
+        </svg>
+      </div>
+      その他
+    </div>
+  </nav>
+
+</div>
+
+<div class="dev-note">
+  <strong>VISUAL v5: ぽむタウン (ショップ仕上げ)</strong><br>
+  v4 からの変更: ショップサブタブの Featured バナー、ボタン、カテゴリカード、アイコン、コイン購入カードを精密化。<br><br>
+  <em>ガチャサブタブ(v3のpack-card部分)とぽむPNGは変更なし。</em>
+</div>
+
+<script>
+  document.querySelectorAll('.sub-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.dataset.sub;
+      document.querySelectorAll('.sub-content').forEach(el => el.classList.remove('active'));
+      document.getElementById('sub-' + target).classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('.pack-btn:not(.disabled):not([disabled])').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const card = e.target.closest('.pack-card');
+      const packName = card?.querySelector('.pack-name')?.textContent || 'パック';
+      const action = e.currentTarget.dataset.action === 'open-free' ? '無料で開封' : '100コインで開封';
+      alert(`[${packName}] ${action} → 開封演出画面へ(Phase B)`);
+    });
+  });
+
+  document.querySelectorAll('.pack-visual').forEach(el => {
+    el.addEventListener('click', () => {
+      const bundle = el.querySelector('.pack-bundle');
+      if (!bundle) return;
+      bundle.style.animation = 'none';
+      void bundle.offsetWidth;
+      bundle.animate(
+        [
+          { transform: 'rotate(0deg)' },
+          { transform: 'rotate(-6deg)' },
+          { transform: 'rotate(6deg)' },
+          { transform: 'rotate(-3deg)' },
+          { transform: 'rotate(0deg)' }
+        ],
+        { duration: 420, easing: 'ease-out' }
+      ).onfinish = () => {
+        bundle.style.animation = '';
+      };
+    });
+  });
+
+  document.querySelector('.gacha-history')?.addEventListener('click', () => {
+    alert('[ガチャ履歴画面へ]');
+  });
+</script>
+
+</body>
+</html>
