@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>WIREFRAMES INDEX</title>
+  <style>
+    body {
+      font-family: -apple-system, "Helvetica Neue", "Noto Sans JP", sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+      color: #111;
+      line-height: 1.6;
+    }
+    h1 { font-size: 28px; margin-bottom: 8px; }
+    .subtitle { color: #666; margin-bottom: 32px; }
+    .wire-list { display: grid; gap: 16px; }
+    .wire-item {
+      border: 2px solid #222;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+      text-decoration: none;
+      color: inherit;
+    }
+    .wire-item:hover { background: #f5f5f5; }
+    .wire-item.todo {
+      opacity: 0.4;
+      cursor: not-allowed;
+      border-style: dashed;
+    }
+    .wire-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .wire-desc { font-size: 13px; color: #666; }
+    .wire-status {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 12px;
+      border: 1.5px solid #222;
+    }
+    .wire-status.done { background: #222; color: #fff; }
+    .wire-status.new { background: #c00; color: #fff; border-color: #c00; }
+    .wire-status.future {
+      background: #fff;
+      color: #888;
+      border-style: dashed;
+      border-color: #aaa;
+    }
+    .notes {
+      margin-top: 40px;
+      padding: 20px;
+      background: #f9f9f9;
+      border-left: 3px solid #222;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+  <h1>Chaipo Neighbors — Wireframes</h1>
+  <div class="subtitle">IA v2.1 構造確認用の骨格ワイヤー(5タブ化版)。色・テクスチャ・アニメは含まない。</div>
+
+  <h2 style="font-size:16px; color:#666; margin: 32px 0 12px; letter-spacing: 0.1em;">5タブ(全DONE)</h2>
+  <div class="wire-list">
+
+    <a href="home_tab.html" class="wire-item">
+      <div>
+        <div class="wire-title">🏠 ホームタブ</div>
+        <div class="wire-desc">ぽむヘッダー / PRIMARY CTA(続きから/ランクマッチ) / ガチャ・リマインダー / ミッション / ログボ / お知らせ</div>
+      </div>
+      <div class="wire-status done">DONE v3</div>
+    </a>
+
+    <a href="pomu_town_tab.html" class="wire-item">
+      <div>
+        <div class="wire-title">🎁 ぽむタウンタブ(NEW)</div>
+        <div class="wire-desc">サブタブ式: ガチャ(ぽむパック×3) / ショップ(特集+カテゴリ) / 所持(コレクション)</div>
+      </div>
+      <div class="wire-status new">NEW</div>
+    </a>
+
+    <a href="battle_tab.html" class="wire-item">
+      <div>
+        <div class="wire-title">⚔️ 対戦タブ(中央配置)</div>
+        <div class="wire-desc">ランクマッチ(主役) / カジュアル / AI対戦・FL練習(モーダル)</div>
+      </div>
+      <div class="wire-status done">DONE</div>
+    </a>
+
+    <a href="friends_tab.html" class="wire-item">
+      <div>
+        <div class="wire-title">👥 フレンドタブ</div>
+        <div class="wire-desc">フレンドコード / 部屋作成 / コード参加 / リスト / 履歴</div>
+      </div>
+      <div class="wire-status done">DONE</div>
+    </a>
+
+    <a href="more_tab.html" class="wire-item">
+      <div>
+        <div class="wire-title">☰ その他タブ</div>
+        <div class="wire-desc">プロフィール / 戦績ランキング / 設定 / カードデザイン / サポート / ログアウト ★ショップは削除(ぽむタウンへ移動)</div>
+      </div>
+      <div class="wire-status done">DONE</div>
+    </a>
+
+  </div>
+
+  <div class="notes">
+    <strong>IA v2.1 で変わったこと:</strong><br>
+    ・<strong>5タブ化</strong>(ぽむタウン新設)<br>
+    ・タブ順: ホーム / ぽむタウン / <strong>対戦(中央)</strong> / フレンド / その他<br>
+    ・ショップ → その他タブから削除、ぽむタウンに統合<br>
+    ・コレクション → ぽむタウンの「所持」サブタブとして実装<br>
+    ・ガチャ → ぽむタウンの「ガチャ」サブタブ + ホームに小さなリマインダー(Pokemon Pocket式デイリーフック)<br><br>
+
+    <strong>確定事項(再整理):</strong><br>
+    ・タイトル画面は初回起動のみ<br>
+    ・ホーム PRIMARY CTA: 続きから or ランクマッチ(動的切替)<br>
+    ・対戦中央配置(Marvel Snap型 = 対戦アプリらしさ)<br>
+    ・ガチャは時間制限つき無料パック方式(Pokemon Pocket式)<br>
+    ・サブタブパターンでガチャ/ショップ/所持を1タブに統合<br>
+    ・フレンド対戦はフレンドタブ専属
+  </div>
+
+</body>
+</html>

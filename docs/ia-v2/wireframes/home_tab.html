@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>WIREFRAME: ホームタブ v3</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background: #f5f5f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Noto Sans JP", sans-serif;
+      color: #111;
+      letter-spacing: 0.02em;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .device {
+      width: 393px;
+      min-height: 852px;
+      margin: 24px auto;
+      background: #fff;
+      border: 2px solid #111;
+      border-radius: 32px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .status-bar {
+      height: 44px;
+      border-bottom: 1px dashed #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #888;
+    }
+
+    .home-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pomu-avatar {
+      width: 48px;
+      height: 48px;
+      border: 2px solid #222;
+      border-radius: 50%;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: #999;
+      flex-shrink: 0;
+    }
+
+    .player-info .rank {
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .player-info .rate {
+      font-size: 11px;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .header-right {
+      display: flex;
+      gap: 8px;
+    }
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border: 1.5px solid #222;
+      border-radius: 50%;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      position: relative;
+      cursor: pointer;
+    }
+    .icon-btn .dot {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 8px;
+      height: 8px;
+      background: #c00;
+      border-radius: 50%;
+      border: 1.5px solid #fff;
+    }
+
+    .screen-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 16px 100px;
+    }
+
+    /* PRIMARY CTA */
+    .primary-cta {
+      border: 3px solid #111;
+      border-radius: 12px;
+      padding: 24px 20px;
+      min-height: 160px;
+      cursor: pointer;
+      background: #fff;
+      position: relative;
+      transition: transform 80ms;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .primary-cta:active {
+      transform: scale(0.98);
+      background: #f0f0f0;
+    }
+    .cta-label-top {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      color: #555;
+      text-transform: uppercase;
+    }
+    .cta-title {
+      font-size: 34px;
+      font-weight: 900;
+      margin-top: 8px;
+    }
+    .cta-meta {
+      font-size: 13px;
+      color: #666;
+      margin-top: 12px;
+    }
+    .cta-arrow {
+      position: absolute;
+      right: 24px;
+      bottom: 24px;
+      font-size: 24px;
+      font-weight: 900;
+      color: #111;
+    }
+
+    .primary-cta.state-continue {
+      border-style: dashed;
+    }
+
+    /* ★ NEW: ガチャ・リマインダー (Pokemon Pocket式デイリーフック) */
+    .gacha-reminder {
+      margin-top: 12px;
+      padding: 14px 16px;
+      border: 2px solid #222;
+      border-radius: 10px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .gacha-reminder:active {
+      background: #f0f0f0;
+      transform: scale(0.98);
+    }
+    .gacha-reminder.is-ready {
+      border-width: 3px;
+      border-color: #111;
+    }
+    .gacha-reminder.is-ready::before {
+      content: "!";
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 22px;
+      height: 22px;
+      background: #c00;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 900;
+      border: 2px solid #fff;
+    }
+    .gacha-icon {
+      width: 44px;
+      height: 44px;
+      border: 2px solid #222;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      flex-shrink: 0;
+    }
+    .gacha-body { flex: 1; min-width: 0; }
+    .gacha-title {
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .gacha-sub {
+      font-size: 11px;
+      color: #666;
+      margin-top: 2px;
+    }
+    .gacha-arrow {
+      font-size: 18px;
+      color: #999;
+    }
+
+    /* セクションヘッダー */
+    .section-header {
+      font-size: 12px;
+      font-weight: 700;
+      color: #555;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin: 20px 0 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .section-header .badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border: 1.5px solid #222;
+      border-radius: 10px;
+      color: #222;
+      letter-spacing: 0;
+    }
+
+    /* ミッション */
+    .mission-card {
+      border: 2px solid #222;
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: #fff;
+    }
+    .mission-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px dashed #eee;
+    }
+    .mission-row:last-child { border-bottom: none; }
+    .mission-check {
+      width: 22px;
+      height: 22px;
+      border: 2px solid #222;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+    .mission-row.done .mission-check {
+      background: #222;
+      color: #fff;
+    }
+    .mission-row.done .mission-text {
+      text-decoration: line-through;
+      color: #888;
+    }
+    .mission-text {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .mission-reward {
+      font-size: 11px;
+      font-weight: 700;
+      color: #444;
+      padding: 2px 8px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+    }
+
+    /* ログインボーナス */
+    .bonus-card {
+      border: 2px solid #222;
+      border-radius: 8px;
+      padding: 16px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .bonus-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 0;
+    }
+    .bonus-icon {
+      width: 40px;
+      height: 40px;
+      border: 1.5px solid #222;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .bonus-title {
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .bonus-sub {
+      font-size: 11px;
+      color: #666;
+      margin-top: 2px;
+    }
+    .bonus-button {
+      padding: 10px 16px;
+      border: 2px solid #222;
+      border-radius: 18px;
+      background: #222;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    /* お知らせ */
+    .news-banner {
+      border: 1.5px dashed #999;
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: #fafafa;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .news-text {
+      flex: 1;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .news-arrow {
+      color: #999;
+    }
+
+    /* BOTTOM NAV: 5タブ */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 72px;
+      border-top: 2px solid #222;
+      background: #fff;
+      display: flex;
+    }
+    .nav-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: #888;
+      cursor: pointer;
+      border-right: 1px dashed #ddd;
+      position: relative;
+    }
+    .nav-tab:last-child { border-right: none; }
+    .nav-tab .icon-placeholder {
+      width: 26px;
+      height: 26px;
+      border: 1.5px solid #888;
+      border-radius: 4px;
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: #888;
+    }
+    .nav-tab--active {
+      color: #111;
+      font-weight: 800;
+    }
+    .nav-tab--active .icon-placeholder {
+      border-color: #111;
+      border-width: 2.5px;
+      color: #111;
+    }
+    .nav-tab--active::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 25%;
+      right: 25%;
+      height: 3px;
+      background: #111;
+    }
+    .nav-badge {
+      position: absolute;
+      top: 6px;
+      right: 18%;
+      width: 14px;
+      height: 14px;
+      background: #c00;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 9px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1.5px solid #fff;
+    }
+
+    .annotation {
+      font-size: 9px;
+      color: #aaa;
+      font-style: italic;
+      margin-top: 4px;
+      letter-spacing: 0;
+    }
+
+    .cta-toggle {
+      position: absolute;
+      top: -28px;
+      right: 0;
+      font-size: 10px;
+      color: #888;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<div class="device">
+
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>📶 100%</span>
+  </div>
+
+  <div class="home-header">
+    <div class="header-left">
+      <div class="pomu-avatar">[ぽむ]</div>
+      <div class="player-info">
+        <div class="rank">プラチナ 3</div>
+        <div class="rate">レート 1,247</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="icon-btn" data-action="notifications">
+        🔔
+        <span class="dot"></span>
+      </div>
+      <div class="icon-btn" data-action="giftbox">
+        🎁
+        <span class="dot"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen-body">
+
+    <!-- PRIMARY CTA -->
+    <div id="cta-default" class="primary-cta" data-mode="rank">
+      <span class="cta-toggle" onclick="event.stopPropagation(); toggleCTA();">→ 中断ありver を見る</span>
+      <div>
+        <div class="cta-label-top">RANK MATCH</div>
+        <div class="cta-title">ランクマッチ</div>
+      </div>
+      <div class="cta-meta">シーズン1 ・ 残り12日</div>
+      <div class="cta-arrow">→</div>
+    </div>
+
+    <!-- ★ NEW: ガチャ・リマインダー(Pokemon Pocket式デイリーフック) -->
+    <div class="gacha-reminder is-ready" data-action="goto-town">
+      <div class="gacha-icon">[Pack]</div>
+      <div class="gacha-body">
+        <div class="gacha-title">無料パックが受け取れます</div>
+        <div class="gacha-sub">パイナップル背景パック × 1</div>
+      </div>
+      <div class="gacha-arrow">›</div>
+    </div>
+    <div class="annotation">[ぽむタウンタブのガチャ画面に直接遷移。準備完了時は赤バッジ・3px枠で強調]</div>
+
+    <!-- ミッション -->
+    <div class="section-header">
+      <span>📅 今日のミッション</span>
+      <span class="badge">1 / 3</span>
+    </div>
+    <div class="mission-card">
+      <div class="mission-row done">
+        <div class="mission-check">✓</div>
+        <div class="mission-text">対戦を1回プレイする</div>
+        <div class="mission-reward">+10 XP</div>
+      </div>
+      <div class="mission-row">
+        <div class="mission-check"></div>
+        <div class="mission-text">1勝する</div>
+        <div class="mission-reward">+30 XP</div>
+      </div>
+      <div class="mission-row">
+        <div class="mission-check"></div>
+        <div class="mission-text">FLに到達する</div>
+        <div class="mission-reward">+50 XP</div>
+      </div>
+    </div>
+
+    <!-- ログインボーナス -->
+    <div class="section-header">
+      <span>🎁 ログインボーナス</span>
+      <span class="badge">5日連続</span>
+    </div>
+    <div class="bonus-card">
+      <div class="bonus-left">
+        <div class="bonus-icon">[gift]</div>
+        <div>
+          <div class="bonus-title">本日の報酬</div>
+          <div class="bonus-sub">100コイン + ぽむスタンプ</div>
+        </div>
+      </div>
+      <button class="bonus-button">受け取る</button>
+    </div>
+
+    <!-- お知らせ -->
+    <div class="section-header">
+      <span>📣 お知らせ</span>
+    </div>
+    <div class="news-banner">
+      <div>[!]</div>
+      <div class="news-text">シーズン1 開幕! 5/15まで報酬2倍キャンペーン中</div>
+      <div class="news-arrow">›</div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV: 5タブ (ホーム active) -->
+  <nav class="bottom-nav">
+    <div class="nav-tab nav-tab--active" data-tab="home">
+      <div class="icon-placeholder">🏠</div>
+      ホーム
+    </div>
+    <div class="nav-tab" data-tab="town">
+      <div class="icon-placeholder">🎁</div>
+      ぽむタウン
+      <span class="nav-badge">1</span>
+    </div>
+    <div class="nav-tab" data-tab="battle">
+      <div class="icon-placeholder">⚔</div>
+      対戦
+    </div>
+    <div class="nav-tab" data-tab="friends">
+      <div class="icon-placeholder">👥</div>
+      フレンド
+    </div>
+    <div class="nav-tab" data-tab="more">
+      <div class="icon-placeholder">≡</div>
+      その他
+    </div>
+  </nav>
+
+</div>
+
+<div style="max-width: 500px; margin: 16px auto 60px; padding: 20px; background: #fafafa; border: 1px dashed #ccc; border-radius: 8px; font-size: 13px; line-height: 1.6; color: #444;">
+  <strong>WIREFRAME: ホームタブ v3</strong><br>
+  v2からの変更点: <strong>ガチャ・リマインダー追加</strong> + <strong>5タブ化(ぽむタウン追加)</strong><br><br>
+
+  <strong>ガチャ・リマインダー</strong>(PRIMARY CTAの下):<br>
+  ・無料パック受取可能時: <strong>3px枠 + 「!」赤バッジ</strong>で強調<br>
+  ・タップで「ぽむタウン」タブのガチャ画面に直接遷移<br>
+  ・Pokemon Pocketの「家=毎日来る理由」を再現する装置<br>
+  ・対戦アプリらしさを保ちつつデイリーフックを強化<br><br>
+
+  <strong>5タブ化:</strong><br>
+  ホーム / <strong>ぽむタウン(NEW)</strong> / 対戦 / フレンド / その他<br>
+  ・対戦が中央(主役)<br>
+  ・ぽむタウンに赤バッジ「1」= 無料パック準備完了通知<br>
+  ・タブの幅がやや狭くなったため文字サイズ調整(10px)<br>
+</div>
+
+<script>
+  let ctaState = 'rank';
+
+  function toggleCTA() {
+    const cta = document.getElementById('cta-default');
+    if (ctaState === 'rank') {
+      cta.classList.add('state-continue');
+      cta.querySelector('.cta-label-top').textContent = 'CONTINUE MATCH';
+      cta.querySelector('.cta-title').textContent = '続きから';
+      cta.querySelector('.cta-meta').textContent = 'vs プレイヤーX ・ ラウンド3';
+      cta.querySelector('.cta-toggle').textContent = '→ 通常 ver に戻る';
+      ctaState = 'continue';
+    } else {
+      cta.classList.remove('state-continue');
+      cta.querySelector('.cta-label-top').textContent = 'RANK MATCH';
+      cta.querySelector('.cta-title').textContent = 'ランクマッチ';
+      cta.querySelector('.cta-meta').textContent = 'シーズン1 ・ 残り12日';
+      cta.querySelector('.cta-toggle').textContent = '→ 中断ありver を見る';
+      ctaState = 'rank';
+    }
+  }
+
+  document.querySelectorAll('[data-mode]').forEach(card => {
+    card.addEventListener('click', () => {
+      alert(ctaState === 'rank' ? '[ランクマッチ開始]' : '[中断試合に復帰]');
+    });
+  });
+
+  document.querySelector('[data-action="goto-town"]').addEventListener('click', () => {
+    alert('[ぽむタウン → ガチャ画面に遷移]');
+  });
+
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      console.log('Nav tapped:', tab.dataset.tab);
+    });
+  });
+
+  document.querySelector('.bonus-button').addEventListener('click', (e) => {
+    e.stopPropagation();
+    alert('[ログイン報酬を受け取り → カード非表示]');
+  });
+</script>
+
+</body>
+</html>

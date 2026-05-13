@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>WIREFRAME: ぽむタウン</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background: #f5f5f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Noto Sans JP", sans-serif;
+      color: #111;
+      letter-spacing: 0.02em;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .device {
+      width: 393px;
+      min-height: 852px;
+      margin: 24px auto;
+      background: #fff;
+      border: 2px solid #111;
+      border-radius: 32px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .status-bar {
+      height: 44px;
+      border-bottom: 1px dashed #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #888;
+    }
+
+    /* タブヘッダー: タイトル + 通貨表示 */
+    .town-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px 8px;
+    }
+    .screen-title {
+      font-size: 24px;
+      font-weight: 800;
+    }
+    .currency-row {
+      display: flex;
+      gap: 8px;
+    }
+    .currency-pill {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border: 1.5px solid #222;
+      border-radius: 14px;
+      font-size: 12px;
+      font-weight: 800;
+      background: #fff;
+    }
+    .currency-icon {
+      width: 16px;
+      height: 16px;
+      border: 1px solid #222;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+    }
+
+    /* サブタブ (セグメントコントロール) */
+    .sub-tabs {
+      display: flex;
+      margin: 8px 20px 0;
+      border: 2px solid #222;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .sub-tab {
+      flex: 1;
+      padding: 10px 0;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border-right: 1.5px solid #222;
+      color: #555;
+      background: #fff;
+    }
+    .sub-tab:last-child { border-right: none; }
+    .sub-tab.active {
+      background: #222;
+      color: #fff;
+    }
+
+    .screen-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px 100px;
+    }
+
+    /* === GACHA SUBTAB === */
+    .gacha-info {
+      text-align: center;
+      padding: 8px 0 16px;
+      font-size: 12px;
+      color: #666;
+    }
+    .gacha-info strong {
+      font-weight: 800;
+      color: #111;
+    }
+    .pack-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .pack-card {
+      border: 2px solid #222;
+      border-radius: 12px;
+      padding: 16px;
+      background: #fff;
+      position: relative;
+    }
+    .pack-card.is-ready {
+      border-width: 3px;
+      border-color: #111;
+    }
+    .pack-card.is-locked {
+      opacity: 0.6;
+    }
+    .pack-top {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .pack-visual {
+      width: 80px;
+      height: 110px;
+      border: 2px solid #222;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #999;
+      flex-shrink: 0;
+      background: #fafafa;
+    }
+    .pack-info { flex: 1; min-width: 0; }
+    .pack-name {
+      font-size: 16px;
+      font-weight: 800;
+    }
+    .pack-desc {
+      font-size: 11px;
+      color: #666;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+    .pack-status {
+      margin-top: 8px;
+      font-size: 11px;
+    }
+    .pack-status.ready {
+      color: #22c55e;
+      font-weight: 800;
+    }
+    .pack-status.timer {
+      color: #888;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .pack-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .pack-btn {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid #222;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .pack-btn.primary {
+      background: #222;
+      color: #fff;
+    }
+    .pack-btn.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .gacha-history {
+      margin-top: 24px;
+      padding: 12px 14px;
+      border: 1.5px dashed #999;
+      border-radius: 8px;
+      background: #fafafa;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .gacha-history-arrow { color: #999; }
+
+    /* === SHOP SUBTAB === */
+    .shop-content {
+      display: none;
+    }
+    .shop-content.active { display: block; }
+
+    .featured-banner {
+      border: 2px dashed #222;
+      border-radius: 12px;
+      padding: 16px;
+      background: #fff;
+      margin-bottom: 16px;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      cursor: pointer;
+    }
+    .featured-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      color: #555;
+    }
+    .featured-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-top: 6px;
+    }
+    .featured-meta {
+      font-size: 12px;
+      color: #666;
+      margin-top: 6px;
+    }
+
+    .shop-categories {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .shop-category {
+      border: 2px solid #222;
+      border-radius: 8px;
+      padding: 14px 12px;
+      background: #fff;
+      text-align: center;
+      cursor: pointer;
+      min-height: 90px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 6px;
+    }
+    .shop-cat-icon {
+      width: 24px;
+      height: 24px;
+      border: 1.5px solid #222;
+      border-radius: 4px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+    }
+    .shop-cat-name {
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .shop-cat-count {
+      font-size: 10px;
+      color: #666;
+    }
+
+    .coin-card {
+      margin-top: 16px;
+      border: 2px solid #222;
+      border-radius: 8px;
+      padding: 14px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .coin-label {
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .coin-sub {
+      font-size: 11px;
+      color: #666;
+      margin-top: 2px;
+    }
+    .coin-btn {
+      padding: 8px 14px;
+      border: 2px solid #222;
+      border-radius: 14px;
+      background: #222;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* === COLLECTION SUBTAB === */
+    .collection-content {
+      display: none;
+    }
+    .collection-content.active { display: block; }
+
+    .filter-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .filter-chip {
+      padding: 6px 12px;
+      border: 1.5px solid #222;
+      border-radius: 14px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #fff;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .filter-chip.active {
+      background: #222;
+      color: #fff;
+    }
+
+    .collection-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .collection-item {
+      aspect-ratio: 3 / 4;
+      border: 2px solid #222;
+      border-radius: 6px;
+      background: #fff;
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 6px;
+      font-size: 9px;
+      color: #999;
+    }
+    .collection-item.locked {
+      background: #fafafa;
+      border-style: dashed;
+      color: #ccc;
+    }
+    .collection-item.equipped::before {
+      content: "装備中";
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      padding: 2px 5px;
+      background: #222;
+      color: #fff;
+      font-size: 8px;
+      font-weight: 700;
+      border-radius: 3px;
+    }
+
+    /* BOTTOM NAV: 5タブ */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 72px;
+      border-top: 2px solid #222;
+      background: #fff;
+      display: flex;
+    }
+    .nav-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: #888;
+      cursor: pointer;
+      border-right: 1px dashed #ddd;
+    }
+    .nav-tab:last-child { border-right: none; }
+    .nav-tab .icon-placeholder {
+      width: 26px;
+      height: 26px;
+      border: 1.5px solid #888;
+      border-radius: 4px;
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: #888;
+    }
+    .nav-tab--active {
+      color: #111;
+      font-weight: 800;
+      position: relative;
+    }
+    .nav-tab--active .icon-placeholder {
+      border-color: #111;
+      border-width: 2.5px;
+      color: #111;
+    }
+    .nav-tab--active::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 25%;
+      right: 25%;
+      height: 3px;
+      background: #111;
+    }
+    .nav-badge {
+      position: absolute;
+      top: 6px;
+      right: 18%;
+      width: 14px;
+      height: 14px;
+      background: #c00;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 9px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1.5px solid #fff;
+    }
+
+    .annotation {
+      font-size: 9px;
+      color: #aaa;
+      font-style: italic;
+      margin-top: 4px;
+      letter-spacing: 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="device">
+
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>📶 100%</span>
+  </div>
+
+  <!-- ヘッダー: タイトル + 通貨 -->
+  <div class="town-header">
+    <div class="screen-title">ぽむタウン</div>
+    <div class="currency-row">
+      <div class="currency-pill">
+        <span class="currency-icon">¢</span>
+        1,250
+      </div>
+      <div class="currency-pill">
+        <span class="currency-icon">◆</span>
+        12
+      </div>
+    </div>
+  </div>
+
+  <!-- サブタブ -->
+  <div class="sub-tabs">
+    <div class="sub-tab active" data-sub="gacha">ガチャ</div>
+    <div class="sub-tab" data-sub="shop">ショップ</div>
+    <div class="sub-tab" data-sub="collection">所持</div>
+  </div>
+
+  <div class="screen-body">
+
+    <!-- === GACHA SUBTAB === -->
+    <div class="gacha-content" id="sub-gacha" style="display:block;">
+
+      <div class="gacha-info">
+        無料パック残り: <strong>1 / 3</strong> ・ 次のリセット: <strong>8時間44分後</strong>
+      </div>
+
+      <div class="pack-list">
+
+        <!-- パック1: 無料パック使用可 -->
+        <div class="pack-card is-ready">
+          <div class="pack-top">
+            <div class="pack-visual">[Pack1<br>背景]</div>
+            <div class="pack-info">
+              <div class="pack-name">パイナップル背景パック</div>
+              <div class="pack-desc">渋谷・夕景・夜景など多彩な背景アイテム5種を獲得</div>
+              <div class="pack-status ready">● 無料パック使用可能!</div>
+            </div>
+          </div>
+          <div class="pack-actions">
+            <button class="pack-btn primary">無料で開ける</button>
+            <button class="pack-btn">100 コイン</button>
+          </div>
+        </div>
+
+        <!-- パック2: クールダウン中 -->
+        <div class="pack-card">
+          <div class="pack-top">
+            <div class="pack-visual">[Pack2<br>フレーム]</div>
+            <div class="pack-info">
+              <div class="pack-name">チップフレームパック</div>
+              <div class="pack-desc">カード裏面・縁取りデザインを5種獲得</div>
+              <div class="pack-status timer">⌛ 次の無料パックまで: 03:24:11</div>
+            </div>
+          </div>
+          <div class="pack-actions">
+            <button class="pack-btn disabled">無料で開ける</button>
+            <button class="pack-btn">100 コイン</button>
+          </div>
+        </div>
+
+        <!-- パック3: クールダウン中 -->
+        <div class="pack-card">
+          <div class="pack-top">
+            <div class="pack-visual">[Pack3<br>ぽむ]</div>
+            <div class="pack-info">
+              <div class="pack-name">ぽむアバターパック</div>
+              <div class="pack-desc">ぽむの表情・ポーズ・カラーバリエーション5種を獲得</div>
+              <div class="pack-status timer">⌛ 次の無料パックまで: 11:08:53</div>
+            </div>
+          </div>
+          <div class="pack-actions">
+            <button class="pack-btn disabled">無料で開ける</button>
+            <button class="pack-btn">100 コイン</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="gacha-history">
+        <span>📜 ガチャ履歴を見る</span>
+        <span class="gacha-history-arrow">›</span>
+      </div>
+      <div class="annotation">[直近100回のガチャ結果を表示]</div>
+
+    </div>
+
+    <!-- === SHOP SUBTAB === -->
+    <div class="shop-content" id="sub-shop">
+
+      <!-- 特集 -->
+      <div class="featured-banner">
+        <div class="featured-label">FEATURED</div>
+        <div class="featured-title">シーズン1限定 渋谷ナイトパック</div>
+        <div class="featured-meta">背景3点 + フレーム2点 ・ 500 コイン</div>
+      </div>
+
+      <!-- カテゴリ -->
+      <div class="shop-categories">
+        <div class="shop-category">
+          <div class="shop-cat-icon">[bg]</div>
+          <div class="shop-cat-name">背景</div>
+          <div class="shop-cat-count">42種</div>
+        </div>
+        <div class="shop-category">
+          <div class="shop-cat-icon">[fr]</div>
+          <div class="shop-cat-name">カードフレーム</div>
+          <div class="shop-cat-count">28種</div>
+        </div>
+        <div class="shop-category">
+          <div class="shop-cat-icon">[av]</div>
+          <div class="shop-cat-name">ぽむアバター</div>
+          <div class="shop-cat-count">35種</div>
+        </div>
+        <div class="shop-category">
+          <div class="shop-cat-icon">[ef]</div>
+          <div class="shop-cat-name">配置エフェクト</div>
+          <div class="shop-cat-count">15種</div>
+        </div>
+      </div>
+
+      <!-- コイン購入 -->
+      <div class="coin-card">
+        <div>
+          <div class="coin-label">コイン・ジェムを購入</div>
+          <div class="coin-sub">課金してアイテムをすぐ手に入れる</div>
+        </div>
+        <button class="coin-btn">購入</button>
+      </div>
+
+    </div>
+
+    <!-- === COLLECTION SUBTAB === -->
+    <div class="collection-content" id="sub-collection">
+
+      <div class="filter-row">
+        <div class="filter-chip active">すべて</div>
+        <div class="filter-chip">背景</div>
+        <div class="filter-chip">フレーム</div>
+        <div class="filter-chip">アバター</div>
+        <div class="filter-chip">エフェクト</div>
+      </div>
+
+      <div class="collection-grid">
+        <div class="collection-item equipped">背景1</div>
+        <div class="collection-item">背景2</div>
+        <div class="collection-item">背景3</div>
+        <div class="collection-item equipped">フレーム1</div>
+        <div class="collection-item">フレーム2</div>
+        <div class="collection-item locked">未獲得</div>
+        <div class="collection-item equipped">ぽむA</div>
+        <div class="collection-item">ぽむB</div>
+        <div class="collection-item">ぽむC</div>
+        <div class="collection-item locked">未獲得</div>
+        <div class="collection-item locked">未獲得</div>
+        <div class="collection-item locked">未獲得</div>
+      </div>
+
+      <div class="annotation">[タップで詳細・装備変更モーダル]</div>
+
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV: 5タブ -->
+  <nav class="bottom-nav">
+    <div class="nav-tab" data-tab="home">
+      <div class="icon-placeholder">🏠</div>
+      ホーム
+    </div>
+    <div class="nav-tab nav-tab--active" data-tab="town">
+      <div class="icon-placeholder">🎁</div>
+      ぽむタウン
+      <span class="nav-badge">1</span>
+    </div>
+    <div class="nav-tab" data-tab="battle">
+      <div class="icon-placeholder">⚔</div>
+      対戦
+    </div>
+    <div class="nav-tab" data-tab="friends">
+      <div class="icon-placeholder">👥</div>
+      フレンド
+    </div>
+    <div class="nav-tab" data-tab="more">
+      <div class="icon-placeholder">≡</div>
+      その他
+    </div>
+  </nav>
+
+</div>
+
+<div style="max-width: 500px; margin: 16px auto 60px; padding: 20px; background: #fafafa; border: 1px dashed #ccc; border-radius: 8px; font-size: 13px; line-height: 1.6; color: #444;">
+  <strong>WIREFRAME: ぽむタウン(新規タブ)</strong><br><br>
+
+  <strong>構造</strong>: サブタブで3画面切替<br>
+  ・<strong>ガチャ</strong>: ぽむパック × 3(背景/フレーム/アバター)+ 無料パック時間制限 + 課金開封<br>
+  ・<strong>ショップ</strong>: 特集 + カテゴリ別グリッド + コイン購入<br>
+  ・<strong>所持</strong>: フィルタチップ + アイテムグリッド + 装備中表示<br><br>
+
+  <strong>確認したいこと:</strong><br>
+  ・サブタブ切替パターンは自然か(セグメントコントロール)<br>
+  ・ガチャの「無料/課金」両提供は適切か(健全な誤解防止)<br>
+  ・通貨表示が右上にある配置は適切か<br>
+  ・所持画面のグリッド3列は密度OKか<br>
+  ・<strong>下部ナビの「ぽむタウン」赤バッジ</strong>(無料パック準備完了通知)、これがリテンションの肝<br><br>
+
+  <em>サブタブをタップして3画面を切替えてみてください。</em>
+</div>
+
+<script>
+  // サブタブ切替
+  document.querySelectorAll('.sub-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.dataset.sub;
+      ['gacha', 'shop', 'collection'].forEach(name => {
+        const el = document.getElementById('sub-' + name);
+        if (name === 'gacha') {
+          el.style.display = target === 'gacha' ? 'block' : 'none';
+        } else {
+          el.classList.toggle('active', target === name);
+        }
+      });
+    });
+  });
+
+  document.querySelectorAll('.pack-btn:not(.disabled)').forEach(btn => {
+    btn.addEventListener('click', () => {
+      alert('[パック開封演出 → 報酬画面]');
+    });
+  });
+
+  document.querySelectorAll('.shop-category, .coin-btn, .featured-banner').forEach(el => {
+    el.addEventListener('click', () => {
+      console.log('Shop action');
+    });
+  });
+
+  document.querySelectorAll('.collection-item:not(.locked)').forEach(item => {
+    item.addEventListener('click', () => {
+      alert('[アイテム詳細 → 装備切替モーダル]');
+    });
+  });
+
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      console.log('Nav tapped:', tab.dataset.tab);
+    });
+  });
+
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>
