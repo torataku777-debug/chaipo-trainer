@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<!--
+  ファイル: pomu_more_v1.html
+  作成日: 2026-05-14
+  作成者: Claude (Sonnet/Opus)
+  対応仕様書: NEXT_SESSION_HANDOFF_2026-05-14_v3.md (その他タブ項)
+  バージョン: v1 (初稿)
+
+  目的: 5タブ構成のうち「その他」タブの視覚仕上げ初稿
+  継承元:
+    - pomu_town_v7.html (sky/ink/pomu トークン、device 393x852、下部ナビ、section-header)
+    - pomu_home_v2.html (avatar/プロフィール表現、mission-card 形カード)
+
+  構造:
+    プロフィール(ヒーローカード) → ゲーム(戦績/ランキング)
+    → 設定(時間/初期点/ハプティック/カードデザイン)
+    → サポート(ルール/お知らせ/問い合わせ/規約)
+    → ログアウト + バージョン
+-->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>VISUAL: その他 (v1)</title>
+  <style>
+    :root {
+      /* 共通トークン (v7/home_v2 から継承) */
+      --sky-100:        #e6f4fb;
+      --sky-200:        #c5e2f0;
+      --sky-300:        #8fc8e0;
+      --cloud-white:    #ffffff;
+      --cloud-soft:     #f6fbfd;
+      --pomu-yellow:    #fbbf24;
+      --pomu-orange:    #f59e0b;
+      --pomu-gold-deep: #92400e;
+      --leaf-green:     #65c466;
+      --leaf-green-soft: rgba(101, 196, 102, 0.32);
+      --ink-900:        #1a1f2c;
+      --ink-700:        #374151;
+      --ink-500:        #6b7280;
+      --ink-300:        #d1d5db;
+      --ink-100:        #f3f4f6;
+      --hairline:       rgba(26, 31, 44, 0.07);
+      --notif-red:      #ef4444;
+
+      --card-shadow: 0 4px 12px rgba(26, 31, 44, 0.06),
+                     0 1px 3px rgba(26, 31, 44, 0.04);
+      --btn-shadow:  0 2px 6px rgba(26, 31, 44, 0.08);
+
+      /* その他タブ専用トークン */
+      --profile-card-edge:    rgba(255, 255, 255, 0.78);
+      --profile-card-highlight: rgba(255, 255, 255, 0.72);
+      --profile-gold-glow:    rgba(255, 210, 74, 0.30);
+      --row-icon-bg:          rgba(143, 200, 224, 0.18);
+      --row-icon-bg-warm:     rgba(255, 210, 74, 0.20);
+      --row-icon-bg-mint:     rgba(101, 196, 102, 0.18);
+      --row-icon-bg-rose:     rgba(239, 68, 68, 0.14);
+
+      --logout-fg: #be123c;
+      --logout-fg-pressed: #9f1239;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background: #ecf3f7;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Noto Sans JP", sans-serif;
+      color: var(--ink-900);
+      letter-spacing: 0.02em;
+      -webkit-font-smoothing: antialiased;
+      margin: 0;
+    }
+
+    .device {
+      width: 393px;
+      min-height: 852px;
+      margin: 24px auto;
+      background: linear-gradient(180deg, var(--sky-100) 0%, var(--sky-200) 100%);
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 60px rgba(60, 90, 120, 0.18),
+                  0 4px 12px rgba(60, 90, 120, 0.08);
+    }
+
+    .sky-clouds {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      right: 0;
+      height: 220px;
+      pointer-events: none;
+      opacity: 0.68;
+      z-index: 0;
+    }
+
+    .status-bar {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-900);
+      position: relative;
+      z-index: 1;
+    }
+
+    .more-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 20px 14px;
+      position: relative;
+      z-index: 1;
+    }
+    .screen-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: var(--ink-900);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+    }
+
+    .screen-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 20px 100px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ============ プロフィールカード ============ */
+    .profile-card {
+      background:
+        radial-gradient(circle at 8% 0%, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.24) 34%, rgba(255,255,255,0) 60%),
+        radial-gradient(circle at 95% 110%, rgba(255, 210, 74, 0.22) 0%, rgba(255, 210, 74, 0) 50%),
+        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 62%, #ffffff 100%);
+      border-radius: 18px;
+      padding: 14px 16px 16px;
+      border: 1px solid var(--profile-card-edge);
+      box-shadow:
+        0 10px 22px rgba(76, 108, 135, 0.10),
+        0 2px 5px rgba(26, 31, 44, 0.05),
+        inset 0 1px 0 var(--profile-card-highlight);
+      position: relative;
+      margin-top: 8px;
+    }
+
+    .profile-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .profile-avatar-wrap {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      padding: 2px;
+      background:
+        radial-gradient(circle at 32% 24%, #fff7d6 0%, #fbbf24 48%, #f59e0b 100%);
+      box-shadow:
+        0 5px 12px rgba(76,108,135,0.16),
+        0 1px 2px rgba(146,64,14,0.14),
+        0 0 0 1px rgba(245, 158, 11, 0.44),
+        0 0 0 3px rgba(255, 247, 214, 0.40),
+        inset 0 1px 0 rgba(255,255,255,0.76);
+      overflow: visible;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .profile-avatar-wrap::after {
+      content: "";
+      position: absolute;
+      inset: 4px 5px auto 8px;
+      height: 20px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.74), rgba(255,255,255,0));
+      pointer-events: none;
+      z-index: 2;
+    }
+    .profile-avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 50% 35%;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 44% 28%, #ffffff 0%, #f8fdff 34%, #e8f6fb 100%);
+      box-shadow:
+        inset 0 -3px 8px rgba(143,200,224,0.18),
+        inset 0 1px 0 rgba(255,255,255,0.72);
+    }
+    /* アバター画像が無くてもフォールバックで丸い "P" を出す */
+    .profile-avatar-fallback {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 26px;
+      color: var(--pomu-gold-deep);
+      background:
+        radial-gradient(circle at 44% 28%, #ffffff 0%, #fff7d6 50%, #fde68a 100%);
+      box-shadow:
+        inset 0 -3px 8px rgba(146, 64, 14, 0.15),
+        inset 0 1px 0 rgba(255,255,255,0.78);
+      letter-spacing: 0;
+    }
+
+    .profile-identity {
+      flex: 1;
+      min-width: 0;
+    }
+    .profile-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--ink-900);
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .profile-name-edit {
+      width: 16px;
+      height: 16px;
+      color: var(--ink-500);
+      opacity: 0.72;
+      flex-shrink: 0;
+    }
+    .profile-code-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .profile-code-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink-500);
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+    }
+    .profile-code-value {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--ink-900);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.06em;
+      font-family: "SF Mono", "Menlo", monospace;
+      background: var(--ink-100);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+    .profile-code-copy {
+      width: 14px;
+      height: 14px;
+      color: var(--ink-500);
+      opacity: 0.66;
+      cursor: pointer;
+    }
+
+    .profile-badges {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .profile-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 5px 10px 5px 8px;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(26,31,44,0.06);
+      letter-spacing: 0.04em;
+    }
+    .profile-badge--rank {
+      background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%);
+      color: var(--pomu-gold-deep);
+      border: 1px solid rgba(146, 64, 14, 0.18);
+    }
+    .profile-badge--rate {
+      background: var(--cloud-white);
+      color: var(--ink-900);
+      font-variant-numeric: tabular-nums;
+    }
+    .profile-badge--title {
+      background: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 100%);
+      color: #5b21b6;
+      border: 1px solid rgba(91, 33, 182, 0.16);
+    }
+    .profile-badge .badge-icon {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+    }
+
+    /* ============ セクションヘッダ ============ */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 22px 4px 10px;
+    }
+    .section-title {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      color: var(--ink-500);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section-title .section-emoji {
+      font-size: 14px;
+    }
+
+    /* ============ 設定カード(リスト) ============ */
+    .settings-card {
+      background:
+        radial-gradient(circle at 8% 0%, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.24) 34%, rgba(255,255,255,0) 58%),
+        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 62%, #ffffff 100%);
+      border-radius: 14px;
+      border: 1px solid var(--profile-card-edge);
+      box-shadow:
+        0 10px 22px rgba(76, 108, 135, 0.10),
+        0 2px 5px rgba(26, 31, 44, 0.05),
+        inset 0 1px 0 var(--profile-card-highlight);
+      overflow: hidden;
+    }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      position: relative;
+    }
+    .settings-row + .settings-row {
+      border-top: 1px solid var(--hairline);
+    }
+    .settings-row:active {
+      background: rgba(143, 200, 224, 0.08);
+    }
+    .settings-row[data-static] {
+      cursor: default;
+    }
+
+    .row-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      background: var(--row-icon-bg);
+      color: var(--ink-900);
+    }
+    .row-icon svg {
+      width: 18px;
+      height: 18px;
+    }
+    .row-icon--warm { background: var(--row-icon-bg-warm); color: var(--pomu-gold-deep); }
+    .row-icon--mint { background: var(--row-icon-bg-mint); color: #15803d; }
+    .row-icon--rose { background: var(--row-icon-bg-rose); color: #b91c1c; }
+
+    .row-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .row-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink-900);
+      letter-spacing: 0.02em;
+    }
+    .row-sub {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-500);
+      margin-top: 2px;
+    }
+
+    .row-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .row-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-500);
+      font-variant-numeric: tabular-nums;
+    }
+    .row-chevron {
+      width: 14px;
+      height: 14px;
+      color: var(--ink-300);
+      flex-shrink: 0;
+    }
+    .row-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 6px;
+      border-radius: 9px;
+      background: var(--notif-red);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      box-shadow: 0 1px 2px rgba(239, 68, 68, 0.36);
+    }
+
+    /* ============ トグルスイッチ ============ */
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 26px;
+      border-radius: 13px;
+      background: #d1d5db;
+      transition: background 0.18s ease;
+      flex-shrink: 0;
+      cursor: pointer;
+      box-shadow: inset 0 1px 2px rgba(26, 31, 44, 0.10);
+    }
+    .toggle-switch::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 2px 4px rgba(26, 31, 44, 0.18),
+                  0 0 0 0.5px rgba(26, 31, 44, 0.04);
+      transition: transform 0.18s ease;
+    }
+    .toggle-switch.is-on {
+      background: var(--leaf-green);
+      box-shadow:
+        inset 0 1px 2px rgba(0, 0, 0, 0.10),
+        0 0 0 1px var(--leaf-green-soft);
+    }
+    .toggle-switch.is-on::after {
+      transform: translateX(18px);
+    }
+
+    /* ============ ピル形セグメント(初期点等の小選択) ============ */
+    .row-segment {
+      display: inline-flex;
+      gap: 0;
+      background: var(--ink-100);
+      border-radius: 9px;
+      padding: 2px;
+    }
+    .row-segment .seg {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--ink-500);
+      padding: 4px 9px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+    }
+    .row-segment .seg.is-active {
+      background: var(--cloud-white);
+      color: var(--ink-900);
+      box-shadow: 0 1px 2px rgba(26, 31, 44, 0.08);
+    }
+
+    /* ============ フッター(ログアウト + バージョン) ============ */
+    .more-footer {
+      margin-top: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding-top: 8px;
+    }
+    .logout-btn {
+      background: var(--cloud-white);
+      color: var(--logout-fg);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      padding: 12px 36px;
+      border-radius: 14px;
+      border: 1px solid rgba(190, 18, 60, 0.18);
+      box-shadow:
+        0 4px 10px rgba(190, 18, 60, 0.08),
+        0 1px 2px rgba(26, 31, 44, 0.05),
+        inset 0 1px 0 rgba(255,255,255,0.72);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .logout-btn:active {
+      color: var(--logout-fg-pressed);
+      box-shadow:
+        0 2px 6px rgba(190, 18, 60, 0.10),
+        inset 0 1px 3px rgba(190, 18, 60, 0.12);
+      transform: translateY(1px);
+    }
+    .version-text {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-500);
+      letter-spacing: 0.08em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ============ 下部ナビ (v7 から完全継承) ============ */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 76px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      box-shadow: 0 -2px 12px rgba(60, 90, 120, 0.08);
+      z-index: 2;
+      padding-bottom: 8px;
+    }
+    .nav-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink-500);
+      cursor: pointer;
+      position: relative;
+      padding-top: 6px;
+    }
+    .nav-tab .nav-icon {
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+      opacity: 0.65;
+    }
+    .nav-tab--active {
+      color: var(--ink-900);
+      font-weight: 800;
+    }
+    .nav-tab--active .nav-icon {
+      opacity: 1;
+    }
+    .nav-tab--active::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 30%;
+      right: 30%;
+      height: 3px;
+      background: var(--pomu-yellow);
+      border-radius: 0 0 2px 2px;
+    }
+
+    /* ============ デモ用のメモ ============ */
+    .dev-note {
+      width: 393px;
+      margin: 16px auto 24px;
+      padding: 12px 16px;
+      font-size: 12px;
+      color: var(--ink-500);
+      background: rgba(255,255,255,0.6);
+      border: 1px dashed rgba(143, 200, 224, 0.5);
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+    .dev-note strong { color: var(--ink-900); }
+  </style>
+</head>
+<body>
+
+<div class="device" role="application" aria-label="その他画面">
+
+  <svg class="sky-clouds" viewBox="0 0 393 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <linearGradient id="skyCloudPaint" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="62%" stop-color="#ffffff"/>
+        <stop offset="100%" stop-color="#edf6fa"/>
+      </linearGradient>
+      <filter id="skyCloudSoft" x="-8%" y="-30%" width="116%" height="170%">
+        <feGaussianBlur stdDeviation="0.4"/>
+      </filter>
+    </defs>
+    <g filter="url(#skyCloudSoft)">
+      <g fill="url(#skyCloudPaint)" opacity="0.92">
+        <ellipse cx="36" cy="39" rx="29" ry="11"/>
+        <ellipse cx="66" cy="32" rx="32" ry="14"/>
+        <ellipse cx="100" cy="44" rx="47" ry="15"/>
+        <ellipse cx="127" cy="49" rx="23" ry="9"/>
+      </g>
+      <g fill="url(#skyCloudPaint)" opacity="0.88">
+        <ellipse cx="286" cy="106" rx="32" ry="12"/>
+        <ellipse cx="320" cy="98" rx="45" ry="16"/>
+        <ellipse cx="360" cy="113" rx="34" ry="13"/>
+      </g>
+      <g fill="url(#skyCloudPaint)" opacity="0.7">
+        <ellipse cx="160" cy="171" rx="28" ry="9"/>
+        <ellipse cx="197" cy="164" rx="46" ry="13"/>
+        <ellipse cx="238" cy="173" rx="32" ry="10"/>
+      </g>
+    </g>
+  </svg>
+
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>📶 100%</span>
+  </div>
+
+  <div class="more-header">
+    <div class="screen-title">その他</div>
+  </div>
+
+  <div class="screen-body">
+
+    <!-- ============ プロフィールカード ============ -->
+    <section class="profile-card" aria-label="プロフィール">
+      <div class="profile-top">
+        <div class="profile-avatar-wrap" aria-hidden="true">
+          <!-- アバター画像。assets が無い環境ではフォールバックを表示 -->
+          <img class="profile-avatar-img"
+               src="assets/pomu_pose_1.png"
+               alt=""
+               onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'profile-avatar-fallback',textContent:'拓'}))"/>
+        </div>
+        <div class="profile-identity">
+          <div class="profile-name">
+            <span>とらたく</span>
+            <svg class="profile-name-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+            </svg>
+          </div>
+          <div class="profile-code-row">
+            <span class="profile-code-label">マイコード</span>
+            <span class="profile-code-value">T-7K3M-92</span>
+            <svg class="profile-code-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="コピー">
+              <rect x="9" y="9" width="13" height="13" rx="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-badges">
+        <span class="profile-badge profile-badge--rank">
+          <svg class="badge-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2 L14 8 L20 8 L15 12 L17 18 L12 14 L7 18 L9 12 L4 8 L10 8 Z"/>
+          </svg>
+          プラチナ 3
+        </span>
+        <span class="profile-badge profile-badge--rate">
+          レート 1,247
+        </span>
+        <span class="profile-badge profile-badge--title">
+          <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 9 V4 H18 V9 A6 6 0 0 1 6 9 Z"/>
+            <path d="M12 15 V19 M8 22 H16"/>
+          </svg>
+          FL職人
+        </span>
+      </div>
+    </section>
+
+    <!-- ============ ゲーム ============ -->
+    <div class="section-header">
+      <div class="section-title">
+        <span class="section-emoji">📊</span>
+        <span>ゲーム</span>
+      </div>
+    </div>
+    <div class="settings-card">
+
+      <div class="settings-row" data-action="stats">
+        <div class="row-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 20 V10 M9 20 V4 M15 20 V13 M21 20 V7"/>
+          </svg>
+        </div>
+        <div class="row-body">
+          <div class="row-label">戦績</div>
+          <div class="row-sub">勝率 58% ・ スクープ 12% ・ FL率 31%</div>
+        </div>
+        <div class="row-right">
+          <svg class="row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="9 6 15 12 9 18"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="settings-row" data-action="ranking">
+        <div class="row-icon row-icon--warm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 21 H16 M12 17 V21 M6 4 H18 V9 a6 6 0 0 1 -12 0 Z"/>
+            <path d="M4 6 H6 V9 a2 2 0 0 1 -2 0 Z"/>
+            <path d="M18 6 H20 V9 a2 2 0 0 1 -2 0 Z"/>
+          </svg>
+        </div>
+        <div class="row-body">
+          <div class="row-label">ランキング</div>
+          <div class="row-sub">週間 / 月間 / 通算</div>
+        </div>
+        <div class="row-right">
+          <svg class="row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="9 6 15 12 9 18"/>
+          </svg>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 設定 ============ -->
+    <div class="section-header">
+      <div class="section-title">
+        <span class="section-emoji">⚙️</span>
+        <span>設定</span>
+      </div>
+    </div>
+    <div class="settings-card">
+
+      <div class="settings-row" data-action="toggle-timer" data-static>
+        <div class="row-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="13" r="8"/>
+            <path d="M12 9 V13 L15 15"/>
+            <path d="M9 2 H15"/>
+          </svg>
+        </div>
+        <div class="row-body">
+          <div class="row-label">時間制限</div>
+          <div class="row-sub">1手 30秒</div>
+        </div>
+        <div class="row-right">
+          <div class="toggle-switch is-on" role="switch" aria-checked="true" aria-label="時間制限を有効化"></div>
+        </div>
+      </div>
+
+      <div class="settings-row" data-action="initial-score" data-static>
+        <div class="row-icon row-icon--warm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 7 V12 L15 14"/>
+          </svg>
+        </div>
+        <div class="row-body">
+          <div class="row-label">初期点</div>
+        </div>
+        <div class="row-right">
+          <div class="row-segment" role="radiogroup" aria-label="初期点">
+            <div class="seg" role="radio" aria-checked="false">100</div>
+            <div class="seg is-active" role="radio" aria-checked="true">200</div>
+            <div class="seg" role="radio" aria-checked="false">500</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-row" data-action="toggle-haptic" data-static>
+        <div class="row-icon row-icon--mint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 12 H7"/>
+            <path d="M17 12 H20"/>
+            <path d="M9 8 V16"/>
+            <path d="M15 8 V16"/>
+            <rect x="11" y="6" width="2" height="12" rx="1" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="row-body">
+          <div class="row-label">ハプティック</div>
+          <div class="row-sub">配置・効果音の振動</div>
+        </div>
+        <div class="row-right">
+          <div class="toggle-switch is-on" role="switch" aria-checked="true" aria-label="ハプティックを有効化"></div>
+        </div>
+      </div>
+
+      <div class="settings-row" data-action="card-design">
+        <div class="row-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="13" height="17" rx="2"/>
+            <rect x="8" y="3" width="13" height="17" rx="2" fill="rgba(255,255,255,0.6)"/>
+          </svg>
+        </div>
+        <div class="row-body">
+          <div class="row-label">カードデザイン</div>
+        </div>
+        <div class="row-right">
+          <span class="row-value">4色スーツ</span>
+          <svg class="row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="9 6 15 12 9 18"/>
+          </svg>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ サポート ============ -->
+    <div class="section-header">
+      <div class="section-title">
+        <span class="section-emoji">💡</span>
+        <span>サポート</span>
+      </div>
+    </div>
+    <div class="settings-card">
+
+      <div class="settings-row" data-action="rules">
+        <div class="row-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 4 H20 V20 H4 Z"/>
+            <path d="M8 9 H16 M8 13 H16 M8 17 H13"/>
+          </svg>
+        </div>
+        <div class="row-body">
+          <div class="row-label">ルール</div>
+        </div>
+        <div class="row-right">
+          <svg class="row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="9 6 15 12 9 18"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="settings-row" data-action="notice">
+        <div class="row-icon row-icon--warm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 8 a6 6 0 0 1 12 0 v5 l2 3 H4 l2 -3 Z"/>
+            <path d="M10 19 a2 2 0 0 0 4 0"/>
+          </svg>
+        </div>
+        <div class="row-body">
+          <div class="row-label">お知らせ</div>
+        </div>
+        <div class="row-right">
+          <span class="row-badge">2</span>
+          <svg class="row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="9 6 15 12 9 18"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="settings-row" data-action="contact">
+        <div class="row-icon row-icon--mint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 6 H20 V18 H4 Z"/>
+            <path d="M4 7 L12 13 L20 7"/>
+          </svg>
+        </div>
+        <div class="row-body">
+          <div class="row-label">お問い合わせ</div>
+        </div>
+        <div class="row-right">
+          <svg class="row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="9 6 15 12 9 18"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="settings-row" data-action="terms">
+        <div class="row-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 3 H14 L18 7 V21 H6 Z"/>
+            <path d="M14 3 V7 H18"/>
+            <path d="M9 13 H15 M9 17 H13"/>
+          </svg>
+        </div>
+        <div class="row-body">
+          <div class="row-label">利用規約</div>
+        </div>
+        <div class="row-right">
+          <svg class="row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="9 6 15 12 9 18"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="settings-row" data-action="privacy">
+        <div class="row-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3 L20 6 V12 a8 8 0 0 1 -8 8 a8 8 0 0 1 -8 -8 V6 Z"/>
+            <path d="M9 12 L11 14 L15 10"/>
+          </svg>
+        </div>
+        <div class="row-body">
+          <div class="row-label">プライバシーポリシー</div>
+        </div>
+        <div class="row-right">
+          <svg class="row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="9 6 15 12 9 18"/>
+          </svg>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ フッター ============ -->
+    <div class="more-footer">
+      <button class="logout-btn" data-action="logout">ログアウト</button>
+      <div class="version-text">バージョン 1.1.0 (build 142)</div>
+    </div>
+
+  </div>
+
+  <nav class="bottom-nav" aria-label="メインナビゲーション">
+    <div class="nav-tab" data-tab="home">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 11 L12 4 L21 11 V20 a1 1 0 0 1 -1 1 H15 V14 H9 V21 H4 a1 1 0 0 1 -1 -1 Z"/>
+        </svg>
+      </div>
+      ホーム
+    </div>
+    <div class="nav-tab" data-tab="town">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="8" width="18" height="13" rx="1"/>
+          <path d="M3 11 H21"/>
+          <path d="M12 8 V21"/>
+          <path d="M7.5 8 Q9 4 12 4 Q15 4 16.5 8"/>
+        </svg>
+      </div>
+      ぽむタウン
+    </div>
+    <div class="nav-tab" data-tab="battle">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 4 L20 4 L20 10 M14 4 L4 14 L8 18 L20 6 M10 14 L14 18"/>
+        </svg>
+      </div>
+      対戦
+    </div>
+    <div class="nav-tab" data-tab="friends">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="8" r="3.5"/>
+          <path d="M3 20 c0 -3 3 -5 6 -5 s6 2 6 5"/>
+          <circle cx="17" cy="9" r="2.5"/>
+          <path d="M14 17 c1 -2 3 -3 5 -3 s2 1 2 3"/>
+        </svg>
+      </div>
+      フレンド
+    </div>
+    <div class="nav-tab nav-tab--active" data-tab="more">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 7 H20 M4 12 H20 M4 17 H20"/>
+        </svg>
+      </div>
+      その他
+    </div>
+  </nav>
+
+</div>
+
+<div class="dev-note">
+  <strong>VISUAL v1: その他タブ (初稿)</strong><br>
+  構造: プロフィール / ゲーム / 設定 / サポート / フッター。<br>
+  v7 (所持) と home_v2 から sky・ink・pomu トークン、device 寸法、下部ナビ、section-header、mission-card 形カードを継承。<br>
+  新規パターン: profile-card / settings-card+settings-row / toggle-switch / row-segment / logout-btn。
+</div>
+
+<script>
+  // 軽い操作性: トグルとセグメントを動かせるようにする(プロトタイプ確認用)
+  document.querySelectorAll('.toggle-switch').forEach(t => {
+    t.addEventListener('click', () => {
+      t.classList.toggle('is-on');
+      const on = t.classList.contains('is-on');
+      t.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
+  });
+  document.querySelectorAll('.row-segment').forEach(seg => {
+    seg.querySelectorAll('.seg').forEach(item => {
+      item.addEventListener('click', () => {
+        seg.querySelectorAll('.seg').forEach(s => {
+          s.classList.remove('is-active');
+          s.setAttribute('aria-checked', 'false');
+        });
+        item.classList.add('is-active');
+        item.setAttribute('aria-checked', 'true');
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
