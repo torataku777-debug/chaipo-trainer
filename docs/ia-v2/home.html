@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Chaipo Neighbors - Home</title>
+  <style>
+    :root {
+      --bg-sky-top: #87CEEB;
+      --bg-sky-bottom: #E0F2FE;
+      --bg-cloud: #FFFFFF;
+
+      --surface-primary: rgba(255, 255, 255, 0.85);
+      --surface-elevated: rgba(255, 255, 255, 0.95);
+      --surface-muted: rgba(255, 248, 230, 0.75);
+
+      --text-primary: #1A202C;
+      --text-secondary: #4A5568;
+      --text-tertiary: #A0AEC0;
+      --text-inverse: #FFFFFF;
+
+      --accent-primary: #F97316;
+      --accent-secondary: #14B8A6;
+      --accent-success: #22C55E;
+      --accent-warning: #EAB308;
+      --accent-danger: #EF4444;
+
+      --border-subtle: rgba(0, 0, 0, 0.06);
+      --border-strong: rgba(0, 0, 0, 0.12);
+
+      --font-display: 'Orbitron', 'Noto Sans JP', sans-serif;
+      --font-body: 'Noto Sans JP', 'Helvetica Neue', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-10: 40px;
+      --space-12: 48px;
+      --space-16: 64px;
+
+      --radius-sm: 8px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --radius-full: 9999px;
+
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 1px 1px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
+      --shadow-lg: 0 12px 32px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      letter-spacing: 0.02em;
+      background: linear-gradient(180deg, var(--bg-sky-top) 0%, var(--bg-sky-bottom) 100%);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    button {
+      border: 0;
+      padding: 0;
+      color: inherit;
+      font: inherit;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app-shell {
+      position: relative;
+      min-height: 100dvh;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    /* Background world: Shibuya sky, low-contrast buildings, and passive signage. */
+    .world-layer {
+      position: fixed;
+      inset: 0;
+      z-index: -3;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 20% 12%, rgba(255,255,255,0.54) 0 38px, transparent 39px),
+        radial-gradient(circle at 73% 9%, rgba(255,255,255,0.42) 0 48px, transparent 49px),
+        linear-gradient(180deg, var(--bg-sky-top) 0%, var(--bg-sky-bottom) 100%);
+    }
+
+    .cloud-streak {
+      position: fixed;
+      z-index: -2;
+      width: 270px;
+      height: 72px;
+      border-radius: var(--radius-full);
+      background:
+        radial-gradient(circle at 12% 50%, rgba(255,255,255,0.66) 0 22px, transparent 23px),
+        radial-gradient(circle at 36% 40%, rgba(255,255,255,0.58) 0 30px, transparent 31px),
+        radial-gradient(circle at 62% 52%, rgba(255,255,255,0.5) 0 24px, transparent 25px);
+      filter: blur(8px);
+      opacity: 0.62;
+      transform: rotate(-10deg);
+      pointer-events: none;
+    }
+
+    .cloud-one {
+      top: 82px;
+      left: -70px;
+    }
+
+    .cloud-two {
+      top: 198px;
+      right: -96px;
+      transform: rotate(8deg);
+      opacity: 0.45;
+    }
+
+    .city-layer {
+      position: fixed;
+      inset: auto 0 0;
+      z-index: -2;
+      height: 42vh;
+      min-height: 320px;
+      opacity: 0.2;
+      pointer-events: none;
+    }
+
+    .building {
+      position: absolute;
+      bottom: 0;
+      left: var(--x);
+      width: var(--w);
+      height: var(--h);
+      border: 2px solid rgba(26, 32, 44, 0.24);
+      border-bottom: 0;
+      border-radius: 8px 8px 0 0;
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.3) 0 5px, transparent 5px 18px),
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.28) 0 4px, transparent 4px 24px),
+        rgba(74, 85, 104, 0.5);
+      box-shadow:
+        inset 0 8px 0 rgba(255,255,255,0.34),
+        0 -2px 0 rgba(26,32,44,0.14);
+      transform: skewY(var(--tilt));
+    }
+
+    .building:nth-child(2),
+    .building:nth-child(5) {
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.34) 0 5px, transparent 5px 19px),
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.25) 0 4px, transparent 4px 22px),
+        rgba(20, 184, 166, 0.46);
+    }
+
+    .street-lines {
+      position: fixed;
+      right: -20%;
+      bottom: -5%;
+      left: -20%;
+      z-index: -1;
+      height: 24vh;
+      min-height: 164px;
+      opacity: 0.11;
+      pointer-events: none;
+      background:
+        linear-gradient(80deg, transparent 0 42%, rgba(26,32,44,0.5) 43% 45%, transparent 46% 100%),
+        linear-gradient(98deg, transparent 0 55%, rgba(26,32,44,0.42) 56% 58%, transparent 59% 100%),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.95) 0 16px, transparent 16px 44px);
+      transform: perspective(260px) rotateX(52deg);
+      transform-origin: bottom center;
+    }
+
+    .paint-splatter {
+      position: fixed;
+      z-index: -1;
+      width: 118px;
+      height: 84px;
+      opacity: 0.18;
+      pointer-events: none;
+      filter: blur(0.2px);
+      background:
+        radial-gradient(circle at 22% 64%, var(--accent-primary) 0 8px, transparent 9px),
+        radial-gradient(circle at 38% 34%, var(--accent-secondary) 0 5px, transparent 6px),
+        radial-gradient(circle at 58% 72%, rgba(26,32,44,0.58) 0 7px, transparent 8px),
+        radial-gradient(circle at 74% 44%, var(--accent-primary) 0 3px, transparent 4px);
+    }
+
+    .paint-left {
+      left: -22px;
+      bottom: 116px;
+      transform: rotate(-18deg);
+    }
+
+    .paint-right {
+      right: -36px;
+      bottom: 190px;
+      transform: rotate(16deg);
+    }
+
+    .decor-sign {
+      position: fixed;
+      z-index: -1;
+      display: grid;
+      place-items: center;
+      min-height: 32px;
+      padding: 6px 11px;
+      border: 2px solid rgba(26, 32, 44, 0.24);
+      border-radius: 7px;
+      color: rgba(26, 32, 44, 0.32);
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(255,255,255,0.26);
+      box-shadow: 0 2px 0 rgba(26,32,44,0.08);
+      pointer-events: none;
+    }
+
+    .decor-sign::after {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border: 1px dashed rgba(26, 32, 44, 0.16);
+      border-radius: 5px;
+    }
+
+    .sign-chaipo {
+      top: 106px;
+      left: 12px;
+      transform: rotate(-9deg);
+    }
+
+    .sign-brain {
+      top: 90px;
+      right: 14px;
+      background: rgba(249, 115, 22, 0.2);
+      transform: rotate(8deg);
+    }
+
+    .sign-level {
+      top: 280px;
+      right: -20px;
+      transform: rotate(90deg);
+    }
+
+    .screen-content {
+      position: relative;
+      width: min(100%, 440px);
+      min-height: 100dvh;
+      margin: 0 auto;
+      padding-bottom: calc(164px + env(safe-area-inset-bottom));
+    }
+
+    /* Header strip */
+    .header-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: calc(64px + env(safe-area-inset-top));
+      padding: env(safe-area-inset-top) var(--space-4) 0;
+    }
+
+    .profile-trigger {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      min-height: 56px;
+      gap: var(--space-3);
+      border-radius: var(--radius-full);
+    }
+
+    .pomu-avatar {
+      position: relative;
+      flex: 0 0 48px;
+      width: 48px;
+      height: 48px;
+      overflow: hidden;
+      border: 2px solid var(--accent-secondary);
+      border-radius: var(--radius-full);
+      background:
+        radial-gradient(circle at 50% 60%, #FFFFFF 0 42%, rgba(255,255,255,0.92) 43% 100%);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .pomu-avatar::before {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border-radius: inherit;
+      background-image: url("references/pomu_character_sheet.png");
+      background-size: 206px 154px;
+      background-position: -11px -11px;
+      background-repeat: no-repeat;
+    }
+
+    .player-copy {
+      display: grid;
+      gap: 1px;
+      min-width: 0;
+      text-align: left;
+    }
+
+    .player-rank {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 22px;
+      letter-spacing: -0.01em;
+    }
+
+    .player-rate {
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 16px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .icon-button {
+      position: relative;
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      border-radius: var(--radius-full);
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.58);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .icon-button svg,
+    .nav-tab svg {
+      display: block;
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .notice-dot {
+      position: absolute;
+      top: 9px;
+      right: 9px;
+      width: 8px;
+      height: 8px;
+      border: 2px solid var(--surface-elevated);
+      border-radius: var(--radius-full);
+      background: var(--accent-danger);
+    }
+
+    /* Main ranked CTA: street-sign energy, simplified into one thumb-friendly action. */
+    .hero-cta {
+      position: relative;
+      display: grid;
+      width: calc(100% - var(--space-8));
+      height: 140px;
+      margin: var(--space-3) var(--space-4) 0;
+      padding: var(--space-5);
+      overflow: hidden;
+      border-radius: var(--radius-lg);
+      color: var(--text-inverse);
+      background: linear-gradient(135deg, #F97316 0%, #FB923C 100%);
+      box-shadow: var(--shadow-md);
+      text-align: left;
+    }
+
+    .hero-cta::before {
+      content: "";
+      position: absolute;
+      inset: 9px;
+      border: 1px solid rgba(255,255,255,0.26);
+      border-radius: 18px;
+      pointer-events: none;
+    }
+
+    .hero-cta::after {
+      content: "";
+      position: absolute;
+      right: -38px;
+      top: -44px;
+      width: 144px;
+      height: 144px;
+      border: 2px solid rgba(255,255,255,0.28);
+      border-radius: var(--radius-full);
+      pointer-events: none;
+    }
+
+    .hero-mark {
+      position: absolute;
+      right: 70px;
+      bottom: 34px;
+      width: 96px;
+      height: 20px;
+      opacity: 0.12;
+      background: var(--text-inverse);
+      transform: rotate(-18deg);
+      pointer-events: none;
+    }
+
+    .hero-label {
+      position: relative;
+      z-index: 1;
+      align-self: start;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 14px;
+      letter-spacing: 0.15em;
+    }
+
+    .hero-title {
+      position: relative;
+      z-index: 1;
+      align-self: center;
+      justify-self: center;
+      margin-top: -4px;
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 36px;
+      letter-spacing: -0.01em;
+      text-shadow: 0 2px 0 rgba(26,32,44,0.08);
+    }
+
+    .hero-subtitle {
+      position: relative;
+      z-index: 1;
+      align-self: end;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 16px;
+    }
+
+    .hero-arrow {
+      position: absolute;
+      right: var(--space-5);
+      bottom: var(--space-5);
+      z-index: 1;
+      width: 28px;
+      height: 28px;
+      color: var(--text-inverse);
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Secondary actions */
+    .secondary-actions {
+      display: flex;
+      gap: var(--space-3);
+      margin: var(--space-4) var(--space-4) 0;
+    }
+
+    .mode-card {
+      display: grid;
+      flex: 1 1 0;
+      height: 96px;
+      min-width: 0;
+      place-items: center;
+      padding: var(--space-3) var(--space-2);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      background: var(--surface-primary);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .mode-icon {
+      display: block;
+      font-size: 32px;
+      line-height: 36px;
+      filter: drop-shadow(0 1px 0 rgba(255,255,255,0.8));
+    }
+
+    .mode-label {
+      display: block;
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 18px;
+    }
+
+    /* Missions card */
+    .missions-card,
+    .bonus-card {
+      margin-right: var(--space-4);
+      margin-left: var(--space-4);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+    }
+
+    .missions-card {
+      margin-top: var(--space-6);
+      padding: var(--space-4);
+      background: var(--surface-primary);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 24px;
+    }
+
+    .progress-badge {
+      min-width: 42px;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      color: var(--text-inverse);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 16px;
+      text-align: center;
+      background: var(--accent-warning);
+    }
+
+    .divider {
+      height: 1px;
+      margin: var(--space-3) 0;
+      background: var(--border-subtle);
+    }
+
+    .mission-list {
+      display: grid;
+      gap: var(--space-3);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .mission-row {
+      display: flex;
+      align-items: center;
+      min-height: 32px;
+      gap: var(--space-3);
+    }
+
+    .mission-check {
+      display: grid;
+      flex: 0 0 24px;
+      width: 24px;
+      height: 24px;
+      place-items: center;
+      border: 2px solid var(--border-strong);
+      border-radius: var(--radius-full);
+      color: var(--text-inverse);
+      background: rgba(255, 255, 255, 0.48);
+    }
+
+    .mission-check svg {
+      display: none;
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .mission-text {
+      flex: 1;
+      min-width: 0;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 20px;
+    }
+
+    .mission-reward {
+      flex: 0 0 auto;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      color: var(--accent-secondary);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 15px;
+      letter-spacing: 0;
+      background: rgba(20, 184, 166, 0.1);
+    }
+
+    .mission-row.is-completed .mission-check {
+      border-color: var(--accent-success);
+      background: var(--accent-success);
+    }
+
+    .mission-row.is-completed .mission-check svg {
+      display: block;
+    }
+
+    .mission-row.is-completed .mission-text {
+      color: var(--text-tertiary);
+      text-decoration: line-through;
+    }
+
+    /* Daily bonus card */
+    .bonus-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 88px;
+      margin-top: var(--space-3);
+      padding: var(--space-4);
+      gap: var(--space-3);
+      background: linear-gradient(135deg, rgba(255, 248, 230, 0.9) 0%, rgba(255, 237, 213, 0.9) 100%);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .bonus-copy {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      gap: var(--space-3);
+    }
+
+    .bonus-icon {
+      display: grid;
+      flex: 0 0 40px;
+      width: 40px;
+      height: 40px;
+      place-items: center;
+      border-radius: var(--radius-md);
+      color: var(--accent-warning);
+      background: rgba(255, 255, 255, 0.58);
+    }
+
+    .bonus-icon svg {
+      width: 32px;
+      height: 32px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .bonus-text {
+      display: grid;
+      gap: 1px;
+      min-width: 0;
+    }
+
+    .bonus-title {
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 20px;
+    }
+
+    .bonus-day {
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 16px;
+    }
+
+    .bonus-button {
+      flex: 0 0 auto;
+      min-height: 44px;
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-full);
+      color: var(--text-inverse);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 20px;
+      background: var(--accent-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Bottom navigation */
+    .bottom-nav {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+      height: calc(64px + env(safe-area-inset-bottom));
+      padding-bottom: env(safe-area-inset-bottom);
+      border-top: 1px solid var(--border-subtle);
+      background: var(--surface-elevated);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .nav-inner {
+      display: flex;
+      width: min(100%, 440px);
+      height: 64px;
+      margin: 0 auto;
+    }
+
+    .nav-tab {
+      position: relative;
+      display: grid;
+      flex: 1 1 0;
+      min-width: 0;
+      min-height: 64px;
+      place-items: center;
+      color: var(--text-tertiary);
+    }
+
+    .nav-stack {
+      position: relative;
+      display: grid;
+      place-items: center;
+      gap: var(--space-1);
+    }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 14px;
+      white-space: nowrap;
+    }
+
+    .nav-tab.is-active {
+      color: var(--accent-primary);
+    }
+
+    .nav-tab.is-active .nav-stack::before {
+      content: "";
+      width: 3px;
+      height: 3px;
+      margin-bottom: 1px;
+      border-radius: var(--radius-full);
+      background: var(--accent-primary);
+    }
+
+    .interactive {
+      transition: transform 100ms ease, filter 100ms ease;
+      touch-action: manipulation;
+    }
+
+    .interactive:active {
+      transform: scale(0.97);
+      filter: brightness(95%);
+    }
+
+    .nav-tab:active {
+      filter: brightness(90%);
+    }
+
+    @media (max-width: 360px) {
+      .screen-content {
+        padding-bottom: calc(144px + env(safe-area-inset-bottom));
+      }
+
+      .hero-title {
+        font-size: 26px;
+      }
+
+      .secondary-actions {
+        gap: var(--space-2);
+      }
+
+      .mode-label {
+        font-size: 12px;
+      }
+
+      .missions-card,
+      .bonus-card,
+      .hero-cta,
+      .secondary-actions {
+        margin-right: var(--space-3);
+        margin-left: var(--space-3);
+      }
+
+      .hero-cta {
+        width: calc(100% - var(--space-6));
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .interactive {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Background world: atmospheric only, never interactive. -->
+    <div class="world-layer" aria-hidden="true"></div>
+    <div class="cloud-streak cloud-one" aria-hidden="true"></div>
+    <div class="cloud-streak cloud-two" aria-hidden="true"></div>
+    <div class="decor-sign sign-chaipo" aria-hidden="true">CHAIPO</div>
+    <div class="decor-sign sign-brain" aria-hidden="true">POKER BRAIN</div>
+    <div class="decor-sign sign-level" aria-hidden="true">LEVEL UP</div>
+    <div class="city-layer" aria-hidden="true">
+      <div class="building" style="--x: -5%; --w: 20%; --h: 186px; --tilt: -2deg;"></div>
+      <div class="building" style="--x: 13%; --w: 18%; --h: 242px; --tilt: 1deg;"></div>
+      <div class="building" style="--x: 30%; --w: 23%; --h: 206px; --tilt: -1deg;"></div>
+      <div class="building" style="--x: 52%; --w: 17%; --h: 264px; --tilt: 2deg;"></div>
+      <div class="building" style="--x: 67%; --w: 19%; --h: 200px; --tilt: -1deg;"></div>
+      <div class="building" style="--x: 84%; --w: 22%; --h: 236px; --tilt: 2deg;"></div>
+    </div>
+    <div class="street-lines" aria-hidden="true"></div>
+    <div class="paint-splatter paint-left" aria-hidden="true"></div>
+    <div class="paint-splatter paint-right" aria-hidden="true"></div>
+
+    <div class="screen-content">
+      <!-- Header strip with profile affordance and utility icons. -->
+      <header class="header-strip" aria-label="プレイヤー情報">
+        <button class="profile-trigger interactive" type="button" aria-label="プロフィールを開く">
+          <span class="pomu-avatar" aria-hidden="true"></span>
+          <span class="player-copy">
+            <span class="player-rank">プラチナ 3</span>
+            <span class="player-rate">レート 1,247</span>
+          </span>
+        </button>
+
+        <div class="header-actions" aria-label="通知とボーナス">
+          <button class="icon-button interactive" type="button" aria-label="通知">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span class="notice-dot" aria-hidden="true"></span>
+          </button>
+          <button class="icon-button interactive" type="button" aria-label="ログインボーナス">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="8" width="18" height="13" rx="2"></rect>
+              <path d="M12 8v13"></path>
+              <path d="M3 12h18"></path>
+              <path d="M7.5 8a2.5 2.5 0 1 1 4.5-1.5V8"></path>
+              <path d="M16.5 8A2.5 2.5 0 1 0 12 6.5V8"></path>
+            </svg>
+            <span class="notice-dot" aria-hidden="true"></span>
+          </button>
+        </div>
+      </header>
+
+      <main>
+        <!-- Primary route into ranked play. -->
+        <button class="hero-cta interactive" id="rank-match" type="button">
+          <span class="hero-mark" aria-hidden="true"></span>
+          <span class="hero-label">RANK MATCH</span>
+          <span class="hero-title">ランクマッチ</span>
+          <span class="hero-subtitle">シーズン1・残り12日</span>
+          <svg class="hero-arrow" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 12h14"></path>
+            <path d="m13 6 6 6-6 6"></path>
+          </svg>
+        </button>
+
+        <!-- Secondary play modes. -->
+        <section class="secondary-actions" aria-label="対戦モード">
+          <button class="mode-card interactive" type="button">
+            <span class="mode-icon" aria-hidden="true">😄</span>
+            <span class="mode-label">カジュアル</span>
+          </button>
+          <button class="mode-card interactive" type="button">
+            <span class="mode-icon" aria-hidden="true">👥</span>
+            <span class="mode-label">フレンド</span>
+          </button>
+          <button class="mode-card interactive" type="button">
+            <span class="mode-icon" aria-hidden="true">🤖</span>
+            <span class="mode-label">AI</span>
+          </button>
+        </section>
+
+        <!-- Daily mission progress. -->
+        <section class="missions-card" aria-labelledby="missions-title">
+          <div class="section-header">
+            <h2 class="section-title" id="missions-title">📅 今日のミッション</h2>
+            <span class="progress-badge">1/3</span>
+          </div>
+          <div class="divider" aria-hidden="true"></div>
+          <ul class="mission-list">
+            <li class="mission-row is-completed">
+              <span class="mission-check" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M20 6 9 17l-5-5"></path>
+                </svg>
+              </span>
+              <span class="mission-text">対戦を1回プレイする</span>
+              <span class="mission-reward">+10 XP</span>
+            </li>
+            <li class="mission-row">
+              <span class="mission-check" aria-hidden="true"></span>
+              <span class="mission-text">1勝する</span>
+              <span class="mission-reward">+30 XP</span>
+            </li>
+            <li class="mission-row">
+              <span class="mission-check" aria-hidden="true"></span>
+              <span class="mission-text">FLに到達する</span>
+              <span class="mission-reward">+50 XP</span>
+            </li>
+          </ul>
+        </section>
+
+        <!-- Daily login bonus. -->
+        <section class="bonus-card" aria-label="ログインボーナス">
+          <div class="bonus-copy">
+            <span class="bonus-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="8" width="18" height="13" rx="2"></rect>
+                <path d="M12 8v13"></path>
+                <path d="M3 12h18"></path>
+                <path d="M7.5 8a2.5 2.5 0 1 1 4.5-1.5V8"></path>
+                <path d="M16.5 8A2.5 2.5 0 1 0 12 6.5V8"></path>
+              </svg>
+            </span>
+            <span class="bonus-text">
+              <span class="bonus-title">ログインボーナス</span>
+              <span class="bonus-day">5日連続!</span>
+            </span>
+          </div>
+          <button class="bonus-button interactive" type="button">受け取る</button>
+        </section>
+      </main>
+    </div>
+
+    <!-- Fixed bottom navigation shared by future tabs. -->
+    <nav class="bottom-nav" aria-label="メインナビゲーション">
+      <div class="nav-inner">
+        <button class="nav-tab is-active" type="button" data-tab="home" aria-current="page">
+          <span class="nav-stack">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m3 10 9-7 9 7"></path>
+              <path d="M5 10v10h14V10"></path>
+              <path d="M9 20v-6h6v6"></path>
+            </svg>
+            <span class="nav-label">ホーム</span>
+          </span>
+        </button>
+        <button class="nav-tab" type="button" data-tab="battle">
+          <span class="nav-stack">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m14.5 17.5 3 3 3-3"></path>
+              <path d="M17.5 20.5 3.5 6.5 6.5 3.5l14 14"></path>
+              <path d="m9.5 17.5-3 3-3-3"></path>
+              <path d="M6.5 20.5 20.5 6.5 17.5 3.5l-14 14"></path>
+            </svg>
+            <span class="nav-label">対戦</span>
+          </span>
+        </button>
+        <button class="nav-tab" type="button" data-tab="friends">
+          <span class="nav-stack">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span class="nav-label">フレンド</span>
+          </span>
+        </button>
+        <button class="nav-tab" type="button" data-tab="ranking">
+          <span class="nav-stack">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 21h8"></path>
+              <path d="M12 17v4"></path>
+              <path d="M7 4h10v4a5 5 0 0 1-10 0V4Z"></path>
+              <path d="M5 4H3v3a4 4 0 0 0 4 4"></path>
+              <path d="M19 4h2v3a4 4 0 0 1-4 4"></path>
+            </svg>
+            <span class="nav-label">ランキング</span>
+          </span>
+        </button>
+        <button class="nav-tab" type="button" data-tab="more">
+          <span class="nav-stack">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h16"></path>
+              <path d="M4 12h16"></path>
+              <path d="M4 17h16"></path>
+            </svg>
+            <span class="nav-label">その他</span>
+          </span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <script>
+    const rankMatchButton = document.querySelector('#rank-match');
+    const navTabs = document.querySelectorAll('.nav-tab');
+
+    rankMatchButton.addEventListener('click', () => {
+      console.log('ランクマッチ tapped');
+    });
+
+    navTabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        navTabs.forEach((item) => {
+          item.classList.remove('is-active');
+          item.removeAttribute('aria-current');
+        });
+
+        tab.classList.add('is-active');
+        tab.setAttribute('aria-current', 'page');
+      });
+    });
+  </script>
+</body>
+</html>
