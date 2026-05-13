@@ -373,6 +373,12 @@ html body.ui-v2 .row-eval.fl{
   color:#B8890F !important;
   text-shadow:0 0 6px rgba(255,255,255,0.85), 0 1px 2px rgba(255,217,74,0.5) !important;
 }
+/* Session 26 Patch30/31/32: チュートリアル中のオレンジリング上で視認性確保 (黒文字) */
+html body.ui-v2.tut-active .row-eval.fl,
+html body.tut-active .row-eval.fl{
+  color:#1a1a1a !important;
+  text-shadow:none !important;
+}
 /* v1.3 fix130: FL中の役ボタンバーをチューナーで調整した位置で固定 (高さは24pxに拡張) */
 /* v1.3 fix131: チューナー有効時 (html.ui-v2-tuner) はこちらを無効化 */
 /* v1.3 fix133: チューナーで確定した位置を本実装 */
@@ -2965,6 +2971,14 @@ body.shop-screen-active .shop-back-fab{
 }
 .tut-overlay.open{opacity:1;}  /* pointer-events は子要素 .tut-bubble / .tut-close-btn 個別に設定 */
 /* スポットライト: ターゲット要素の位置を box-shadow で覆う */
+/* Session 26 Patch28: SVG マスクオーバーレイ */
+.tut-svg-mask{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+}
 .tut-spotlight{
   position:absolute;
   left:0;top:0;width:0;height:0;
@@ -2989,6 +3003,29 @@ body.shop-screen-active .shop-back-fab{
   pointer-events:none;
   animation:tutRingPulse 1.8s ease-in-out infinite;
 }
+/* Session 26 Patch21/23: 個別リングハイライト */
+.tut-target-ring,
+button.tut-target-ring{
+  position:relative;
+  display:inline-block !important;
+  z-index:9504 !important;
+  box-shadow:0 0 0 4px #FFB561, 0 0 24px 8px rgba(255,142,60,0.85) !important;
+  border-radius:10px !important;
+  animation:tutTargetPulse 1.4s ease-in-out infinite !important;
+  padding:3px 8px !important;
+  background:rgba(255,181,97,0.22) !important;
+  outline:none !important;
+}
+/* Session 26 Patch23: ターゲット親要素ごと overlay の上に出す */
+body.tut-multi-target #playerArea,
+body.tut-multi-target #btnHandsheet{
+  position:relative;
+  z-index:9550 !important;
+}
+@keyframes tutTargetPulse{
+  0%,100%{box-shadow:0 0 0 4px #FFB561, 0 0 24px 8px rgba(255,142,60,0.85) !important;}
+  50%{box-shadow:0 0 0 5px #FFD080, 0 0 36px 12px rgba(255,200,90,1) !important;}
+}
 @keyframes tutRingPulse{
   0%,100%{opacity:0.85;transform:scale(1);}
   50%{opacity:1;transform:scale(1.015);}
@@ -2999,7 +3036,7 @@ body.shop-screen-active .shop-back-fab{
   left:50%;
   transform:translateX(-50%);
   display:flex;flex-direction:column;align-items:center;
-  width:calc(100% - 32px);max-width:340px;
+  width:calc(100% - 48px);max-width:300px;
   pointer-events:auto;
   transition:top 0.4s cubic-bezier(0.65,0,0.35,1), bottom 0.4s cubic-bezier(0.65,0,0.35,1);
 }
@@ -3075,6 +3112,17 @@ body.shop-screen-active .shop-back-fab{
   color:rgba(255,255,255,0.85);
 }
 .tut-nav-btn.back:disabled{opacity:0.30;pointer-events:none;}
+/* Session 26 Patch19b: 戻るボタンは表示しない */
+.tut-nav-btn.back{display:none !important;}
+/* Session 26 Patch20a: 戻る非表示時の次へボタンが横いっぱいに伸びるのを抑制 */
+.tut-nav-btn.next, .tut-nav-btn.done{
+  flex:0 0 auto;
+  min-width:140px;
+  max-width:200px;
+  margin-left:auto;
+}
+.tut-bubble-nav{justify-content:flex-end;}
+.tut-page-ind{margin-right:auto;}
 .tut-nav-btn.next{
   background:linear-gradient(135deg,#FFB561 0%,#FF8E3C 100%);
   color:#1a1a1a;
@@ -3111,7 +3159,8 @@ body.shop-screen-active .shop-back-fab{
 .tut-overlay:not(.open) .tut-close-btn{display:none !important;}
 .tut-overlay:not(.open) .tut-bubble,
 .tut-overlay:not(.open) .tut-spotlight,
-.tut-overlay:not(.open) .tut-ghost{display:none !important;}
+.tut-overlay:not(.open) .tut-ghost,
+.tut-overlay:not(.open) .tut-svg-mask{display:none !important;}
 /* Session 26 Patch10: 指ゴースト */
 .tut-ghost{
   position:absolute;
@@ -3130,16 +3179,138 @@ body.shop-screen-active .shop-back-fab{
   90%  { transform:translate(var(--to-x,0px),   var(--to-y,0px))   scale(0.85); opacity:1; }
   100% { transform:translate(var(--to-x,0px),   var(--to-y,0px))   scale(1);   opacity:0; }
 }
+/* Session 26 Patch17: 強さ矢印 (Lesson 1 p3) */
+.tut-strength-arrow{
+  position:absolute;
+  display:flex;flex-direction:column;align-items:center;
+  pointer-events:none;
+  z-index:9505;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,0.6));
+}
+.tut-strength-label-top, .tut-strength-label-bot{
+  color:#FFB561;
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:0.1em;
+  background:rgba(20,22,32,0.85);
+  padding:3px 8px;
+  border-radius:8px;
+  border:1px solid rgba(255,181,97,0.3);
+}
+.tut-strength-line{
+  width:3px;
+  flex:1;
+  background:linear-gradient(to bottom, rgba(255,181,97,0.4) 0%, #FFB561 100%);
+  margin:4px 0;
+  position:relative;
+}
+.tut-strength-line::before{
+  content:"";
+  position:absolute;top:-6px;left:50%;
+  transform:translateX(-50%);
+  width:0;height:0;
+  border-left:7px solid transparent;
+  border-right:7px solid transparent;
+  border-bottom:10px solid #FFB561;
+}
+.tut-score-table{
+  margin:4px 0 0;
+  padding:4px 8px;
+  background:rgba(255,255,255,0.05);
+  border-radius:6px;
+  border:1px solid rgba(255,181,97,0.2);
+  font-size:10px;
+  color:rgba(255,255,255,0.9);
+  line-height:1.3;
+}
+.tut-score-row{
+  display:flex;justify-content:space-between;
+  padding:0;
+}
+.tut-score-row .label{color:rgba(255,255,255,0.7);}
+.tut-score-row .pts{color:#FFB561;font-weight:700;font-variant-numeric:tabular-nums;}
+.tut-score-row.total{
+  margin-top:4px;padding-top:6px;
+  border-top:1px solid rgba(255,255,255,0.15);
+  font-weight:700;
+}
+.tut-score-row.total .label{color:#fff;}
+.tut-score-row.total .pts{color:#FFD080;font-size:14px;}
+/* Session 26 Patch20c: 表ボタン自体に独立ハイライト枠 */
+body.tut-handsheet-hint #btnHandsheet{
+  box-shadow:0 0 0 3px #FFB561, 0 0 16px 4px rgba(255,142,60,0.55) !important;
+  border-radius:8px !important;
+  animation:tutHandsheetPulse 1.6s ease-in-out infinite;
+  position:relative;
+  z-index:9505;
+}
+@keyframes tutHandsheetPulse{
+  0%,100%{box-shadow:0 0 0 3px #FFB561, 0 0 16px 4px rgba(255,142,60,0.55) !important;}
+  50%{box-shadow:0 0 0 4px #FFD080, 0 0 24px 6px rgba(255,180,90,0.7) !important;}
+}
+/* Session 26 Patch19e: 表ボタンラベル */
+.tut-handsheet-label{
+  position:absolute;
+  background:#FFB561;
+  color:#1a1a1a;
+  font-size:11px;
+  font-weight:700;
+  padding:4px 8px;
+  border-radius:8px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.4);
+  pointer-events:none;
+  z-index:9505;
+  white-space:nowrap;
+}
+.tut-handsheet-label::after{
+  content:"";
+  position:absolute;left:50%;bottom:-5px;
+  transform:translateX(-50%) rotate(45deg);
+  width:8px;height:8px;
+  background:#FFB561;
+}
+/* Session 26 Patch37: ファウルスタンプ (半透明 + 小型 + ボード右上配置) */
+.tut-foul-stamp{
+  position:absolute;
+  transform:translate(0, 0) rotate(-12deg);
+  transform-origin:center center;
+  font-family:var(--font-display, 'Space Grotesk', sans-serif);
+  font-size:28px;
+  font-weight:900;
+  color:#ff3838;
+  background:rgba(255,255,255,0.85);
+  border:3px solid #ff3838;
+  border-radius:8px;
+  padding:4px 14px;
+  letter-spacing:0.05em;
+  text-shadow:1px 1px 0 rgba(0,0,0,0.15);
+  box-shadow:0 4px 16px rgba(255,56,56,0.45);
+  z-index:9560;
+  pointer-events:none;
+  animation:tutFoulStampPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes tutFoulStampPop{
+  0%   { transform:translate(0,0) rotate(-12deg) scale(0); opacity:0; }
+  60%  { transform:translate(0,0) rotate(-12deg) scale(1.15); opacity:1; }
+  100% { transform:translate(0,0) rotate(-12deg) scale(1); opacity:1; }
+}
 .tut-overlay:not(.open),
 .tut-overlay:not(.open) *{pointer-events:none !important;}
 /* チュートリアル中はゲーム本体操作をブロック */
 body.tut-active #screen-game .btn-menu,
 body.tut-active #screen-game .btn-advice,
 body.tut-active #screen-game .btn-confirm,
+body.tut-active #screen-game #btnOuts,
 body.tut-active #screen-game .card,
 body.tut-active #screen-game .slot{
   pointer-events:none !important;
 }
+/* Session 26 Patch22: 表ボタン (#btnHandsheet) は Lesson 1 中も押せるように pointer-events:auto を強制 */
+body.tut-active.tut-handsheet-hint #btnHandsheet{
+  pointer-events:auto !important;
+}
+/* Session 26 Patch21: チュートリアル中はショップ戻る FAB を完全非表示 */
+body.tut-active .shop-back-fab{display:none !important;}
 /* Lesson 2 以降: チュートリアル中でもカードと段は操作可能にする */
 body.tut-active.tut-interactive #screen-game .card,
 body.tut-active.tut-interactive #screen-game .slot{
@@ -10114,6 +10285,14 @@ body.debug-interactive .vmode-btn::before {
     if(lessonId === 'l2'){
       if(typeof window.openTutorialLesson2 === 'function'){
         window.openTutorialLesson2();
+      } else if(false){
+        /* placeholder */
+      }
+      return;
+    }
+    if(lessonId === 'l3'){
+      if(typeof window.openTutorialLesson3 === 'function'){
+        window.openTutorialLesson3();
       } else {
         if(typeof showToast === 'function') showToast('Lesson 2 が読み込まれていません');
       }
@@ -10136,32 +10315,35 @@ body.debug-interactive .vmode-btn::before {
   var TUT_L1_PAGES = [
     {
       title: 'やっほー、 ぼくポム!',
-      text: 'これから5レッスンでチャイポの遊び方を紹介するよ。<br>まずはゲーム画面を見ながら全体像をつかもう。',
+      text: 'これから5つのレッスンでチャイポの遊び方を紹介するよ。<br>まずはゲーム画面を見ながら全体像をつかもう。',
       target: null,
       pos: 'center'
     },
     {
       title: 'これがあなたのボード',
-      text: '<strong>上3 / 中5 / 下5</strong> = 合計13枚を置く3段ボード。<br>例として既に役が組んであるよ。',
+      text: '自分の<strong>3段ボード</strong>にカードを置いていくよ。<br>上段に3枚 / 中段に5枚 / 下段に5枚 = <strong>合計13枚</strong>置いて完成だよ。',
       target: '#playerArea',
       pos: 'top'
     },
     {
-      title: '強さの順番ルール',
-      text: '<strong>下段 ≥ 中段 ≥ 上段</strong> の強さで並べる必要があるよ。<br>守れないと<strong>ファウル</strong>で全部0点!',
+      title: '並べる強さのルール',
+      text: '各段には<strong>役 (やく)</strong>の強さに順番があるよ。<br><strong>下段が一番強く、 上にいくほど弱く</strong>並べる必要があるんだ。<br>このルールを破ると<strong>ファウル</strong>で全部0点になっちゃう。',
       target: '#playerArea',
-      pos: 'top'
+      pos: 'top',
+      showStrengthArrow: true
     },
     {
-      title: 'ここに手札が配られる',
-      text: 'ラウンドごとにここに新しいカードが配られて、<br>ボードの3段のどこに置くか選んでいくよ。',
-      target: '#handArea',
-      pos: 'top'
+      title: '点数で勝負!',
+      text: '役の<strong>点数で対戦相手と競う</strong>ゲームだよ。<br>3段すべてで勝つと <strong>+6点ボーナス</strong>もあるよ。<br>下の<strong>表ボタン</strong>で点数を確認できる。',
+      target: ['#evalTop', '#evalMid', '#evalBot', '#btnHandsheet'],
+      pos: 'top',
+      showScoreTable: true,
+      showHandsheetLabel: true
     },
     {
-      title: 'スコアはここに表示',
-      text: '役の強さで点数がもらえるよ。<br>3段全部で相手に勝つと <strong>+6 のスクープボーナス</strong>!',
-      target: '#scoreBar',
+      title: 'ファンタジーランド',
+      text: '上段に <strong>Q (クイーン) のペア以上</strong>を作ると、 次のゲームで<strong>ファンタジーランド (FL)</strong> という<strong>特別モード</strong>に突入できるよ。<br>大きなボーナス点が狙えるチャイポの醍醐味!',
+      target: '#slotsTop',
       pos: 'bottom'
     },
     {
@@ -10196,13 +10378,15 @@ body.debug-interactive .vmode-btn::before {
       tutorialMode: true,
       gameOver: false,
       playerBoard: {
-        top: [{r:'A',s:'s',id:'As'}, {r:'K',s:'d',id:'Kd'}, {r:'Q',s:'h',id:'Qh'}],
-        mid: [{r:'A',s:'h',id:'Ah'}, {r:'A',s:'d',id:'Ad'}, {r:'K',s:'c',id:'Kc'}, {r:'K',s:'h',id:'Kh'}, {r:'Q',s:'c',id:'Qc'}],
+        /* Session 26 Patch18: 上段 QQ ペア (FL 条件) / 中段ツーペア / 下段フルハウス */
+        top: [{r:'Q',s:'s',id:'Qs'}, {r:'Q',s:'h',id:'Qh'}, {r:'J',s:'d',id:'Jd'}],
+        mid: [{r:'A',s:'s',id:'As'}, {r:'A',s:'h',id:'Ah'}, {r:'K',s:'d',id:'Kd'}, {r:'K',s:'c',id:'Kc'}, {r:'T',s:'h',id:'Th'}],
         bot: [{r:'7',s:'s',id:'7s'}, {r:'7',s:'h',id:'7h'}, {r:'7',s:'d',id:'7d'}, {r:'2',s:'c',id:'2c'}, {r:'2',s:'h',id:'2h'}]
       },
       oppBoard: {
-        top: [{r:'J',s:'s',id:'Js'}, {r:'J',s:'d',id:'Jd'}, {r:'9',s:'h',id:'9h'}],
-        mid: [{r:'T',s:'s',id:'Ts'}, {r:'T',s:'h',id:'Th'}, {r:'T',s:'d',id:'Td'}, {r:'5',s:'c',id:'5c'}, {r:'5',s:'h',id:'5h'}],
+        /* Session 26 Patch18: プレイヤーボードと重複しないカード構成 */
+        top: [{r:'J',s:'s',id:'Js'}, {r:'J',s:'c',id:'Jc'}, {r:'9',s:'h',id:'9h'}],
+        mid: [{r:'T',s:'s',id:'Ts'}, {r:'T',s:'c',id:'Tc'}, {r:'T',s:'d',id:'Td'}, {r:'5',s:'c',id:'5c'}, {r:'5',s:'h',id:'5h'}],
         bot: [{r:'8',s:'s',id:'8s'}, {r:'8',s:'h',id:'8h'}, {r:'6',s:'d',id:'6d'}, {r:'6',s:'c',id:'6c'}, {r:'4',s:'s',id:'4s'}]
       },
       hand: [],
@@ -10238,9 +10422,13 @@ body.debug-interactive .vmode-btn::before {
   }
 
   function positionSpotlight(targetSel){
-    /* Session 26 Patch10: targetSel が配列なら複数要素の外接矩形を計算 */
+    /* Session 26 Patch10/Patch21: 配列対応 + 個別リング方式 */
     var spot = document.getElementById('tutSpotlight');
     if(!spot) return;
+    /* 既存の個別リングを全部解除 */
+    document.querySelectorAll('.tut-target-ring').forEach(function(el){
+      el.classList.remove('tut-target-ring');
+    });
     if(!targetSel){
       spot.classList.add('full');
       spot.classList.remove('has-ring');
@@ -10248,35 +10436,71 @@ body.debug-interactive .vmode-btn::before {
       spot.style.top = '50%';
       spot.style.width = '1px';
       spot.style.height = '1px';
+      spot.style.boxShadow = '';
+      document.body.classList.remove('tut-multi-target');
+      var svgN = document.getElementById('tutSvgMask');
+      if(svgN) svgN.style.display = 'none';
       return;
     }
     var sels = Array.isArray(targetSel) ? targetSel : [targetSel];
-    var rects = [];
-    for(var i=0;i<sels.length;i++){
-      var el = document.querySelector(sels[i]);
-      if(el) rects.push(el.getBoundingClientRect());
+
+    if(sels.length >= 2){
+      /* Session 26 Patch28: SVG マスクで複数の穴を開ける */
+      var svg = document.getElementById('tutSvgMask');
+      var maskDef = document.getElementById('tutHolesMask');
+      if(svg && maskDef){
+        /* 既存の穴 (black rect) を全部削除 (base rect は残す) */
+        var existing = maskDef.querySelectorAll('rect:not(#tutMaskBase)');
+        existing.forEach(function(r){r.remove();});
+        /* 各ターゲットに穴 + リングを追加 */
+        for(var i=0;i<sels.length;i++){
+          var elT = document.querySelector(sels[i]);
+          if(!elT) continue;
+          elT.classList.add('tut-target-ring');
+          var rt = elT.getBoundingClientRect();
+          var pad = 6;
+          var hole = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          hole.setAttribute('x', (rt.left - pad).toString());
+          hole.setAttribute('y', (rt.top - pad).toString());
+          hole.setAttribute('width', (rt.width + pad*2).toString());
+          hole.setAttribute('height', (rt.height + pad*2).toString());
+          hole.setAttribute('rx', '8');
+          hole.setAttribute('fill', 'black');  /* black = transparent in mask */
+          maskDef.appendChild(hole);
+        }
+        svg.style.display = 'block';
+      }
+      /* 古い box-shadow スポットライトは隠す */
+      spot.style.width = '0';
+      spot.style.height = '0';
+      spot.classList.remove('full');
+      spot.classList.remove('has-ring');
+      spot.style.boxShadow = 'none';  /* box-shadow を消して SVG マスクに任せる */
+      /* body フラグ (不要だが互換維持) */
+      document.body.classList.add('tut-multi-target');
+      return;
     }
-    if(rects.length === 0){
+
+    /* 単一ターゲット: 従来通り穴 + リング */
+    document.body.classList.remove('tut-multi-target');
+    /* Patch28: SVG マスクを隠す、 spot box-shadow を復元 */
+    var svgS = document.getElementById('tutSvgMask');
+    if(svgS) svgS.style.display = 'none';
+    spot.style.boxShadow = '';  /* CSS デフォルトに戻す */
+    var elSingle = document.querySelector(sels[0]);
+    if(!elSingle){
       spot.classList.add('full');
       spot.classList.remove('has-ring');
       return;
     }
-    /* 外接矩形を計算 */
-    var L = Infinity, T = Infinity, R = -Infinity, B = -Infinity;
-    for(var j=0;j<rects.length;j++){
-      var r = rects[j];
-      if(r.left   < L) L = r.left;
-      if(r.top    < T) T = r.top;
-      if(r.right  > R) R = r.right;
-      if(r.bottom > B) B = r.bottom;
-    }
+    var r = elSingle.getBoundingClientRect();
     var pad = 6;
     spot.classList.remove('full');
     spot.classList.add('has-ring');
-    spot.style.left = (L - pad) + 'px';
-    spot.style.top = (T - pad) + 'px';
-    spot.style.width = (R - L + pad*2) + 'px';
-    spot.style.height = (B - T + pad*2) + 'px';
+    spot.style.left = (r.left - pad) + 'px';
+    spot.style.top = (r.top - pad) + 'px';
+    spot.style.width = (r.width + pad*2) + 'px';
+    spot.style.height = (r.height + pad*2) + 'px';
   }
 
   function positionBubble(targetSel, pos){
@@ -10322,10 +10546,64 @@ body.debug-interactive .vmode-btn::before {
 
     positionSpotlight(page.target);
     positionBubble(page.target, page.pos);
+
+    /* Session 26 Patch17: 強さ矢印の表示制御 */
+    var arrow = document.getElementById('tutStrengthArrow');
+    if(arrow){
+      if(page.showStrengthArrow){
+        var areaEl = document.querySelector('#playerArea');
+        if(areaEl){
+          var r = areaEl.getBoundingClientRect();
+          /* Session 26 Patch19a-fix: ボード内側の左端に配置 */
+          arrow.style.left = (r.left + 4) + 'px';
+          arrow.style.top = (r.top + 8) + 'px';
+          arrow.style.height = (r.height - 16) + 'px';
+          arrow.style.display = 'flex';
+        }
+      } else {
+        arrow.style.display = 'none';
+      }
+    }
+
+    /* Session 26 Patch19e + Patch20c: 表ボタンラベル + 独立ハイライト */
+    var hsLabel = document.getElementById('tutHandsheetLabel');
+    if(hsLabel){
+      if(page.showHandsheetLabel){
+        var hsBtn = document.querySelector('#btnHandsheet');
+        if(hsBtn){
+          var hr = hsBtn.getBoundingClientRect();
+          hsLabel.style.display = 'block';
+          /* ラベル幅を考慮して真上中央に配置 (labelWidth ≈ 64) */
+          hsLabel.style.left = (hr.left + hr.width/2) + 'px';
+          hsLabel.style.top = (hr.top - 32) + 'px';
+          hsLabel.style.transform = 'translateX(-50%)';
+        }
+        document.body.classList.add('tut-handsheet-hint');
+      } else {
+        hsLabel.style.display = 'none';
+        document.body.classList.remove('tut-handsheet-hint');
+      }
+    }
+
+    /* Session 26 Patch17: スコア表をふきだしに挿入 */
+    var textEl2 = document.getElementById('tutBubbleText');
+    if(textEl2 && page.showScoreTable){
+      if(textEl2.innerHTML.indexOf('tut-score-table') < 0){
+        textEl2.innerHTML = textEl2.innerHTML +
+          '<div class="tut-score-table">' +
+          '<div class="tut-score-row"><span class="label">Qペア</span><span class="pts">+7</span></div>' +
+          '<div class="tut-score-row"><span class="label">ツーペア</span><span class="pts">+0</span></div>' +
+          '<div class="tut-score-row"><span class="label">フルハウス</span><span class="pts">+6</span></div>' +
+          '<div class="tut-score-row total"><span class="label">合計</span><span class="pts">+13点</span></div>' +
+          '</div>';
+      }
+    }
   }
 
   function openTutorialLesson1(){
     /* 1. ショップを閉じてゲーム画面へ */
+    /* Session 26 Patch33: ショップから来た場合のクラスを除去 */
+    document.body.classList.remove('shop-screen-active');
     if(typeof showScreen === 'function') showScreen('game');
     /* 2. プリセット盤面をセットアップ */
     if(!setupTutorialPresetBoard()){
@@ -10359,6 +10637,20 @@ body.debug-interactive .vmode-btn::before {
     var overlay = document.getElementById('tutOverlay');
     if(overlay) overlay.classList.remove('open');
     document.body.classList.remove('tut-active');
+    /* Session 26 Patch17: 強さ矢印もリセット */
+    var _arrow = document.getElementById('tutStrengthArrow');
+    if(_arrow) _arrow.style.display = 'none';
+    /* Session 26 Patch21/23/28: 個別リング、 multi-target フラグ、 SVG マスクをリセット */
+    document.querySelectorAll('.tut-target-ring').forEach(function(el){
+      el.classList.remove('tut-target-ring');
+    });
+    document.body.classList.remove('tut-multi-target');
+    var _svg = document.getElementById('tutSvgMask');
+    if(_svg) _svg.style.display = 'none';
+    /* Session 26 Patch19e + Patch20c: 表ボタンラベル + ハイライト枠リセット */
+    var _hsLabel = document.getElementById('tutHandsheetLabel');
+    if(_hsLabel) _hsLabel.style.display = 'none';
+    document.body.classList.remove('tut-handsheet-hint');
     if(tutL1.resizeHandler){
       window.removeEventListener('resize', tutL1.resizeHandler);
       window.removeEventListener('orientationchange', tutL1.resizeHandler);
@@ -10371,6 +10663,8 @@ body.debug-interactive .vmode-btn::before {
         state.gameOver = true;
       }catch(e){}
     }
+    /* Session 26 Patch33: ショップ起点で起動された場合のクラスを除去 */
+    document.body.classList.remove('shop-screen-active');
     /* タイトルへ戻す (ゲーム途中状態が残るとややこしいため) */
     if(typeof showScreen === 'function') showScreen('title');
 
@@ -10611,6 +10905,8 @@ body.debug-interactive .vmode-btn::before {
   }
 
   function openTutorialLesson2(){
+    /* Session 26 Patch33: ショップから来た場合のクラスを除去 */
+    document.body.classList.remove('shop-screen-active');
     if(typeof showScreen === 'function') showScreen('game');
     if(!setupTutorialL2Preset()){
       if(typeof showToast==='function') showToast('チュートリアルを開始できません');
@@ -10656,6 +10952,8 @@ body.debug-interactive .vmode-btn::before {
         state.gameOver = true;
       }catch(e){}
     }
+    /* Session 26 Patch33: shop-screen-active 除去 */
+    document.body.classList.remove('shop-screen-active');
     unbindTutorialL2Handlers();
     bindTutorialL1Handlers();
     if(typeof showScreen === 'function') showScreen('title');
@@ -10733,6 +11031,302 @@ body.debug-interactive .vmode-btn::before {
 
   window.openTutorialLesson2 = openTutorialLesson2;
   window.tutL2_onUserAction = tutL2_onUserAction;
+
+  /* ====================================================================
+   * Session 26 Patch34: Lesson 3 「ファウルの罠」
+   * ==================================================================== */
+  var TUT_L3_PAGES = [
+    {
+      title: '役の強さのルール',
+      text: '3段の役は<br><strong>下段 > 中段 > 上段</strong> の順に並べる必要があるよ。<br>守れないと<strong>ファウル</strong>!',
+      target: '#playerArea', pos: 'top', step: 'intro',
+      boardConfig: 'foul'
+    },
+    {
+      title: 'これはファウル!',
+      text: '中段 (ツーペア) が下段 (ツーペア) より強い → <strong>ファウル</strong>。<br>役があっても<strong>全部 0 点</strong>!',
+      target: '#playerArea', pos: 'top', step: 'before',
+      boardConfig: 'foul', showFoulStamp: true
+    },
+    {
+      title: 'これならセーフ!',
+      text: '下段を強い役 (フルハウス) に変えたよ。<br><strong>下段 > 中段 > 上段</strong> の順番が守られてるので<strong>セーフ</strong>。<br>ちゃんと <strong>+6 点</strong>がもらえる!',
+      target: '#playerArea', pos: 'top', step: 'after',
+      boardConfig: 'safe'
+    },
+    {
+      title: 'Lesson 3 完了!',
+      text: 'お疲れさま!<br>ファウルは初心者が一番やりがちなミス。<br>配置前に <strong>下段 > 中段 > 上段</strong> を必ずチェック!',
+      target: '#playerArea', pos: 'top', step: 'done',
+      boardConfig: 'safe'
+    }
+  ];
+
+  var tutL3 = { pageIdx: 0, resizeHandler: null };
+
+  /* Lesson 3 用の盤面定義
+     foul: 中(KK ツーペア) > 下(66 ツーペア) でファウル
+     safe: 中と下を入れ替え → 下(KK) > 中(66) でセーフ */
+  /* Lesson 3 用の盤面定義
+     foul: 中(KK ツーペア) > 下(66 ツーペア) でファウル
+     safe: 下にフルハウス +6 を置いてちゃんと点数が入る盤面 */
+  var TUT_L3_BOARDS = {
+    foul: {
+      top: [{r:'Q',s:'s',id:'Qs'}, {r:'J',s:'h',id:'Jh'}, {r:'9',s:'d',id:'9d'}],
+      mid: [{r:'K',s:'s',id:'Ks'}, {r:'K',s:'h',id:'Kh'}, {r:'7',s:'c',id:'7c'}, {r:'7',s:'d',id:'7d'}, {r:'8',s:'s',id:'8s'}],
+      bot: [{r:'6',s:'s',id:'6s'}, {r:'6',s:'h',id:'6h'}, {r:'5',s:'c',id:'5c'}, {r:'5',s:'d',id:'5d'}, {r:'4',s:'s',id:'4s'}]
+    },
+    safe: {
+      top: [{r:'Q',s:'s',id:'Qs'}, {r:'J',s:'h',id:'Jh'}, {r:'9',s:'d',id:'9d'}],
+      mid: [{r:'A',s:'s',id:'As'}, {r:'A',s:'h',id:'Ah'}, {r:'K',s:'s',id:'Ks'}, {r:'K',s:'h',id:'Kh'}, {r:'T',s:'c',id:'Tc'}],
+      bot: [{r:'7',s:'s',id:'7s'}, {r:'7',s:'h',id:'7h'}, {r:'7',s:'d',id:'7d'}, {r:'2',s:'c',id:'2c'}, {r:'2',s:'h',id:'2h'}]
+    }
+  };
+
+  function setupTutorialL3Preset(boardKey){
+    if(typeof state === 'undefined') return false;
+    var b = TUT_L3_BOARDS[boardKey || 'foul'];
+    var topCards = b.top.slice();
+    var midCards = b.mid.slice();
+    var botCards = b.bot.slice();
+    var allPlaced = [];
+    topCards.forEach(function(c){ allPlaced.push(c); });
+    midCards.forEach(function(c){ allPlaced.push(c); });
+    botCards.forEach(function(c){ allPlaced.push(c); });
+    state = {
+      phase: 'tutorial-l3', round: 99,
+      flMode: false, oppFlMode: false,
+      tutorialMode: true, tutorialLesson: 'l3',
+      gameOver: true,
+      playerBoard: { top: topCards, mid: midCards, bot: botCards },
+      oppBoard: { top:[], mid:[], bot:[] },
+      hand: [],
+      discard: [], handDiscarded: [], selectedCard: null,
+      deck: [], deckIdx: 52,
+      placedThisRound: allPlaced,
+      discardedThisRound: true,
+      onlineMode: false, onlineMatch: null,
+      myPlayerNum: null, asHost: false,
+      flCards: 0, flDiscard: [],
+      wasFL: false, oppWasFL: false,
+      oppFlPending: false, oppFlHand: null,
+      oppPlayPending: false, oppFlPendingBoard: null,
+      oppPendingFinalBoard: null,
+      oppBoardPrefilledForRound: null,
+      oppSavedFlCards: 0,
+      oppPendingBoard: null, oppPendingPlace: null,
+      oppPlayedThisRound: false, onlineMustWait: false
+    };
+    return true;
+  }
+
+  function tutL3_isFoulFixed(){
+    /* ファウル状態が解消されたかチェック */
+    if(typeof state === 'undefined' || !state.playerBoard) return false;
+    var b = state.playerBoard;
+    /* 全段埋まっているか */
+    if(b.top.length !== 3 || b.mid.length !== 5 || b.bot.length !== 5) return false;
+    /* isFoulSimple が false なら OK */
+    if(typeof isFoulSimple === 'function'){
+      return !isFoulSimple(b);
+    }
+    return false;
+  }
+
+  function tutL3_canAdvance(page){
+    /* Patch35: fix step は廃止、 すべてのページで進める */
+    return true;
+  }
+
+  function renderTutL3Page(){
+    var idx = tutL3.pageIdx;
+    var page = TUT_L3_PAGES[idx];
+    var total = TUT_L3_PAGES.length;
+    var isLast = (idx === total - 1);
+    var titleEl = document.getElementById('tutBubbleTitle');
+    var textEl = document.getElementById('tutBubbleText');
+    var indEl = document.getElementById('tutPageInd');
+    var backBtn = document.getElementById('tutNavBack');
+    var nextBtn = document.getElementById('tutNavNext');
+    if(titleEl) titleEl.innerHTML = page.title;
+    if(textEl) textEl.innerHTML = page.text;
+    if(indEl) indEl.textContent = (idx+1) + ' / ' + total;
+    if(backBtn) backBtn.disabled = (idx === 0);
+
+    /* Patch35: 全ページ静的表示、 インタラクションなし */
+    document.body.classList.remove('tut-interactive');
+
+    if(nextBtn){
+      if(isLast){
+        nextBtn.textContent = '完了 ✓';
+        nextBtn.classList.remove('next');
+        nextBtn.classList.add('done');
+        nextBtn.disabled = false;
+        nextBtn.style.opacity = '1';
+      } else {
+        nextBtn.textContent = '次へ →';
+        nextBtn.classList.remove('done');
+        nextBtn.classList.add('next');
+        nextBtn.disabled = false;
+        nextBtn.style.opacity = '1';
+      }
+    }
+
+    /* Session 26 Patch36: ページ毎に盤面切替 */
+    if(page.boardConfig){
+      var currentBoard = (state && state.playerBoard) ? state.playerBoard : null;
+      var currentTopId = currentBoard ? currentBoard.top.map(function(c){return c.id;}).join(',') : '';
+      var targetBoard = TUT_L3_BOARDS[page.boardConfig];
+      var targetTopId = targetBoard ? targetBoard.top.map(function(c){return c.id;}).join(',') : '';
+      /* 盤面が違ったら再セットアップ + renderGame */
+      var currentMidId = currentBoard ? currentBoard.mid.map(function(c){return c.id;}).join(',') : '';
+      var targetMidId = targetBoard ? targetBoard.mid.map(function(c){return c.id;}).join(',') : '';
+      if(currentMidId !== targetMidId){
+        setupTutorialL3Preset(page.boardConfig);
+        try{ if(typeof renderGame === 'function') renderGame(); }catch(e){}
+        /* Patch37-D: 前の盤面の foul class が残らないよう、 updateEvals を強制呼び出し */
+        try{ if(typeof updateEvals === 'function') updateEvals(); }catch(e){}
+      }
+    }
+
+    /* Session 26 Patch37: ファウルスタンプ表示制御 (ボード右上に配置) */
+    var stamp = document.getElementById('tutFoulStamp');
+    if(stamp){
+      if(page.showFoulStamp){
+        var areaEl = document.querySelector('#playerArea');
+        if(areaEl){
+          var r = areaEl.getBoundingClientRect();
+          /* ボード右上に配置: 右端から少し内側、 上端から少し下 */
+          stamp.style.left = (r.right - 100) + 'px';
+          stamp.style.top = (r.top + 12) + 'px';
+          stamp.style.display = 'block';
+        }
+      } else {
+        stamp.style.display = 'none';
+      }
+    }
+
+    positionSpotlight(page.target);
+    positionBubble(page.target, page.pos);
+    positionTutGhost(null);  /* L3 ではゴースト未使用 */
+  }
+
+  function tutL3_onUserAction(actionType){
+    if(typeof state === 'undefined' || state.tutorialLesson !== 'l3') return;
+    requestAnimationFrame(function(){ renderTutL3Page(); });
+  }
+
+  function openTutorialLesson3(){
+    /* Session 26 Patch33: ショップから来た場合のクラスを除去 */
+    document.body.classList.remove('shop-screen-active');
+    if(typeof showScreen === 'function') showScreen('game');
+    if(!setupTutorialL3Preset('foul')){
+      if(typeof showToast==='function') showToast('チュートリアルを開始できません');
+      return;
+    }
+    try{ if(typeof renderGame === 'function') renderGame(); }
+    catch(e){ console.error('[tutL3] renderGame error', e); }
+    document.body.classList.add('tut-active');
+    tutL3.pageIdx = 0;
+    var overlay = document.getElementById('tutOverlay');
+    if(overlay) overlay.classList.add('open');
+    bindTutorialL3Handlers();
+    requestAnimationFrame(function(){
+      requestAnimationFrame(renderTutL3Page);
+    });
+    tutL3.resizeHandler = function(){ renderTutL3Page(); };
+    window.addEventListener('resize', tutL3.resizeHandler);
+    window.addEventListener('orientationchange', tutL3.resizeHandler);
+  }
+
+  function closeTutorialLesson3(saveProgress){
+    var overlay = document.getElementById('tutOverlay');
+    if(overlay) overlay.classList.remove('open');
+    document.body.classList.remove('tut-active');
+    document.body.classList.remove('tut-interactive');
+    var ghost = document.getElementById('tutGhost');
+    if(ghost) ghost.style.display = 'none';
+    /* Patch36: ファウルスタンプも非表示 */
+    var stamp = document.getElementById('tutFoulStamp');
+    if(stamp) stamp.style.display = 'none';
+    if(tutL3.resizeHandler){
+      window.removeEventListener('resize', tutL3.resizeHandler);
+      window.removeEventListener('orientationchange', tutL3.resizeHandler);
+      tutL3.resizeHandler = null;
+    }
+    if(typeof state !== 'undefined'){
+      try{
+        state.tutorialMode = false;
+        state.tutorialLesson = null;
+        state.gameOver = true;
+      }catch(e){}
+    }
+    document.body.classList.remove('shop-screen-active');
+    unbindTutorialL3Handlers();
+    bindTutorialL1Handlers();
+    if(typeof showScreen === 'function') showScreen('title');
+    if(saveProgress){
+      var p = getTutorialProgress();
+      if(p.completed.indexOf('l3') < 0) p.completed.push('l3');
+      p.current = 'l4';
+      saveTutorialProgress(p);
+      renderTutorialList();
+      if(typeof showToast === 'function') showToast('Lesson 3 完了!');
+    }
+  }
+
+  function tutorialL3Next(){
+    if(typeof window.haptic === 'function') window.haptic(10);
+    var total = TUT_L3_PAGES.length;
+    if(tutL3.pageIdx >= total - 1){
+      closeTutorialLesson3(true);
+      return;
+    }
+    var page = TUT_L3_PAGES[tutL3.pageIdx];
+    if(!tutL3_canAdvance(page)) return;
+    tutL3.pageIdx += 1;
+    renderTutL3Page();
+  }
+
+  function tutorialL3Back(){
+    if(typeof window.haptic === 'function') window.haptic(10);
+    if(tutL3.pageIdx > 0){
+      tutL3.pageIdx -= 1;
+      renderTutL3Page();
+    }
+  }
+
+  var _tutL3Handlers = { next:null, back:null, close:null };
+  function bindTutorialL3Handlers(){
+    unbindAllTutHandlers();
+    var nextBtn = document.getElementById('tutNavNext');
+    var backBtn = document.getElementById('tutNavBack');
+    var closeBtn = document.getElementById('tutCloseBtn');
+    if(nextBtn){
+      _tutL3Handlers.next = tutorialL3Next;
+      nextBtn.addEventListener('click', _tutL3Handlers.next);
+    }
+    if(backBtn){
+      _tutL3Handlers.back = tutorialL3Back;
+      backBtn.addEventListener('click', _tutL3Handlers.back);
+    }
+    if(closeBtn){
+      _tutL3Handlers.close = function(){ closeTutorialLesson3(false); };
+      closeBtn.addEventListener('click', _tutL3Handlers.close);
+    }
+  }
+
+  function unbindTutorialL3Handlers(){
+    var nextBtn = document.getElementById('tutNavNext');
+    var backBtn = document.getElementById('tutNavBack');
+    var closeBtn = document.getElementById('tutCloseBtn');
+    if(nextBtn && _tutL3Handlers.next){ nextBtn.removeEventListener('click', _tutL3Handlers.next); _tutL3Handlers.next = null; }
+    if(backBtn && _tutL3Handlers.back){ backBtn.removeEventListener('click', _tutL3Handlers.back); _tutL3Handlers.back = null; }
+    if(closeBtn && _tutL3Handlers.close){ closeBtn.removeEventListener('click', _tutL3Handlers.close); _tutL3Handlers.close = null; }
+  }
+
+  window.openTutorialLesson3 = openTutorialLesson3;
+  window.tutL3_onUserAction = tutL3_onUserAction;
 
   /* ミッションタブを開いたときに進捗を再描画 */
   window.refreshTutorialList = renderTutorialList;
@@ -12980,7 +13574,7 @@ function showHandsheetModal(){
 
   var modal = document.createElement('div');
   modal.id = 'handsheetModal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:3100;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:12px;padding-top:calc(env(safe-area-inset-top,0px) + 12px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 12px);backdrop-filter:blur(6px);';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9700;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:12px;padding-top:calc(env(safe-area-inset-top,0px) + 12px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 12px);backdrop-filter:blur(6px);';
 
   modal.innerHTML =
     '<div style="background:#fff;border-radius:14px;padding:12px;max-width:380px;width:100%;display:flex;flex-direction:column;gap:8px;box-shadow:0 20px 60px rgba(0,0,0,0.4);max-height:calc(100vh - 24px);overflow-y:auto;">' +
@@ -15580,7 +16174,10 @@ function updateEvals(){
     const el=document.getElementById(elId);const cards=state.playerBoard[row];
     if(!cards.length){el.textContent='';el.className='row-eval';continue;}
     let e=result?(row==='top'?result.topEval:row==='mid'?result.midEval:result.botEval):(row==='top'?eval3(cards):eval5(cards,row==='bot'));
-    let txt=e.desc;if(e.royalty>0)txt+=` +${e.royalty}`;
+    let txt=e.desc;
+    /* Session 26 Patch21: チュートリアル中は royalty 0 でも +0 を表示 */
+    if(e.royalty>0) txt+=` +${e.royalty}`;
+    else if(state.tutorialMode) txt+=` +0`;
     el.textContent=txt;el.className='row-eval';
     if(row==='top'&&e.flCards>0)el.classList.add('fl');
     if(foul&&cards.length===full)el.classList.add('foul');
@@ -15683,6 +16280,7 @@ function onSlot(row,idx){
     if(state.phase==='pineapple'){if((state.placedThisRound||[]).find(c=>c.id===card.id))retCard(card,row,idx);else showToast('このカードは戻せません');}
     else if(state.phase==='place5')retCard(card,row,idx);
     else if(state.phase==='tutorial-l2')retCard(card,row,idx);  /* Session 26 T-2 */
+    else if(state.phase==='tutorial-l3')retCard(card,row,idx);  /* Session 26 Patch34: L3 */
     return;
   }
   // fix69: FL モードで click フロー (タップ選択→スロットタップ) をサポート — PCブラウザで配置できないバグ修正
@@ -15712,6 +16310,7 @@ function retCard(card,row,idx){
   renderGame();
   /* Session 26 T-2: Lesson 2 進行フック */
   if(typeof window.tutL2_onUserAction === 'function') window.tutL2_onUserAction('retract');
+  if(typeof window.tutL3_onUserAction === 'function') window.tutL3_onUserAction('retract');
 }
 function placeCard(card,row){
   // v1.3 Session21 haptic: 手札→スロット配置 (LIGHT)
@@ -15737,6 +16336,7 @@ function placeCard(card,row){
   renderGame();
   /* Session 26 T-2: Lesson 2 進行フック */
   if(typeof window.tutL2_onUserAction === 'function') window.tutL2_onUserAction('place');
+  if(typeof window.tutL3_onUserAction === 'function') window.tutL3_onUserAction('place');
 }
 function autoDiscard(){const c=state.hand[0];state.hand=state.hand.filter(x=>x.id!==c.id);if(!Array.isArray(state.handDiscarded))state.handDiscarded=[];state.handDiscarded.push(c);state.discardedThisRound=true;if(typeof schedulePendingPush==='function') schedulePendingPush();}
 document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopChaipoTimer();}catch(e){}
@@ -17187,6 +17787,7 @@ try{var bel=document.getElementById('btnExportLogs');if(bel)bel.addEventListener
     if(state.flMode||state.phase==='place5')return true;
     if(state.phase==='pineapple')return !!(state.placedThisRound||[]).find(c=>c.id===card.id);
     if(state.phase==='tutorial-l2')return true;  /* Session 26 T-2: チュートリアル中はドラッグ可能 */
+    if(state.phase==='tutorial-l3')return true;  /* Session 26 Patch34: L3 */
     return false;
   }
 
@@ -25468,6 +26069,15 @@ body.bptune-enabled .bptune-active{
 <div class="tut-overlay" id="tutOverlay">
   <!-- スポットライト本体 (穴を作る div) -->
   <div class="tut-spotlight" id="tutSpotlight"></div>
+  <!-- Session 26 Patch28: SVG マスクで複数穴 -->
+  <svg class="tut-svg-mask" id="tutSvgMask" preserveAspectRatio="none" style="display:none;">
+    <defs>
+      <mask id="tutHolesMask">
+        <rect id="tutMaskBase" x="0" y="0" width="100%" height="100%" fill="white"/>
+      </mask>
+    </defs>
+    <rect x="0" y="0" width="100%" height="100%" fill="rgba(0,0,0,0.78)" mask="url(#tutHolesMask)"/>
+  </svg>
   <!-- ポム吹き出し -->
   <div class="tut-bubble" id="tutBubble">
     <img class="tut-bubble-pom" src="assets/game/ready_pom.png" alt="ポム" draggable="false">
@@ -25485,6 +26095,16 @@ body.bptune-enabled .bptune-active{
   <button class="tut-close-btn" id="tutCloseBtn" type="button" aria-label="閉じる">✕</button>
   <!-- Session 26 Patch10: 指ゴースト演出 -->
   <div class="tut-ghost" id="tutGhost" style="display:none;">👆</div>
+  <!-- Session 26 Patch17: 強さ矢印 (Lesson 1 p3) -->
+  <div class="tut-strength-arrow" id="tutStrengthArrow" style="display:none;">
+    <div class="tut-strength-label-top">弱</div>
+    <div class="tut-strength-line"></div>
+    <div class="tut-strength-label-bot">強</div>
+  </div>
+  <!-- Session 26 Patch19e: 表ボタンラベル -->
+  <div class="tut-handsheet-label" id="tutHandsheetLabel" style="display:none;">表ボタン</div>
+  <!-- Session 26 Patch36: ファウルスタンプ (Lesson 3 用) -->
+  <div class="tut-foul-stamp" id="tutFoulStamp" style="display:none;">ファウル!</div>
 </div>
 
 </body>
