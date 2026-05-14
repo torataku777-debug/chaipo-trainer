@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<!--
+  ファイル: pomu_battle_v2.html
+  改善日: 2026-05-15
+  改善者: Codex / GPT
+  対応仕様書: INFORMATION_ARCHITECTURE.md v2.2 (Q1 判断更新版)
+  バージョン: v2
+
+  目的: 5タブ構成「対戦」タブの視覚仕上げ v2 (BottomNav 中央・主役)
+
+  v1 からの変更点:
+    - ランクカードの 3px 金枠を 7 stop 多段グラデーション化し、金色ハロウと inset highlight を強化
+    - rank-shield を深い 3 層グラデーション、2 重エッジ、3 sparkles、太め SVG stroke に調整
+    - progress bar に inset shimmer、右端 glow point、次段位 gold star、tabular progress value を追加
+    - mode tile の cyan / purple 差分、friend plus overlay、hover lift を追加
+    - rank CTA、season pill、practice row icons、FL inline badge の品質を v3/v5/v7 系の水準へ調整
+
+  継承元:
+    - pomu_more_v2.html (settings-card / row-icon パターン)
+    - pomu_home_v2.html (mission-card 形カード / PRIMARY CTA)
+    - pomu_friend_v3.html (cta-primary / cta-secondary / sky+cloud 背景)
+    - pomu_town_v7.html (sky/ink/pomu トークン)
+
+  IA 構造 (Q1 判断更新):
+    1. ランクマッチ (主役・3px 金枠カード)
+       - 段位アバター + 「プラチナ 3」 + 「レート 1,247」
+       - シーズン残り表示 (シーズン 3 まで 12日)
+       - 「マッチング開始」ボタン (PRIMARY)
+    2. カジュアル + フレンド対戦 (2 カラム並列・副)
+       - カジュアル: 自由対戦 (レート変動なし)
+       - フレンド対戦: 新しい部屋を作る + コードで参加
+         → タップで 2ボタン展開 (フレンドタブから移管)
+    3. 練習セクション (settings-card 形式)
+       - AI 対戦 (補助)
+       - FL 練習 (ファンタジー練習) (補助)
+
+  注: フレンド対戦が含まれる (Q1 判断更新)。フレンドタブからは room-actions 削除済。
+-->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>VISUAL: 対戦 (v2)</title>
+  <style>
+    :root {
+      /* 共通トークン (more_v2 / friend_v3 / town_v7 / home_v2 と同一) */
+      --sky-100:        #e6f4fb;
+      --sky-200:        #c5e2f0;
+      --sky-300:        #8fc8e0;
+      --cloud-white:    #ffffff;
+      --cloud-soft:     #f6fbfd;
+      --pomu-yellow:    #fbbf24;
+      --pomu-orange:    #f59e0b;
+      --pomu-gold-deep: #92400e;
+      --leaf-green:     #65c466;
+      --leaf-green-soft: rgba(101, 196, 102, 0.32);
+      --leaf-green-deep: #15803d;
+      --ink-900:        #1a1f2c;
+      --ink-700:        #374151;
+      --ink-500:        #6b7280;
+      --ink-300:        #d1d5db;
+      --ink-100:        #f3f4f6;
+      --hairline:       rgba(26, 31, 44, 0.07);
+      --notif-red:      #ef4444;
+      --accent-warning: #eab308;
+
+      --card-shadow: 0 4px 12px rgba(26, 31, 44, 0.06),
+                     0 1px 3px rgba(26, 31, 44, 0.04);
+      --btn-shadow:  0 2px 6px rgba(26, 31, 44, 0.08);
+
+      /* profile / カード共通 */
+      --profile-card-edge:    rgba(255, 255, 255, 0.78);
+      --profile-card-highlight: rgba(255, 255, 255, 0.72);
+      --profile-gold-glow:    rgba(255, 210, 74, 0.30);
+      --profile-gold-line:    rgba(255, 210, 74, 0.52);
+
+      /* CTA カラー (friend_v3 と同一) */
+      --cta-primary-a:        #fde68a;
+      --cta-primary-b:        #fbbf24;
+      --cta-primary-deep:     #92400e;
+      --cta-secondary-fg:     #1a1f2c;
+
+      /* row-icon カラー (more_v2 と同一) */
+      --row-icon-bg:          rgba(143, 200, 224, 0.18);
+      --row-icon-bg-warm:     rgba(255, 210, 74, 0.20);
+      --row-icon-bg-mint:     rgba(101, 196, 102, 0.18);
+      --row-icon-bg-rose:     rgba(239, 68, 68, 0.14);
+      --row-icon-bg-purple:   rgba(168, 85, 247, 0.16);
+
+      /* 対戦タブ専用トークン */
+      --rank-frame-gold:      #fbbf24;
+      --rank-frame-deep:      #92400e;
+      --rank-card-bg-a:       #fff7d6;
+      --rank-card-bg-b:       #fde68a;
+      --rank-frame-halo:      rgba(255, 210, 74, 0.18);
+      --season-pill-bg:       rgba(230, 244, 251, 0.84);
+      --season-pill-fg:       #075985;
+      --mode-tile-edge:       rgba(255,255,255,0.84);
+
+      /* レアモード補助カラー */
+      --casual-cyan:          #075985;
+      --casual-cyan-soft:     rgba(230, 244, 251, 0.96);
+      --friend-purple:        #6b21a8;
+      --friend-purple-soft:   rgba(243, 232, 255, 0.88);
+
+      /* 練習行アクセント */
+      --practice-ai:          #075985;
+      --practice-ai-bg:       rgba(230, 244, 251, 0.96);
+      --practice-fl:          #92400e;
+      --practice-fl-bg:       rgba(255, 247, 214, 0.96);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background: #ecf3f7;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Noto Sans JP", sans-serif;
+      color: var(--ink-900);
+      letter-spacing: 0.02em;
+      -webkit-font-smoothing: antialiased;
+      margin: 0;
+    }
+
+    .device {
+      width: 393px;
+      min-height: 852px;
+      margin: 24px auto;
+      background: linear-gradient(180deg, var(--sky-100) 0%, var(--sky-200) 100%);
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 60px rgba(60, 90, 120, 0.18),
+                  0 4px 12px rgba(60, 90, 120, 0.08);
+    }
+
+    .sky-clouds {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      right: 0;
+      height: 220px;
+      pointer-events: none;
+      opacity: 0.68;
+      z-index: 0;
+    }
+
+    .status-bar {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-900);
+      position: relative;
+      z-index: 1;
+    }
+
+    .battle-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 20px 14px;
+      position: relative;
+      z-index: 1;
+    }
+    .screen-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: var(--ink-900);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+    }
+    .header-info {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 12px;
+      background: var(--season-pill-bg);
+      color: var(--season-pill-fg);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      border: 1px solid rgba(7, 89, 133, 0.10);
+      box-shadow:
+        0 1px 2px rgba(7, 89, 133, 0.06),
+        inset 0 1px 0 rgba(255,255,255,0.62),
+        inset 0 -1px 2px rgba(7, 89, 133, 0.05);
+    }
+    .header-info svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+    }
+    .season-days {
+      color: var(--pomu-orange);
+      font-weight: 900;
+    }
+
+    .screen-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 20px 100px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ============ ランクマッチ・主役カード ============ */
+    .rank-card {
+      position: relative;
+      margin-top: 8px;
+      border-radius: 22px;
+      padding: 18px 18px 20px;
+      background:
+        radial-gradient(circle at 14% 8%, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.40) 28%, rgba(255,255,255,0) 56%),
+        radial-gradient(circle at 86% 88%, rgba(255, 210, 74, 0.46) 0%, rgba(255, 210, 74, 0.16) 42%, rgba(255, 210, 74, 0) 72%),
+        radial-gradient(circle at 72% 80%, rgba(251, 191, 36, 0.18) 0%, rgba(251, 191, 36, 0) 42%),
+        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 56%, #ffffff 100%);
+      border: 3px solid transparent;
+      background-clip: padding-box;
+      box-shadow:
+        0 0 30px var(--rank-frame-halo),
+        0 18px 36px rgba(76, 108, 135, 0.16),
+        0 8px 16px rgba(76, 108, 135, 0.08),
+        0 2px 5px rgba(26, 31, 44, 0.05),
+        inset 0 1px 0 rgba(255, 250, 220, 0.96),
+        inset 0 2px 3px rgba(255, 235, 178, 0.42),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.46);
+      overflow: visible;
+      isolation: isolate;
+    }
+    /* 金色 3px 枠 */
+    .rank-card::before {
+      content: "";
+      position: absolute;
+      inset: -3px;
+      border-radius: 25px;
+      padding: 3px;
+      background: linear-gradient(135deg, #fde68a 0%, #fbbf24 18%, #f59e0b 38%, #b45309 50%, #f59e0b 62%, #fbbf24 82%, #fde68a 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+              mask-composite: exclude;
+      pointer-events: none;
+      z-index: -1;
+    }
+    .rank-card::after {
+      content: "";
+      position: absolute;
+      right: 18px;
+      bottom: 22px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 230, 138, 0.34) 0%, rgba(255, 230, 138, 0) 64%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .rank-card > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .rank-card-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.20em;
+      color: var(--pomu-gold-deep);
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .rank-card-label svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .rank-card-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 8px;
+    }
+
+    .rank-shield {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at 30% 22%, #fff7d6 0%, #fbbf24 42%, #d97706 88%, #92400e 100%);
+      box-shadow:
+        0 8px 18px rgba(146, 64, 14, 0.22),
+        0 2px 4px rgba(146, 64, 14, 0.18),
+        0 0 0 1px rgba(146, 64, 14, 0.36),
+        0 0 0 2.5px rgba(255, 247, 214, 0.40),
+        inset 0 1px 0 rgba(255,255,255,0.82),
+        inset 0 -3px 6px rgba(146, 64, 14, 0.18);
+      position: relative;
+    }
+    .rank-shield::before,
+    .rank-shield::after {
+      content: "✦";
+      position: absolute;
+      color: #fff7d6;
+      filter: drop-shadow(0 1px 1px rgba(146, 64, 14, 0.30));
+      animation: rankSparkle 3s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .rank-shield::before {
+      top: -4px;
+      right: -3px;
+      font-size: 11px;
+      text-shadow: 1px 56px 0 rgba(255, 247, 214, 0.78);
+    }
+    .rank-shield::after {
+      top: 7px;
+      left: -4px;
+      font-size: 8px;
+      animation-delay: 0.85s;
+    }
+    .rank-shield svg {
+      width: 36px;
+      height: 36px;
+      color: #fff;
+      filter: drop-shadow(0 1px 1px rgba(146, 64, 14, 0.36));
+    }
+    @keyframes rankSparkle {
+      0%, 100% { opacity: 0.68; transform: scale(0.92) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.08) rotate(8deg); }
+    }
+
+    .rank-meta {
+      flex: 1;
+      min-width: 0;
+    }
+    .rank-name {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--pomu-gold-deep);
+      letter-spacing: 0.02em;
+      line-height: 1.1;
+    }
+    .rank-rate-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .rank-rate {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--ink-900);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+    }
+    .rank-rate .rank-rate-label {
+      color: var(--ink-500);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      margin-right: 4px;
+    }
+    .rank-delta {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--leaf-green-deep);
+      background: rgba(101, 196, 102, 0.16);
+      padding: 2px 7px 2px 5px;
+      border-radius: 7px;
+      letter-spacing: 0.02em;
+    }
+    .rank-delta svg {
+      width: 11px;
+      height: 11px;
+    }
+
+    .rank-progress-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--ink-500);
+    }
+    .rank-progress-row .rp-label {
+      color: var(--ink-700);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .rank-progress-row .rp-label::after {
+      content: "★";
+      color: var(--pomu-yellow);
+      font-size: 10px;
+      line-height: 1;
+      opacity: 0.6;
+      transform: translateY(-0.5px);
+    }
+    .rank-progress-row .rp-value {
+      color: var(--pomu-gold-deep);
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+    }
+    .rank-progress {
+      margin-top: 6px;
+      height: 9px;
+      border-radius: 999px;
+      background: rgba(146, 64, 14, 0.10);
+      overflow: hidden;
+      box-shadow:
+        inset 0 1px 2px rgba(146, 64, 14, 0.11),
+        inset 0 0 0 1px rgba(255, 250, 220, 0.22);
+    }
+    .rank-progress-bar {
+      position: relative;
+      height: 100%;
+      width: 62%;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.46) 0%, rgba(255,255,255,0.10) 44%, rgba(146, 64, 14, 0.08) 100%),
+        linear-gradient(90deg, #fde68a 0%, #fbbf24 60%, #f59e0b 100%);
+      border-radius: 999px;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.66),
+        inset 0 0 0 1px rgba(255, 250, 220, 0.32),
+        inset 0 -2px 4px rgba(146, 64, 14, 0.18),
+        0 0 8px rgba(251, 191, 36, 0.42);
+    }
+    .rank-progress-bar::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: 1px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #fff7d6;
+      transform: translateY(-50%);
+      box-shadow:
+        0 0 0 1px rgba(255, 250, 220, 0.60),
+        0 0 8px rgba(255, 247, 214, 0.92),
+        0 0 14px rgba(251, 191, 36, 0.62);
+    }
+
+    .rank-cta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      width: 100%;
+      padding: 18px 18px;
+      min-height: 60px;
+      margin-top: 18px;
+      border-radius: 16px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.54) 0%, rgba(255,255,255,0.18) 30%, rgba(255,255,255,0) 44%),
+        radial-gradient(circle at 24% 16%, rgba(255, 235, 178, 0.92) 0%, rgba(255, 235, 178, 0.34) 36%, rgba(255, 235, 178, 0) 62%),
+        linear-gradient(180deg, var(--cta-primary-a) 0%, #ffcb35 48%, var(--cta-primary-b) 100%);
+      color: var(--cta-primary-deep);
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      border: 1px solid rgba(146, 64, 14, 0.22);
+      box-shadow:
+        0 14px 28px rgba(245, 158, 11, 0.30),
+        0 4px 10px rgba(146, 64, 14, 0.14),
+        inset 0 1px 0 rgba(255,255,255,0.92),
+        inset 0 2px 4px rgba(255, 235, 178, 0.62),
+        inset 0 -3px 0 rgba(146, 64, 14, 0.18);
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.15s ease;
+    }
+    .rank-cta:active {
+      transform: translateY(3px) scale(0.99);
+      box-shadow:
+        0 4px 10px rgba(245, 158, 11, 0.22),
+        inset 0 2px 5px rgba(146, 64, 14, 0.16),
+        inset 0 1px 0 rgba(255,255,255,0.68),
+        inset 0 -1px 0 rgba(146, 64, 14, 0.20);
+    }
+    .rank-cta svg {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      filter: drop-shadow(0 1px 0 rgba(255, 247, 214, 0.72));
+    }
+
+    /* ============ 副タイル 2 カラム (カジュアル + フレンド対戦) ============ */
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .mode-tile {
+      padding: 18px 14px 16px;
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at 14% 6%, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.20) 42%, rgba(255,255,255,0) 62%),
+        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 100%);
+      border: 1px solid var(--mode-tile-edge);
+      box-shadow:
+        0 8px 18px rgba(76, 108, 135, 0.12),
+        0 2px 5px rgba(26, 31, 44, 0.04),
+        inset 0 1px 0 rgba(255,255,255,0.86);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .mode-tile:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        0 11px 22px rgba(76, 108, 135, 0.14),
+        0 3px 7px rgba(26, 31, 44, 0.05),
+        inset 0 1px 0 rgba(255,255,255,0.90);
+    }
+    .mode-tile[data-action="friend-match"] {
+      background:
+        radial-gradient(circle at 84% 84%, rgba(168, 85, 247, 0.10), transparent 60%),
+        radial-gradient(circle at 14% 6%, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.20) 42%, rgba(255,255,255,0) 62%),
+        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 100%);
+    }
+    .mode-tile:active {
+      transform: translateY(2px) scale(0.99);
+      box-shadow:
+        0 3px 7px rgba(76, 108, 135, 0.10),
+        inset 0 2px 5px rgba(76, 108, 135, 0.10),
+        inset 0 1px 0 rgba(255,255,255,0.62);
+    }
+    .mode-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+      box-shadow:
+        0 2px 5px rgba(76, 108, 135, 0.10),
+        inset 0 1px 0 rgba(255,255,255,0.86);
+    }
+    .mode-icon--casual {
+      background:
+        radial-gradient(circle at 30% 22%, #ffffff 0%, var(--casual-cyan-soft) 56%, #c5e2f0 100%);
+      color: var(--casual-cyan);
+      box-shadow:
+        0 2px 5px rgba(76, 108, 135, 0.10),
+        inset 0 1px 0 rgba(255,255,255,0.86),
+        inset 0 -2px 5px rgba(7, 89, 133, 0.12);
+    }
+    .mode-icon--friend {
+      background:
+        radial-gradient(circle at 30% 22%, #ffffff 0%, var(--friend-purple-soft) 56%, #e9d5ff 100%);
+      color: var(--friend-purple);
+      box-shadow:
+        0 2px 5px rgba(76, 108, 135, 0.10),
+        inset 0 1px 0 rgba(255,255,255,0.86),
+        inset 0 -2px 5px rgba(107, 33, 168, 0.13);
+    }
+    .mode-icon--friend::after {
+      content: "";
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 12px;
+      height: 12px;
+      opacity: 0.62;
+      background:
+        linear-gradient(currentColor, currentColor) center / 8px 2px no-repeat,
+        linear-gradient(currentColor, currentColor) center / 2px 8px no-repeat;
+      filter: drop-shadow(0 1px 0 rgba(255,255,255,0.72));
+    }
+    .mode-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+    .mode-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--ink-900);
+      letter-spacing: 0.02em;
+      line-height: 1.1;
+    }
+    .mode-sub {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-500);
+      letter-spacing: 0.02em;
+      line-height: 1.40;
+    }
+
+    /* ============ セクションヘッダ ============ */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 24px 4px 10px;
+    }
+    .section-title {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      color: var(--ink-500);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section-title .section-emoji {
+      font-size: 14px;
+    }
+
+    /* ============ 練習セクション (settings-card と同形) ============ */
+    .practice-card {
+      background:
+        radial-gradient(circle at 8% 0%, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.24) 34%, rgba(255,255,255,0) 58%),
+        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 62%, #ffffff 100%);
+      border-radius: 14px;
+      border: 1px solid var(--profile-card-edge);
+      box-shadow:
+        0 10px 22px rgba(76, 108, 135, 0.10),
+        0 2px 5px rgba(26, 31, 44, 0.05),
+        inset 0 1px 0 var(--profile-card-highlight);
+      overflow: hidden;
+    }
+    .practice-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .practice-row + .practice-row {
+      border-top: 1px solid var(--hairline);
+    }
+    .practice-row:active {
+      background: rgba(143, 200, 224, 0.08);
+    }
+    .practice-row-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow:
+        0 2px 5px rgba(76, 108, 135, 0.08),
+        inset 0 1px 0 rgba(255,255,255,0.86);
+    }
+    .practice-row-icon--ai {
+      background:
+        radial-gradient(circle at 30% 22%, #ffffff 0%, var(--practice-ai-bg) 56%, #c5e2f0 100%);
+      color: var(--practice-ai);
+    }
+    .practice-row-icon--fl {
+      background:
+        radial-gradient(circle at 30% 22%, #ffffff 0%, var(--practice-fl-bg) 56%, #fde68a 100%);
+      color: var(--practice-fl);
+    }
+    .practice-row-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+    .practice-row-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .practice-row-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink-900);
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      line-height: 1.24;
+    }
+    .title-sublabel {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: var(--row-icon-bg-warm);
+      color: var(--pomu-gold-deep);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.10em;
+      line-height: 1.2;
+    }
+    .practice-row-sub {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-500);
+      margin-top: 2px;
+      letter-spacing: 0.02em;
+      line-height: 1.32;
+    }
+    .practice-row-chev {
+      color: var(--ink-500);
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    /* ============ 下部ナビ (5タブ・battle アクティブ) ============ */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 76px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      box-shadow: 0 -2px 12px rgba(60, 90, 120, 0.08);
+      z-index: 2;
+      padding-bottom: 8px;
+    }
+    .nav-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink-500);
+      cursor: pointer;
+      position: relative;
+      padding-top: 6px;
+    }
+    .nav-tab .nav-icon {
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+      opacity: 0.65;
+    }
+    .nav-tab--active {
+      color: var(--ink-900);
+      font-weight: 800;
+    }
+    .nav-tab--active .nav-icon {
+      opacity: 1;
+    }
+    .nav-tab--active::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 30%;
+      right: 30%;
+      height: 3px;
+      background: var(--pomu-yellow);
+      border-radius: 0 0 2px 2px;
+    }
+
+    /* ============ デモ用のメモ ============ */
+    .dev-note {
+      width: 393px;
+      margin: 16px auto 24px;
+      padding: 12px 16px;
+      font-size: 12px;
+      color: var(--ink-500);
+      background: rgba(255,255,255,0.6);
+      border: 1px dashed rgba(143, 200, 224, 0.5);
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+    .dev-note strong { color: var(--ink-900); }
+  </style>
+</head>
+<body>
+
+<div class="device" role="application" aria-label="対戦画面">
+
+  <svg class="sky-clouds" viewBox="0 0 393 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <linearGradient id="skyCloudPaint" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="62%" stop-color="#ffffff"/>
+        <stop offset="100%" stop-color="#edf6fa"/>
+      </linearGradient>
+      <filter id="skyCloudSoft" x="-8%" y="-30%" width="116%" height="170%">
+        <feGaussianBlur stdDeviation="0.4"/>
+      </filter>
+    </defs>
+    <g filter="url(#skyCloudSoft)">
+      <g fill="url(#skyCloudPaint)" opacity="0.92">
+        <ellipse cx="36" cy="39" rx="29" ry="11"/>
+        <ellipse cx="66" cy="32" rx="32" ry="14"/>
+        <ellipse cx="100" cy="44" rx="47" ry="15"/>
+        <ellipse cx="127" cy="49" rx="23" ry="9"/>
+      </g>
+      <g fill="url(#skyCloudPaint)" opacity="0.88">
+        <ellipse cx="286" cy="106" rx="32" ry="12"/>
+        <ellipse cx="320" cy="98" rx="45" ry="16"/>
+        <ellipse cx="360" cy="113" rx="34" ry="13"/>
+      </g>
+      <g fill="url(#skyCloudPaint)" opacity="0.7">
+        <ellipse cx="160" cy="171" rx="28" ry="9"/>
+        <ellipse cx="197" cy="164" rx="46" ry="13"/>
+        <ellipse cx="238" cy="173" rx="32" ry="10"/>
+      </g>
+    </g>
+  </svg>
+
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>📶 100%</span>
+  </div>
+
+  <div class="battle-header">
+    <div class="screen-title">対戦</div>
+    <div class="header-info" aria-label="シーズン情報">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 7 V12 L15 14"/>
+      </svg>
+      <span>S3 残り <span class="season-days">12日</span></span>
+    </div>
+  </div>
+
+  <div class="screen-body">
+
+    <!-- ============ ランクマッチ・主役カード ============ -->
+    <section class="rank-card" aria-label="ランクマッチ">
+      <div class="rank-card-label">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 2 L14 8 L20 8 L15 12 L17 18 L12 14 L7 18 L9 12 L4 8 L10 8 Z"/>
+        </svg>
+        RANKED MATCH
+      </div>
+
+      <div class="rank-card-top">
+        <div class="rank-shield" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3 L20 6 V12 c0 4.5 -3 8 -8 9 -5 -1 -8 -4.5 -8 -9 V6 Z"/>
+            <path d="M9 12 L11 14 L15 9"/>
+          </svg>
+        </div>
+        <div class="rank-meta">
+          <div class="rank-name">プラチナ 3</div>
+          <div class="rank-rate-row">
+            <div class="rank-rate">
+              <span class="rank-rate-label">レート</span>1,247
+            </div>
+            <div class="rank-delta" aria-label="直近10戦 +24">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 14 12 8 18 14"/>
+              </svg>
+              +24
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rank-progress-row">
+        <span class="rp-label">プラチナ 4 まで</span>
+        <span class="rp-value">253 / 400</span>
+      </div>
+      <div class="rank-progress" aria-hidden="true">
+        <div class="rank-progress-bar" style="width: 63%;"></div>
+      </div>
+
+      <button class="rank-cta" data-action="ranked-start">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 4 L20 4 L20 10 M14 4 L4 14 L8 18 L20 6 M10 14 L14 18"/>
+        </svg>
+        マッチング開始
+      </button>
+    </section>
+
+    <!-- ============ 副タイル (カジュアル + フレンド対戦) ============ -->
+    <div class="mode-grid">
+      <button class="mode-tile" data-action="casual">
+        <div class="mode-icon mode-icon--casual" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M8 14 c1 1.5 2.4 2.4 4 2.4 s3 -0.9 4 -2.4"/>
+            <circle cx="9" cy="10" r="0.8" fill="currentColor"/>
+            <circle cx="15" cy="10" r="0.8" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="mode-title">カジュアル</div>
+        <div class="mode-sub">レート変動なし<br>気軽に対戦</div>
+      </button>
+
+      <button class="mode-tile" data-action="friend-match">
+        <div class="mode-icon mode-icon--friend" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="8" r="3"/>
+            <path d="M3 19 c0 -3 3 -5 6 -5 s6 2 6 5"/>
+            <circle cx="17" cy="9" r="2.5"/>
+            <path d="M14 17 c1 -2 3 -3 5 -3 s2 1 2 3"/>
+          </svg>
+        </div>
+        <div class="mode-title">フレンド対戦</div>
+        <div class="mode-sub">部屋を作る<br>コードで参加</div>
+      </button>
+    </div>
+
+    <!-- ============ 練習セクション ============ -->
+    <div class="section-header">
+      <div class="section-title">
+        <span class="section-emoji">🎯</span>
+        <span>練習</span>
+      </div>
+    </div>
+    <div class="practice-card">
+
+      <div class="practice-row" data-action="ai-match">
+        <div class="practice-row-icon practice-row-icon--ai" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="6" width="16" height="13" rx="2"/>
+            <path d="M9 9 H15"/>
+            <path d="M12 3 V6 M9 3 H15"/>
+            <path d="M2 12 H4 M20 12 H22"/>
+            <circle cx="9" cy="12.3" r="1.3" fill="currentColor" stroke="none"/>
+            <circle cx="9" cy="11.9" r="0.5" fill="#fff" stroke="none"/>
+            <circle cx="15" cy="12.3" r="1.3" fill="currentColor" stroke="none"/>
+            <circle cx="15" cy="11.9" r="0.5" fill="#fff" stroke="none"/>
+          </svg>
+        </div>
+        <div class="practice-row-body">
+          <div class="practice-row-title">AI 対戦</div>
+          <div class="practice-row-sub">2 人 / 3 人 (近日) ・ レベル選択可</div>
+        </div>
+        <svg class="practice-row-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="9 6 15 12 9 18"/>
+        </svg>
+      </div>
+
+      <div class="practice-row" data-action="fl-practice">
+        <div class="practice-row-icon practice-row-icon--fl" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 10 L8 4 L11 6 L13 3 L16 7 L19 4 L19 12 a4 4 0 0 1 -4 4 H9 a4 4 0 0 1 -4 -4 Z"/>
+            <circle cx="12" cy="8.8" r="1.3" fill="currentColor" stroke="none"/>
+            <path d="M5 16 H19" stroke-width="2.4"/>
+            <path d="M9 19 H15 M12 16 V21"/>
+          </svg>
+        </div>
+        <div class="practice-row-body">
+          <div class="practice-row-title">FL 練習 <span class="title-sublabel">ファンタジー練習</span></div>
+          <div class="practice-row-sub">14 / 15 / 16 / 17 枚 ・ EV 表示で局面研究</div>
+        </div>
+        <svg class="practice-row-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="9 6 15 12 9 18"/>
+        </svg>
+      </div>
+
+    </div>
+
+  </div>
+
+  <nav class="bottom-nav" aria-label="メインナビゲーション">
+    <div class="nav-tab" data-tab="home">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 11 L12 4 L21 11 V20 a1 1 0 0 1 -1 1 H15 V14 H9 V21 H4 a1 1 0 0 1 -1 -1 Z"/>
+        </svg>
+      </div>
+      ホーム
+    </div>
+    <div class="nav-tab" data-tab="town">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="8" width="18" height="13" rx="1"/>
+          <path d="M3 11 H21"/>
+          <path d="M12 8 V21"/>
+          <path d="M7.5 8 Q9 4 12 4 Q15 4 16.5 8"/>
+        </svg>
+      </div>
+      ぽむタウン
+    </div>
+    <div class="nav-tab nav-tab--active" data-tab="battle">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 4 L20 4 L20 10 M14 4 L4 14 L8 18 L20 6 M10 14 L14 18"/>
+        </svg>
+      </div>
+      対戦
+    </div>
+    <div class="nav-tab" data-tab="friends">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="8" r="3.5"/>
+          <path d="M3 20 c0 -3 3 -5 6 -5 s6 2 6 5"/>
+          <circle cx="17" cy="9" r="2.5"/>
+          <path d="M14 17 c1 -2 3 -3 5 -3 s2 1 2 3"/>
+        </svg>
+      </div>
+      フレンド
+    </div>
+    <div class="nav-tab" data-tab="more">
+      <div class="nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 7 H20 M4 12 H20 M4 17 H20"/>
+        </svg>
+      </div>
+      その他
+    </div>
+  </nav>
+
+</div>
+
+<div class="dev-note">
+  <strong>VISUAL v2: 対戦タブ</strong> (Codex / GPT 改善版)<br>
+  rank-card: 7 stop 金枠、金色ハロウ、warmer inset highlight で中央タブの主役感を強化。<br>
+  rank-shield / progress: 深い gold-brown グラデ、2 重エッジ、3 sparkles、shimmer progress、右端 glow point を追加。<br>
+  mode / practice: カジュアルは cyan glow、フレンド対戦は purple glow + plus overlay、FL 練習サブラベルは inline mini-badge 化。<br>
+  header / CTA: S3 pill を雲色に寄せ、「12日」を orange 強調。PRIMARY CTA は 18px / min-height 60 / deeper press に調整。
+</div>
+
+<script>
+  // 軽い操作性: 各ボタンのタップフィードバック
+  document.querySelectorAll('.rank-cta, .mode-tile, .practice-row').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.animate(
+        [{ transform: 'translateY(0)' }, { transform: 'translateY(2px)' }, { transform: 'translateY(0)' }],
+        { duration: 160, easing: 'ease-out' }
+      );
+    });
+  });
+</script>
+
+</body>
+</html>
