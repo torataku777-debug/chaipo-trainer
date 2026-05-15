@@ -34201,5 +34201,133 @@ body.bptune-enabled .bptune-active{
 })();
 </script>
 
+<script id="ia-v2-pack-opening-stage">
+// Phase C-1: 開封演出ステージ進行
+(function(){
+  var STAGE_DURATIONS = {
+    intro:     1500,  // パック表示 (タップで早送り可)
+    animating: 2800,  // 開封演出 (光・破裂)
+    reveal:    2200   // 報酬カード表示
+  };
+  var RARITY_WEIGHTS = [
+    { r: 'n',  w: 70 },
+    { r: 'r',  w: 25 },
+    { r: 'sr', w: 5  }
+  ];
+
+  var state = { active: false, timers: [] };
+
+  function clearTimers(){
+    state.timers.forEach(function(t){ clearTimeout(t); });
+    state.timers = [];
+  }
+
+  function getScreen(){ return document.getElementById('screen-pack-opening'); }
+
+  function setStage(stage){
+    var s = getScreen();
+    if(s) s.setAttribute('data-stage', stage);
+    console.log('[pack-opening] stage:', stage);
+  }
+
+  function setRarity(r){
+    var s = getScreen();
+    if(s) s.setAttribute('data-rarity', r);
+    console.log('[pack-opening] rarity:', r);
+  }
+
+  function pickRarity(){
+    var total = RARITY_WEIGHTS.reduce(function(a,b){ return a + b.w; }, 0);
+    var n = Math.random() * total;
+    var acc = 0;
+    for(var i=0; i<RARITY_WEIGHTS.length; i++){
+      acc += RARITY_WEIGHTS[i].w;
+      if(n < acc) return RARITY_WEIGHTS[i].r;
+    }
+    return 'n';
+  }
+
+  function nextStage(){
+    var s = getScreen();
+    if(!s) return;
+    clearTimers();
+    var cur = s.getAttribute('data-stage');
+    if(cur === 'intro'){
+      setStage('animating');
+      state.timers.push(setTimeout(nextStage, STAGE_DURATIONS.animating));
+    } else if(cur === 'animating'){
+      setStage('reveal');
+      state.timers.push(setTimeout(nextStage, STAGE_DURATIONS.reveal));
+    } else if(cur === 'reveal'){
+      setStage('complete');
+      // complete 後は手動でボタン押下 (complete-btn) を待つ
+    }
+    // complete ステージではタイマー登録しない (ユーザー操作待ち)
+  }
+
+  function start(){
+    if(state.active) return;
+    state.active = true;
+    setRarity(pickRarity());
+    setStage('intro');
+    state.timers.push(setTimeout(nextStage, STAGE_DURATIONS.intro));
+  }
+
+  function stop(){
+    state.active = false;
+    clearTimers();
+  }
+
+  // showScreen を wrap してステージ進行を制御
+  function wrapShowScreen(){
+    if(typeof window.showScreen !== 'function') return false;
+    if(window.showScreen.__packWrapped) return true;
+    var orig = window.showScreen;
+    var wrapped = function(id){
+      orig.apply(this, arguments);
+      if(id === 'pack-opening'){
+        start();
+      } else {
+        stop();
+      }
+    };
+    wrapped.__packWrapped = true;
+    window.showScreen = wrapped;
+    return true;
+  }
+
+  function bindTapSkip(){
+    document.addEventListener('click', function(e){
+      if(!state.active) return;
+      var s = getScreen();
+      if(!s || !s.classList.contains('active')) return;
+      // ボタン類はネイティブハンドラに任せる
+      if(e.target.closest('.complete-btn')) return;
+      if(e.target.closest('.opening-back')) return;
+      // それ以外のタップでステージスキップ
+      var cur = s.getAttribute('data-stage');
+      if(cur === 'intro' || cur === 'animating' || cur === 'reveal'){
+        nextStage();
+      }
+    }, true);
+  }
+
+  function init(){
+    if(!wrapShowScreen()){
+      // showScreen 未定義の場合は遅延リトライ
+      setTimeout(init, 100);
+      return;
+    }
+    bindTapSkip();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
 </body>
 </html>
