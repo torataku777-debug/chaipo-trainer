@@ -9,3 +9,6 @@ xcuserdata/
 
 # Local Netlify folder
 .netlify
+
+# HTML バックアップ (各 Phase 適用前)
+index_pre_*.html

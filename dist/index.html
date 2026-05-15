@@ -12416,19 +12416,14 @@ body.debug-interactive .vmode-btn::before {
 <!-- v3a_clean: 動画遷移レイヤー(チャイポネイバーズ統合) -->
 <div class="transition-video-layer" id="transitionLayer">
   <video id="transitionVideo" muted playsinline webkit-playsinline preload="none" poster="assets/bg_cityscape.png">
-    <source src="assets/transition_to_mode_select.mp4" type="video/mp4">
+    <source src="assets/transition_to_home.mp4" type="video/mp4">
   </video>
   <!-- fix13: モード選択画面ループ動画(遷移動画終了後に再生、JSでtimeupdateシームレスループ) -->
   <video id="transitionLoopVideo" muted playsinline webkit-playsinline preload="none">
     <source src="assets/transition_loop.mp4" type="video/mp4">
   </video>
+  <!-- Phase D-2: 6 ボタンを削除、親 div は JS の null チェック互換のため残置 -->
   <div class="mode-select-buttons" id="modeSelectButtons">
-    <button class="vmode-btn vmode-btn-ai"        type="button" aria-label="AI対戦"          onclick="onModeClick('AI対戦')">AI対戦</button>
-    <button class="vmode-btn vmode-btn-fantasy"   type="button" aria-label="ファンタジー練習"  onclick="onModeClick('ファンタジー練習')">ファンタジー練習</button>
-    <button class="vmode-btn vmode-btn-friend"    type="button" aria-label="フレンド対戦"      onclick="onModeClick('フレンド対戦')">フレンド対戦</button>
-    <button class="vmode-btn vmode-btn-online"    type="button" aria-label="オンライン対戦"    onclick="onModeClick('オンライン対戦')">オンライン対戦</button>
-    <button class="vmode-btn vmode-btn-data"      type="button" aria-label="データ"          onclick="onModeClick('データ')">データ</button>
-    <button class="vmode-btn vmode-btn-settings"  type="button" aria-label="設定"            onclick="onModeClick('設定')">設定</button>
   </div>
   <!-- Session 24 Step B: Board Tuner -->
 <button class="bdt-toggle" id="bdtToggle" type="button" aria-label="board-tuner">📐</button>
@@ -19375,7 +19370,7 @@ function onPlayClick(){
   var modeButtons = document.getElementById('modeSelectButtons');
   if(!transitionLayer || !video || !modeButtons){
     console.error('[NEIGHBORS] 動画レイヤー要素なし - 既存遷移にフォールバック');
-    if(typeof showScreen === 'function') showScreen('mode-select');
+    if(typeof showScreen === 'function') showScreen('home'); // Phase D-2
     return;
   }
 
@@ -19395,15 +19390,13 @@ function onPlayClick(){
     if(endedFired) return;
     endedFired = true;
     video.pause();
-    console.log('[NEIGHBORS] 統合動画 ended @ ' + video.currentTime.toFixed(2) + 's');
-
-    // fix18: クロスフェード — loopVideo はすでにバックグラウンドで再生中なので
-    // 同時に transitionVideo を隠して loopVideo を表示
-    if(loopVideo){
-      loopVideo.classList.add('video-ready');
-      video.classList.remove('video-ready');
-      console.log('[NEIGHBORS] クロスフェード → loopVideo表示 + transitionVideo hide');
+    console.log('[NEIGHBORS] 遷移動画 ended @ ' + video.currentTime.toFixed(2) + 's → home (Phase D-2)');
+    // Phase D-2: 動画 ended → home タブへ遷移、transitionLayer を非表示
+    if(typeof showScreen === 'function') {
+      showScreen('home');
     }
+    transitionLayer.classList.remove('is-active');
+    video.classList.remove('video-ready');
   };
   video.addEventListener('ended', endedHandler, { once: true });
   setTimeout(function(){
@@ -19411,13 +19404,9 @@ function onPlayClick(){
       console.log('[NEIGHBORS] フォールバック pause @ ' + video.currentTime.toFixed(2) + 's');
       endedHandler();
     }
-  }, 200 + 47000);  // fix18: 統合動画 46.6秒 + 余裕で 47秒
+  }, 200 + 3000);  // Phase D-2: 遷移動画 1.2秒 + 余裕で 3秒
 
-  // fix18: 遷移部分が終わるタイミング(2.5秒)でボタンを有効化
-  setTimeout(function(){
-    modeButtons.classList.add('is-active');
-    console.log('[NEIGHBORS] モードボタン有効化した');
-  }, 2500);
+  // Phase D-2: modeSelectButtons 有効化処理は廃止 (動画 ended で showScreen('home') に遷移)
 
   // 遷移動画の playingイベントで video-ready 付与
   video.addEventListener('playing', function(){
@@ -19425,28 +19414,7 @@ function onPlayClick(){
     console.log('[NEIGHBORS] 遷移動画 playing → video-ready');
   }, { once: true });
 
-  // fix16: ループ動画をバックグラウンドで事前再生、クロスフェードに備える
-  if(loopVideo){
-    // シームレスループハンドラ設定(一度だけ設定)
-    if(!loopVideo._loopHandlerSet){
-      loopVideo.removeAttribute('loop');
-      loopVideo.addEventListener('ended', function(){
-        loopVideo.currentTime = 0;
-        var p = loopVideo.play();
-        if(p && p.catch) p.catch(function(e){ console.error('[NEIGHBORS] ループ再生エラー:', e); });
-      });
-      loopVideo._loopHandlerSet = true;
-    }
-    // 遷移動画再生中にこっそりループ動画も再生開始(オフスクリーン状態、opacity:0で見えない)
-    loopVideo.currentTime = 0;
-    var loopPromise = loopVideo.play();
-    if(loopPromise && loopPromise.catch){
-      loopPromise.catch(function(err){
-        console.error('[NEIGHBORS] ループ動画バックグラウンド再生失敗:', err);
-      });
-    }
-    console.log('[NEIGHBORS] ループ動画バックグラウンド再生開始');
-  }
+  // Phase D-2: loopVideo バックグラウンド再生は廃止 (home タブ遷移後は不要)
 
   // fix15: 2フレーム待ってリセットがレンダリングされたあとに is-active を付ける
   // (これで 2回目の「モード選択画面が一瞬見える」フラッシュを防止)
