@@ -6775,95 +6775,21 @@ body.tut-active.tut-interactive #screen-game .slot{
 }
 
 /* fix12: ループ動画も同じスタイル、位置、サイズ */
-#transitionLoopVideo {
-  z-index: 1; /* 遷移動画と同レイヤー、両方表示される期間はループが上に乗る */
-}
 
 #transitionVideo {
   z-index: 0;
 }
 
 /* === モード選択透明ボタン (.mode-btn と衝突回避のため .vmode-btn) === */
-.mode-select-buttons {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(100vw, calc(100dvh * 853 / 1844));
-  height: min(100dvh, calc(100vw * 1844 / 853));
-  z-index: 210;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease-out;
-}
 
-.mode-select-buttons.is-active {
-  pointer-events: auto;
-  opacity: 1;
-}
 
-.vmode-btn {
-  position: absolute;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  outline: none;
-  font-size: 0;
-  border-radius: 16px;
-  transition: transform 0.1s ease, opacity 0.1s ease;
-  color: transparent;
-}
 
-.vmode-btn:active {
-  transform: scale(0.97);
-  opacity: 0.85;
-}
 
-.vmode-btn-ai        { left: 16.51%; top: 20.97%; width: 67.67%; height: 19.14%; }
-.vmode-btn-fantasy   { left: 12.56%; top: 42.04%; width: 73.72%; height: 10.86%; }
-.vmode-btn-friend    { left: 11.86%; top: 54.41%; width: 75.81%; height: 12.37%; }
-.vmode-btn-online    { left: 12.09%; top: 67.63%; width: 75.35%; height: 11.94%; }
-.vmode-btn-data      { left: 12.33%; top: 80.65%; width: 73.72%; height: 10.65%; }
-.vmode-btn-settings  { left: 66.51%; top: 93.23%; width: 30.00%; height: 6.99%;  }
 
 /* === fix20: デバッグモード — 透明ボタンを可視化 === */
 /* body に debug-mode-btns クラスを付けると ON */
-body.debug-mode-btns .vmode-btn {
-  background: rgba(255, 0, 255, 0.35) !important;
-  border: 2px dashed #ff00ff !important;
-  outline: 1px solid white;
-  color: white !important;
-  font-size: 14px !important;
-  font-weight: bold !important;
-  text-shadow: 1px 1px 2px black;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-body.debug-mode-btns .vmode-btn-ai      { background: rgba(255, 80, 0, 0.4) !important; }
-body.debug-mode-btns .vmode-btn-fantasy { background: rgba(255, 200, 0, 0.4) !important; }
-body.debug-mode-btns .vmode-btn-friend  { background: rgba(0, 200, 100, 0.4) !important; }
-body.debug-mode-btns .vmode-btn-online  { background: rgba(0, 100, 255, 0.4) !important; }
-body.debug-mode-btns .vmode-btn-data    { background: rgba(150, 50, 200, 0.4) !important; }
-body.debug-mode-btns .vmode-btn-settings{ background: rgba(80, 80, 80, 0.5) !important; }
 
 /* fix22: インタラクティブコントロールモード */
-body.debug-interactive .vmode-btn {
-  cursor: move;
-  z-index: 500 !important;
-}
-body.debug-interactive .vmode-btn::before {
-  content: '';
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 24px;
-  height: 24px;
-  background: rgba(255, 255, 255, 0.7);
-  border: 2px solid #000;
-  cursor: nwse-resize;
-  z-index: 501;
-}
 #debugControlPanel {
   position: fixed;
   bottom: 0;
@@ -12419,12 +12345,7 @@ body.debug-interactive .vmode-btn::before {
     <source src="assets/transition_to_home.mp4" type="video/mp4">
   </video>
   <!-- fix13: モード選択画面ループ動画(遷移動画終了後に再生、JSでtimeupdateシームレスループ) -->
-  <video id="transitionLoopVideo" muted playsinline webkit-playsinline preload="none">
-    <source src="assets/transition_loop.mp4" type="video/mp4">
-  </video>
   <!-- Phase D-2: 6 ボタンを削除、親 div は JS の null チェック互換のため残置 -->
-  <div class="mode-select-buttons" id="modeSelectButtons">
-  </div>
   <!-- Session 24 Step B: Board Tuner -->
 <button class="bdt-toggle" id="bdtToggle" type="button" aria-label="board-tuner">📐</button>
 <div class="bdt-panel" id="bdtPanel">
