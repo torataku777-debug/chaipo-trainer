@@ -914,8 +914,8 @@ body.rb-tuner-on .rb-tuner-hud{ display: block; }
 html body.ui-v2 #screen-game .score-bar{
   background: rgba(10, 12, 20, 0.42) !important;
   background-color: rgba(10, 12, 20, 0.42) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(140%) !important;
-  backdrop-filter: blur(14px) saturate(140%) !important;
+  -webkit-backdrop-filter: none !important; /* perftest */
+  backdrop-filter: none !important; /* perftest */
   border: none !important;
   border-radius: 14px !important;
   box-shadow:
@@ -960,8 +960,8 @@ html body.ui-v2 #screen-game div.hand-area,
 html body.ui-v2 #screen-game .game-layout .hand-area{
   background: rgba(10, 12, 20, 0.42) !important;
   background-color: rgba(10, 12, 20, 0.42) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(140%) !important;
-  backdrop-filter: blur(14px) saturate(140%) !important;
+  -webkit-backdrop-filter: none !important; /* perftest */
+  backdrop-filter: none !important; /* perftest */
   border: none !important;
   border-radius: 14px !important;
   box-shadow:
@@ -1015,8 +1015,8 @@ html body.ui-v2 #screen-game .btn-menu{
   border-radius: 50% !important;
   background: rgba(10, 12, 20, 0.45) !important;
   background-color: rgba(10, 12, 20, 0.45) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(140%) !important;
-  backdrop-filter: blur(14px) saturate(140%) !important;
+  -webkit-backdrop-filter: none !important; /* perftest */
+  backdrop-filter: none !important; /* perftest */
   border: 1px solid rgba(255, 255, 255, 0.25) !important;
   box-shadow:
     0 2px 10px rgba(0, 0, 0, 0.35),
@@ -1290,8 +1290,8 @@ html body.ui-v2.fl-mode .opp-card{
 }
 .result-band-inner{
   background:rgba(255,255,255,0.92);
-  -webkit-backdrop-filter:blur(12px) saturate(140%);
-  backdrop-filter:blur(12px) saturate(140%);
+  -webkit-backdrop-filter:none; /* perftest */
+  backdrop-filter:none; /* perftest */
   border:1.5px solid rgba(10,10,10,0.18);
   border-radius:14px;
   padding:10px 14px;
@@ -34297,5 +34297,18 @@ body.bptune-enabled .bptune-active{
 })();
 </script>
 
+<style id="perf-disable-filters-v1">
+/* Session 31 本実装: backdrop-filter / filter を全 OFF
+ * 理由: iOS WKWebView で per-process-limit (2GB) 超過 → WebContent jetsam kill 発生
+ *   = 「タイトルに戻る」現象の真因
+ * 効果: 起動 1 秒の res+swap が 1.73GB → 大幅減 (実機で動作確認済み)
+ * 解除: この <style> ブロックを削除すれば視覚は元通り (ただし kill 再発リスクあり)
+ * 個別復活: 特定セレクタに後置きで `backdrop-filter: blur(Npx) !important;` で上書き可能 */
+*, *::before, *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+}
+</style>
 </body>
 </html>
