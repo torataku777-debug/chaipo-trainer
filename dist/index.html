@@ -15790,42 +15790,7 @@ function renderGame(){
   if(state.flMode){
     pa.classList.add('fl-mode');pl.innerHTML='YOU <span class="fl-badge">FANTASY LAND</span>';ha.classList.add('fl-mode');
     document.body.classList.add('fl-mode'); // v1.3 Session21: FL専用背景切り替え用
-    /* Session 25 FL probe: 突入時の DOM 状態を実測 */
-    setTimeout(function(){
-      try{
-        var SRV='http://192.168.10.137:9000/';
-        function P(b){fetch(SRV,{method:'POST',body:b});}
-        P('[FLp] body.class=' + document.body.className.substring(0,120));
-        var sg = document.getElementById('screen-game');
-        if(sg){
-          var cs = getComputedStyle(sg);
-          P('[FLp] sg.bgImage=' + cs.backgroundImage.substring(0,200));
-          P('[FLp] sg.bgColor=' + cs.backgroundColor + ' / zIndex=' + cs.zIndex + ' / display=' + cs.display);
-        }
-        var bl = document.querySelector('.game-board-layer');
-        if(bl){
-          var bcs = getComputedStyle(bl);
-          P('[FLp] board-layer.bgImage=' + bcs.backgroundImage.substring(0,200) + ' / bgColor=' + bcs.backgroundColor + ' / zIndex=' + bcs.zIndex);
-        } else { P('[FLp] no .game-board-layer'); }
-        /* fl-mode 用のCSSルールが効いているか確認 */
-        var html_ = document.documentElement;
-        var rootCs = getComputedStyle(html_);
-        P('[FLp] --bg-fl-url=' + rootCs.getPropertyValue('--bg-fl-url').trim());
-        /* screen-game の上に重なってる可能性のある要素を列挙 */
-        var allChildren = sg ? sg.children : [];
-        var overlay = [];
-        for(var i=0;i<allChildren.length;i++){
-          var c = allChildren[i];
-          var ccs = getComputedStyle(c);
-          if(ccs.backgroundImage && ccs.backgroundImage !== 'none'){
-            overlay.push(c.tagName + '#' + c.id + '.' + c.className.substring(0,30) + ' bg=' + ccs.backgroundImage.substring(0,80));
-          }
-        }
-        P('[FLp] overlays_in_sg=' + JSON.stringify(overlay).substring(0, 500));
-      }catch(e){
-        fetch('http://192.168.10.137:9000/',{method:'POST',body:'[FLp] err='+e.message});
-      }
-    }, 500);
+    /* Session 25 FL probe: Session 32 で除去 (192.168.10.137:9000 fetch を発生) */
     document.getElementById('flEvalPanel').classList.add('show');
     document.getElementById('flHandWrap').classList.add('show');
     document.getElementById('flRoleBarOuter').classList.add('show');
@@ -17253,7 +17218,7 @@ document.getElementById('btnMenu').addEventListener('click', function(){ window.
         height: +(r.height / screenH * 100).toFixed(2)
       };
       var msg = '[rb-tuner] SAVE [' + mode.toUpperCase() + '] top:' + data.top + '% left:' + data.left + '% width:' + data.width + '% height:' + data.height + '%';
-      try{ fetch('http://192.168.10.137:9000/',{method:'POST',body:msg}); }catch(_){}
+      /* rb-tuner debug fetch: Session 32 で除去 */
       alert('保存 (' + mode + ')\ntop: ' + data.top + '%\nleft: ' + data.left + '%\nwidth: ' + data.width + '%\nheight: ' + data.height + '%');
     });
   }
@@ -26106,34 +26071,7 @@ body.bptune-enabled .bptune-active{
 
 
 
-<!-- Session 24 dbg log (HTTP) -->
-<script>
-(function(){
-  var SERVER = 'http://192.168.10.137:9000/';
-  function sendLog(level, args){
-    try {
-      var msg = Array.from(args).map(function(a){
-        if(typeof a === 'object'){ try { return JSON.stringify(a).slice(0, 200); } catch(e){ return String(a); } }
-        return String(a);
-      }).join(' ').slice(0, 500);
-      /* FL/相手平場/演出/差分関連のみ送信 */
-      if(/opp flat|opp-anim|FL|R[1-5]|deck|startFL|aiPineapple|button|render/i.test(msg)){
-        fetch(SERVER, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({level: level, msg: msg})
-        }).catch(function(){});
-      }
-    } catch(e){}
-  }
-  var origLog = console.log.bind(console);
-  var origWarn = console.warn.bind(console);
-  var origErr = console.error.bind(console);
-  console.log = function(){ sendLog('L', arguments); origLog.apply(console, arguments); };
-  console.warn = function(){ sendLog('W', arguments); origWarn.apply(console, arguments); };
-  console.error = function(){ sendLog('E', arguments); origErr.apply(console, arguments); };
-})();
-</script>
+<!-- Session 24 dbg log (HTTP): Session 32 で除去 (console hook がゲーム中重さの主犯) -->
 <!-- Session 25: 結果バンド位置調整ツール -->
 <div class="rb-tuner-hud" id="rbTunerHud">
   <div class="mode-label" id="rbtMode">MODE</div>
