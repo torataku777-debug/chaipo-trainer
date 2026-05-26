@@ -9641,24 +9641,18 @@ body.tut-active.tut-interactive #screen-game .slot{
       try{ renderGame(); }catch(e){ console.error('[restore] renderGame error:', e); }
     }
     // fix60: 復帰時に screen-title 上の overlay を全て強制クリア (fix59 強化版)
-    // iOS WebView 環境では showScreen('game') 後も transitionLayer / modeSelectButtons / loopVideo が
-    // 残ってモード選択画面が表示されてしまう (PLAY NOW タップ後の復帰時に顕著)
+    // iOS WebView 環境では showScreen('game') 後も transitionLayer が残ってオーバーレイが
+    // 表示されてしまう (PLAY NOW タップ後の復帰時に顕著)
+    // Session 35 D-1c: Phase D-1 で modeSelectButtons + transitionLoopVideo は削除済み
     try{
       var __tl = document.getElementById('transitionLayer');
       if(__tl) __tl.classList.remove('is-active');
-      var __mb = document.getElementById('modeSelectButtons');
-      if(__mb) __mb.classList.remove('is-active');
       var __vd = document.getElementById('transitionVideo');
       if(__vd){
         __vd.classList.remove('video-ready');
         try { __vd.pause(); __vd.currentTime = 0; } catch(e){}
       }
-      var __lv = document.getElementById('transitionLoopVideo');
-      if(__lv){
-        __lv.classList.remove('video-ready');
-        try { __lv.pause(); __lv.currentTime = 0; } catch(e){}
-      }
-      console.log('[restore fix60] cleared all title overlays (transitionLayer, modeSelectButtons, video, loopVideo)');
+      console.log('[restore fix60] cleared title overlays (transitionLayer, video)');
     }catch(e){ console.error('[restore fix60] overlay clear error:', e); }
     if(typeof showScreen === 'function') showScreen('game');
     
@@ -18934,10 +18928,9 @@ function getFLTapSelCards(){
 // fix14: タイトル画面表示時点で両動画をプリロードしておく
 // これにより PLAY NOW タップ時にはデコード完了していて即座に再生開始できる
 function neighborsPreloadVideos(){
+  /* Session 35 D-1c: transitionLoopVideo (削除済み) のプリロード行を除去 */
   var v1 = document.getElementById('transitionVideo');
-  var v2 = document.getElementById('transitionLoopVideo');
   if(v1){ try { v1.load(); } catch(e){} }
-  if(v2){ try { v2.load(); } catch(e){} }
   console.log('[NEIGHBORS] 動画プリロード開始');
 
   // fix20: デバッグモード - 透明ボタンを色付きで可視化
@@ -19235,25 +19228,19 @@ function onPlayClick(){
   var titleScreen = document.getElementById('screen-title');
   if(!titleScreen) return;
 
+  /* Session 35 D-1c: loopVideo + modeButtons (削除済み要素) の取得と必須チェックを除去 */
   var transitionLayer = document.getElementById('transitionLayer');
   var video = document.getElementById('transitionVideo');
-  var loopVideo = document.getElementById('transitionLoopVideo');
-  var modeButtons = document.getElementById('modeSelectButtons');
-  if(!transitionLayer || !video || !modeButtons){
+  if(!transitionLayer || !video){
     console.error('[NEIGHBORS] 動画レイヤー要素なし - 既存遷移にフォールバック');
     if(typeof showScreen === 'function') showScreen('home'); // Phase D-2
     return;
   }
 
-  // 2回目以降の状態リセット
+  // 2回目以降の状態リセット (Session 35 D-1c: loopVideo + modeButtons 削除)
   transitionLayer.classList.remove('is-active');
-  modeButtons.classList.remove('is-active');
   video.classList.remove('video-ready');
   try { video.pause(); video.currentTime = 0; } catch(e){}
-  if(loopVideo){
-    loopVideo.classList.remove('video-ready');
-    try { loopVideo.pause(); loopVideo.currentTime = 0; } catch(e){}
-  }
 
   // 遷移動画の ended ハンドラ
   var endedFired = false;
@@ -19276,8 +19263,6 @@ function onPlayClick(){
       endedHandler();
     }
   }, 200 + 3000);  // Phase D-2: 遷移動画 1.2秒 + 余裕で 3秒
-
-  // Phase D-2: modeSelectButtons 有効化処理は廃止 (動画 ended で showScreen('home') に遷移)
 
   // 遷移動画の playingイベントで video-ready 付与
   video.addEventListener('playing', function(){
@@ -19339,11 +19324,7 @@ function runModeTransition(imgSrc, onComplete){
     return;
   }
 
-  // fix25: トランジション中はループ動画を一時停止(GPU負荷軽減)
-  var loopVideo = document.getElementById('transitionLoopVideo');
-  if(loopVideo){
-    try { loopVideo.pause(); } catch(e){}
-  }
+  // Session 35 D-1c: fix25 (トランジション中の loopVideo 一時停止) を削除済み
 
   // グリッドセルを生成 (4列 × 4行 = 16セル)
   overlay.innerHTML = '';
@@ -19419,10 +19400,9 @@ function runModeTransition(imgSrc, onComplete){
 // fix19: 画面遷移 (動画レイヤーを隠してモード画面へ)
 // fix19: 画面遷移 (動画レイヤーを隠してモード画面へ) - トランジション後の遷移用
 function navigateToMode(modeName){
+  /* Session 35 D-1c: modeButtons + loopVideo (削除済み要素) を除去 */
   var transitionLayer = document.getElementById('transitionLayer');
-  var modeButtons = document.getElementById('modeSelectButtons');
   var titleScreen = document.getElementById('screen-title');
-  var loopVideo = document.getElementById('transitionLoopVideo');
   var video = document.getElementById('transitionVideo');
 
   // 動画レイヤーを即時クリーンアップ(トランジション画像で覆われているためフェード不要)
@@ -19430,14 +19410,9 @@ function navigateToMode(modeName){
     transitionLayer.classList.remove('is-active');
     if(titleScreen) titleScreen.classList.remove('is-transitioning-out');
   }
-  if(modeButtons) modeButtons.classList.remove('is-active');
   if(video){
     video.classList.remove('video-ready');
     try { video.pause(); video.currentTime = 0; } catch(e){}
-  }
-  if(loopVideo){
-    loopVideo.classList.remove('video-ready');
-    try { loopVideo.pause(); loopVideo.currentTime = 0; } catch(e){}
   }
 
   navigateToModeOnly(modeName);
@@ -19455,21 +19430,15 @@ function backToTitleFromSettings(){
     if(el) el.classList.remove('active');
   });
 
-  // モード選択画面の動画レイヤーも閉じる(タイトル画面に戻すため)
+  // 動画レイヤーも閉じる(タイトル画面に戻すため)
+  // Session 35 D-1c: modeButtons + loopVideo (削除済み要素) を除去
   var transitionLayer = document.getElementById('transitionLayer');
-  var modeButtons = document.getElementById('modeSelectButtons');
   var video = document.getElementById('transitionVideo');
-  var loopVideo = document.getElementById('transitionLoopVideo');
 
   if(transitionLayer) transitionLayer.classList.remove('is-active');
-  if(modeButtons) modeButtons.classList.remove('is-active');
   if(video){
     video.classList.remove('video-ready');
     try { video.pause(); video.currentTime = 0; } catch(e){}
-  }
-  if(loopVideo){
-    loopVideo.classList.remove('video-ready');
-    try { loopVideo.pause(); loopVideo.currentTime = 0; } catch(e){}
   }
 
   // タイトル画面 active 化
@@ -19541,13 +19510,11 @@ function backToModeSelect(){
 
 // fix19: トランジション未設定モード用 — 動画レイヤーフェードアウトして遷移
 function fadeOutVideoLayerAndNavigate(modeName){
+  /* Session 35 D-1c: modeButtons + loopVideo (削除済み要素) を除去 */
   var transitionLayer = document.getElementById('transitionLayer');
-  var modeButtons = document.getElementById('modeSelectButtons');
   var titleScreen = document.getElementById('screen-title');
-  var loopVideo = document.getElementById('transitionLoopVideo');
 
-  if(transitionLayer && modeButtons){
-    modeButtons.classList.remove('is-active');
+  if(transitionLayer){
     transitionLayer.style.transition = 'opacity 0.3s ease-out';
     transitionLayer.style.opacity = '0';
     setTimeout(function(){
@@ -19555,10 +19522,6 @@ function fadeOutVideoLayerAndNavigate(modeName){
       transitionLayer.style.opacity = '';
       transitionLayer.style.transition = '';
       if(titleScreen) titleScreen.classList.remove('is-transitioning-out');
-      if(loopVideo){
-        loopVideo.classList.remove('video-ready');
-        try { loopVideo.pause(); loopVideo.currentTime = 0; } catch(e){}
-      }
     }, 300);
   }
 
@@ -25143,9 +25106,12 @@ body.bptune-enabled .bptune-active{
 </script>
 
 <script>
-/* Session 24 fix1/2/3: shop-fab 表示制御
-   screen-mode-select.active かつ transitionLoopVideo ready の両条件を満たす時のみ
-   body.shop-fab-visible を付与。これによりゲーム画面で誤タップしてショップに飛ぶバグを根絶。 */
+/* Session 24 fix1/2/3 (Session 35 D-1c でコメント更新):
+   shop-fab 表示制御。screen-mode-select.active かつ transitionVideo の
+   timeupdate >= 2.3秒 (= loopReady=true) の両条件を満たす時のみ
+   body.shop-fab-visible を付与。これによりゲーム画面で誤タップしてショップに
+   飛ぶバグを根絶。(Session 25 以降 transitionLoopVideo は使われていないので
+   実装上は transitionVideo の timeupdate ベース) */
 (function(){
   var loopReady = false;
   var modeSelectActive = false;
