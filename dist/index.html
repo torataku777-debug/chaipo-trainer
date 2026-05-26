@@ -5474,19 +5474,18 @@ body.tut-active.tut-interactive #screen-game .slot{
 
 /* ===== カード配布アニメ (ゲーム画面遷移後、既存維持) ===== */
 @keyframes cardDealFromDeck{
+  /* Session 34: filter:blur 除去 (filter: none !important で殺されていた + 描画コスト削減) */
   0%{
     opacity:0;
     transform:translateX(-220px) translateY(-60px) rotate(-18deg) scale(0.6);
-    filter:blur(2px);
   }
-  50%{opacity:1;filter:blur(0);}
+  50%{opacity:1;}
   85%{
     transform:translateX(0) translateY(-4px) rotate(1deg) scale(1.03);
   }
   100%{
     opacity:1;
     transform:translateX(0) translateY(0) rotate(0) scale(1);
-    filter:blur(0);
   }
 }
 .card.in-hand.dealing{
@@ -22128,6 +22127,13 @@ function updateModeBtnStats(){
     }
     
     window.renderHand = function(){
+      /* Session 34 fix: 自DLR演出中 (state._handHiddenForOppAnim) は origRender だけ呼んで早期 return。
+         配布アニメ判定/発動と _prevAllIds/_isFirstDeal の更新をスキップ。
+         これでフラグ解除後の renderHand 時に「新規カード扱い」で配布アニメが正しく発動する */
+      if(typeof state !== 'undefined' && state._handHiddenForOppAnim){
+        origRender.apply(this, arguments);
+        return;
+      }
       const hand = (typeof state !== 'undefined' && state.hand) ? state.hand : [];
       
       // 新規カード検出: 今回の hand に、前回の全カード id セットに無かった id があるか
