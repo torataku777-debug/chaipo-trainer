@@ -139,7 +139,7 @@ html,body{width:100%;height:100%;background:#f8f8f8;color:var(--game-text);font-
 .screen.tab .screen-body{flex:1 1 0;min-height:0;overflow-y:auto;padding:4px 18px calc(96px + var(--safe-bottom));position:relative;z-index:1;-webkit-overflow-scrolling:touch;width:100%}
 .screen.tab .tab-header{display:flex;align-items:center;justify-content:space-between;padding:8px 20px 14px;position:relative;z-index:1;width:100%;flex-shrink:0;padding-top:calc(var(--safe-top) + 16px)}
 .screen.tab .tab-header-title{font-size:26px;font-weight:800;letter-spacing:0.04em;color:var(--ink-900);text-shadow:0 1px 0 rgba(255,255,255,0.6)}
-.screen.tab .sky-clouds{position:absolute;top:calc(var(--safe-top) + 4px);left:0;right:0;height:200px;pointer-events:none;opacity:0.68;z-index:0}
+.screen.tab .sky-clouds{position:absolute;top:calc(var(--safe-top) + 4px);left:0;right:0;height:200px;pointer-events:none;opacity:0.68;z-index:0}.screen.tab .sky-clouds-v2{position:absolute;top:calc(var(--safe-top) + 4px);left:0;right:0;height:280px;pointer-events:none;opacity:1;z-index:0}
 .screen.tab .v2-back{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,0.7);color:var(--ink-700);font-size:11px;font-weight:700;letter-spacing:0.04em;border:1px solid var(--hairline);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .screen.tab .v2-back:active{background:rgba(255,255,255,0.9)}
 /* ===== Bottom Nav (shared, fixed) ===== */
@@ -26009,40 +26009,27 @@ body.bptune-enabled .bptune-active{
 <!-- ===== IA v2 Tab Screens (Phase B B-2.1 skeleton) ===== -->
 <div class="screen tab" id="screen-home">
 <button class="v2-back" type="button" style="position:absolute;top:calc(var(--safe-top) + 10px);right:12px;z-index:5;" onclick="document.body.classList.remove('show-nav');showScreen('title');">← title</button>
-<svg class="sky-clouds" viewBox="0 0 393 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<svg class="sky-clouds-v2" viewBox="0 0 393 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>
-      <linearGradient id="skyCloudPaint" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#ffffff"/>
-        <stop offset="62%" stop-color="#ffffff"/>
-        <stop offset="100%" stop-color="#edf6fa"/>
-      </linearGradient>
-      <filter id="skyCloudSoft" x="-8%" y="-30%" width="116%" height="170%">
-        <feGaussianBlur stdDeviation="0.4"/>
-      </filter>
+      <radialGradient id="skyV2Spot" cx="50%" cy="0%" r="65%">
+        <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
+        <stop offset="40%" stop-color="#FFFFFF" stop-opacity="0.18"/>
+        <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+      </radialGradient>
+      <pattern id="skyV2Grid" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+        <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#2BB8A3" stroke-width="0.6" stroke-opacity="0.18"/>
+      </pattern>
     </defs>
-    <g filter="url(#skyCloudSoft)">
-      <g fill="url(#skyCloudPaint)" opacity="0.92">
-        <ellipse cx="36" cy="39" rx="29" ry="11"/>
-        <ellipse cx="66" cy="32" rx="32" ry="14"/>
-        <ellipse cx="100" cy="44" rx="47" ry="15"/>
-        <ellipse cx="127" cy="49" rx="23" ry="9"/>
-      </g>
-      <path d="M16 49 C44 56 99 59 148 52" stroke="#d5eaf2" stroke-width="4" stroke-linecap="round" opacity="0.3"/>
-
-      <g fill="url(#skyCloudPaint)" opacity="0.88">
-        <ellipse cx="286" cy="106" rx="32" ry="12"/>
-        <ellipse cx="320" cy="98" rx="45" ry="16"/>
-        <ellipse cx="360" cy="113" rx="34" ry="13"/>
-        <ellipse cx="389" cy="123" rx="29" ry="10"/>
-      </g>
-      <path d="M262 116 C292 124 357 127 407 119" stroke="#d5eaf2" stroke-width="4" stroke-linecap="round" opacity="0.28"/>
-
-      <g fill="url(#skyCloudPaint)" opacity="0.7">
-        <ellipse cx="160" cy="171" rx="28" ry="9"/>
-        <ellipse cx="197" cy="164" rx="46" ry="13"/>
-        <ellipse cx="238" cy="173" rx="32" ry="10"/>
-      </g>
-      <path d="M138 177 C170 184 218 184 262 178" stroke="#d5eaf2" stroke-width="3" stroke-linecap="round" opacity="0.22"/>
+    <rect x="0" y="0" width="393" height="280" fill="url(#skyV2Grid)"/>
+    <ellipse cx="196.5" cy="0" rx="280" ry="160" fill="url(#skyV2Spot)"/>
+    <g transform="translate(20, 14) rotate(-12)">
+      <path d="M0 -14 L4 -4 L14 -3 L6 4 L9 14 L0 8 L-9 14 L-6 4 L-14 -3 L-4 -4 Z" fill="#FF4A1C" stroke="#0A0A0A" stroke-width="1.6" stroke-linejoin="round"/>
+    </g>
+    <g transform="translate(360, 18) rotate(18)">
+      <path d="M2 -16 L-8 4 L-1 4 L-4 16 L8 -2 L2 -2 L4 -16 Z" fill="#0A0A0A" stroke="#0A0A0A" stroke-width="1.6" stroke-linejoin="round"/>
+    </g>
+    <g transform="translate(360, 180) rotate(28)">
+      <path d="M0 -10 L3 -3 L10 -2 L4 3 L6 10 L0 6 L-6 10 L-4 3 L-10 -2 L-3 -3 Z" fill="#2BB8A3" stroke="#0A0A0A" stroke-width="1.4" stroke-linejoin="round"/>
     </g>
   </svg>
 
@@ -26286,7 +26273,6 @@ body.bptune-enabled .bptune-active{
 
 <div class="screen tab" id="screen-town">
 <button class="v2-back" type="button" style="position:absolute;top:calc(var(--safe-top) + 10px);right:12px;z-index:5;" onclick="document.body.classList.remove('show-nav');showScreen('title');">← title</button>
-ガチャ画面">
 
   <svg class="sky-clouds" viewBox="0 0 393 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>
@@ -27669,34 +27655,27 @@ body.bptune-enabled .bptune-active{
 
 <div class="screen tab" id="screen-friend">
 <button class="v2-back" type="button" style="position:absolute;top:calc(var(--safe-top) + 10px);right:12px;z-index:5;" onclick="document.body.classList.remove('show-nav');showScreen('title');">← title</button>
-<svg class="sky-clouds" viewBox="0 0 393 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<svg class="sky-clouds-v2" viewBox="0 0 393 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>
-      <linearGradient id="skyCloudPaint" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#ffffff"/>
-        <stop offset="62%" stop-color="#ffffff"/>
-        <stop offset="100%" stop-color="#edf6fa"/>
-      </linearGradient>
-      <filter id="skyCloudSoft" x="-8%" y="-30%" width="116%" height="170%">
-        <feGaussianBlur stdDeviation="0.4"/>
-      </filter>
+      <radialGradient id="skyV2Spot" cx="50%" cy="0%" r="65%">
+        <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
+        <stop offset="40%" stop-color="#FFFFFF" stop-opacity="0.18"/>
+        <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+      </radialGradient>
+      <pattern id="skyV2Grid" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+        <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#2BB8A3" stroke-width="0.6" stroke-opacity="0.18"/>
+      </pattern>
     </defs>
-    <g filter="url(#skyCloudSoft)">
-      <g fill="url(#skyCloudPaint)" opacity="0.92">
-        <ellipse cx="36" cy="39" rx="29" ry="11"/>
-        <ellipse cx="66" cy="32" rx="32" ry="14"/>
-        <ellipse cx="100" cy="44" rx="47" ry="15"/>
-        <ellipse cx="127" cy="49" rx="23" ry="9"/>
-      </g>
-      <g fill="url(#skyCloudPaint)" opacity="0.88">
-        <ellipse cx="286" cy="106" rx="32" ry="12"/>
-        <ellipse cx="320" cy="98" rx="45" ry="16"/>
-        <ellipse cx="360" cy="113" rx="34" ry="13"/>
-      </g>
-      <g fill="url(#skyCloudPaint)" opacity="0.7">
-        <ellipse cx="160" cy="171" rx="28" ry="9"/>
-        <ellipse cx="197" cy="164" rx="46" ry="13"/>
-        <ellipse cx="238" cy="173" rx="32" ry="10"/>
-      </g>
+    <rect x="0" y="0" width="393" height="280" fill="url(#skyV2Grid)"/>
+    <ellipse cx="196.5" cy="0" rx="280" ry="160" fill="url(#skyV2Spot)"/>
+    <g transform="translate(20, 14) rotate(-12)">
+      <path d="M0 -14 L4 -4 L14 -3 L6 4 L9 14 L0 8 L-9 14 L-6 4 L-14 -3 L-4 -4 Z" fill="#FF4A1C" stroke="#0A0A0A" stroke-width="1.6" stroke-linejoin="round"/>
+    </g>
+    <g transform="translate(360, 18) rotate(18)">
+      <path d="M2 -16 L-8 4 L-1 4 L-4 16 L8 -2 L2 -2 L4 -16 Z" fill="#0A0A0A" stroke="#0A0A0A" stroke-width="1.6" stroke-linejoin="round"/>
+    </g>
+    <g transform="translate(360, 180) rotate(28)">
+      <path d="M0 -10 L3 -3 L10 -2 L4 3 L6 10 L0 6 L-6 10 L-4 3 L-10 -2 L-3 -3 Z" fill="#2BB8A3" stroke="#0A0A0A" stroke-width="1.4" stroke-linejoin="round"/>
     </g>
   </svg>
 
@@ -28044,34 +28023,27 @@ body.bptune-enabled .bptune-active{
 
 <div class="screen tab" id="screen-more">
 <button class="v2-back" type="button" style="position:absolute;top:calc(var(--safe-top) + 10px);right:12px;z-index:5;" onclick="document.body.classList.remove('show-nav');showScreen('title');">← title</button>
-<svg class="sky-clouds" viewBox="0 0 393 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<svg class="sky-clouds-v2" viewBox="0 0 393 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>
-      <linearGradient id="skyCloudPaint" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#ffffff"/>
-        <stop offset="62%" stop-color="#ffffff"/>
-        <stop offset="100%" stop-color="#edf6fa"/>
-      </linearGradient>
-      <filter id="skyCloudSoft" x="-8%" y="-30%" width="116%" height="170%">
-        <feGaussianBlur stdDeviation="0.4"/>
-      </filter>
+      <radialGradient id="skyV2Spot" cx="50%" cy="0%" r="65%">
+        <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
+        <stop offset="40%" stop-color="#FFFFFF" stop-opacity="0.18"/>
+        <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+      </radialGradient>
+      <pattern id="skyV2Grid" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+        <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#2BB8A3" stroke-width="0.6" stroke-opacity="0.18"/>
+      </pattern>
     </defs>
-    <g filter="url(#skyCloudSoft)">
-      <g fill="url(#skyCloudPaint)" opacity="0.92">
-        <ellipse cx="36" cy="39" rx="29" ry="11"/>
-        <ellipse cx="66" cy="32" rx="32" ry="14"/>
-        <ellipse cx="100" cy="44" rx="47" ry="15"/>
-        <ellipse cx="127" cy="49" rx="23" ry="9"/>
-      </g>
-      <g fill="url(#skyCloudPaint)" opacity="0.88">
-        <ellipse cx="286" cy="106" rx="32" ry="12"/>
-        <ellipse cx="320" cy="98" rx="45" ry="16"/>
-        <ellipse cx="360" cy="113" rx="34" ry="13"/>
-      </g>
-      <g fill="url(#skyCloudPaint)" opacity="0.7">
-        <ellipse cx="160" cy="171" rx="28" ry="9"/>
-        <ellipse cx="197" cy="164" rx="46" ry="13"/>
-        <ellipse cx="238" cy="173" rx="32" ry="10"/>
-      </g>
+    <rect x="0" y="0" width="393" height="280" fill="url(#skyV2Grid)"/>
+    <ellipse cx="196.5" cy="0" rx="280" ry="160" fill="url(#skyV2Spot)"/>
+    <g transform="translate(20, 14) rotate(-12)">
+      <path d="M0 -14 L4 -4 L14 -3 L6 4 L9 14 L0 8 L-9 14 L-6 4 L-14 -3 L-4 -4 Z" fill="#FF4A1C" stroke="#0A0A0A" stroke-width="1.6" stroke-linejoin="round"/>
+    </g>
+    <g transform="translate(360, 18) rotate(18)">
+      <path d="M2 -16 L-8 4 L-1 4 L-4 16 L8 -2 L2 -2 L4 -16 Z" fill="#0A0A0A" stroke="#0A0A0A" stroke-width="1.6" stroke-linejoin="round"/>
+    </g>
+    <g transform="translate(360, 180) rotate(28)">
+      <path d="M0 -10 L3 -3 L10 -2 L4 3 L6 10 L0 6 L-6 10 L-4 3 L-10 -2 L-3 -3 Z" fill="#2BB8A3" stroke="#0A0A0A" stroke-width="1.4" stroke-linejoin="round"/>
     </g>
   </svg>
 
@@ -28873,14 +28845,9 @@ body.bptune-enabled .bptune-active{
       height: 58px;
       border-radius: 50%;
       padding: 2px;
-      background:
-        radial-gradient(circle at 32% 24%, #fff7d6 0%, #fbbf24 48%, #f59e0b 100%);
-      box-shadow:
-        0 5px 12px rgba(76,108,135,0.16),
-        0 1px 2px rgba(146,64,14,0.14),
-        0 0 0 1px rgba(245, 158, 11, 0.44),
-        0 0 0 3px rgba(255, 247, 214, 0.36),
-        inset 0 1px 0 rgba(255,255,255,0.76);
+      background: #FFFFFF;
+      border: 2px solid #0A0A0A;
+      box-shadow: 3px 3px 0 #0A0A0A;
       overflow: visible;
       display: flex;
       align-items: center;
@@ -29002,21 +28969,13 @@ body.bptune-enabled .bptune-active{
     /* === PRIMARY CTA === */
     .primary-cta {
       position: relative;
-      background:
-        radial-gradient(circle at 82% 18%, rgba(255, 229, 157, 0.34) 0%, rgba(255, 229, 157, 0.12) 20%, rgba(255, 229, 157, 0) 38%),
-        radial-gradient(circle at 8% 100%, rgba(255, 210, 74, 0.26) 0%, rgba(255, 210, 74, 0) 46%),
-        linear-gradient(132deg, var(--cta-navy) 0%, var(--cta-indigo) 39%, var(--cta-purple) 66%, #dea23b 118%);
+      background: var(--cta-navy);
       border-radius: 18px;
       padding: 22px 24px 24px;
       min-height: 168px;
       cursor: pointer;
       transition: transform 0.1s ease, box-shadow 0.2s ease;
-      box-shadow:
-        0 12px 26px rgba(62, 78, 137, 0.28),
-        0 0 0 1px rgba(255, 223, 139, 0.42),
-        0 0 24px rgba(255, 210, 74, 0.14),
-        inset 0 1px 0 rgba(255,255,255,0.44),
-        inset 0 -18px 30px rgba(26, 31, 44, 0.12);
+      box-shadow: 4px 4px 0 #0A0A0A;
       overflow: hidden;
       color: #fff;
       display: flex;
@@ -29024,55 +28983,24 @@ body.bptune-enabled .bptune-active{
       justify-content: space-between;
       margin-top: 10px;
       isolation: isolate;
-      border: 1px solid rgba(255, 239, 185, 0.22);
+      border: 2.5px solid #0A0A0A;
     }
     .primary-cta::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      background-image:
-        radial-gradient(circle, rgba(255,255,255,0.72) 0 0.8px, transparent 1px),
-        radial-gradient(circle, rgba(255,210,74,0.76) 0 0.7px, transparent 1px);
-      background-size: 32px 32px, 46px 46px;
-      background-position: 7px 9px, 24px 18px;
-      opacity: 0.24;
-      mix-blend-mode: screen;
+      content: none;
     }
     .primary-cta::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.26) 0%, rgba(255,255,255,0.04) 34%, rgba(255,255,255,0) 64%),
-        linear-gradient(90deg, rgba(255,210,74,0.12) 0%, rgba(255,210,74,0) 32%, rgba(255,210,74,0.15) 100%);
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.13),
-        inset 0 9px 0 rgba(255,255,255,0.05),
-        inset 0 -1px 0 rgba(255,247,214,0.26),
-        inset 0 -18px 32px rgba(38, 48, 93, 0.13);
+      content: none;
     }
     .primary-cta > * {
       position: relative;
       z-index: 1;
     }
     .primary-cta[data-mode="continue"] {
-      background:
-        radial-gradient(circle at 82% 18%, rgba(255, 229, 157, 0.32) 0%, rgba(255, 229, 157, 0.10) 22%, rgba(255, 229, 157, 0) 40%),
-        radial-gradient(circle at 14% 100%, rgba(101, 196, 102, 0.22) 0%, rgba(101, 196, 102, 0) 46%),
-        linear-gradient(132deg, #24516b 0%, #3f7fa2 45%, #6aaed0 74%, #f0b33d 118%);
+      background: #24516b;
     }
     .primary-cta:active {
       transform: translateY(1px) scale(0.988);
-      box-shadow:
-        0 7px 16px rgba(62, 78, 137, 0.22),
-        0 0 0 1px rgba(255, 223, 139, 0.36),
-        0 0 18px rgba(255, 210, 74, 0.12),
-        inset 0 1px 0 rgba(255,255,255,0.24),
-        inset 0 -12px 22px rgba(26, 31, 44, 0.13);
+      box-shadow: 2px 2px 0 #0A0A0A;
     }
     /* CTA decorative shapes */
     .cta-deco {
@@ -29261,9 +29189,7 @@ body.bptune-enabled .bptune-active{
     .gacha-reminder {
       margin-top: 12px;
       padding: 14px 16px;
-      background:
-        radial-gradient(circle at 8% 16%, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.24) 38%, rgba(255,255,255,0) 62%),
-        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 62%, #ffffff 100%);
+      background: #FFFFFF;
       border-radius: 14px;
       display: flex;
       align-items: center;
@@ -29271,16 +29197,13 @@ body.bptune-enabled .bptune-active{
       cursor: pointer;
       position: relative;
       overflow: visible;
-      box-shadow:
-        0 10px 22px rgba(76, 108, 135, 0.11),
-        0 2px 5px rgba(26, 31, 44, 0.05),
-        inset 0 1px 0 var(--home-card-highlight);
+      box-shadow: 4px 4px 0 #0A0A0A;
       transition: transform 0.1s ease;
-      border: 1px solid var(--home-card-edge);
+      border: 2.5px solid #0A0A0A;
     }
     .gacha-reminder:active { transform: scale(0.99); }
     .gacha-reminder.is-ready {
-      box-shadow: var(--ready-card-shadow);
+      box-shadow: 4px 4px 0 #0A0A0A;
     }
     .gacha-reminder.is-ready::before {
       content: "!";
@@ -29362,16 +29285,17 @@ body.bptune-enabled .bptune-active{
     }
     .section-title {
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 900;
       letter-spacing: 0.16em;
-      color: var(--ink-500);
+      color: #0A0A0A;
       text-transform: uppercase;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
     .section-title .section-emoji {
-      font-size: 14px;
+      font-size: 18px;
+      line-height: 1;
     }
     .section-badge {
       font-size: 11px;
@@ -29395,16 +29319,11 @@ body.bptune-enabled .bptune-active{
 
     /* === MISSION === */
     .mission-card {
-      background:
-        radial-gradient(circle at 8% 0%, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.24) 34%, rgba(255,255,255,0) 58%),
-        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 62%, #ffffff 100%);
+      background: #FFFFFF;
       border-radius: 14px;
       padding: 6px 16px;
-      border: 1px solid var(--home-card-edge);
-      box-shadow:
-        0 10px 22px rgba(76, 108, 135, 0.10),
-        0 2px 5px rgba(26, 31, 44, 0.05),
-        inset 0 1px 0 var(--home-card-highlight);
+      border: 2.5px solid #0A0A0A;
+      box-shadow: 4px 4px 0 #0A0A0A;
     }
     .mission-row {
       display: flex;
@@ -29523,19 +29442,14 @@ body.bptune-enabled .bptune-active{
     .bonus-card {
       position: relative;
       overflow: hidden;
-      background:
-        radial-gradient(circle at 8% 18%, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.32) 34%, rgba(255,255,255,0) 58%),
-        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 64%, #fff 100%);
+      background: #FFFFFF;
       border-radius: 14px;
       padding: 14px 16px;
       display: flex;
       align-items: center;
       gap: 12px;
-      border: 1px solid var(--home-card-edge);
-      box-shadow:
-        0 10px 22px rgba(76, 108, 135, 0.10),
-        0 2px 5px rgba(26, 31, 44, 0.05),
-        inset 0 1px 0 var(--home-card-highlight);
+      border: 2.5px solid #0A0A0A;
+      box-shadow: 4px 4px 0 #0A0A0A;
     }
     .bonus-card::before {
       content: "";
@@ -29736,11 +29650,11 @@ body.bptune-enabled .bptune-active{
       z-index: 1;
     }
     .screen-title {
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      color: var(--ink-900);
-      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      color: #0A0A0A;
+      text-shadow: 3px 3px 0 #FF4A1C;
     }
     .currency-row {
       display: flex;
@@ -30974,11 +30888,11 @@ body.bptune-enabled .bptune-active{
       z-index: 1;
     }
     .screen-title {
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      color: var(--ink-900);
-      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      color: #0A0A0A;
+      text-shadow: 3px 3px 0 #FF4A1C;
     }
     .header-info {
       display: inline-flex;
@@ -31021,38 +30935,14 @@ body.bptune-enabled .bptune-active{
       margin-top: 8px;
       border-radius: 22px;
       padding: 18px 18px 20px;
-      background:
-        radial-gradient(circle at 14% 8%, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.40) 28%, rgba(255,255,255,0) 56%),
-        radial-gradient(circle at 86% 88%, rgba(255, 210, 74, 0.46) 0%, rgba(255, 210, 74, 0.16) 42%, rgba(255, 210, 74, 0) 72%),
-        radial-gradient(circle at 72% 80%, rgba(251, 191, 36, 0.18) 0%, rgba(251, 191, 36, 0) 42%),
-        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 56%, #ffffff 100%);
-      border: 3px solid transparent;
-      background-clip: padding-box;
-      box-shadow:
-        0 0 30px var(--rank-frame-halo),
-        0 18px 36px rgba(76, 108, 135, 0.16),
-        0 8px 16px rgba(76, 108, 135, 0.08),
-        0 2px 5px rgba(26, 31, 44, 0.05),
-        inset 0 1px 0 rgba(255, 250, 220, 0.96),
-        inset 0 2px 3px rgba(255, 235, 178, 0.42),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.46);
+      background: var(--cta-navy);
+      border: 2.5px solid #0A0A0A;
+      box-shadow: 4px 4px 0 #0A0A0A;
       overflow: visible;
       isolation: isolate;
+      color: #FFFFFF;
     }
-    /* 金色 3px 枠 */
-    .rank-card::before {
-      content: "";
-      position: absolute;
-      inset: -3px;
-      border-radius: 25px;
-      padding: 3px;
-      background: linear-gradient(135deg, #fde68a 0%, #fbbf24 18%, #f59e0b 38%, #b45309 50%, #f59e0b 62%, #fbbf24 82%, #fde68a 100%);
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-              mask-composite: exclude;
-      pointer-events: none;
-      z-index: -1;
-    }
+    .rank-card::before { content: none; }
     .rank-card::after {
       content: "";
       position: absolute;
@@ -31425,16 +31315,17 @@ body.bptune-enabled .bptune-active{
     }
     .section-title {
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 900;
       letter-spacing: 0.16em;
-      color: var(--ink-500);
+      color: #0A0A0A;
       text-transform: uppercase;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
     .section-title .section-emoji {
-      font-size: 14px;
+      font-size: 18px;
+      line-height: 1;
     }
 
     /* ============ 練習セクション (settings-card と同形) ============ */
@@ -31617,11 +31508,11 @@ body.bptune-enabled .bptune-active{
       z-index: 1;
     }
     .screen-title {
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      color: var(--ink-900);
-      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      color: #0A0A0A;
+      text-shadow: 3px 3px 0 #FF4A1C;
     }
     .header-action {
       display: flex;
@@ -31660,20 +31551,11 @@ body.bptune-enabled .bptune-active{
 
     /* ============ プロフィールカード (more_v2 から流用) ============ */
     .profile-card {
-      background:
-        radial-gradient(circle at 12% 2%, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.58) 30%, rgba(255,255,255,0) 60%),
-        radial-gradient(circle at 92% 112%, rgba(255, 210, 74, 0.42) 0%, rgba(255, 210, 74, 0.18) 42%, rgba(255, 210, 74, 0) 72%),
-        radial-gradient(circle at 76% 86%, rgba(251, 191, 36, 0.16) 0%, rgba(251, 191, 36, 0) 42%),
-        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 62%, #ffffff 100%);
+      background: #FFFFFF;
       border-radius: 18px;
       padding: 14px 16px 16px;
-      border: 1px solid var(--profile-card-edge);
-      box-shadow:
-        0 16px 32px rgba(76, 108, 135, 0.14),
-        0 7px 14px rgba(76, 108, 135, 0.08),
-        0 2px 5px rgba(26, 31, 44, 0.05),
-        inset 0 1px 0 rgba(255, 246, 199, 0.92),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.46);
+      border: 2.5px solid #0A0A0A;
+      box-shadow: 4px 4px 0 #0A0A0A;
       position: relative;
       margin-top: 8px;
       overflow: visible;
@@ -31870,15 +31752,10 @@ body.bptune-enabled .bptune-active{
       font-size: 12px;
       padding: 6px 12px 6px 9px;
       border-radius: 14px;
-      background:
-        radial-gradient(circle at 22% 18%, rgba(255,255,255,0.86) 0%, rgba(255,255,255,0.22) 34%, rgba(255,255,255,0) 52%),
-        linear-gradient(180deg, #fff7d6 0%, #fde68a 62%, #fbd55b 100%);
-      color: var(--pomu-gold-deep);
-      border: 1px solid rgba(146, 64, 14, 0.18);
-      box-shadow:
-        0 3px 8px rgba(146, 64, 14, 0.10),
-        inset 0 1px 0 rgba(255,255,255,0.78),
-        inset 0 -1px 0 rgba(146, 64, 14, 0.08);
+      background: #FFFFFF;
+      color: #0A0A0A;
+      border: 1.5px solid #0A0A0A;
+      box-shadow: 2px 2px 0 #0A0A0A;
     }
     .profile-badge--rate {
       background: var(--cloud-white);
@@ -31903,7 +31780,7 @@ body.bptune-enabled .bptune-active{
     .profile-badge--rank .badge-icon {
       width: 14px;
       height: 14px;
-      filter: drop-shadow(0 1px 2px rgba(146, 64, 14, 0.30));
+      color: #FF4A1C;
     }
 
     @keyframes profileSparklePulse {
@@ -32003,16 +31880,17 @@ body.bptune-enabled .bptune-active{
     }
     .section-title {
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 900;
       letter-spacing: 0.16em;
-      color: var(--ink-500);
+      color: #0A0A0A;
       text-transform: uppercase;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
     .section-title .section-emoji {
-      font-size: 14px;
+      font-size: 18px;
+      line-height: 1;
     }
     .section-action {
       font-size: 11px;
@@ -32063,15 +31941,10 @@ body.bptune-enabled .bptune-active{
 
     /* ============ 汎用カード (settings-card と同形) ============ */
     .list-card {
-      background:
-        radial-gradient(circle at 8% 0%, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.24) 34%, rgba(255,255,255,0) 58%),
-        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 62%, #ffffff 100%);
+      background: #FFFFFF;
       border-radius: 14px;
-      border: 1px solid var(--profile-card-edge);
-      box-shadow:
-        0 10px 22px rgba(76, 108, 135, 0.10),
-        0 2px 5px rgba(26, 31, 44, 0.05),
-        inset 0 1px 0 var(--profile-card-highlight);
+      border: 2.5px solid #0A0A0A;
+      box-shadow: 4px 4px 0 #0A0A0A;
       overflow: hidden;
     }
 
@@ -32316,23 +32189,23 @@ body.bptune-enabled .bptune-active{
       height: 16px;
     }
     .friend-action-btn--battle {
-      background: linear-gradient(180deg, var(--cta-primary-a) 0%, var(--cta-primary-b) 100%);
-      color: var(--cta-primary-deep);
+      background: linear-gradient(180deg, #4FD1BD 0%, #2BB8A3 100%);
+      color: #FFFFFF;
       box-shadow:
-        0 4px 10px rgba(245, 158, 11, 0.28),
-        0 0 0 1px rgba(146, 64, 14, 0.14),
-        inset 0 1px 0 rgba(255,255,255,0.86),
-        inset 0 -1px 0 rgba(146, 64, 14, 0.12);
+        0 4px 10px rgba(43, 184, 163, 0.30),
+        0 0 0 1px rgba(20, 90, 80, 0.18),
+        inset 0 1px 0 rgba(255,255,255,0.45),
+        inset 0 -1px 0 rgba(20, 90, 80, 0.20);
     }
     .friend-action-btn--battle:hover {
       transform: scale(1.04);
-      background: linear-gradient(180deg, #ffe38a 0%, var(--pomu-yellow) 100%);
+      background: linear-gradient(180deg, #5FDDC9 0%, #38C9B3 100%);
       box-shadow:
-        0 5px 13px rgba(245, 158, 11, 0.30),
-        0 0 0 4px rgba(255, 210, 74, 0.20),
-        0 0 14px rgba(255, 210, 74, 0.22),
-        inset 0 1px 0 rgba(255,255,255,0.90),
-        inset 0 -1px 0 rgba(146, 64, 14, 0.14);
+        0 5px 13px rgba(43, 184, 163, 0.34),
+        0 0 0 4px rgba(43, 184, 163, 0.18),
+        0 0 14px rgba(43, 184, 163, 0.20),
+        inset 0 1px 0 rgba(255,255,255,0.50),
+        inset 0 -1px 0 rgba(20, 90, 80, 0.22);
     }
     .friend-action-btn--battle:active {
       transform: scale(0.94);
@@ -32528,11 +32401,11 @@ body.bptune-enabled .bptune-active{
       z-index: 1;
     }
     .screen-title {
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      color: var(--ink-900);
-      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      color: #0A0A0A;
+      text-shadow: 3px 3px 0 #FF4A1C;
     }
 
     .screen-body {
@@ -32545,20 +32418,11 @@ body.bptune-enabled .bptune-active{
 
     /* ============ プロフィールカード ============ */
     .profile-card {
-      background:
-        radial-gradient(circle at 12% 2%, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.58) 30%, rgba(255,255,255,0) 60%),
-        radial-gradient(circle at 92% 112%, rgba(255, 210, 74, 0.42) 0%, rgba(255, 210, 74, 0.18) 42%, rgba(255, 210, 74, 0) 72%),
-        radial-gradient(circle at 76% 86%, rgba(251, 191, 36, 0.16) 0%, rgba(251, 191, 36, 0) 42%),
-        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 62%, #ffffff 100%);
+      background: #FFFFFF;
       border-radius: 18px;
       padding: 14px 16px 16px;
-      border: 1px solid var(--profile-card-edge);
-      box-shadow:
-        0 16px 32px rgba(76, 108, 135, 0.14),
-        0 7px 14px rgba(76, 108, 135, 0.08),
-        0 2px 5px rgba(26, 31, 44, 0.05),
-        inset 0 1px 0 rgba(255, 246, 199, 0.92),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.46);
+      border: 2.5px solid #0A0A0A;
+      box-shadow: 4px 4px 0 #0A0A0A;
       position: relative;
       margin-top: 8px;
       overflow: visible;
@@ -32763,15 +32627,10 @@ body.bptune-enabled .bptune-active{
       font-size: 12px;
       padding: 6px 12px 6px 9px;
       border-radius: 14px;
-      background:
-        radial-gradient(circle at 22% 18%, rgba(255,255,255,0.86) 0%, rgba(255,255,255,0.22) 34%, rgba(255,255,255,0) 52%),
-        linear-gradient(180deg, #fff7d6 0%, #fde68a 62%, #fbd55b 100%);
-      color: var(--pomu-gold-deep);
-      border: 1px solid rgba(146, 64, 14, 0.18);
-      box-shadow:
-        0 3px 8px rgba(146, 64, 14, 0.10),
-        inset 0 1px 0 rgba(255,255,255,0.78),
-        inset 0 -1px 0 rgba(146, 64, 14, 0.08);
+      background: #FFFFFF;
+      color: #0A0A0A;
+      border: 1.5px solid #0A0A0A;
+      box-shadow: 2px 2px 0 #0A0A0A;
     }
     .profile-badge--rate {
       background: var(--cloud-white);
@@ -32796,7 +32655,7 @@ body.bptune-enabled .bptune-active{
     .profile-badge--rank .badge-icon {
       width: 14px;
       height: 14px;
-      filter: drop-shadow(0 1px 1px rgba(146, 64, 14, 0.18));
+      color: #FF4A1C;
     }
 
     @keyframes profileSparklePulse {
@@ -32813,29 +32672,25 @@ body.bptune-enabled .bptune-active{
     }
     .section-title {
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 900;
       letter-spacing: 0.16em;
-      color: var(--ink-500);
+      color: #0A0A0A;
       text-transform: uppercase;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
     .section-title .section-emoji {
-      font-size: 14px;
+      font-size: 18px;
+      line-height: 1;
     }
 
     /* ============ 設定カード(リスト) ============ */
     .settings-card {
-      background:
-        radial-gradient(circle at 8% 0%, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.24) 34%, rgba(255,255,255,0) 58%),
-        linear-gradient(180deg, var(--cloud-soft) 0%, var(--cloud-white) 62%, #ffffff 100%);
+      background: #FFFFFF;
       border-radius: 14px;
-      border: 1px solid var(--profile-card-edge);
-      box-shadow:
-        0 10px 22px rgba(76, 108, 135, 0.10),
-        0 2px 5px rgba(26, 31, 44, 0.05),
-        inset 0 1px 0 var(--profile-card-highlight);
+      border: 2.5px solid #0A0A0A;
+      box-shadow: 4px 4px 0 #0A0A0A;
       overflow: hidden;
     }
 
@@ -32861,23 +32716,22 @@ body.bptune-enabled .bptune-active{
     .row-icon {
       width: 30px;
       height: 30px;
-      border-radius: 9px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
       background: var(--row-icon-bg);
       color: var(--ink-900);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.64),
-        0 1px 2px rgba(26,31,44,0.03);
+      border: 1.5px solid #0A0A0A;
+      box-shadow: 2px 2px 0 #0A0A0A;
     }
     .row-icon svg {
       width: 18px;
       height: 18px;
       overflow: visible;
     }
-    .row-icon--warm { background: var(--row-icon-bg-warm); color: var(--pomu-gold-deep); }
+    .row-icon--warm { background: var(--row-icon-bg-warm); color: #FF4A1C; }
     .row-icon--mint { background: var(--row-icon-bg-mint); color: #15803d; }
     .row-icon--rose { background: var(--row-icon-bg-rose); color: #b91c1c; }
 
