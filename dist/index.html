@@ -2243,7 +2243,9 @@ html body.ui-v2.fl-mode .opp-card{
   color: transparent;
   line-height: 0;
 }
-/* Session 24 fix1/2/3: body.shop-fab-visible 時のみ shop-fab 表示 */
+/* Phase γ-v3: 最小構成リリースのため shop-fab を完全廃止 */
+.shop-fab { display: none !important; visibility: hidden !important; }
+/* Session 24 fix1/2/3 (旧仕様、上書きで無効化): body.shop-fab-visible 時のみ shop-fab 表示 */
 body.shop-fab-visible .shop-fab{
   opacity: 1;
   pointer-events: auto;
@@ -6773,6 +6775,23 @@ body.tut-active.tut-interactive #screen-game .slot{
   opacity: 1;
 }
 
+#whiteoutOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #FFFFFF;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9998;
+  transition: opacity 0.60s ease-in;
+  will-change: opacity;
+}
+#whiteoutOverlay.is-flash {
+  opacity: 1;
+}
+#whiteoutOverlay.is-fading-out {
+  opacity: 0;
+  transition: opacity 0.35s ease-out;
+}
 #transitionVideo {
   z-index: 0;
 }
@@ -7886,7 +7905,7 @@ body.tut-active.tut-interactive #screen-game .slot{
   overflow:hidden;
 }
 
-/* 既存装飾を全部隠す */
+/* Session 35.15 (2026-06-28): PNG オーバーレイ版に戻したため文字列版 back-btn を再び隠す */
 #screen-friend-match > .back-to-mode-select-btn,
 #screen-friend-match > .mode-neon-bg,
 #screen-friend-match > .select-deco-icon,
@@ -7904,6 +7923,178 @@ body.tut-active.tut-interactive #screen-game .slot{
   background-repeat:no-repeat;
   z-index:0;
 }
+
+/* Session 35.8 (2026-06-22): Y2K Shibuya Punk 統一 = screen-battle に渋谷背景 */
+/* Session 35.12 (2026-06-22): screen-friend-match にも同じ背景を適用 */
+#screen-battle .battle-bg-layer,
+#screen-friend-match .battle-bg-layer{
+  position:absolute;
+  inset:0;
+  background-image:url('assets/bg_cityscape.png');
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  z-index:0;
+  pointer-events:none;
+}
+
+/* Session 35.9 (2026-06-22): Y2K Shibuya Punk 統一 = フレンドバトル系サブ画面に渋谷背景 */
+#screen-quickmatch .online-bg-layer,
+#screen-friends .online-bg-layer,
+#screen-online-profile .online-bg-layer{
+  position:absolute;
+  inset:0;
+  background-image:url('assets/bg_cityscape.png');
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  z-index:0;
+  pointer-events:none;
+}
+
+/* ====================================================== */
+/* Session 35.10 (2026-06-22): Y2K Shibuya Punk Phase 2+3 */
+/* フレンドバトル系サブ画面の中身を統一 (mode-neon-bg 撤去 + タイポ + ボタン) */
+/* ====================================================== */
+
+/* Phase 1: 黄色ひし形ネオン背景を撤去 (渋谷背景を綺麗に見せるため) */
+#screen-quickmatch .mode-neon-bg,
+#screen-online-profile .mode-neon-bg{
+  display:none !important;
+}
+
+/* Phase 2: タイトル文字をマンガ・スプレー風タイポ (黒インク stroke 風) */
+#screen-quickmatch .mode-select-title,
+#screen-online-profile .mode-select-title,
+#screen-friends .friends-title{
+  font-family: 'Anton', 'Bebas Neue', 'Noto Sans JP', sans-serif !important;
+  font-weight: 900 !important;
+  font-size: 36px !important;
+  color: #fff !important;
+  letter-spacing: 0.04em !important;
+  text-shadow:
+    -2px -2px 0 #0a0a0a,
+    2px -2px 0 #0a0a0a,
+    -2px 2px 0 #0a0a0a,
+    2px 2px 0 #0a0a0a,
+    0 0 0 #0a0a0a,
+    4px 4px 0 rgba(232,101,26,0.65),
+    6px 6px 12px rgba(0,0,0,0.35) !important;
+  transform: rotate(-1.5deg);
+  display: inline-block;
+  position: relative;
+  z-index: 5;
+}
+
+/* Phase 2: サブタイトル (説明文) を黒背景白字のステッカー風 */
+#screen-quickmatch .mode-select-desc,
+#screen-online-profile .mode-select-desc{
+  background: rgba(20, 20, 30, 0.88) !important;
+  color: #fff !important;
+  padding: 6px 14px !important;
+  border-radius: 4px !important;
+  border: 2px solid #0a0a0a !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  display: inline-block !important;
+  letter-spacing: 0.05em !important;
+  transform: rotate(0.5deg);
+  position: relative;
+  z-index: 5;
+  box-shadow: 3px 3px 0 #0a0a0a;
+}
+
+/* Phase 3: メインボタン (mode-btn primary) をステッカー風 (黄色塗り + 黒太枠 + 影 + 微回転) */
+#screen-quickmatch .mode-btn.primary{
+  background: linear-gradient(135deg, #FFD449 0%, #F5A623 100%) !important;
+  border: 3px solid #0a0a0a !important;
+  border-radius: 14px !important;
+  box-shadow:
+    5px 5px 0 #0a0a0a,
+    8px 8px 16px rgba(0,0,0,0.25) !important;
+  transform: rotate(-1deg);
+  position: relative;
+  z-index: 4;
+  overflow: visible !important;
+}
+#screen-quickmatch .mode-btn.primary:active{
+  transform: rotate(-1deg) translate(2px, 2px) !important;
+  box-shadow:
+    3px 3px 0 #0a0a0a,
+    5px 5px 10px rgba(0,0,0,0.2) !important;
+}
+#screen-quickmatch .mode-btn.primary .mode-btn-title{
+  color: #0a0a0a !important;
+  font-weight: 900 !important;
+  text-shadow: none !important;
+}
+#screen-quickmatch .mode-btn.primary .mode-btn-sub{
+  color: #2a1a0a !important;
+  font-weight: 700 !important;
+}
+
+/* Phase 3: 4桁コード入力ブロックを白カード風 (渋谷背景を透かす) */
+#screen-quickmatch .qm-join-block{
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 2.5px solid #0a0a0a !important;
+  border-radius: 12px !important;
+  box-shadow: 4px 4px 0 #0a0a0a, 6px 6px 12px rgba(0,0,0,0.2) !important;
+  transform: rotate(0.8deg);
+  position: relative;
+  z-index: 3;
+}
+
+/* Phase 3: 「参加する」ボタンをステッカー風緑 */
+#screen-quickmatch .qm-join-btn{
+  background: linear-gradient(135deg, #2BB8A3 0%, #1F8B7B 100%) !important;
+  border: 2.5px solid #0a0a0a !important;
+  color: #fff !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.05em !important;
+  border-radius: 10px !important;
+  box-shadow: 3px 3px 0 #0a0a0a !important;
+}
+#screen-quickmatch .qm-join-btn:active{
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0 #0a0a0a !important;
+}
+
+/* Phase 3: フレンドリスト本体を半透明白カード (渋谷背景透かす) */
+#screen-friends .friends-body{
+  position: relative;
+  z-index: 2;
+}
+#screen-friends .friends-section{
+  background: rgba(255, 255, 255, 0.88) !important;
+  border: 2px solid #0a0a0a !important;
+  border-radius: 10px !important;
+  box-shadow: 3px 3px 0 #0a0a0a !important;
+  padding: 10px !important;
+  margin-bottom: 10px !important;
+}
+
+/* Phase 3: 「フレンドを追加」ボタンをステッカー風オレンジ */
+#screen-friends .friends-add-btn{
+  background: linear-gradient(135deg, #FF6B35 0%, #E8501A 100%) !important;
+  border: 3px solid #0a0a0a !important;
+  border-radius: 12px !important;
+  box-shadow: 4px 4px 0 #0a0a0a !important;
+  color: #fff !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.04em !important;
+}
+#screen-friends .friends-add-btn:active{
+  transform: translate(2px, 2px) !important;
+  box-shadow: 2px 2px 0 #0a0a0a !important;
+}
+
+/* online-profile のフォーム部分も同じトーンで */
+#screen-online-profile .mode-select-body{
+  position: relative;
+  z-index: 2;
+}
+
+/* ====================================================== */
 
 /* 各画像オーバーレイ */
 #screen-friend-match .friend-overlay-img{
@@ -11682,6 +11873,8 @@ body.tut-active.tut-interactive #screen-game .slot{
   <button class="friend-tap-back-btn" type="button" onclick="backToModeSelect()" aria-label="モード選択に戻る"></button>
 </div>
 <div class="screen" id="screen-friends">
+  <!-- Session 35.9 (2026-06-22): Y2K Shibuya Punk 統一 = bg_cityscape 背景 -->
+  <div class="online-bg-layer" aria-hidden="true"></div>
   <!-- fix24: モード選択へ戻るボタン -->
   <button class="back-to-mode-select-btn" type="button" onclick="backToModeSelect()">
     <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
@@ -11729,6 +11922,8 @@ body.tut-active.tut-interactive #screen-game .slot{
 
 <!-- v28.91 M5: クイックマッチ エントリ画面 -->
 <div class="screen" id="screen-quickmatch">
+  <!-- Session 35.9 (2026-06-22): Y2K Shibuya Punk 統一 = bg_cityscape 背景 -->
+  <div class="online-bg-layer" aria-hidden="true"></div>
   <!-- fix36: モード選択へ戻るボタン -->
   <button class="back-to-mode-select-btn" type="button" onclick="backToModeSelect()">
     <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
@@ -11873,6 +12068,8 @@ body.tut-active.tut-interactive #screen-game .slot{
 
 <!-- v28.90 M4: オンライン対戦 > プロフィール画面 (設定モーダルから移設) -->
 <div class="screen" id="screen-online-profile">
+  <!-- Session 35.9 (2026-06-22): Y2K Shibuya Punk 統一 = bg_cityscape 背景 -->
+  <div class="online-bg-layer" aria-hidden="true"></div>
   <!-- fix36: モード選択へ戻るボタン -->
   <button class="back-to-mode-select-btn" type="button" onclick="backToModeSelect()">
     <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
@@ -12312,7 +12509,6 @@ body.tut-active.tut-interactive #screen-game .slot{
     <div class="interactive-layer">
       <button class="btn-start-white" id="btnStart" type="button" aria-label="プレイ開始">PLAY NOW</button>
       <button class="btn-neighbors-settings" type="button" aria-label="設定を開く" onclick="onSettingsClick()">設定</button>
-      <button class="btn-ia-v2-test" type="button" aria-label="IA v2 タブ画面 (開発中)" onclick="showScreen('home')">v2 TABS</button>
     </div>
   </div>
 </div>
@@ -12321,6 +12517,8 @@ body.tut-active.tut-interactive #screen-game .slot{
 <div class="mode-transition-overlay" id="modeTransitionOverlay"></div>
 
 <!-- v3a_clean: 動画遷移レイヤー(チャイポネイバーズ統合) -->
+<!-- Phase γ-v2.8: 動画末尾ホワイトアウトオーバーレイ -->
+<div id="whiteoutOverlay" aria-hidden="true"></div>
 <div class="transition-video-layer" id="transitionLayer">
   <video id="transitionVideo" muted playsinline webkit-playsinline preload="none" poster="assets/bg_cityscape.png">
     <source src="assets/transition_to_home.mp4" type="video/mp4">
@@ -19242,6 +19440,26 @@ function onPlayClick(){
   video.classList.remove('video-ready');
   try { video.pause(); video.currentTime = 0; } catch(e){}
 
+  // Phase γ-v2.8: ホワイトアウト用オーバーレイ参照
+  var whiteoutEl = document.getElementById('whiteoutOverlay');
+  var whiteoutTriggered = false;
+
+  // 動画末尾 0.7s 前から白フェードイン開始 (Phase γ-v2.9 で早めに)
+  var whiteoutTimeupdate = function(){
+    if(whiteoutTriggered) return;
+    if(!video.duration || isNaN(video.duration)) return;
+    var remaining = video.duration - video.currentTime;
+    if(remaining <= 0.70 && remaining > 0){
+      whiteoutTriggered = true;
+      if(whiteoutEl){
+        whiteoutEl.classList.remove('is-fading-out');
+        whiteoutEl.classList.add('is-flash');
+        console.log('[NEIGHBORS] whiteout フェードイン開始 (残り ' + remaining.toFixed(2) + 's)');
+      }
+    }
+  };
+  video.addEventListener('timeupdate', whiteoutTimeupdate);
+
   // 遷移動画の ended ハンドラ
   var endedFired = false;
   var endedHandler = function(){
@@ -19249,12 +19467,32 @@ function onPlayClick(){
     endedFired = true;
     video.pause();
     console.log('[NEIGHBORS] 遷移動画 ended @ ' + video.currentTime.toFixed(2) + 's → home (Phase D-2)');
+    // 安全策: timeupdate がスキップされて whiteout が発火していない場合は即発火
+    if(whiteoutEl && !whiteoutTriggered){
+      whiteoutTriggered = true;
+      whiteoutEl.classList.add('is-flash');
+    }
     // Phase D-2: 動画 ended → home タブへ遷移、transitionLayer を非表示
     if(typeof showScreen === 'function') {
       showScreen('home');
     }
     transitionLayer.classList.remove('is-active');
     video.classList.remove('video-ready');
+    video.removeEventListener('timeupdate', whiteoutTimeupdate);
+    // Phase γ-v2.8: 50ms 後に白フェードアウト
+    setTimeout(function(){
+      if(whiteoutEl){
+        whiteoutEl.classList.remove('is-flash');
+        whiteoutEl.classList.add('is-fading-out');
+        // フェードアウト完了後にクラス清掃
+        setTimeout(function(){
+          if(whiteoutEl){
+            whiteoutEl.classList.remove('is-fading-out');
+            whiteoutTriggered = false;
+          }
+        }, 400);
+      }
+    }, 50);
   };
   video.addEventListener('ended', endedHandler, { once: true });
   setTimeout(function(){
@@ -19451,9 +19689,46 @@ function backToTitleFromSettings(){
 
 // fix24: モード画面からモード選択へ戻る関数
 function backToModeSelect(){
+  /* Phase γ fix (2026-06-22): Phase D-2 で screen-mode-select 廃止 + Phase D-1 で
+     modeButtons/loopVideo 削除済みなのに、本関数だけ旧仕様 (screen-title.active +
+     transitionLayer.is-active 復活) のまま残っていた。
+     これがフレンドバトル戻る等でホーム画面に飛ぶ + PLAY NOW 無反応の真因。
+     修正: サブ画面 → 対応する親タブに showScreen で戻す。以降の旧コードは
+     早期 return で到達不可化 (デッドコード残置、後日整理予定)。 */
   if(typeof window.haptic === "function") window.haptic(15);
-  console.log('[NEIGHBORS] モード選択へ戻る');
 
+  // サブ画面 → 親タブのマッピング
+  var subScreenToParentTab = {
+    'ai-select':      'battle',
+    'fl-select':      'battle',
+    'online-match':   'battle',
+    'quickmatch':     'battle',
+    'room-waiting':   'battle',
+    'friend-match':   'friend',
+    'friends':        'friend',
+    'online-profile': 'friend',
+    'stats':          'more',
+    'settings':       'more',
+    'shop':           'town'
+  };
+
+  // Session 35.7 (2026-06-22): 履歴ベース戻る
+  // 元: subScreenToParentTab で固定マッピング (friend-match → friend 固定)
+  // 修正: window._lastNavTab で直前のタブを記憶 → home からフレンドバトルへ来たら home に戻る
+  var returnTab = window._lastNavTab || 'home';
+  // サブ画面の active を全部外す
+  Object.keys(subScreenToParentTab).forEach(function(id){
+    var el = document.getElementById('screen-' + id);
+    if(el) el.classList.remove('active');
+  });
+
+  console.log('[NEIGHBORS] サブ画面から戻る → ' + returnTab + ' タブ');
+
+  // 親タブに戻る (showScreen が bottom-nav の状態管理も行う)
+  if(typeof showScreen === 'function') showScreen(returnTab);
+  return;
+
+  /* ===== 以下、旧コード (到達不可、後日整理予定) ===== */
   // 現在のモード画面を全クリーンアップ
   var allScreens = ['ai-select', 'fl-select', 'online-match', 'friend-match', 'friends', 'quickmatch', 'room-waiting', 'online-profile', 'stats', 'settings', 'shop'];
   allScreens.forEach(function(id){
@@ -19576,7 +19851,7 @@ function onSettingsClick(){
   console.warn('[NEIGHBORS] btnSettings 要素なし');
 }
 
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));var target=document.getElementById('screen-'+id);if(target)target.classList.add('active');var tabScreens=['home','town','battle','friend','more'];if(tabScreens.indexOf(id)>=0){document.body.classList.add('show-nav');document.querySelectorAll('#bottomNav .nav-tab').forEach(function(t){t.classList.toggle('nav-tab--active',t.getAttribute('data-tab')===id);});}else{document.body.classList.remove('show-nav');}}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));var target=document.getElementById('screen-'+id);if(target)target.classList.add('active');var tabScreens=['home','town','battle','friend','more'];if(tabScreens.indexOf(id)>=0){window._lastNavTab=id;/* Session 35.7: 直前のタブ記憶 (履歴ベース戻る用) */document.body.classList.add('show-nav');document.querySelectorAll('#bottomNav .nav-tab').forEach(function(t){t.classList.toggle('nav-tab--active',t.getAttribute('data-tab')===id);});}else{document.body.classList.remove('show-nav');}}
 
 // === Phase A-2 UI Fix v2: ショップ画面から確実にモード選択画面へ戻る ===
 function closeShopAndReturn(ev){
@@ -26008,271 +26283,95 @@ body.bptune-enabled .bptune-active{
 
 <!-- ===== IA v2 Tab Screens (Phase B B-2.1 skeleton) ===== -->
 <div class="screen tab" id="screen-home">
-<button class="v2-back" type="button" style="position:absolute;top:calc(var(--safe-top) + 10px);right:12px;z-index:5;" onclick="document.body.classList.remove('show-nav');showScreen('title');">← title</button>
-<svg class="sky-clouds-v2" viewBox="0 0 393 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <defs>
-      <radialGradient id="skyV2Spot" cx="50%" cy="0%" r="65%">
-        <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
-        <stop offset="40%" stop-color="#FFFFFF" stop-opacity="0.18"/>
-        <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
-      </radialGradient>
-      <pattern id="skyV2Grid" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
-        <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#2BB8A3" stroke-width="0.6" stroke-opacity="0.18"/>
-      </pattern>
-    </defs>
-    <rect x="0" y="0" width="393" height="280" fill="url(#skyV2Grid)"/>
-    <ellipse cx="196.5" cy="0" rx="280" ry="160" fill="url(#skyV2Spot)"/>
-    <g transform="translate(20, 14) rotate(-12)">
-      <path d="M0 -14 L4 -4 L14 -3 L6 4 L9 14 L0 8 L-9 14 L-6 4 L-14 -3 L-4 -4 Z" fill="#FF4A1C" stroke="#0A0A0A" stroke-width="1.6" stroke-linejoin="round"/>
-    </g>
-    <g transform="translate(360, 18) rotate(18)">
-      <path d="M2 -16 L-8 4 L-1 4 L-4 16 L8 -2 L2 -2 L4 -16 Z" fill="#0A0A0A" stroke="#0A0A0A" stroke-width="1.6" stroke-linejoin="round"/>
-    </g>
-    <g transform="translate(360, 180) rotate(28)">
-      <path d="M0 -10 L3 -3 L10 -2 L4 3 L6 10 L0 6 L-6 10 L-4 3 L-10 -2 L-3 -3 Z" fill="#2BB8A3" stroke="#0A0A0A" stroke-width="1.4" stroke-linejoin="round"/>
-    </g>
-  </svg>
 
-  
-
-  <!-- HOME HEADER -->
-  <div class="home-header">
-    <div class="header-left">
-      <div class="pomu-avatar-wrap" aria-label="プロフィール">
-        <img class="pomu-avatar-img" src="assets/pomu_pose_1.png" alt="ぽむ"/>
-      </div>
-      <div class="player-info">
-        <div class="rank">プラチナ 3</div>
-        <div class="rate">レート 1,247</div>
-      </div>
+  <div class="canvas-home">
+    <div class="hm4-layer hm4-layer-bg">
+      <img src="assets/bg_cityscape.png" alt="" aria-hidden="true"/>
+      <div class="hm4-overlay" aria-hidden="true"></div>
     </div>
-    <div class="header-right">
-      <div class="icon-btn" data-action="notifications" aria-label="通知">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 16 L6 16 L6 12 a6 6 0 0 1 12 0 Z"/>
-          <path d="M9 19 a3 3 0 0 0 6 0"/>
-          <line x1="12" y1="3" x2="12" y2="5"/>
-        </svg>
-        <span class="notif-dot"></span>
-      </div>
-      <div class="icon-btn" data-action="giftbox" aria-label="受け取りボックス">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="8" width="18" height="13" rx="1.5"/>
-          <line x1="3" y1="13" x2="21" y2="13"/>
-          <line x1="12" y1="8" x2="12" y2="21"/>
-          <path d="M8 8 a2 2 0 0 1 0 -4 c2 0 4 4 4 4"/>
-          <path d="M16 8 a2 2 0 0 0 0 -4 c-2 0 -4 4 -4 4"/>
-        </svg>
-        <span class="notif-dot"></span>
-      </div>
+
+    <div class="hm4-layer hm4-layer-pomu" aria-hidden="true">
+      <img src="assets/char_pomu.png" alt=""/>
     </div>
-  </div>
 
-  <div class="screen-body">
-
-    <!-- PRIMARY CTA -->
-    <div id="cta-default" class="primary-cta" data-mode="rank">
-      <span class="cta-deco cta-deco-1"></span>
-      <span class="cta-deco cta-deco-2"></span>
-      <svg class="cta-season-emblem" viewBox="0 0 110 86" aria-hidden="true">
-        <defs>
-          <linearGradient id="ctaEmblemGold" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#fff0a8"/>
-            <stop offset="58%" stop-color="#fbbf24"/>
-            <stop offset="100%" stop-color="#f59e0b"/>
-          </linearGradient>
-        </defs>
-        <path d="M55 7 L67 30 L93 23 L78 48 L88 76 H22 L32 48 L17 23 L43 30 Z"
-              fill="url(#ctaEmblemGold)" stroke="#fff7d6" stroke-width="2" stroke-linejoin="round"/>
-        <path d="M35 76 H75 L72 83 H38 Z" fill="url(#ctaEmblemGold)" stroke="#fff7d6" stroke-width="2" stroke-linejoin="round"/>
-        <path d="M39 50 H71 M44 60 H66" stroke="#fff7d6" stroke-width="4" stroke-linecap="round" opacity="0.72"/>
+    <header class="hm4-header">
+      <div class="hm4-logo">
+        <img src="assets/logo_home.png" alt="チャイポネイバーズ" class="hm4-logo-img"/>
+      </div>
+    </header>
+    <button class="hm4-settings" type="button" onclick="showScreen('more');" aria-label="設定">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
       </svg>
-      <span class="cta-toggle" id="cta-toggle">→ 中断ありver を見る</span>
-      <div>
-        <div class="cta-label-top" id="cta-label">RANK MATCH</div>
-        <div class="cta-title" id="cta-title">ランクマッチ</div>
-      </div>
-      <div class="cta-meta" id="cta-meta">シーズン1 ・ 残り12日</div>
-      <div class="cta-arrow" aria-hidden="true">→</div>
-    </div>
+    </button>
 
-    <!-- GACHA REMINDER -->
-    <div class="gacha-reminder is-ready" data-action="goto-town" role="button" tabindex="0">
-      <div class="gacha-mini-icon">
-        <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <defs>
-            <radialGradient id="homeMiniCardBg" cx="30%" cy="18%" r="82%">
-              <stop offset="0%" stop-color="#f7fdff"/>
-              <stop offset="34%" stop-color="#cfeaf5"/>
-              <stop offset="72%" stop-color="#98cfe5"/>
-              <stop offset="100%" stop-color="#75b8d5"/>
-            </radialGradient>
-            <linearGradient id="homeMiniCardEdge" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#ffffff" stop-opacity="0.72"/>
-              <stop offset="100%" stop-color="#3f8caf" stop-opacity="0.24"/>
-            </linearGradient>
-            <pattern id="homeMiniCloud" width="18" height="14" patternUnits="userSpaceOnUse">
-              <g fill="#ffffff" opacity="0.58">
-                <ellipse cx="5.4" cy="7" rx="3.9" ry="1.7"/>
-                <ellipse cx="9.2" cy="6" rx="3.4" ry="2.1"/>
-                <ellipse cx="12.8" cy="7.2" rx="4.1" ry="1.6"/>
-              </g>
-              <path d="M3 9 C6.2 10 11.7 10 15.7 9.1" stroke="#d8edf5" stroke-width="0.55" stroke-linecap="round" opacity="0.34"/>
-            </pattern>
-            <filter id="homeMiniCardShadow" x="-22%" y="-22%" width="150%" height="155%">
-              <feDropShadow dx="0.7" dy="1.25" stdDeviation="0.85" flood-color="#1a1f2c" flood-opacity="0.17"/>
-            </filter>
-          </defs>
-          <ellipse cx="30" cy="55" rx="18" ry="2.3" fill="#1a1f2c" opacity="0.12"/>
-          <g opacity="0.68" transform="rotate(-9 25 35)" filter="url(#homeMiniCardShadow)">
-            <rect x="10" y="14" width="32" height="42" rx="4.2" fill="url(#homeMiniCardBg)" stroke="#4e94b4" stroke-width="0.9"/>
-            <rect x="10" y="14" width="32" height="42" rx="4.2" fill="url(#homeMiniCloud)" opacity="0.56"/>
-          </g>
-          <g opacity="0.76" transform="rotate(8 36 35)" filter="url(#homeMiniCardShadow)">
-            <rect x="18" y="14" width="32" height="42" rx="4.2" fill="url(#homeMiniCardBg)" stroke="#4e94b4" stroke-width="0.9"/>
-            <rect x="18" y="14" width="32" height="42" rx="4.2" fill="url(#homeMiniCloud)" opacity="0.50"/>
-          </g>
-          <g filter="url(#homeMiniCardShadow)">
-            <rect x="14" y="10" width="32" height="42" rx="4.2" fill="url(#homeMiniCardBg)" stroke="#1a1f2c" stroke-width="1.25"/>
-            <rect x="14" y="10" width="32" height="42" rx="4.2" fill="url(#homeMiniCloud)" opacity="0.58"/>
-            <rect x="17" y="13" width="26" height="36" rx="3" fill="none" stroke="#ffffff" stroke-width="0.95" opacity="0.66"/>
-            <rect x="19.2" y="15.2" width="21.6" height="31.6" rx="2.3" fill="none" stroke="#1a1f2c" stroke-width="0.45" opacity="0.15"/>
-            <path d="M18 14 C24 12.2 36 12.2 42 14" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" opacity="0.72"/>
-            <path d="M20 38 L26 29 L30 34 L35 26 L41 38 Z"
-                  fill="#f8fcff" stroke="#1a1f2c" stroke-width="0.95" stroke-linejoin="round" opacity="0.96"/>
-            <g fill="#ffffff" stroke="#1a1f2c" stroke-width="0.65" opacity="0.94">
-              <ellipse cx="33.8" cy="26.4" rx="3.5" ry="1.4"/>
-              <ellipse cx="36.6" cy="25.5" rx="2.4" ry="1.9"/>
-              <ellipse cx="39" cy="26.7" rx="3" ry="1.25"/>
-            </g>
-            <rect x="14.8" y="10.8" width="30.4" height="6.8" rx="3.2" fill="url(#homeMiniCardEdge)" opacity="0.86"/>
-          </g>
-        </svg>
-      </div>
-      <div class="gacha-body">
-        <div class="gacha-title">無料パックが受け取れます</div>
-        <div class="gacha-sub">パイナップル背景パック × 1</div>
-      </div>
-      <div class="gacha-arrow" aria-hidden="true">›</div>
-    </div>
+    <main class="hm4-stickers">
 
-    <!-- MISSIONS -->
-    <div class="section-header">
-      <div class="section-title">
-        <span class="section-emoji">📅</span>
-        <span>今日のミッション</span>
-      </div>
-      <div class="section-badge">1 / 3</div>
-    </div>
-    <div class="mission-card">
-      <div class="mission-row done">
-        <div class="mission-check">
-          <svg viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="3,7 6,10 11,4"/>
-          </svg>
+      <section class="hm4-sticker hm4-sticker--online">
+        <div class="hm4-sticker-head">
+          <span class="hm4-sticker-num">01</span>
+          <h2 class="hm4-sticker-title">オンライン対戦</h2>
         </div>
-        <div class="mission-text">対戦を1回プレイする</div>
-        <div class="mission-reward">+10 XP</div>
-      </div>
-      <div class="mission-row">
-        <div class="mission-check"></div>
-        <div class="mission-text">1勝する</div>
-        <div class="mission-reward">+30 XP</div>
-      </div>
-      <div class="mission-row">
-        <div class="mission-check"></div>
-        <div class="mission-text">FLに到達する</div>
-        <div class="mission-reward">+50 XP</div>
-      </div>
-    </div>
+        <div class="hm4-sticker-items">
+          <button class="hm4-item hm4-item--disabled" type="button" disabled aria-disabled="true">
+            <span class="hm4-item-label">ランダムバトル</span>
+            <span class="hm4-item-badge">近日</span>
+          </button>
+          <button class="hm4-item" type="button" onclick="showScreen('friend-match');">
+            <span class="hm4-item-label">フレンドバトル</span>
+            <span class="hm4-item-arrow" aria-hidden="true">▸</span>
+          </button>
+        </div>
+      </section>
 
-    <!-- LOGIN BONUS -->
-    <div class="section-header">
-      <div class="section-title">
-        <span class="section-emoji">🎁</span>
-        <span>ログインボーナス</span>
-      </div>
-      <div class="section-badge streak">5日連続</div>
-    </div>
-    <div class="bonus-card">
-      <div class="bonus-icon" aria-hidden="true">
-        <svg viewBox="0 0 44 44">
-          <defs>
-            <linearGradient id="homeGiftBody" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"   stop-color="#ffe38a"/>
-              <stop offset="54%"  stop-color="#fbbf24"/>
-              <stop offset="100%" stop-color="#f59e0b"/>
-            </linearGradient>
-            <linearGradient id="homeGiftSide" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%"   stop-color="#fcd34d"/>
-              <stop offset="100%" stop-color="#e28b08"/>
-            </linearGradient>
-            <linearGradient id="homeGiftLid" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"   stop-color="#fff0a8"/>
-              <stop offset="48%"  stop-color="#fbbf24"/>
-              <stop offset="100%" stop-color="#f59e0b"/>
-            </linearGradient>
-            <linearGradient id="homeGiftRibbon" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#fb7185"/>
-              <stop offset="100%" stop-color="#dc2626"/>
-            </linearGradient>
-            <linearGradient id="homeGiftKnot" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#fecdd3"/>
-              <stop offset="100%" stop-color="#b91c1c"/>
-            </linearGradient>
-            <filter id="homeGiftShadow" x="-22%" y="-22%" width="144%" height="150%">
-              <feDropShadow dx="0.7" dy="1.6" stdDeviation="1" flood-color="#1a1f2c" flood-opacity="0.18"/>
-            </filter>
-          </defs>
-          <ellipse cx="22" cy="40" rx="16" ry="2.3" fill="#1a1f2c" opacity="0.12"/>
-          <g filter="url(#homeGiftShadow)">
-            <rect x="6.5" y="20" width="31" height="19.5" rx="2.2" fill="url(#homeGiftBody)" stroke="#92400e" stroke-width="1.15"/>
-            <path d="M29 20 H37.5 V39.5 H29 Z" fill="url(#homeGiftSide)" opacity="0.36"/>
-            <path d="M6.5 21.5 H37.5" stroke="#fff7c2" stroke-width="1.1" stroke-linecap="round" opacity="0.46"/>
-            <rect x="18.9" y="20" width="6.2" height="19.5" fill="url(#homeGiftRibbon)" stroke="#7f1d1d" stroke-width="0.7"/>
-            <path d="M18.9 20 H25.1 V39.5 H18.9 Z" fill="#ffffff" opacity="0.12"/>
-            <rect x="4" y="15" width="36" height="8.8" rx="1.9" fill="url(#homeGiftLid)" stroke="#92400e" stroke-width="1.15"/>
-            <path d="M5.2 23.8 H38.8" stroke="#7c2d12" stroke-width="1.1" stroke-linecap="round" opacity="0.26"/>
-            <rect x="18.8" y="15" width="6.4" height="8.8" fill="url(#homeGiftRibbon)" stroke="#7f1d1d" stroke-width="0.7"/>
-            <rect x="5.2" y="15.7" width="33.6" height="2.3" rx="1" fill="#ffffff" opacity="0.46"/>
-            <path d="M21.9 14.2 C16.6 9.1 12.6 8.4 12.2 12 C11.8 15.7 16.8 16.8 21.9 14.2 Z"
-                  fill="url(#homeGiftRibbon)" stroke="#7f1d1d" stroke-width="1.05" stroke-linejoin="round"/>
-            <path d="M22.1 14.2 C27.4 9.1 31.4 8.4 31.8 12 C32.2 15.7 27.2 16.8 22.1 14.2 Z"
-                  fill="url(#homeGiftRibbon)" stroke="#7f1d1d" stroke-width="1.05" stroke-linejoin="round"/>
-            <path d="M14.7 12 C17 11.8 19.2 12.6 21.2 14" stroke="#fecdd3" stroke-width="1" stroke-linecap="round" opacity="0.62"/>
-            <path d="M29.3 12 C27 11.8 24.8 12.6 22.8 14" stroke="#fecdd3" stroke-width="1" stroke-linecap="round" opacity="0.62"/>
-            <ellipse cx="22" cy="14.5" rx="3" ry="2.4" fill="url(#homeGiftKnot)" stroke="#7f1d1d" stroke-width="0.95"/>
-            <ellipse cx="21.2" cy="13.6" rx="1" ry="0.6" fill="#ffffff" opacity="0.42"/>
-          </g>
-        </svg>
-      </div>
-      <div class="bonus-text">
-        <div class="bonus-title">本日の報酬</div>
-        <div class="bonus-sub">100コイン + ぽむスタンプ</div>
-      </div>
-      <button class="bonus-button">受け取る</button>
-    </div>
+      <section class="hm4-sticker hm4-sticker--ai">
+        <div class="hm4-sticker-head">
+          <span class="hm4-sticker-num">02</span>
+          <h2 class="hm4-sticker-title">AI 対戦</h2>
+        </div>
+        <div class="hm4-sticker-items">
+          <button class="hm4-item" type="button" onclick="document.getElementById('btnAI2P')?.click();">
+            <span class="hm4-item-label">2 人対戦</span>
+            <span class="hm4-item-arrow" aria-hidden="true">▸</span>
+          </button>
+          <button class="hm4-item hm4-item--disabled" type="button" disabled aria-disabled="true">
+            <span class="hm4-item-label">3 人対戦</span>
+            <span class="hm4-item-badge">近日</span>
+          </button>
+        </div>
+      </section>
 
-    <!-- NEWS -->
-    <div class="section-header">
-      <div class="section-title">
-        <span class="section-emoji">📣</span>
-        <span>お知らせ</span>
-      </div>
-    </div>
-    <div class="news-banner" role="button" tabindex="0">
-      <div class="news-icon">!</div>
-      <div class="news-text">シーズン1 開幕! 5/15まで報酬2倍キャンペーン中</div>
-      <div class="news-arrow" aria-hidden="true">›</div>
-    </div>
+      <section class="hm4-sticker hm4-sticker--fl">
+        <div class="hm4-sticker-head">
+          <span class="hm4-sticker-num">03</span>
+          <h2 class="hm4-sticker-title">ファンタジー練習</h2>
+        </div>
+        <div class="hm4-sticker-items hm4-sticker-items--grid">
+          <button class="hm4-tile" type="button" onclick="document.querySelector('#screen-fl-select [data-fl=\'14\']')?.click();">
+            <span class="hm4-tile-num">14</span>
+            <span class="hm4-tile-sub">QQ</span>
+          </button>
+          <button class="hm4-tile" type="button" onclick="document.querySelector('#screen-fl-select [data-fl=\'15\']')?.click();">
+            <span class="hm4-tile-num">15</span>
+            <span class="hm4-tile-sub">KK</span>
+          </button>
+          <button class="hm4-tile" type="button" onclick="document.querySelector('#screen-fl-select [data-fl=\'16\']')?.click();">
+            <span class="hm4-tile-num">16</span>
+            <span class="hm4-tile-sub">AA</span>
+          </button>
+          <button class="hm4-tile" type="button" onclick="document.querySelector('#screen-fl-select [data-fl=\'17\']')?.click();">
+            <span class="hm4-tile-num">17</span>
+            <span class="hm4-tile-sub">Trips</span>
+          </button>
+        </div>
+      </section>
 
+    </main>
   </div>
 
-  <!-- BOTTOM NAV: 5タブ (ホーム active) -->
-</div>
+</div><div class="screen tab" id="screen-town">
 
-<div class="screen tab" id="screen-town">
-<button class="v2-back" type="button" style="position:absolute;top:calc(var(--safe-top) + 10px);right:12px;z-index:5;" onclick="document.body.classList.remove('show-nav');showScreen('title');">← title</button>
 
   <svg class="sky-clouds" viewBox="0 0 393 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>
@@ -27475,37 +27574,9 @@ body.bptune-enabled .bptune-active{
 </div>
 
 <div class="screen tab" id="screen-battle">
-<button class="v2-back" type="button" style="position:absolute;top:calc(var(--safe-top) + 10px);right:12px;z-index:5;" onclick="document.body.classList.remove('show-nav');showScreen('title');">← title</button>
-<svg class="sky-clouds" viewBox="0 0 393 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <defs>
-      <linearGradient id="skyCloudPaint" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#ffffff"/>
-        <stop offset="62%" stop-color="#ffffff"/>
-        <stop offset="100%" stop-color="#edf6fa"/>
-      </linearGradient>
-      <filter id="skyCloudSoft" x="-8%" y="-30%" width="116%" height="170%">
-        <feGaussianBlur stdDeviation="0.4"/>
-      </filter>
-    </defs>
-    <g filter="url(#skyCloudSoft)">
-      <g fill="url(#skyCloudPaint)" opacity="0.92">
-        <ellipse cx="36" cy="39" rx="29" ry="11"/>
-        <ellipse cx="66" cy="32" rx="32" ry="14"/>
-        <ellipse cx="100" cy="44" rx="47" ry="15"/>
-        <ellipse cx="127" cy="49" rx="23" ry="9"/>
-      </g>
-      <g fill="url(#skyCloudPaint)" opacity="0.88">
-        <ellipse cx="286" cy="106" rx="32" ry="12"/>
-        <ellipse cx="320" cy="98" rx="45" ry="16"/>
-        <ellipse cx="360" cy="113" rx="34" ry="13"/>
-      </g>
-      <g fill="url(#skyCloudPaint)" opacity="0.7">
-        <ellipse cx="160" cy="171" rx="28" ry="9"/>
-        <ellipse cx="197" cy="164" rx="46" ry="13"/>
-        <ellipse cx="238" cy="173" rx="32" ry="10"/>
-      </g>
-    </g>
-  </svg>
+
+  <!-- Session 35.8 (2026-06-22): Y2K Shibuya Punk 統一 = sky-clouds 撤去、bg_cityscape を背景に -->
+  <div class="battle-bg-layer" aria-hidden="true"></div>
 
   
 
@@ -27654,7 +27725,7 @@ body.bptune-enabled .bptune-active{
 </div>
 
 <div class="screen tab" id="screen-friend">
-<button class="v2-back" type="button" style="position:absolute;top:calc(var(--safe-top) + 10px);right:12px;z-index:5;" onclick="document.body.classList.remove('show-nav');showScreen('title');">← title</button>
+
 <svg class="sky-clouds-v2" viewBox="0 0 393 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>
       <radialGradient id="skyV2Spot" cx="50%" cy="0%" r="65%">
@@ -28021,368 +28092,274 @@ body.bptune-enabled .bptune-active{
   </div>
 </div>
 
-<div class="screen tab" id="screen-more">
-<button class="v2-back" type="button" style="position:absolute;top:calc(var(--safe-top) + 10px);right:12px;z-index:5;" onclick="document.body.classList.remove('show-nav');showScreen('title');">← title</button>
-<svg class="sky-clouds-v2" viewBox="0 0 393 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <defs>
-      <radialGradient id="skyV2Spot" cx="50%" cy="0%" r="65%">
-        <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
-        <stop offset="40%" stop-color="#FFFFFF" stop-opacity="0.18"/>
-        <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
-      </radialGradient>
-      <pattern id="skyV2Grid" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
-        <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#2BB8A3" stroke-width="0.6" stroke-opacity="0.18"/>
-      </pattern>
-    </defs>
-    <rect x="0" y="0" width="393" height="280" fill="url(#skyV2Grid)"/>
-    <ellipse cx="196.5" cy="0" rx="280" ry="160" fill="url(#skyV2Spot)"/>
-    <g transform="translate(20, 14) rotate(-12)">
-      <path d="M0 -14 L4 -4 L14 -3 L6 4 L9 14 L0 8 L-9 14 L-6 4 L-14 -3 L-4 -4 Z" fill="#FF4A1C" stroke="#0A0A0A" stroke-width="1.6" stroke-linejoin="round"/>
-    </g>
-    <g transform="translate(360, 18) rotate(18)">
-      <path d="M2 -16 L-8 4 L-1 4 L-4 16 L8 -2 L2 -2 L4 -16 Z" fill="#0A0A0A" stroke="#0A0A0A" stroke-width="1.6" stroke-linejoin="round"/>
-    </g>
-    <g transform="translate(360, 180) rotate(28)">
-      <path d="M0 -10 L3 -3 L10 -2 L4 3 L6 10 L0 6 L-6 10 L-4 3 L-10 -2 L-3 -3 Z" fill="#2BB8A3" stroke="#0A0A0A" stroke-width="1.4" stroke-linejoin="round"/>
-    </g>
-  </svg>
+<!-- ===== screen-tutorial-overview (Phase γ-v3-fix10): チュートリアル一覧 ===== -->
+<div class="screen" id="screen-tutorial-overview">
+  <div class="canvas-tutorial">
+    <div class="tut-layer tut-layer-bg" aria-hidden="true">
+      <img src="assets/bg_cityscape.png" alt=""/>
+      <div class="tut-overlay"></div>
+    </div>
 
-  
+    <button class="hm5-back" type="button" onclick="showScreen('more');" aria-label="設定へ戻る" style="position: absolute; top: 60px; left: 5%; z-index: 35;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="15 6 9 12 15 18"/>
+      </svg>
+      <span>設定へ</span>
+    </button>
 
-  <div class="more-header">
-    <div class="screen-title">その他</div>
-  </div>
+    <header class="hm5-header" style="position: absolute; top: 130px; left: 0; right: 0; padding: 0 5%; z-index: 20;">
+      <h1 class="hm5-title">チュートリアル</h1>
+    </header>
 
-  <div class="screen-body">
-
-    <!-- ============ プロフィールカード ============ -->
-    <section class="profile-card" aria-label="プロフィール">
-      <div class="profile-top">
-        <div class="profile-avatar-wrap" aria-hidden="true">
-          <!-- アバター画像。assets が無い環境ではフォールバックを表示 -->
-          <img class="profile-avatar-img"
-               src="assets/pomu_pose_1.png"
-               alt=""
-               onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'profile-avatar-fallback',textContent:'拓'}))"/>
+    <main class="tutorial-main">
+      <div class="tutorial-overview">
+        <div class="tutorial-overview-title">チャイポの遊び方を5レッスンで</div>
+        <div class="tutorial-overview-progress">
+          <div class="tutorial-overview-bar"><div class="tutorial-overview-bar-fill" id="tutorialOverviewBarFill" style="width:0%"></div></div>
+          <div class="tutorial-overview-progress-text" id="tutorialOverviewProgressText">0 / 5 完了</div>
         </div>
-        <div class="profile-identity">
-          <div class="profile-name">
-            <span>とらたく</span>
-            <svg class="profile-name-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M12 20h9"/>
-              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>
-            </svg>
+      </div>
+      <ul class="tutorial-lesson-list" id="tutorialLessonList">
+        <li class="tutorial-lesson-item" data-lesson="l1" onclick="onTutorialLessonClick('l1')">
+          <div class="tutorial-lesson-num">1</div>
+          <div class="tutorial-lesson-body">
+            <div class="tutorial-lesson-title">ようこそ</div>
+            <div class="tutorial-lesson-desc">チャイポの全体像をサクッと把握</div>
           </div>
-          <div class="profile-code-row">
-            <span class="profile-code-label">マイコード</span>
-            <span class="profile-code-value">T-7K3M-92</span>
-            <svg class="profile-code-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="コピー">
-              <rect x="9" y="9" width="13" height="13" rx="2"/>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-            </svg>
+          <div class="tutorial-lesson-status" data-status="locked">未</div>
+        </li>
+        <li class="tutorial-lesson-item" data-lesson="l2" onclick="onTutorialLessonClick('l2')">
+          <div class="tutorial-lesson-num">2</div>
+          <div class="tutorial-lesson-body">
+            <div class="tutorial-lesson-title">配置の基本</div>
+            <div class="tutorial-lesson-desc">カードを3段に置いてみよう</div>
           </div>
-        </div>
-      </div>
-
-      <div class="profile-badges">
-        <span class="profile-badge profile-badge--rank">
-          <svg class="badge-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12 2 L14 8 L20 8 L15 12 L17 18 L12 14 L7 18 L9 12 L4 8 L10 8 Z"/>
-          </svg>
-          プラチナ 3
-        </span>
-        <span class="profile-badge profile-badge--rate">
-          レート 1,247
-        </span>
-        <span class="profile-badge profile-badge--title">
-          <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M6 9 V4 H18 V9 A6 6 0 0 1 6 9 Z"/>
-            <path d="M12 15 V19 M8 22 H16"/>
-          </svg>
-          FL職人
-        </span>
-      </div>
-    </section>
-
-    <!-- ============ ゲーム ============ -->
-    <div class="section-header">
-      <div class="section-title">
-        <span class="section-emoji">📊</span>
-        <span>ゲーム</span>
-      </div>
-    </div>
-    <div class="settings-card">
-
-      <div class="settings-row" data-action="stats">
-        <div class="row-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M3 20 V10 M9 20 V4 M15 20 V13 M21 20 V7"/>
-          </svg>
-        </div>
-        <div class="row-body">
-          <div class="row-label">戦績</div>
-          <div class="row-sub">勝率 58% ・ スクープ 12% ・ FL率 31%</div>
-        </div>
-        <div class="row-right">
-          <svg class="row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="9 6 15 12 9 18"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="settings-row" data-action="ranking">
-        <div class="row-icon row-icon--warm">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M8 4 H16 V8 a4 4 0 0 1 -8 0 Z"/>
-            <path d="M8 6 H5 a2 2 0 0 0 2 4"/>
-            <path d="M16 6 H19 a2 2 0 0 1 -2 4"/>
-            <path d="M12 12 V17"/>
-            <path d="M8.5 20 H15.5"/>
-            <path d="M10 17 H14"/>
-          </svg>
-        </div>
-        <div class="row-body">
-          <div class="row-label">ランキング</div>
-          <div class="row-sub">週間 / 月間 / 通算</div>
-        </div>
-        <div class="row-right">
-          <svg class="row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="9 6 15 12 9 18"/>
-          </svg>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ============ 設定 ============ -->
-    <div class="section-header">
-      <div class="section-title">
-        <span class="section-emoji">⚙️</span>
-        <span>設定</span>
-      </div>
-    </div>
-    <div class="settings-card">
-
-      <div class="settings-row" data-action="toggle-timer" data-static>
-        <div class="row-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="13" r="8"/>
-            <path d="M12 9 V13 L15 15"/>
-            <path d="M9 2 H15"/>
-          </svg>
-        </div>
-        <div class="row-body">
-          <div class="row-label">時間制限</div>
-          <div class="row-sub">1手 30秒</div>
-        </div>
-        <div class="row-right">
-          <div class="toggle-switch is-on" role="switch" aria-checked="true" aria-label="時間制限を有効化"></div>
-        </div>
-      </div>
-
-      <div class="settings-row" data-action="initial-score" data-static>
-        <div class="row-icon row-icon--warm">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="8"/>
-            <path d="M12 7 V12 L15 14"/>
-            <path d="M12 4 V5"/>
-          </svg>
-        </div>
-        <div class="row-body">
-          <div class="row-label">初期点</div>
-        </div>
-        <div class="row-right">
-          <div class="row-segment" role="radiogroup" aria-label="初期点">
-            <div class="seg" role="radio" aria-checked="false">100</div>
-            <div class="seg is-active" role="radio" aria-checked="true">200</div>
-            <div class="seg" role="radio" aria-checked="false">500</div>
+          <div class="tutorial-lesson-status" data-status="locked">未</div>
+        </li>
+        <li class="tutorial-lesson-item" data-lesson="l3" onclick="onTutorialLessonClick('l3')">
+          <div class="tutorial-lesson-num">3</div>
+          <div class="tutorial-lesson-body">
+            <div class="tutorial-lesson-title">ファウルの罠</div>
+            <div class="tutorial-lesson-desc">強さの順番ルールを身体で学ぶ</div>
           </div>
-        </div>
-      </div>
-
-      <div class="settings-row" data-action="toggle-haptic" data-static>
-        <div class="row-icon row-icon--mint">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M4 12 H7"/>
-            <path d="M17 12 H20"/>
-            <path d="M9 8 V16"/>
-            <path d="M15 8 V16"/>
-            <rect x="11" y="6" width="2" height="12" rx="1" fill="currentColor"/>
-          </svg>
-        </div>
-        <div class="row-body">
-          <div class="row-label">ハプティック</div>
-          <div class="row-sub">配置・効果音の振動</div>
-        </div>
-        <div class="row-right">
-          <div class="toggle-switch is-on" role="switch" aria-checked="true" aria-label="ハプティックを有効化"></div>
-        </div>
-      </div>
-
-      <div class="settings-row" data-action="toggle-sound" data-static>
-        <div class="row-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M4 10 H8 L13 6 V18 L8 14 H4 Z"/>
-            <path d="M16 9 a4 4 0 0 1 0 6"/>
-            <path d="M18.5 6.5 a8 8 0 0 1 0 11"/>
-          </svg>
-        </div>
-        <div class="row-body">
-          <div class="row-label">サウンド</div>
-          <div class="row-sub">BGM・効果音</div>
-        </div>
-        <div class="row-right">
-          <div class="toggle-switch is-on" role="switch" aria-checked="true" aria-label="サウンドを有効化"></div>
-        </div>
-      </div>
-
-      <div class="settings-row" data-action="toggle-notification" data-static>
-        <div class="row-icon row-icon--warm">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M6 9 a6 6 0 0 1 12 0 v4.5 l2 3.5 H4 l2 -3.5 Z"/>
-            <path d="M10 20 a2 2 0 0 0 4 0"/>
-            <path d="M12 3 V2"/>
-          </svg>
-        </div>
-        <div class="row-body">
-          <div class="row-label">通知</div>
-          <div class="row-sub">対戦・お知らせ・無料パック</div>
-        </div>
-        <div class="row-right">
-          <div class="toggle-switch is-on" role="switch" aria-checked="true" aria-label="通知を有効化"></div>
-        </div>
-      </div>
-
-      <div class="settings-row" data-action="card-design">
-        <div class="row-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="4" y="5" width="12" height="16" rx="2"/>
-            <rect x="8" y="3" width="12" height="16" rx="2" fill="rgba(255,255,255,0.62)"/>
-            <path d="M12 8.5 L14 10.5 L12 12.5 L10 10.5 Z" fill="currentColor" stroke="none" opacity="0.42"/>
-            <path d="M7.6 12.5 c0.7 -1.1 2.2 -0.4 2.2 0.6 c0 1 -1.2 1.8 -2.2 2.6 c-1 -0.8 -2.2 -1.6 -2.2 -2.6 c0 -1 1.5 -1.7 2.2 -0.6 Z" fill="currentColor" stroke="none" opacity="0.38"/>
-          </svg>
-        </div>
-        <div class="row-body">
-          <div class="row-label">カードデザイン</div>
-        </div>
-        <div class="row-right">
-          <span class="row-value">4色スーツ</span>
-          <svg class="row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="9 6 15 12 9 18"/>
-          </svg>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ============ サポート ============ -->
-    <div class="section-header">
-      <div class="section-title">
-        <span class="section-emoji">💡</span>
-        <span>サポート</span>
-      </div>
-    </div>
-    <div class="settings-card">
-
-      <div class="settings-row" data-action="rules">
-        <div class="row-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M4 4 H20 V20 H4 Z"/>
-            <path d="M8 9 H16 M8 13 H16 M8 17 H13"/>
-          </svg>
-        </div>
-        <div class="row-body">
-          <div class="row-label">ルール</div>
-        </div>
-        <div class="row-right">
-          <svg class="row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="9 6 15 12 9 18"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="settings-row" data-action="notice">
-        <div class="row-icon row-icon--warm">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M6 8 a6 6 0 0 1 12 0 v5 l2 3 H4 l2 -3 Z"/>
-            <path d="M10 19 a2 2 0 0 0 4 0"/>
-          </svg>
-        </div>
-        <div class="row-body">
-          <div class="row-label">お知らせ</div>
-        </div>
-        <div class="row-right">
-          <span class="row-badge">2</span>
-          <svg class="row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="9 6 15 12 9 18"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="settings-row" data-action="contact">
-        <div class="row-icon row-icon--mint">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M4 6 H20 V18 H4 Z"/>
-            <path d="M4 7 L12 13 L20 7"/>
-          </svg>
-        </div>
-        <div class="row-body">
-          <div class="row-label">お問い合わせ</div>
-        </div>
-        <div class="row-right">
-          <svg class="row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="9 6 15 12 9 18"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="settings-row" data-action="terms">
-        <div class="row-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M6 3 H14 L18 7 V21 H6 Z"/>
-            <path d="M14 3 V7 H18"/>
-            <path d="M9 13 H15 M9 17 H13"/>
-          </svg>
-        </div>
-        <div class="row-body">
-          <div class="row-label">利用規約</div>
-        </div>
-        <div class="row-right">
-          <svg class="row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="9 6 15 12 9 18"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="settings-row" data-action="privacy">
-        <div class="row-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 3 L20 6 V12 a8 8 0 0 1 -8 8 a8 8 0 0 1 -8 -8 V6 Z"/>
-            <path d="M9 12 L11 14 L15 10"/>
-          </svg>
-        </div>
-        <div class="row-body">
-          <div class="row-label">プライバシーポリシー</div>
-        </div>
-        <div class="row-right">
-          <svg class="row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="9 6 15 12 9 18"/>
-          </svg>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ============ フッター ============ -->
-    <div class="more-footer">
-      <button class="logout-btn" data-action="logout">ログアウト</button>
-      <div class="version-text">バージョン 1.1.0 (build 142)</div>
-    </div>
-
+          <div class="tutorial-lesson-status" data-status="locked">未</div>
+        </li>
+        <li class="tutorial-lesson-item" data-lesson="l4" onclick="onTutorialLessonClick('l4')">
+          <div class="tutorial-lesson-num">4</div>
+          <div class="tutorial-lesson-body">
+            <div class="tutorial-lesson-title">役を作ろう</div>
+            <div class="tutorial-lesson-desc">ペア・スリーカード・スコアの見方</div>
+          </div>
+          <div class="tutorial-lesson-status" data-status="locked">未</div>
+        </li>
+        <li class="tutorial-lesson-item" data-lesson="l5" onclick="onTutorialLessonClick('l5')">
+          <div class="tutorial-lesson-num">5</div>
+          <div class="tutorial-lesson-body">
+            <div class="tutorial-lesson-title">ファンタジーランド入門</div>
+            <div class="tutorial-lesson-desc">チャイポの醍醐味、FL の体験</div>
+          </div>
+          <div class="tutorial-lesson-status" data-status="locked">未</div>
+        </li>
+      </ul>
+    </main>
   </div>
 </div>
 
+<!-- screen-tutorial-overview の CSS (Phase γ-v3-fix10) -->
+<style id="screen-tutorial-overview-css">
+#screen-tutorial-overview {
+  background: #FDFBF5;
+}
+#screen-tutorial-overview .canvas-tutorial {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+#screen-tutorial-overview .tut-layer-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+#screen-tutorial-overview .tut-layer-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+#screen-tutorial-overview .tut-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(253,251,245,0.78) 0%, rgba(253,251,245,0.86) 100%);
+}
+#screen-tutorial-overview .tutorial-main {
+  position: absolute;
+  top: 200px;
+  left: 0; right: 0; bottom: 0;
+  z-index: 15;
+  padding: 0 5% 40px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+</style>
 
+<div class="screen tab" id="screen-more">
+
+  <div class="canvas-more">
+    <div class="hm5-layer hm5-layer-bg">
+      <img src="assets/bg_cityscape.png" alt="" aria-hidden="true"/>
+      <div class="hm5-overlay" aria-hidden="true"></div>
+    </div>
+
+    <button class="hm5-back" type="button" onclick="showScreen('home');" aria-label="ホームへ戻る">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="15 6 9 12 15 18"/>
+      </svg>
+      <span>ホームへ</span>
+    </button>
+
+    <header class="hm5-header">
+      <h1 class="hm5-title">設定</h1>
+    </header>
+
+    <main class="hm5-stickers">
+
+      <section class="hm5-sticker hm5-sticker--game">
+        <div class="hm5-sticker-head">
+          <h2 class="hm5-sticker-title">ゲーム設定</h2>
+        </div>
+        <div class="hm5-sticker-items">
+
+          <div class="hm5-row" data-action="time-limit">
+            <div class="hm5-row-body">
+              <div class="hm5-row-label">時間制限</div>
+              <div class="hm5-row-sub">1手 30秒</div>
+            </div>
+            <div class="hm5-row-right">
+              <div class="toggle-switch is-on" role="switch" aria-checked="true" aria-label="時間制限を有効化"></div>
+            </div>
+          </div>
+
+          <div class="hm5-row" data-action="initial-points">
+            <div class="hm5-row-body">
+              <div class="hm5-row-label">初期点</div>
+            </div>
+            <div class="hm5-row-right">
+              <div class="hm5-seg-group" role="radiogroup" aria-label="初期点">
+                <div class="seg" role="radio" aria-checked="false">100</div>
+                <div class="seg is-active" role="radio" aria-checked="true">200</div>
+                <div class="seg" role="radio" aria-checked="false">500</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hm5-row" data-action="haptic">
+            <div class="hm5-row-body">
+              <div class="hm5-row-label">ハプティック</div>
+              <div class="hm5-row-sub">配置・効果音の振動</div>
+            </div>
+            <div class="hm5-row-right">
+              <div class="toggle-switch is-on" role="switch" aria-checked="true" aria-label="ハプティックを有効化"></div>
+            </div>
+          </div>
+
+          <div class="hm5-row" data-action="sound">
+            <div class="hm5-row-body">
+              <div class="hm5-row-label">サウンド</div>
+              <div class="hm5-row-sub">効果音 / BGM</div>
+            </div>
+            <div class="hm5-row-right">
+              <div class="toggle-switch is-on" role="switch" aria-checked="true" aria-label="サウンドを有効化"></div>
+            </div>
+          </div>
+
+          <div class="hm5-row" data-action="notify">
+            <div class="hm5-row-body">
+              <div class="hm5-row-label">通知</div>
+              <div class="hm5-row-sub">対戦招待・お知らせ</div>
+            </div>
+            <div class="hm5-row-right">
+              <div class="toggle-switch" role="switch" aria-checked="false" aria-label="通知を有効化"></div>
+            </div>
+          </div>
+
+          <div class="hm5-row" data-action="card-design">
+            <div class="hm5-row-body">
+              <div class="hm5-row-label">カードデザイン</div>
+              <div class="hm5-row-sub">スートの色分け</div>
+            </div>
+            <div class="hm5-row-right">
+              <div class="hm5-seg-group" role="radiogroup" aria-label="カードデザイン">
+                <div class="seg is-active" role="radio" aria-checked="true">4色</div>
+                <div class="seg" role="radio" aria-checked="false">2色</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="hm5-sticker hm5-sticker--about">
+        <div class="hm5-sticker-head">
+          <h2 class="hm5-sticker-title">アバウト</h2>
+        </div>
+        <div class="hm5-sticker-items">
+
+          <button class="hm5-row hm5-row--link" type="button" data-action="tutorial">
+            <div class="hm5-row-body">
+              <div class="hm5-row-label">チュートリアル</div>
+              <div class="hm5-row-sub">遊び方を 5 レッスンで学ぶ</div>
+            </div>
+            <div class="hm5-row-right">
+              <span class="hm5-row-arrow" aria-hidden="true">▸</span>
+            </div>
+          </button>
+
+          <button class="hm5-row hm5-row--link" type="button" data-action="news">
+            <div class="hm5-row-body">
+              <div class="hm5-row-label">お知らせ</div>
+            </div>
+            <div class="hm5-row-right">
+              <span class="hm5-row-arrow" aria-hidden="true">▸</span>
+            </div>
+          </button>
+
+          <button class="hm5-row hm5-row--link" type="button" data-action="contact">
+            <div class="hm5-row-body">
+              <div class="hm5-row-label">お問い合わせ</div>
+            </div>
+            <div class="hm5-row-right">
+              <span class="hm5-row-arrow" aria-hidden="true">▸</span>
+            </div>
+          </button>
+
+          <button class="hm5-row hm5-row--link" type="button" data-action="terms">
+            <div class="hm5-row-body">
+              <div class="hm5-row-label">利用規約</div>
+            </div>
+            <div class="hm5-row-right">
+              <span class="hm5-row-arrow" aria-hidden="true">▸</span>
+            </div>
+          </button>
+
+          <button class="hm5-row hm5-row--link" type="button" data-action="privacy">
+            <div class="hm5-row-body">
+              <div class="hm5-row-label">プライバシーポリシー</div>
+            </div>
+            <div class="hm5-row-right">
+              <span class="hm5-row-arrow" aria-hidden="true">▸</span>
+            </div>
+          </button>
+
+        </div>
+      </section>
+
+      <div class="hm5-version">バージョン 1.1.0 (build 142)</div>
+
+    </main>
+  </div>
+
+</div>
 <!-- ===== screen-pack-opening (Phase B-2.6) ===== -->
 <div class="screen" id="screen-pack-opening" data-stage="intro" data-rarity="r" data-reveal-index="1">
 <!-- 背景の星粒(opening専用) -->
@@ -28775,42 +28752,292 @@ body.bptune-enabled .bptune-active{
   </div>
 </div>
 
-<!-- ===== Bottom Nav (shared, 5 tabs) ===== -->
-<nav class="bottom-nav" id="bottomNav" aria-label="メインナビゲーション">
-  <div class="nav-tab" data-tab="home" onclick="showScreen('home')">
-    <div class="nav-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 L12 4 L21 11 V20 a1 1 0 0 1 -1 1 H15 V14 H9 V21 H4 a1 1 0 0 1 -1 -1 Z"/></svg>
-    </div>
-    ホーム
-  </div>
-  <div class="nav-tab" data-tab="town" onclick="showScreen('town')">
-    <div class="nav-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M3 11 H21"/><path d="M12 8 V21"/><path d="M7.5 8 Q9 4 12 4 Q15 4 16.5 8"/></svg>
-    </div>
-    ぽむタウン
-  </div>
-  <div class="nav-tab" data-tab="battle" onclick="showScreen('battle')">
-    <div class="nav-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4 L20 4 L20 10 M14 4 L4 14 L8 18 L20 6 M10 14 L14 18"/></svg>
-    </div>
-    対戦
-  </div>
-  <div class="nav-tab" data-tab="friend" onclick="showScreen('friend')">
-    <div class="nav-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3 20 c0 -3 3 -5 6 -5 s6 2 6 5"/><circle cx="17" cy="9" r="2.5"/><path d="M14 17 c1 -2 3 -3 5 -3 s2 1 2 3"/></svg>
-    </div>
-    フレンド
-  </div>
-  <div class="nav-tab" data-tab="more" onclick="showScreen('more')">
-    <div class="nav-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 H20 M4 12 H20 M4 17 H20"/></svg>
-    </div>
-    その他
-  </div>
-</nav>
-
 <style id="ia-v2-home-styles">
 /* ===== IA v2 Home Tab Styles (Phase B-2.2, from pomu_home_v2.html) ===== */
+/* ===== Phase γ-v2.1: Home (Title-aligned, refined) Session 36 ===== */
+#screen-home {
+  position: relative;
+  background: #0A0A0A;
+  overflow: hidden;
+  min-height: 100%;
+}
+#screen-home .canvas-home {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(100vw, calc(100dvh * 853 / 1844));
+  height: min(100dvh, calc(100vw * 1844 / 853));
+  overflow: visible;
+}
+#screen-home .hm4-layer-bg { overflow: hidden; border-radius: inherit; }
+#screen-home .hm4-layer {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+}
+#screen-home .hm4-layer-bg { z-index: 1; }
+#screen-home .hm4-layer-bg img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* P6: 中央も濃いめのオーバーレイ (均一に 0.78) */
+#screen-home .hm4-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(253, 251, 245, 0.55) 0%, rgba(253, 251, 245, 0.45) 35%, rgba(253, 251, 245, 0.55) 70%, rgba(253, 251, 245, 0.65) 100%);
+}
+
+/* P3+P8: ぽむを「左下」に「小さく (26%)」配置 */
+#screen-home .hm4-layer-pomu { z-index: 25; }
+#screen-home .hm4-layer-pomu img {
+  position: absolute;
+  right: 1%;
+  bottom: 1.5%;
+  width: 32%;
+  max-width: 140px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(3px 4px 0 rgba(10,10,10,0.28));
+}
+
+/* P2: ヘッダロゴを 2 段組 + 大型化 */
+#screen-home .hm4-header {
+  position: absolute;
+  top: 40px;
+  left: 5%;
+  z-index: 30;
+  display: flex;
+  align-items: flex-start;
+}
+#screen-home .hm4-logo {
+  display: flex;
+  align-items: flex-start;
+  flex: 0 0 auto;
+}
+#screen-home .hm4-logo-img {
+  width: 60vw;
+  max-width: 260px;
+  height: auto;
+  display: block;
+  filter: drop-shadow(2px 3px 0 rgba(10,10,10,0.22));
+}
+
+/* P4: 設定ボタンは ← title の真下に配置 (重複回避) */
+#screen-home .hm4-settings {
+  position: absolute;
+  top: 60px;
+  right: 5%;
+  z-index: 35;
+  width: 48px; height: 48px;
+  border: none;
+  background: #0A0A0A;
+  color: #FFFFFF;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 3px 3px 0 #FF4A1C, 0 0 0 3px #FFFFFF inset;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+#screen-home .hm4-settings:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #FF4A1C, 0 0 0 3px #FFFFFF inset;
+}
+#screen-home .hm4-settings svg {
+  width: 24px; height: 24px;
+}
+
+/* P1: ステッカー群の余白を詰める (justify space-between → flex-start + 適切な gap) */
+#screen-home .hm4-stickers {
+  position: absolute;
+  top: 175px;
+  left: 0; right: 0;
+  bottom: 4%;
+  z-index: 15;
+  padding: 0 5%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+#screen-home .hm4-sticker {
+  position: relative;
+  background: #FFFFFF;
+  border: 4px solid #FFFFFF;
+  outline: 2.5px solid #0A0A0A;
+  border-radius: 14px;
+  padding: 16px 16px 20px 24px;
+  box-shadow: 5px 6px 0 #0A0A0A;
+  overflow: hidden;
+}
+#screen-home .hm4-sticker::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 10px;
+  background: #0A0A0A;
+  z-index: 0;
+}
+/* v2.5: テーマカラー濃度アップ */
+#screen-home .hm4-sticker--online {
+  transform: none;
+  background: linear-gradient(135deg, rgba(255,74,28,0.18) 0%, rgba(255,255,255,1) 70%);
+}
+#screen-home .hm4-sticker--online::before { background: #FF4A1C; }
+
+#screen-home .hm4-sticker--ai {
+  transform: none;
+  background: linear-gradient(135deg, rgba(245,165,34,0.22) 0%, rgba(255,255,255,1) 70%);
+}
+#screen-home .hm4-sticker--ai::before { background: #F5A522; }
+
+#screen-home .hm4-sticker--fl {
+  transform: none;
+  background: linear-gradient(135deg, rgba(43,184,163,0.20) 0%, rgba(255,255,255,1) 70%);
+}
+#screen-home .hm4-sticker--fl::before { background: #2BB8A3; }
+
+#screen-home .hm4-sticker-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #0A0A0A;
+}
+#screen-home .hm4-sticker-num {
+  display: none;
+}
+#screen-home .hm4-sticker-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: #0A0A0A;
+}
+
+#screen-home .hm4-sticker-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#screen-home .hm4-sticker-items--grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+#screen-home .hm4-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 20px 18px;
+  min-height: 62px;
+  border: 2.5px solid #0A0A0A;
+  border-radius: 10px;
+  background: #FDFBF5;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  font-size: 17px;
+  font-weight: 800;
+  color: #0A0A0A;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.08s ease;
+  box-shadow: 3px 3px 0 #0A0A0A;
+}
+#screen-home .hm4-item:not(:disabled):active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 #0A0A0A;
+  background: #FFE9C4;
+}
+#screen-home .hm4-sticker--online .hm4-item:not(:disabled):active {
+  background: rgba(255,74,28,0.18);
+}
+#screen-home .hm4-sticker--ai .hm4-item:not(:disabled):active {
+  background: rgba(245,165,34,0.22);
+}
+#screen-home .hm4-sticker--fl .hm4-item:not(:disabled):active {
+  background: rgba(43,184,163,0.20);
+}
+#screen-home .hm4-sticker--fl .hm4-tile:active {
+  background: rgba(43,184,163,0.20);
+}
+#screen-home .hm4-item--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: #E8E8E5;
+}
+#screen-home .hm4-item-label { flex: 1; }
+#screen-home .hm4-item-arrow {
+  font-size: 22px;
+  color: #FF4A1C;
+  font-weight: 900;
+  line-height: 1;
+}
+#screen-home .hm4-item-badge {
+  font-size: 12px;
+  font-weight: 900;
+  padding: 4px 9px;
+  background: #0A0A0A;
+  color: #FFFFFF;
+  border-radius: 5px;
+  letter-spacing: 0.06em;
+}
+
+#screen-home .hm4-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 22px 4px 18px;
+  min-height: 96px;
+  border: 2.5px solid #0A0A0A;
+  border-radius: 10px;
+  background: #FDFBF5;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 3px 3px 0 #0A0A0A;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.08s ease;
+}
+#screen-home .hm4-tile:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 #0A0A0A;
+  background: #FFE9C4;
+}
+#screen-home .hm4-tile-num {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #0A0A0A;
+  line-height: 1;
+}
+#screen-home .hm4-tile-sub {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #FF4A1C;
+}
+/* Z: 色分け */
+#screen-home .hm4-tile:nth-child(1) .hm4-tile-sub { color: #6B7280; }
+#screen-home .hm4-tile:nth-child(2) .hm4-tile-sub { color: #2563EB; }
+#screen-home .hm4-tile:nth-child(3) .hm4-tile-sub { color: #DC2626; }
+#screen-home .hm4-tile:nth-child(4) .hm4-tile-sub { color: #D97706; }
+#screen-home .hm4-tile:nth-child(1) .hm4-tile-num { color: #4B5563; }
+#screen-home .hm4-tile:nth-child(2) .hm4-tile-num { color: #1D4ED8; }
+#screen-home .hm4-tile:nth-child(3) .hm4-tile-num { color: #B91C1C; }
+#screen-home .hm4-tile:nth-child(4) .hm4-tile-num { color: #B45309; }
+
 
     
 
@@ -30884,6 +31111,7 @@ body.bptune-enabled .bptune-active{
       align-items: center;
       justify-content: space-between;
       padding: 8px 20px 14px;
+      padding-top: calc(var(--safe-top) + 16px);
       position: relative;
       z-index: 1;
     }
@@ -31455,6 +31683,197 @@ body.bptune-enabled .bptune-active{
   
 </style>
 
+<script id="more-screen-actions">
+(function(){
+  if(window.__moreActionsInit) return;
+  window.__moreActionsInit = true;
+
+  var LS_KEYS = {
+    'time-limit': 'chaipo_time_limit',
+    'initial-points': 'chaipo_initial_points',
+    'haptic': 'chaipo_haptic',
+    'sound': 'chaipo_sound',
+    'notify': 'chaipo_notify',
+    'card-design': 'chaipo_card_design'
+  };
+  var DEFAULTS = {
+    'time-limit': 'on',
+    'initial-points': '200',
+    'haptic': 'on',
+    'sound': 'on',
+    'notify': 'off',
+    'card-design': '4color'
+  };
+
+  function getSetting(key){
+    var v = null;
+    try { v = localStorage.getItem(LS_KEYS[key]); } catch(_) {}
+    return v !== null ? v : DEFAULTS[key];
+  }
+  function setSetting(key, val){
+    try { localStorage.setItem(LS_KEYS[key], val); } catch(_) {}
+  }
+
+  function restoreUI(){
+    var more = document.getElementById('screen-more');
+    if(!more) return;
+
+    // トグル系
+    ['time-limit', 'haptic', 'sound', 'notify'].forEach(function(key){
+      var row = more.querySelector('.hm5-row[data-action="' + key + '"]');
+      if(!row) return;
+      var sw = row.querySelector('.toggle-switch');
+      if(!sw) return;
+      var on = getSetting(key) === 'on';
+      sw.classList.toggle('is-on', on);
+      sw.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
+
+    // セグメント (初期点)
+    var ipRow = more.querySelector('.hm5-row[data-action="initial-points"]');
+    if(ipRow){
+      var ipVal = getSetting('initial-points');
+      ipRow.querySelectorAll('.seg').forEach(function(seg){
+        var match = seg.textContent.trim() === ipVal;
+        seg.classList.toggle('is-active', match);
+        seg.setAttribute('aria-checked', match ? 'true' : 'false');
+      });
+    }
+
+    // セグメント (カードデザイン)
+    var cdRow = more.querySelector('.hm5-row[data-action="card-design"]');
+    if(cdRow){
+      var cdVal = getSetting('card-design');
+      cdRow.querySelectorAll('.seg').forEach(function(seg){
+        var txt = seg.textContent.trim();
+        var match = (cdVal === '4color' && txt === '4色') || (cdVal === '2color' && txt === '2色');
+        seg.classList.toggle('is-active', match);
+        seg.setAttribute('aria-checked', match ? 'true' : 'false');
+      });
+    }
+  }
+
+  function onMoreClick(e){
+    var t = e.target;
+
+    // トグル
+    var sw = t.closest('.toggle-switch');
+    if(sw){
+      var row = sw.closest('.hm5-row');
+      var action = row ? row.getAttribute('data-action') : null;
+      if(action && LS_KEYS[action]){
+        var isOn = sw.classList.toggle('is-on');
+        sw.setAttribute('aria-checked', isOn ? 'true' : 'false');
+        setSetting(action, isOn ? 'on' : 'off');
+        if(typeof window.haptic === 'function') window.haptic(15);
+      }
+      return;
+    }
+
+    // セグメント
+    var seg = t.closest('.seg');
+    if(seg){
+      var segGroup = seg.parentElement;
+      var row = segGroup ? segGroup.closest('.hm5-row') : null;
+      var action = row ? row.getAttribute('data-action') : null;
+      if(action && LS_KEYS[action]){
+        segGroup.querySelectorAll('.seg').forEach(function(s){
+          s.classList.remove('is-active');
+          s.setAttribute('aria-checked', 'false');
+        });
+        seg.classList.add('is-active');
+        seg.setAttribute('aria-checked', 'true');
+        var val;
+        var txt = seg.textContent.trim();
+        if(action === 'initial-points'){
+          val = txt;
+        } else if(action === 'card-design'){
+          val = txt === '4色' ? '4color' : '2color';
+        }
+        if(val) setSetting(action, val);
+        if(typeof window.haptic === 'function') window.haptic(15);
+      }
+      return;
+    }
+
+    // リンク (アバウト系)
+    var link = t.closest('.hm5-row--link');
+    if(link){
+      var action = link.getAttribute('data-action');
+      handleLink(action);
+      if(typeof window.haptic === 'function') window.haptic(15);
+    }
+  }
+
+  function handleLink(action){
+    // チュートリアルは独立画面に遷移
+    if(action === 'tutorial'){
+      if(typeof window.showScreen === 'function'){
+        window.showScreen('tutorial-overview');
+      }
+      return;
+    }
+    var msgs = {
+      'news': 'お知らせ\n\n現在新しいお知らせはありません。',
+      'contact': 'お問い合わせ\n\n不具合・ご要望は以下までご連絡ください：\ntorataku777@gmail.com',
+      'terms': '利用規約\n\n本アプリは個人開発のベータ版です。\n運営は予告なくサービスを変更・終了する場合があります。\n本アプリの利用により生じた損害について、開発者は一切の責任を負いません。',
+      'privacy': 'プライバシーポリシー\n\n本アプリは以下の情報を収集します：\n  • アカウント情報 (メールアドレス等)\n  • 対戦履歴\n  • ゲーム内設定\n\n収集した情報は本アプリのサービス提供のみに使用し、第三者に提供することはありません。'
+    };
+    var msg = msgs[action] || '準備中です。';
+    alert(msg);
+  }
+
+  // showScreen('more') 進入時に html.more-active、離脱時に解除 + UI 復元
+  function setMoreActive(on){
+    var html = document.documentElement;
+    if(on){
+      html.classList.add('more-active');
+      // body スクロール位置をリセット
+      try { window.scrollTo(0, 0); } catch(_) {}
+    } else {
+      html.classList.remove('more-active');
+    }
+  }
+  function wrapShowScreen(){
+    if(window.__moreShowScreenWrapped) return;
+    if(typeof window.showScreen !== 'function') return;
+    var orig = window.showScreen;
+    window.showScreen = function(id){
+      var prevId = null;
+      try { var act = document.querySelector('.screen.active'); if(act) prevId = act.id ? act.id.replace('screen-', '') : null; } catch(_){}
+      var ret = orig.apply(this, arguments);
+      if(id === 'more'){
+        setMoreActive(true);
+        setTimeout(restoreUI, 50);
+      } else if(prevId === 'more'){
+        setMoreActive(false);
+      }
+      return ret;
+    };
+    window.__moreShowScreenWrapped = true;
+  }
+
+  function bindClickListener(){
+    var more = document.getElementById('screen-more');
+    if(more && !more.__moreActionsBound){
+      more.__moreActionsBound = true;
+      more.addEventListener('click', onMoreClick);
+    }
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){
+      bindClickListener();
+      wrapShowScreen();
+      restoreUI();
+    });
+  } else {
+    bindClickListener();
+    wrapShowScreen();
+    restoreUI();
+  }
+})();
+</script>
 <script id="ia-v2-battle-actions">
 // Phase B-2.4: 対戦タブの data-action ボタンに既存スクリーン遷移をバインド
 (function(){
@@ -32378,6 +32797,308 @@ body.bptune-enabled .bptune-active{
 </style>
 
 <style id="ia-v2-more-styles">
+/* ===== Phase γ-v3: Settings (Home-aligned worldview) Session 36 ===== */
+/* fix9: screen-more を fixed から解放、html/body window スクロールに任せる */
+#screen-more {
+  /* .screen の position: fixed; inset: 0 を強制打ち消し */
+  position: static !important;
+  inset: auto !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  /* .screen の display: flex / transform / filter / opacity を打ち消し */
+  display: none !important;
+  transform: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  padding: 0 !important;
+  /* 通常コンテナとして */
+  width: 100%;
+  min-height: 100vh;
+  background: #FDFBF5;
+  overflow: visible !important;
+}
+#screen-more.active {
+  display: block !important;
+}
+/* html / body の overflow:hidden を screen-more 中だけ解除 */
+html.more-active,
+html.more-active body {
+  overflow: auto !important;
+  height: auto !important;
+  min-height: 100vh;
+}
+#screen-more .canvas-more {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  padding: 0 0 40px 0;
+}
+#screen-more .canvas-more {
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+  padding-bottom: 40px;
+}
+#screen-more .hm5-layer {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100vh;
+  pointer-events: none;
+  z-index: 1;
+}
+/* screen-more が非アクティブ時は背景レイヤーを隠す */
+#screen-more:not(.active) .hm5-layer {
+  display: none;
+}
+#screen-more .hm5-layer-bg { overflow: hidden; z-index: 1; }
+#screen-more .hm5-layer-bg img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+#screen-more .hm5-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(253, 251, 245, 0.78) 0%, rgba(253, 251, 245, 0.82) 50%, rgba(253, 251, 245, 0.88) 100%);
+}
+
+/* ← ホームへ ボタン (左上、ステッカー風) */
+#screen-more .hm5-back {
+  position: relative;
+  z-index: 10;
+  margin: 60px 5% 20px 5%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px 10px 10px;
+  background: #FFFFFF;
+  color: #0A0A0A;
+  border: 2.5px solid #0A0A0A;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  box-shadow: 3px 3px 0 #0A0A0A;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+#screen-more .hm5-back:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 #0A0A0A;
+  background: #FFE9C4;
+}
+#screen-more .hm5-back svg {
+  width: 18px; height: 18px;
+  flex-shrink: 0;
+}
+
+/* ヘッダ (設定タイトル) */
+#screen-more .hm5-header {
+  position: relative;
+  z-index: 10;
+  padding: 0 5% 20px 5%;
+  text-align: left;
+}
+#screen-more .hm5-title {
+  margin: 0;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 38px;
+  font-weight: 900;
+  letter-spacing: -0.015em;
+  color: #0A0A0A;
+  text-shadow: 3px 3px 0 #FF4A1C;
+  line-height: 0.92;
+}
+
+/* ステッカーコンテナ */
+#screen-more .hm5-stickers {
+  position: relative;
+  z-index: 10;
+  padding: 0 5% 20px 5%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+#screen-more .hm5-sticker {
+  position: relative;
+  background: #FFFFFF;
+  border: 4px solid #FFFFFF;
+  outline: 2.5px solid #0A0A0A;
+  border-radius: 14px;
+  padding: 16px 16px 20px 24px;
+  box-shadow: 5px 6px 0 #0A0A0A;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+#screen-more .hm5-sticker::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 10px;
+  z-index: 0;
+}
+#screen-more .hm5-sticker--game {
+  background: linear-gradient(135deg, rgba(43,184,163,0.18) 0%, rgba(255,255,255,1) 70%);
+}
+#screen-more .hm5-sticker--game::before { background: #2BB8A3; }
+#screen-more .hm5-sticker--about {
+  background: linear-gradient(135deg, rgba(255,74,28,0.16) 0%, rgba(255,255,255,1) 70%);
+}
+#screen-more .hm5-sticker--about::before { background: #FF4A1C; }
+
+#screen-more .hm5-sticker-head {
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #0A0A0A;
+}
+#screen-more .hm5-sticker-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: #0A0A0A;
+}
+
+#screen-more .hm5-sticker-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 各 row 共通スタイル */
+#screen-more .hm5-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 14px;
+  min-height: 56px;
+  border: 2.5px solid #0A0A0A;
+  border-radius: 10px;
+  background: #FDFBF5;
+  font-family: inherit;
+  text-align: left;
+  color: #0A0A0A;
+  box-shadow: 3px 3px 0 #0A0A0A;
+  width: 100%;
+}
+#screen-more .hm5-row--link {
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.08s ease;
+}
+#screen-more .hm5-row--link:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 #0A0A0A;
+  background: #FFE9C4;
+}
+#screen-more .hm5-row-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+#screen-more .hm5-row-label {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.005em;
+  color: #0A0A0A;
+}
+#screen-more .hm5-row-sub {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6B7280;
+  letter-spacing: 0.02em;
+}
+#screen-more .hm5-row-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#screen-more .hm5-row-arrow {
+  font-size: 22px;
+  color: #FF4A1C;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* トグルスイッチ (既存スタイルを上書き) */
+#screen-more .toggle-switch {
+  width: 48px;
+  height: 28px;
+  background: #D1D5DB;
+  border: 2px solid #0A0A0A;
+  border-radius: 16px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+  /* fix8: 外部 toggle-switch の box-sizing を上書き */
+  box-sizing: content-box;
+}
+#screen-more .toggle-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: auto !important;
+  width: 20px; height: 20px;
+  background: #FFFFFF;
+  border: 1.5px solid #0A0A0A;
+  border-radius: 50%;
+  transition: left 0.15s ease, background 0.15s ease;
+  /* fix8: 既存 transform: translateX(18px) を打ち消す */
+  transform: none !important;
+}
+#screen-more .toggle-switch.is-on {
+  background: #2BB8A3;
+}
+#screen-more .toggle-switch.is-on::after {
+  left: 22px !important;
+  transform: none !important;
+}
+
+/* セグメント (100/200/500 or 4色/2色) */
+#screen-more .hm5-seg-group {
+  display: flex;
+  border: 2px solid #0A0A0A;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #FFFFFF;
+}
+#screen-more .hm5-seg-group .seg {
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #0A0A0A;
+  cursor: pointer;
+  border-right: 2px solid #0A0A0A;
+  background: #FFFFFF;
+  transition: background 0.1s ease;
+}
+#screen-more .hm5-seg-group .seg:last-child { border-right: none; }
+#screen-more .hm5-seg-group .seg.is-active {
+  background: #0A0A0A;
+  color: #FFFFFF;
+}
+
+/* バージョン表示 */
+#screen-more .hm5-version {
+  margin-top: 4px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #6B7280;
+  padding-bottom: 8px;
+}
+
 /* ===== IA v2 More Tab Styles (Phase B-2.5, from pomu_more_v2.html) ===== */
 
     
