@@ -11850,27 +11850,61 @@ body.tut-active.tut-interactive #screen-game .slot{
   <button class="online-tap-back-btn" type="button" onclick="backToModeSelect()" aria-label="モード選択に戻る"></button>
 </div>
 
-<div class="screen" id="screen-friend-match">
-  <!-- fix45: 画像オーバーレイ方式に改修 -->
-  <button class="back-to-mode-select-btn" type="button" onclick="backToModeSelect()">
-    <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-    <span>モード選択</span>
-  </button>
+<div class="screen tab" id="screen-friend-match">
+  <!-- Session 37 (2026-06-28) Phase 1: screen-home 風 hm4-sticker カードに統一 -->
+  <div class="canvas-home">
+    <div class="hm4-layer hm4-layer-bg">
+      <img src="assets/bg_cityscape.png" alt="" aria-hidden="true"/>
+      <div class="hm4-overlay" aria-hidden="true"></div>
+    </div>
 
-  <!-- 背景画像レイヤー -->
-  <div class="friend-bg-layer" aria-hidden="true"></div>
+    <div class="hm4-layer hm4-layer-pomu" aria-hidden="true">
+      <img src="assets/char_pomu.png" alt=""/>
+    </div>
 
-  <!-- 各画像オーバーレイ -->
-  <img class="friend-overlay-img friend-overlay-card-room" src="assets/friend_match_card_room.png" alt="" aria-hidden="true">
-  <img class="friend-overlay-img friend-overlay-card-friends" src="assets/friend_match_card_friends.png" alt="" aria-hidden="true">
-  <img class="friend-overlay-img friend-overlay-card-profile" src="assets/friend_match_card_profile.png" alt="" aria-hidden="true">
-  <img class="friend-overlay-img friend-overlay-back-btn" src="assets/friend_match_back_btn.png" alt="" aria-hidden="true">
+    <header class="hm4-header">
+      <div class="fm-home-title">フレンド対戦</div>
+    </header>
+    <button class="hm4-settings" type="button" onclick="backToModeSelect()" aria-label="モード選択に戻る">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
 
-  <!-- 透明クリック領域(JS互換: 既存IDとonclickを維持)-->
-  <button class="friend-img-tap" id="btnFriendMatchCreateRoom" type="button" aria-label="新しい部屋を作る" onclick="if(typeof showScreen==='function')showScreen('quickmatch');"></button>
-  <button class="friend-img-tap" id="btnFriendMatchFriends" type="button" aria-label="フレンド一覧" onclick="if(typeof showScreen==='function')showScreen('friends');"></button>
-  <button class="friend-img-tap" id="btnFriendMatchProfile" type="button" aria-label="プロフィール" onclick="if(typeof showScreen==='function')showScreen('online-profile');"></button>
-  <button class="friend-tap-back-btn" type="button" onclick="backToModeSelect()" aria-label="モード選択に戻る"></button>
+    <main class="hm4-stickers">
+
+      <section class="hm4-sticker hm4-sticker--online">
+        <div class="hm4-sticker-head">
+          <span class="hm4-sticker-num">01</span>
+          <h2 class="hm4-sticker-title">ルーム</h2>
+        </div>
+        <div class="hm4-sticker-items">
+          <button class="hm4-item" id="btnFriendMatchCreateRoom" type="button" onclick="if(typeof showScreen==='function')showScreen('quickmatch');">
+            <span class="hm4-item-label">新しい部屋を作る</span>
+            <span class="hm4-item-arrow" aria-hidden="true">&#9656;</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="hm4-sticker hm4-sticker--ai">
+        <div class="hm4-sticker-head">
+          <span class="hm4-sticker-num">02</span>
+          <h2 class="hm4-sticker-title">フレンド</h2>
+        </div>
+        <div class="hm4-sticker-items">
+          <button class="hm4-item" id="btnFriendMatchFriends" type="button" onclick="if(typeof showScreen==='function')showScreen('friends');">
+            <span class="hm4-item-label">フレンド一覧</span>
+            <span class="hm4-item-arrow" aria-hidden="true">&#9656;</span>
+          </button>
+          <button class="hm4-item" id="btnFriendMatchProfile" type="button" onclick="if(typeof showScreen==='function')showScreen('online-profile');">
+            <span class="hm4-item-label">プロフィール</span>
+            <span class="hm4-item-arrow" aria-hidden="true">&#9656;</span>
+          </button>
+        </div>
+      </section>
+
+    </main>
+  </div>
 </div>
 <div class="screen" id="screen-friends">
   <!-- Session 35.9 (2026-06-22): Y2K Shibuya Punk 統一 = bg_cityscape 背景 -->
@@ -28903,6 +28937,34 @@ body.bptune-enabled .bptune-active{
   background: linear-gradient(135deg, rgba(43,184,163,0.20) 0%, rgba(255,255,255,1) 70%);
 }
 #screen-home .hm4-sticker--fl::before { background: #2BB8A3; }
+
+/* Session 37 (2026-06-28): friend-match を home 風カードで統一 (hm4 系を複製適用) */
+#screen-friend-match .canvas-home{ position:absolute; inset:0; width:100%; height:100%; overflow:hidden; }
+#screen-friend-match .hm4-layer{ position:absolute; inset:0; }
+#screen-friend-match .hm4-layer-bg img{ width:100%; height:100%; object-fit:cover; object-position:center; }
+#screen-friend-match .hm4-overlay{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.0) 30%, rgba(255,255,255,0.0) 100%); pointer-events:none; }
+#screen-friend-match .hm4-header{ position:relative; z-index:2; padding:calc(var(--safe-top) + 52px) 20px 12px; }
+#screen-friend-match .fm-home-title{ display:inline-block; font-family:'Anton','Noto Sans JP',sans-serif; font-size:30px; font-weight:900; color:#fff; letter-spacing:0.04em; background:#0A0A0A; padding:8px 18px 8px 16px; border-radius:4px; border-left:6px solid #FF4A1C; box-shadow:4px 4px 0 rgba(232,101,26,0.9); transform:rotate(-1deg); }
+#screen-friend-match .hm4-settings{ position:absolute; top:calc(var(--safe-top) + 14px); right:16px; z-index:5; width:46px; height:46px; display:flex; align-items:center; justify-content:center; background:#0A0A0A; border:2.5px solid #0A0A0A; border-radius:12px; color:#fff; box-shadow:3px 3px 0 rgba(232,101,26,0.9); cursor:pointer; -webkit-tap-highlight-color:transparent; }
+#screen-friend-match .hm4-settings:active{ transform:translate(2px,2px); box-shadow:1px 1px 0 rgba(232,101,26,0.9); }
+#screen-friend-match .hm4-settings svg{ width:22px; height:22px; }
+#screen-friend-match .hm4-stickers{ position:relative; z-index:2; padding:8px 16px calc(40px + var(--safe-bottom)); display:flex; flex-direction:column; justify-content:flex-start; gap:20px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+#screen-friend-match .hm4-sticker{ position:relative; background:rgba(255,255,255,0.92); border:3px solid #0A0A0A; border-radius:18px; padding:18px 18px 18px 26px; box-shadow:5px 6px 0 #0A0A0A; overflow:hidden; }
+#screen-friend-match .hm4-sticker::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:10px; }
+#screen-friend-match .hm4-sticker--online{ background:linear-gradient(135deg, rgba(255,74,28,0.18) 0%, rgba(255,255,255,1) 70%); }
+#screen-friend-match .hm4-sticker--online::before{ background:#FF4A1C; }
+#screen-friend-match .hm4-sticker--ai{ background:linear-gradient(135deg, rgba(43,184,163,0.20) 0%, rgba(255,255,255,1) 70%); }
+#screen-friend-match .hm4-sticker--ai::before{ background:#2BB8A3; }
+#screen-friend-match .hm4-sticker-head{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+#screen-friend-match .hm4-sticker-num{ font-family:'Anton',sans-serif; font-size:15px; font-weight:900; color:#0A0A0A; background:#fff; border:2px solid #0A0A0A; border-radius:6px; padding:1px 7px; }
+#screen-friend-match .hm4-sticker-title{ font-family:'Anton','Noto Sans JP',sans-serif; font-size:24px; font-weight:900; color:#0A0A0A; margin:0; letter-spacing:0.02em; }
+#screen-friend-match .hm4-sticker-items{ display:flex; flex-direction:column; gap:12px; }
+#screen-friend-match .hm4-item{ display:flex; align-items:center; justify-content:space-between; width:100%; background:rgba(255,255,255,0.96); border:2.5px solid #0A0A0A; border-radius:12px; padding:18px 18px; box-shadow:3px 3px 0 #0A0A0A; cursor:pointer; -webkit-tap-highlight-color:transparent; font-family:'Noto Sans JP',sans-serif; }
+#screen-friend-match .hm4-item:active{ transform:translate(2px,2px); box-shadow:1px 1px 0 #0A0A0A; }
+#screen-friend-match .hm4-item-label{ font-size:18px; font-weight:800; color:#0A0A0A; }
+#screen-friend-match .hm4-item-arrow{ font-size:16px; color:#FF4A1C; font-weight:900; }
+#screen-friend-match .hm4-layer-pomu{ z-index:1; pointer-events:none; }
+#screen-friend-match .hm4-layer-pomu img{ position:absolute; right:1%; bottom:1.5%; width:32%; max-width:140px; height:auto; object-fit:contain; }
 
 #screen-home .hm4-sticker-head {
   display: flex;
