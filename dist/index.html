@@ -11909,6 +11909,7 @@ body.tut-active.tut-interactive #screen-game .slot{
 <div class="screen" id="screen-friends">
   <!-- Session 35.9 (2026-06-22): Y2K Shibuya Punk 統一 = bg_cityscape 背景 -->
   <div class="online-bg-layer" aria-hidden="true"></div>
+  <div class="sub-pomu" aria-hidden="true"><img src="assets/char_pomu.png" alt=""/></div>
   <!-- fix24: モード選択へ戻るボタン -->
   <button class="back-to-mode-select-btn" type="button" onclick="backToModeSelect()">
     <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
@@ -11958,6 +11959,7 @@ body.tut-active.tut-interactive #screen-game .slot{
 <div class="screen" id="screen-quickmatch">
   <!-- Session 35.9 (2026-06-22): Y2K Shibuya Punk 統一 = bg_cityscape 背景 -->
   <div class="online-bg-layer" aria-hidden="true"></div>
+  <div class="sub-pomu" aria-hidden="true"><img src="assets/char_pomu.png" alt=""/></div>
   <!-- fix36: モード選択へ戻るボタン -->
   <button class="back-to-mode-select-btn" type="button" onclick="backToModeSelect()">
     <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
@@ -12104,6 +12106,7 @@ body.tut-active.tut-interactive #screen-game .slot{
 <div class="screen" id="screen-online-profile">
   <!-- Session 35.9 (2026-06-22): Y2K Shibuya Punk 統一 = bg_cityscape 背景 -->
   <div class="online-bg-layer" aria-hidden="true"></div>
+  <div class="sub-pomu" aria-hidden="true"><img src="assets/char_pomu.png" alt=""/></div>
   <!-- fix36: モード選択へ戻るボタン -->
   <button class="back-to-mode-select-btn" type="button" onclick="backToModeSelect()">
     <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
@@ -28965,6 +28968,121 @@ body.bptune-enabled .bptune-active{
 #screen-friend-match .hm4-item-arrow{ font-size:16px; color:#FF4A1C; font-weight:900; }
 #screen-friend-match .hm4-layer-pomu{ z-index:1; pointer-events:none; }
 #screen-friend-match .hm4-layer-pomu img{ position:absolute; right:1%; bottom:1.5%; width:32%; max-width:140px; height:auto; object-fit:contain; }
+
+/* ====================================================== */
+/* Session 37 Phase A: quickmatch を home トーンに統一 (CSS のみ) */
+/* ====================================================== */
+/* neon 撤去 */
+#screen-quickmatch .mode-neon-bg{ display:none !important; }
+/* 背景を home と同じ写実画フルカバーに */
+#screen-quickmatch .online-bg-layer{ position:absolute !important; inset:0 !important; background-image:url('assets/bg_cityscape.png') !important; background-size:cover !important; background-position:center !important; background-repeat:no-repeat !important; z-index:0 !important; }
+/* body 余白 */
+#screen-quickmatch .mode-select-body{ position:relative; z-index:2; padding-top:calc(var(--safe-top) + 52px) !important; }
+/* タイトルを黒帯ステッカー (friend-match と統一) */
+#screen-quickmatch .mode-select-title{ display:inline-block !important; align-self:flex-start; font-family:'Anton','Noto Sans JP',sans-serif !important; font-size:28px !important; font-weight:900 !important; color:#fff !important; letter-spacing:0.04em !important; background:#0A0A0A !important; padding:8px 18px 8px 16px !important; border-radius:4px !important; border-left:6px solid #FF4A1C !important; box-shadow:4px 4px 0 rgba(232,101,26,0.9) !important; transform:rotate(-1deg) !important; text-shadow:none !important; }
+/* サブ説明を黒地ステッカー小 */
+#screen-quickmatch .mode-select-desc{ display:inline-block !important; align-self:flex-start; background:rgba(20,20,30,0.88) !important; color:#fff !important; padding:6px 14px !important; border-radius:4px !important; border:2px solid #0A0A0A !important; font-weight:700 !important; font-size:13px !important; letter-spacing:0.04em !important; box-shadow:3px 3px 0 #0A0A0A !important; margin-top:4px; }
+/* メインボタンを白カード + オレンジ左帯 */
+#screen-quickmatch .mode-btn.primary{ position:relative; background:rgba(255,255,255,0.96) !important; border:3px solid #0A0A0A !important; border-radius:16px !important; box-shadow:5px 6px 0 #0A0A0A !important; transform:none !important; overflow:hidden; padding-left:26px !important; }
+#screen-quickmatch .mode-btn.primary::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:10px; background:#FF4A1C; }
+#screen-quickmatch .mode-btn.primary .mode-btn-title{ color:#0A0A0A !important; font-weight:900 !important; text-shadow:none !important; }
+#screen-quickmatch .mode-btn.primary .mode-btn-sub{ color:#444 !important; font-weight:700 !important; }
+#screen-quickmatch .mode-btn.primary .mode-btn-corners,
+#screen-quickmatch .mode-btn.primary .mode-btn-inner-frame,
+#screen-quickmatch .mode-btn.primary .mode-btn-inner-frame-2{ display:none !important; }
+#screen-quickmatch .mode-btn.primary:active{ transform:translate(2px,2px) !important; box-shadow:3px 3px 0 #0A0A0A !important; }
+/* コード入力ブロックを白カード */
+#screen-quickmatch .qm-join-block{ background:rgba(255,255,255,0.94) !important; border:2.5px solid #0A0A0A !important; border-radius:14px !important; box-shadow:4px 5px 0 #0A0A0A !important; transform:none !important; padding:16px !important; }
+#screen-quickmatch .qm-join-label{ color:#0A0A0A !important; font-weight:800 !important; }
+/* 参加ボタンをターコイズステッカー */
+#screen-quickmatch .qm-join-btn{ background:linear-gradient(135deg,#2BB8A3,#1F8B7B) !important; border:2.5px solid #0A0A0A !important; color:#fff !important; font-weight:900 !important; border-radius:10px !important; box-shadow:3px 3px 0 #0A0A0A !important; }
+#screen-quickmatch .qm-join-btn:active{ transform:translate(2px,2px) !important; box-shadow:1px 1px 0 #0A0A0A !important; }
+#screen-quickmatch .qm-join-btn:disabled{ opacity:0.5; }
+
+/* ====================================================== */
+/* Session 37 Phase A: friends を home トーンに統一 (CSS のみ) */
+/* ====================================================== */
+/* 背景を home と同じ写実画フルカバーに */
+#screen-friends .online-bg-layer{ position:absolute !important; inset:0 !important; background-image:url('assets/bg_cityscape.png') !important; background-size:cover !important; background-position:center !important; background-repeat:no-repeat !important; z-index:0 !important; }
+/* body を透過にして背景を見せる */
+#screen-friends .friends-body{ position:relative; z-index:2; padding-top:calc(var(--safe-top) + 8px) !important; }
+/* ヘッダーを透過 + タイトルを黒帯ステッカー化 */
+#screen-friends .friends-header{ background:transparent !important; border-bottom:none !important; padding:14px 16px 12px !important; }
+#screen-friends .friends-title{ display:inline-block !important; font-family:'Anton','Noto Sans JP',sans-serif !important; font-size:22px !important; font-weight:900 !important; color:#fff !important; letter-spacing:0.04em !important; background:#0A0A0A !important; padding:7px 16px !important; border-radius:4px !important; border-left:6px solid #2BB8A3 !important; box-shadow:4px 4px 0 rgba(43,184,163,0.9) !important; transform:rotate(-1deg) !important; text-align:left !important; }
+/* back/refresh ボタンを黒枠ステッカー */
+#screen-friends .friends-back-btn,
+#screen-friends .friends-refresh-btn{ background:rgba(255,255,255,0.95) !important; border:2.5px solid #0A0A0A !important; box-shadow:2px 2px 0 #0A0A0A !important; color:#0A0A0A !important; }
+/* セクションを白カード */
+#screen-friends .friends-section{ background:rgba(255,255,255,0.92) !important; border:2.5px solid #0A0A0A !important; border-radius:14px !important; box-shadow:4px 4px 0 #0A0A0A !important; padding:12px !important; margin-bottom:12px !important; }
+#screen-friends .friends-section-title{ color:#0A0A0A !important; font-weight:800 !important; }
+/* 追加ボタンをオレンジステッカー */
+#screen-friends .friends-add-btn{ background:linear-gradient(135deg,#FF6B35,#E8501A) !important; border:3px solid #0A0A0A !important; border-radius:14px !important; box-shadow:4px 4px 0 #0A0A0A !important; color:#fff !important; font-weight:900 !important; }
+#screen-friends .friends-add-btn:active{ transform:translate(2px,2px) !important; box-shadow:2px 2px 0 #0A0A0A !important; }
+
+/* ====================================================== */
+/* Session 37 Phase A: online-profile を home トーンに統一 (CSS のみ) */
+/* ====================================================== */
+/* neon 撤去 */
+#screen-online-profile .mode-neon-bg{ display:none !important; }
+/* 背景フルカバー */
+#screen-online-profile .online-bg-layer{ position:absolute !important; inset:0 !important; background-image:url('assets/bg_cityscape.png') !important; background-size:cover !important; background-position:center !important; background-repeat:no-repeat !important; z-index:0 !important; }
+#screen-online-profile .mode-select-body{ position:relative; z-index:2; padding-top:calc(var(--safe-top) + 52px) !important; }
+/* タイトル黒帯ステッカー */
+#screen-online-profile .mode-select-title{ display:inline-block !important; align-self:flex-start; font-family:'Anton','Noto Sans JP',sans-serif !important; font-size:28px !important; font-weight:900 !important; color:#fff !important; letter-spacing:0.04em !important; background:#0A0A0A !important; padding:8px 18px 8px 16px !important; border-radius:4px !important; border-left:6px solid #2BB8A3 !important; box-shadow:4px 4px 0 rgba(43,184,163,0.9) !important; transform:rotate(-1deg) !important; text-shadow:none !important; }
+#screen-online-profile .mode-select-desc{ display:inline-block !important; align-self:flex-start; background:rgba(20,20,30,0.88) !important; color:#fff !important; padding:6px 14px !important; border-radius:4px !important; border:2px solid #0A0A0A !important; font-weight:700 !important; font-size:13px !important; box-shadow:3px 3px 0 #0A0A0A !important; margin-top:4px; }
+/* プロフィールカードを白カード */
+#screen-online-profile .online-profile-card{ background:rgba(255,255,255,0.94) !important; border:2.5px solid #0A0A0A !important; border-radius:14px !important; box-shadow:4px 5px 0 #0A0A0A !important; overflow:hidden; }
+#screen-online-profile .online-profile-row{ background:transparent !important; }
+#screen-online-profile .online-profile-lbl{ color:#0A0A0A !important; font-weight:800 !important; }
+#screen-online-profile .online-profile-chev{ color:#FF4A1C !important; font-weight:800 !important; }
+/* ヒントを黒地ステッカー */
+#screen-online-profile .online-profile-hint{ background:rgba(20,20,30,0.85) !important; color:#fff !important; border:2px solid #0A0A0A !important; border-radius:10px !important; padding:10px 12px !important; box-shadow:3px 3px 0 #0A0A0A !important; font-weight:600 !important; }
+
+/* Session 37 Phase A: サブ画面共通ポム (間延び解消、右下配置) */
+#screen-quickmatch .sub-pomu,
+#screen-friends .sub-pomu,
+#screen-online-profile .sub-pomu{ position:absolute; right:2%; bottom:1.5%; width:28%; max-width:120px; z-index:1; pointer-events:none; }
+#screen-quickmatch .sub-pomu img,
+#screen-friends .sub-pomu img,
+#screen-online-profile .sub-pomu img{ width:100%; height:auto; object-fit:contain; }
+/* friends はフッターのフレンド追加ボタンと被らないよう少し上げる */
+#screen-friends .sub-pomu{ bottom:11%; opacity:0.96; }
+
+/* ====================================================== */
+/* Session 37 Phase A 案B: 上詰め + 下ポム (friend-match と一貫) */
+/* ====================================================== */
+
+/* quickmatch / online-profile: コンテンツを上から自然に積む (space-between/margin-auto 不使用) */
+#screen-quickmatch .select-content,
+#screen-online-profile .select-content{
+  flex:none !important;
+  height:auto !important;
+  justify-content:flex-start !important;
+  gap:16px !important;
+}
+/* margin-top:auto を無効化 (上詰めにする) */
+#screen-quickmatch .select-content > .mode-btn:nth-of-type(1),
+#screen-quickmatch .select-content > .fl-card-grid,
+#screen-online-profile .select-content > .mode-btn:nth-of-type(1),
+#screen-online-profile .select-content > .fl-card-grid{
+  margin-top:0 !important;
+}
+#screen-quickmatch .mode-select-desc,
+#screen-online-profile .mode-select-desc{ margin-bottom:0 !important; }
+#screen-quickmatch .mode-btn.primary{ margin-bottom:0 !important; }
+#screen-online-profile .online-profile-hint{ margin-bottom:0 !important; }
+#screen-online-profile .btn-back{ margin-top:8px !important; }
+
+/* friends: リスト領域を伸ばして空でもカードが画面を占有 (案A と同じ、機能上必要) */
+#screen-friends .friends-body{ display:flex !important; flex-direction:column !important; height:100% !important; }
+#screen-friends .friends-scroll{ flex:1 1 auto !important; min-height:0 !important; overflow-y:auto !important; }
+#screen-friends .friends-section{ display:flex !important; flex-direction:column !important; }
+#screen-friends .friends-empty{ flex:1 1 auto !important; display:flex !important; flex-direction:column !important; align-items:center !important; justify-content:center !important; }
+
+/* 案B: ポムを大きめ (friend-match と同じ 28-32%) にして下を締める */
+#screen-quickmatch .sub-pomu,
+#screen-online-profile .sub-pomu{ width:30% !important; max-width:130px !important; opacity:1; right:2% !important; bottom:2% !important; }
+#screen-friends .sub-pomu{ width:24% !important; max-width:104px !important; }
 
 #screen-home .hm4-sticker-head {
   display: flex;
