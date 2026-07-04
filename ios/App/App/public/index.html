@@ -26328,8 +26328,13 @@ body.bptune-enabled .bptune-active{
     </div>
 
     <header class="hm4-header">
-      <div class="hm4-logo">
-        <img src="assets/logo_home.png" alt="チャイポネイバーズ" class="hm4-logo-img"/>
+      <!-- Session 38 P1: ロゴ削除 → プレイヤーレベル+アイコン (PLAYER_LEVEL_DESIGN_v1.md) -->
+      <div class="hm4-player" id="hm4Player">
+        <img class="hm4-player-icon" src="assets/char_pomu.png" alt="プレイヤーアイコン"/>
+        <div class="hm4-player-meta">
+          <div class="hm4-player-lv" id="hm4PlayerLv">Lv.1</div>
+          <div class="hm4-player-xpbar"><div class="hm4-player-xpfill" id="hm4PlayerXp"></div></div>
+        </div>
       </div>
     </header>
     <button class="hm4-settings" type="button" onclick="showScreen('more');" aria-label="設定">
@@ -28838,23 +28843,60 @@ body.bptune-enabled .bptune-active{
 /* P2: ヘッダロゴを 2 段組 + 大型化 */
 #screen-home .hm4-header {
   position: absolute;
-  top: 40px;
+  top: 60px;
   left: 5%;
   z-index: 30;
   display: flex;
   align-items: flex-start;
 }
-#screen-home .hm4-logo {
+#screen-home .hm4-player {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  gap: 10px;
   flex: 0 0 auto;
 }
-#screen-home .hm4-logo-img {
-  width: 60vw;
-  max-width: 260px;
-  height: auto;
-  display: block;
-  filter: drop-shadow(2px 3px 0 rgba(10,10,10,0.22));
+#screen-home .hm4-player-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 10%;
+  background: #fff;
+  border: 2.5px solid #0A0A0A;
+  box-shadow: 0 0 0 3px #fff, 3px 3px 0 rgba(232, 101, 26, 0.9);
+}
+#screen-home .hm4-player-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+#screen-home .hm4-player-lv {
+  display: inline-block;
+  align-self: flex-start;
+  font-family: 'Anton', 'Noto Sans JP', sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  color: #fff;
+  background: #0A0A0A;
+  padding: 3px 10px 3px 8px;
+  border-radius: 4px;
+  border-left: 4px solid #2BB8A3;
+  box-shadow: 2px 2px 0 rgba(43, 184, 163, 0.9);
+  letter-spacing: 0.04em;
+  transform: rotate(-1deg);
+}
+#screen-home .hm4-player-xpbar {
+  width: 96px;
+  height: 7px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid #0A0A0A;
+  border-radius: 999px;
+  overflow: hidden;
+}
+#screen-home .hm4-player-xpfill {
+  height: 100%;
+  width: 0%;
+  background: #2BB8A3;
 }
 
 /* P4: 設定ボタンは ← title の真下に配置 (重複回避) */
@@ -34918,5 +34960,101 @@ html.more-active body {
   filter: none !important;
 }
 </style>
+<script>
+/* ============================================================
+   Session 38 P1: chaipoPlayer — プレイヤーレベル micro-store
+   設計: PLAYER_LEVEL_DESIGN_v1.md
+   localStorage 'chaipo_player_v1' = { level, xp, totalXp, iconId }
+   必要XP: needXp(level) = 100 + (level - 1) * 50
+   P1 は表示のみ。XP 付与 (addXp の呼び出し) は P2 で結果画面に接続。
+   ============================================================ */
+(function(){
+  'use strict';
+  var LS_KEY = 'chaipo_player_v1';
+  var DEFAULTS = { level: 1, xp: 0, totalXp: 0, iconId: 'pomu' };
+
+  function load(){
+    try {
+      var raw = localStorage.getItem(LS_KEY);
+      if (!raw) return Object.assign({}, DEFAULTS);
+      var d = JSON.parse(raw);
+      return {
+        level: Math.max(1, parseInt(d.level, 10) || 1),
+        xp: Math.max(0, parseInt(d.xp, 10) || 0),
+        totalXp: Math.max(0, parseInt(d.totalXp, 10) || 0),
+        iconId: typeof d.iconId === 'string' ? d.iconId : 'pomu'
+      };
+    } catch (e) {
+      return Object.assign({}, DEFAULTS);
+    }
+  }
+
+  function save(state){
+    try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  function needXp(level){
+    return 100 + (level - 1) * 50;
+  }
+
+  var state = load();
+
+  function addXp(n){
+    n = parseInt(n, 10) || 0;
+    if (n <= 0) return state;
+    state.xp += n;
+    state.totalXp += n;
+    var leveled = false;
+    while (state.xp >= needXp(state.level)) {
+      state.xp -= needXp(state.level);
+      state.level += 1;
+      leveled = true;
+    }
+    save(state);
+    render();
+    return { leveled: leveled, level: state.level };
+  }
+
+  function render(){
+    var lvEl = document.getElementById('hm4PlayerLv');
+    var xpEl = document.getElementById('hm4PlayerXp');
+    if (lvEl) lvEl.textContent = 'Lv.' + state.level;
+    if (xpEl) {
+      var pct = Math.min(100, Math.round(state.xp / needXp(state.level) * 100));
+      xpEl.style.width = pct + '%';
+    }
+  }
+
+  window.chaipoPlayer = {
+    getState: function(){ return Object.assign({}, state); },
+    addXp: addXp,
+    needXp: needXp,
+    render: render
+  };
+
+  // 初期表示
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', render);
+  } else {
+    render();
+  }
+
+  // home に切り替わるたびに再描画 (showScreen 本体には触らないラップ方式)
+  var _wrapTimer = setInterval(function(){
+    if (typeof window.showScreen === 'function' && !window.showScreen._cpWrapped) {
+      var orig = window.showScreen;
+      var wrapped = function(id){
+        var r = orig.apply(this, arguments);
+        if (id === 'home') { try { render(); } catch (e) {} }
+        return r;
+      };
+      wrapped._cpWrapped = true;
+      window.showScreen = wrapped;
+      clearInterval(_wrapTimer);
+    }
+  }, 500);
+  setTimeout(function(){ clearInterval(_wrapTimer); }, 10000);
+})();
+</script>
 </body>
 </html>
