@@ -5680,6 +5680,17 @@ body.tut-active.tut-interactive #screen-game .slot{
     transform:translate3d(0,0,0) rotate(0deg) scale(1);
   }
 }
+/* Session 39: FL(17枚)配布は移動量の大きい cardDealFromDeck だと WKWebView で重い。
+   距離短縮・rotate なしの軽量アニメに差し替え、GPU 合成の変化量を抑える。 */
+@keyframes cardDealFL{
+  0%{ opacity:0; transform:translate3d(-46px,-14px,0) scale(0.86); }
+  35%{ opacity:1; }
+  100%{ opacity:1; transform:translate3d(0,0,0) scale(1); }
+}
+.hand-cards.fl .card.in-hand.dealing,
+.hand-cards.fl-flat .card.in-hand.dealing{
+  animation:cardDealFL 0.28s cubic-bezier(0.25,1,0.4,1) both !important;
+}
 .card.in-hand.dealing{
   animation:cardDealFromDeck 0.32s cubic-bezier(0.25,1,0.4,1) both;
   will-change:transform,opacity;
@@ -22882,15 +22893,20 @@ function updateModeBtnStats(){
           // Session 38: 個別 reflow をやめ、一旦全カードの dealing を外して 1 回だけ reflow
           cards.forEach(function(el){ el.classList.remove('dealing'); el.style.animationDelay=''; });
           void hc.offsetWidth;  // reflow 強制 (ループ全体で 1 回のみ)
+          /* Session 39: FL(手札多数)は stagger を詰めてピーク時間を短縮 + will-change を早めに解放 */
+          var _isFlDeal = hc.classList.contains('fl') || hc.classList.contains('fl-flat');
+          var _stag = _isFlDeal ? 18 : 38;
+          var _dur = _isFlDeal ? 300 : 420;
           cards.forEach((el, i) => {
-            el.style.animationDelay = (i * 38) + 'ms';
+            el.style.animationDelay = (i * _stag) + 'ms';
             el.classList.add('dealing');
             setTimeout((function(elRef){
               return function(){
                 elRef.classList.remove('dealing');
                 elRef.style.animationDelay = '';
+                elRef.style.willChange = 'auto';  /* FL は枚数が多いので合成レイヤーを確実に解放 */
               };
-            })(el), 420 + i * 38);
+            })(el), _dur + i * _stag);
           });
         }
       }
