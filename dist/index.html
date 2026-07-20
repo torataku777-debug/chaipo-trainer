@@ -1438,20 +1438,24 @@ html body.ui-v2.fl-mode .opp-card{
 .onboard-btn:active{ transform:translate(3px,3px); box-shadow:none; }
 /* Session 39: ホームのチュートリアル誘導バナー */
 .hm4-tut-banner{
-  display:flex; align-items:center; gap:12px; width:100%;
-  padding:14px 16px; margin-bottom:14px;
+  /* Session 40: 絶対配置で flex フローから外す (均等配置の高さを奪わない → セクション見切れ解消)。
+     薄型にして .hm4-stickers(top:175px) の上端より確実に上に収める (最初のセクションと重ならない)。 */
+  position:absolute; top:-54px; left:0; right:0; width:100%;
+  display:flex; align-items:center; gap:11px;
+  padding:6px 14px;
   background:linear-gradient(135deg,#FFD94A 0%,#F5A522 55%,#E8651A 100%);
-  border:2.5px solid #0A0A0A; border-radius:16px;
+  border:2.5px solid #0A0A0A; border-radius:14px;
   box-shadow:4px 4px 0 rgba(10,10,10,0.85);
   cursor:pointer; -webkit-tap-highlight-color:transparent; text-align:left;
+  z-index:16;
 }
 .hm4-tut-banner:active{ transform:translate(2px,2px); box-shadow:2px 2px 0 rgba(10,10,10,0.85); }
 .hm4-tut-banner-icon{
-  flex:0 0 auto; width:38px; height:38px; border-radius:10px;
+  flex:0 0 auto; width:34px; height:34px; border-radius:9px;
   display:flex; align-items:center; justify-content:center;
   background:#fff; border:2px solid #0A0A0A; color:#0A0A0A;
 }
-.hm4-tut-banner-icon svg{ width:22px; height:22px; }
+.hm4-tut-banner-icon svg{ width:20px; height:20px; }
 .hm4-tut-banner-text{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px; }
 .hm4-tut-banner-title{
   font-family:'Noto Sans JP',sans-serif; font-size:15px; font-weight:900; color:#0A0A0A; line-height:1.2;
@@ -15064,6 +15068,40 @@ function aiFLPlace(cards){
   if(botC.length<5){const fill=rem.filter(c=>!used.has(c.id));while(botC.length<5&&fill.length>0){const c=fill.shift();used.add(c.id);botC.push(c);}}
   board.bot=botC;board.mid=sorted.filter(c=>!used.has(c.id)).slice(0,5);return board;
 }
+/* Session 40: 軽量版 FL 配置。findBestFL17 (総当たり=最大171秒) を使わず、
+   aiFLPlace のフォールバック貪欲法だけで配置する。相手FL の事前計算が使えなかった
+   ときの保険用。質は落ちるがフリーズしない (1ms未満)。 */
+function aiFLPlaceFast(cards){
+  const board={top:[],mid:[],bot:[]};
+  const sorted=[...cards].sort((a,b)=>rankVal(b.r)-rankVal(a.r));
+  const byR={};for(const c of sorted){if(!byR[c.r])byR[c.r]=[];byR[c.r].push(c);}
+  const trips=Object.values(byR).filter(g=>g.length>=3).sort((a,b)=>rankVal(b[0].r)-rankVal(a[0].r));
+  const used=new Set();let topC=[];
+  if(trips.length>0){topC=trips[0].slice(0,3);topC.forEach(c=>used.add(c.id));}
+  else{const pairs=Object.values(byR).filter(g=>g.length>=2).sort((a,b)=>rankVal(b[0].r)-rankVal(a[0].r));const tp=pairs.find(p=>rankVal(p[0].r)>=12);if(tp){topC=tp.slice(0,2);topC.forEach(c=>used.add(c.id));}else{const h=sorted.find(c=>!used.has(c.id)&&rankVal(c.r)>=13);if(h){topC=[h];used.add(h.id);}}}
+  board.top=topC;
+  const rem=sorted.filter(c=>!used.has(c.id));
+  try{ distRest(rem, board); }catch(e){ board.mid=rem.slice(0,5); board.bot=rem.slice(5,10); }
+  /* 全カード配置の保証 (distRest が埋め残した場合の穴埋め) */
+  const placed=new Set();['top','mid','bot'].forEach(r=>board[r].forEach(c=>placed.add(c.id)));
+  const lim={top:3,mid:5,bot:5};
+  for(const c of cards){
+    if(placed.has(c.id)) continue;
+    for(const r of ['bot','mid','top']){ if(board[r].length<lim[r]){ board[r].push(c); placed.add(c.id); break; } }
+  }
+  /* Session 40: 貪欲配置がファウルする場合は「構造的に安全な配置」に切り替える。
+     下段=最強5 / 中段=次5 / 上段=最弱3 は bot>=mid>=top がほぼ保証されファウルしにくい。 */
+  try{
+    if(typeof isFoul === 'function' && isFoul(board)){
+      const safe={ bot:sorted.slice(0,5), mid:sorted.slice(5,10), top:sorted.slice(10,13) };
+      if(!isFoul(safe)) return safe;
+      /* それでも駄目なら上段を最弱にする別案 */
+      const alt={ bot:sorted.slice(0,5), mid:sorted.slice(5,10), top:sorted.slice(10,13) };
+      return safe; /* 安全配置をそのまま返す (保険の保険) */
+    }
+  }catch(e){}
+  return board;
+}
 function findPairs(cards){const g={};for(const c of cards){if(!g[c.r])g[c.r]=[];g[c.r].push(c);}return Object.values(g).filter(x=>x.length>=2).sort((a,b)=>rankVal(b[0].r)-rankVal(a[0].r));}
 function distRest(cards,board){
   // 残りカードをMID/BOTに最適配置（ペア優先・最終的に全カードを必ず配置）
@@ -16005,11 +16043,13 @@ async function newGame(onlineConfig){
       console.log('[opp FL] 相手 FL 開始 ('+oppFlCards+'枚) aiFLPlace フォールバック計算中');
       setTimeout(function(){
         try{
-          const oFLB = aiFLPlace(oppFlHand);
+          /* Session 40: aiFLPlace(=findBestFL17, 最大171秒) はフリーズを起こすため、
+             フォールバックは軽量版 aiFLPlaceFast を使う (1ms未満)。 */
+          const oFLB = aiFLPlaceFast(oppFlHand);
           state.oppBoard = {top:[...oFLB.top], mid:[...oFLB.mid], bot:[...oFLB.bot]};
           state.oppFlPending = false;
           state.oppFlHand = null;
-          console.log('[opp FL] aiFLPlace 完了');
+          console.log('[opp FL] aiFLPlaceFast 完了 (軽量フォールバック)');
           if(typeof window._oppFlPendingCallback === 'function'){
             const cb = window._oppFlPendingCallback;
             window._oppFlPendingCallback = null;
@@ -20558,20 +20598,36 @@ window.__flPrecomputedLoading = false;
 (function loadFlPrecomputed(){
   if(window.__flPrecomputed || window.__flPrecomputedLoading) return;
   window.__flPrecomputedLoading = true;
-  fetch('./fl_precomputed_800.json?v=' + Date.now())
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      window.__flPrecomputed = data;
+  /* Session 40: WKWebView (capacitor://localhost) でも確実に読めるよう複数パスをリトライ。
+     相対パスが失敗しても絶対パス候補を順に試す。全滅時のみ aiFLPlaceFast にフォールバック。 */
+  var _cands = [
+    './fl_precomputed_800.json',
+    'fl_precomputed_800.json',
+    '/fl_precomputed_800.json'
+  ];
+  var _v = '?v=' + Date.now();
+  function _tryLoad(i){
+    if(i >= _cands.length){
       window.__flPrecomputedLoading = false;
-      var counts = Object.keys(data.hands || {}).map(function(k){
-        return k + ':' + data.hands[k].length;
-      }).join(' ');
-      console.log('[FL] precomputed loaded:', data.version, counts);
-    })
-    .catch(function(e){
-      window.__flPrecomputedLoading = false;
-      console.error('[FL] precomputed load failed:', e);
-    });
+      console.error('[FL] precomputed load failed on all paths');
+      return;
+    }
+    fetch(_cands[i] + _v)
+      .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function(data){
+        window.__flPrecomputed = data;
+        window.__flPrecomputedLoading = false;
+        var counts = Object.keys(data.hands || {}).map(function(k){
+          return k + ':' + data.hands[k].length;
+        }).join(' ');
+        console.log('[FL] precomputed loaded from', _cands[i], data.version, counts);
+      })
+      .catch(function(e){
+        console.warn('[FL] precomputed path failed:', _cands[i], e && e.message);
+        _tryLoad(i + 1);
+      });
+  }
+  _tryLoad(0);
 })();
 
 // v29.3: AI 対戦両方 FL 用ペアデータ (生成完了後に有効化)
@@ -20780,8 +20836,10 @@ function confirmFLPracticeInternal(){
     optimal = flSolutionToPlacement(window.__flPracticeSolution, flPracticeDealt);
     console.log('[FL] optimal from precomputed cache');
   } else {
-    optimal = findBestFL17(flPracticeDealt);
-    console.log('[FL] optimal computed at runtime:', optimal ? 'found' : 'null');
+    /* Session 40: findBestFL17 は最大171秒フリーズするため、solution 無し時は
+       軽量版 aiFLPlaceFast をお手本にする (最適ではないがフリーズしない)。 */
+    optimal = aiFLPlaceFast(flPracticeDealt);
+    console.log('[FL] optimal via aiFLPlaceFast (fast fallback, no freeze)');
   }
   var userEval = evaluateFLBoard(state.playerBoard);
   var optEval = optimal ? evaluateFLBoard(optimal) : {bonus: 0, refantasy: false, score: 0};
@@ -26897,7 +26955,7 @@ body.bptune-enabled .bptune-active{
 
     <main class="hm4-stickers">
 
-      <!-- Session 39: 初回チュートリアル誘導バナー (未経験時のみ表示。PLAY 動線には触れない安全方式) -->
+      <!-- Session 40: チュートリアル誘導バナー (screen-home 内・未経験時のみ表示) -->
       <button class="hm4-tut-banner" id="hm4TutBanner" type="button" style="display:none;"
               onclick="if(typeof showScreen==='function')showScreen('tutorial-overview');">
         <span class="hm4-tut-banner-icon" aria-hidden="true">
@@ -26912,6 +26970,7 @@ body.bptune-enabled .bptune-active{
         </span>
         <span class="hm4-tut-banner-arrow" aria-hidden="true">▸</span>
       </button>
+
 
       <section class="hm4-sticker hm4-sticker--online">
         <div class="hm4-sticker-head">
@@ -29496,15 +29555,15 @@ body.bptune-enabled .bptune-active{
 /* P1: ステッカー群の余白を詰める (justify space-between → flex-start + 適切な gap) */
 #screen-home .hm4-stickers {
   position: absolute;
-  top: 175px;
+  top: 158px;
   left: 0; right: 0;
-  bottom: 4%;
+  bottom: 2%;
   z-index: 15;
   padding: 0 5%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 18px;
+  gap: 14px;
 }
 
 #screen-home .hm4-sticker {
@@ -29513,9 +29572,9 @@ body.bptune-enabled .bptune-active{
   border: 4px solid #FFFFFF;
   outline: 2.5px solid #0A0A0A;
   border-radius: 14px;
-  padding: 16px 16px 20px 24px;
+  padding: 13px 16px 14px 24px;
   box-shadow: 5px 6px 0 #0A0A0A;
-  overflow: hidden;
+  overflow: visible;
 }
 #screen-home .hm4-sticker::before {
   content: "";
@@ -29563,11 +29622,11 @@ body.bptune-enabled .bptune-active{
 #screen-friend-match .hm4-sticker--online::before{ background:#FF4A1C; }
 #screen-friend-match .hm4-sticker--ai{ background:linear-gradient(135deg, rgba(43,184,163,0.20) 0%, rgba(255,255,255,1) 70%); }
 #screen-friend-match .hm4-sticker--ai::before{ background:#2BB8A3; }
-#screen-friend-match .hm4-sticker-head{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+#screen-friend-match .hm4-sticker-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
 #screen-friend-match .hm4-sticker-num{ font-family:'Anton',sans-serif; font-size:15px; font-weight:900; color:#0A0A0A; background:#fff; border:2px solid #0A0A0A; border-radius:6px; padding:1px 7px; }
 #screen-friend-match .hm4-sticker-title{ font-family:'Anton','Noto Sans JP',sans-serif; font-size:24px; font-weight:900; color:#0A0A0A; margin:0; letter-spacing:0.02em; }
-#screen-friend-match .hm4-sticker-items{ display:flex; flex-direction:column; gap:12px; }
-#screen-friend-match .hm4-item{ display:flex; align-items:center; justify-content:space-between; width:100%; background:rgba(255,255,255,0.96); border:2.5px solid #0A0A0A; border-radius:12px; padding:18px 18px; box-shadow:3px 3px 0 #0A0A0A; cursor:pointer; -webkit-tap-highlight-color:transparent; font-family:'Noto Sans JP',sans-serif; }
+#screen-friend-match .hm4-sticker-items{ display:flex; flex-direction:column; gap:9px; }
+#screen-friend-match .hm4-item{ display:flex; align-items:center; justify-content:space-between; width:100%; background:rgba(255,255,255,0.96); border:2.5px solid #0A0A0A; border-radius:12px; padding:13px 18px; box-shadow:3px 3px 0 #0A0A0A; cursor:pointer; -webkit-tap-highlight-color:transparent; font-family:'Noto Sans JP',sans-serif; }
 #screen-friend-match .hm4-item:active{ transform:translate(2px,2px); box-shadow:1px 1px 0 #0A0A0A; }
 #screen-friend-match .hm4-item-label{ font-size:18px; font-weight:800; color:#0A0A0A; }
 #screen-friend-match .hm4-item-arrow{ font-size:16px; color:#FF4A1C; font-weight:900; }
@@ -33755,7 +33814,7 @@ html.more-active body {
   border: 4px solid #FFFFFF;
   outline: 2.5px solid #0A0A0A;
   border-radius: 14px;
-  padding: 16px 16px 20px 24px;
+  padding: 13px 16px 14px 24px;
   box-shadow: 5px 6px 0 #0A0A0A;
   overflow: hidden;
   flex-shrink: 0;
