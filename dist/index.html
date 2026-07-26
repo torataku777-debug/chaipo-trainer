@@ -347,7 +347,11 @@ body.ui-v2 #screen-game{
 /* v1.3 Session21: FL中だけFL専用背景に切り替え */
 body.ui-v2.fl-mode #screen-game{
   /* Phase A-0: FL背景も CSS 変数経由 */
-  background-color: #0a1530;
+  /* Session 41: 下地が #0a1530 (濃紺) だと、FL背景画像の読み込み待ちの一瞬に
+     この色が露出して「通常→FL で一瞬暗くなる」現象になっていた。
+     通常時の #2a2a2a に寄せ、露出しても暗転に見えないようにする。
+     根本対策は下の FL背景プリロード。 */
+  background-color: #2a3448;
   background-image: var(--bg-fl-url);
   background-position: center top;
   background-size: cover;
@@ -1365,13 +1369,16 @@ html body.ui-v2.fl-mode .opp-card{
   cursor:default;
 }
 .cp-lock-badge{
+  /* Session 41: 「近日」(グレー = 到達不能) と役割を分け、
+     レベル解放はブランド色で「上げれば届く」ことを示す。 */
   position:absolute; top:8px; right:8px; z-index:8;
   font-family:'Noto Sans JP',sans-serif;
   font-size:10px; font-weight:900; letter-spacing:0.02em;
-  color:#fff; background:#0A0A0A;
+  color:#0A0A0A;
+  background:linear-gradient(135deg,#FFD94A 0%,#F5A522 100%);
   padding:3px 8px; border-radius:999px;
-  border:1.5px solid #fff;
-  box-shadow:2px 2px 0 rgba(232,101,26,0.9);
+  border:1.5px solid #0A0A0A;
+  box-shadow:2px 2px 0 rgba(10,10,10,0.75);
   white-space:nowrap; pointer-events:none;
 }
 .unlock-overlay{
@@ -15239,6 +15246,60 @@ function distRest(cards,board){
 }
 
 /* ===== ROLLOUT v1 AI (v28.12) — Python ai_rollout_v1.py を JS 移植 ===== */
+/* ============================================================
+   Session 41: CPU 難易度のレベル連動
+   プレイヤーが低レベルのうちは CPU を弱くし、Lv10 で従来の強さに戻す。
+   - depthScale(): ロールアウト回数の倍率 (読みの深さ)
+   - mistakeRate(): 最善手を外す確率
+   Lv1 が最も弱く、Lv10 以降は従来と同一 (倍率1.0 / ミス0%)。
+   ============================================================ */
+function _cpuPlayerLevel(){
+  try{
+    if(window.chaipoPlayer && typeof window.chaipoPlayer.getLevel === 'function'){
+      return window.chaipoPlayer.getLevel() || 1;
+    }
+    var raw = localStorage.getItem('chaipo_player_v1');
+    if(raw){ var o = JSON.parse(raw); if(o && o.level) return o.level; }
+  }catch(e){}
+  return 1;
+}
+/* Session 41: さらに弱く + 到達レベルを Lv10 → Lv15 に延長。
+   読みの深さ: Lv1 -> 0.10 / Lv5 -> 0.36 / Lv10 -> 0.68 / Lv15以上 -> 1.00 */
+function _cpuDepthScale(){
+  var lv = _cpuPlayerLevel();
+  if(lv >= 15) return 1.0;
+  if(lv <= 1)  return 0.05;   /* Session 41: さらに弱く (従来の5%) */
+  return 0.05 + (lv - 1) * (0.95 / 14);
+}
+/* ミス率: Lv1 -> 0.80 / Lv5 -> 0.57 / Lv10 -> 0.29 / Lv15以上 -> 0 */
+function _cpuMistakeRate(){
+  var lv = _cpuPlayerLevel();
+  if(lv >= 15) return 0;
+  if(lv <= 1)  return 0.80;   /* Session 41: さらに弱く */
+  return 0.80 * (1 - (lv - 1) / 14);
+}
+/* Session 41: ミス時に選ぶ範囲もレベル連動にする。
+   低レベルほど下位の手まで選びうる = より人間らしい甘い手になる。
+   Lv1 -> 上位12番手まで / Lv14 -> 2番手のみ */
+function _cpuPickWidth(){
+  var lv = _cpuPlayerLevel();
+  if(lv >= 15) return 1;
+  if(lv <= 1)  return 12;
+  return Math.max(1, Math.round(12 - (lv - 1) * (11 / 14)));
+}
+/* 候補配列 (score 降順) から、難易度に応じて 1 手選ぶ。
+   ミスが出た場合は 2〜4 番手のいずれかをランダムに選ぶ。 */
+function _cpuPickFromRanked(sorted){
+  if(!sorted || !sorted.length) return null;
+  if(sorted.length === 1) return sorted[0];
+  var mr = _cpuMistakeRate();
+  if(mr > 0 && Math.random() < mr){
+    var maxIdx = Math.min(sorted.length - 1, _cpuPickWidth());   /* Session 41: 範囲もレベル連動 */
+    var pick = 1 + Math.floor(Math.random() * maxIdx);
+    return sorted[pick] || sorted[0];
+  }
+  return sorted[0];
+}
 const ROLLOUT_N_DEFAULT = 60;
 const ROLLOUT_CAPS = {top:3, mid:5, bot:5};
 
@@ -15588,7 +15649,9 @@ function _getRemainingCards(board, otherBoard, discardPile, currentHand){
 function aiPineappleRollout(hand, board, roundNum, deckRemaining, nRollouts){
   /* Rollout v1: 配置候補を列挙し、各候補で N 回シミュレーションして
      FL 率 × FL EV - ファウル率 × 5 が最高の候補を選ぶ */
-  nRollouts = nRollouts || ROLLOUT_N_DEFAULT;
+  /* Session 41: 読みの深さをプレイヤーレベルに連動 (Lv10 で従来値) */
+  nRollouts = nRollouts || Math.max(3, Math.round(ROLLOUT_N_DEFAULT * _cpuDepthScale()));
+  var _cpuCandidates = [];
   const options = _enumPlacements(board, hand);
   if(options.length === 0){
     // フォールバック: 元の aiPineapple に委譲
@@ -15627,10 +15690,20 @@ function aiPineappleRollout(hand, board, roundNum, deckRemaining, nRollouts){
       score = expectedFlEv - foulRate * 5;
     }
 
+    /* Session 41: 最善手だけでなく全候補を保持し、難易度に応じて選び直す */
+    _cpuCandidates.push({ opt: opt, score: score });
+
     if(score > bestScore){
       bestScore = score;
       best = opt;
     }
+  }
+
+  /* Session 41: プレイヤーが低レベルのうちは一定確率で最善手を外す */
+  if(_cpuCandidates.length > 1){
+    _cpuCandidates.sort(function(a, b){ return b.score - a.score; });
+    var _picked = _cpuPickFromRanked(_cpuCandidates);
+    if(_picked && _picked.opt){ best = _picked.opt; bestScore = _picked.score; }
   }
 
   if(!best){
@@ -15687,7 +15760,7 @@ function _runOppFlatRounds(startRound){
 
     try{
       const deckRem = _getRemainingCards(state.oppBoard, state.playerBoard, state.discard, oppHand);
-      const decision = aiPineappleRollout(oppHand, state.oppBoard, round, deckRem, ROLLOUT_N_DEFAULT);
+      const decision = aiPineappleRollout(oppHand, state.oppBoard, round, deckRem)  /* Session 41: 回数は関数側でレベル連動 */;
       if(decision && decision.place){
         for(const r of ['top','mid','bot']){
           state.oppBoard[r].push(...(decision.place[r] || []));
@@ -15812,7 +15885,9 @@ function _enumPlacements5(hand){
 
 function aiPlace5Rollout(hand, deckRemaining, nRollouts){
   /* R1 専用 Rollout AI: 5 枚を配置、残り R2-R5 を greedy シミュ */
-  nRollouts = nRollouts || ROLLOUT5_N_DEFAULT;
+  /* Session 41: 読みの深さをプレイヤーレベルに連動 (Lv10 で従来値) */
+  nRollouts = nRollouts || Math.max(3, Math.round(ROLLOUT5_N_DEFAULT * _cpuDepthScale()));
+  var _cpu5Candidates = [];
   const options = _enumPlacements5(hand);
   if(options.length === 0){
     return aiPlace5(hand);  // フォールバック
@@ -15847,10 +15922,21 @@ function aiPlace5Rollout(hand, deckRemaining, nRollouts){
     const expectedFlEv = flRate * (FL_AI_EV[Math.round(avgFlCards)] || FL_AI_EV[15]);
     const score = expectedFlEv - foulRate * 5;
 
+    /* Session 41: 全候補を保持し、難易度に応じて選び直す */
+    _cpu5Candidates.push({ opt: opt, score: score });
+
     if(score > bestScore){
       bestScore = score;
       best = opt;
     }
+  }
+
+  /* Session 41: プレイヤーが低レベルのうちは一定確率で最善手を外す。
+     R1 の土台だけ最善で組まれると弱体化の効果が薄いため、ここにも入れる。 */
+  if(_cpu5Candidates.length > 1){
+    _cpu5Candidates.sort(function(a, b){ return b.score - a.score; });
+    var _p5 = _cpuPickFromRanked(_cpu5Candidates);
+    if(_p5 && _p5.opt){ best = _p5.opt; bestScore = _p5.score; }
   }
 
   if(!best) return aiPlace5(hand);
@@ -15869,7 +15955,7 @@ function _computeOppR1Placement(oppH){
   let oP;
   try{
     const rollDeck = _getRemainingCards(state.oppBoard, state.playerBoard, state.discard, oppH);
-    oP = aiPlace5Rollout(oppH, rollDeck, ROLLOUT5_N_DEFAULT);
+    oP = aiPlace5Rollout(oppH, rollDeck)  /* Session 41: 回数は関数側でレベル連動 */;
   }catch(e){
     console.error('[aiPlace5Rollout] error, fallback to aiPlace5:', e);
     oP = aiPlace5(oppH);
@@ -19607,6 +19693,14 @@ function checkMatchEnd(){
       if(_unlocked.length && typeof window.showUnlockEffect === 'function'){
         setTimeout(function(){
           try{ window.showUnlockEffect(_unlocked); }catch(e){ console.error('[unlock]', e); }
+          /* Session 41: ここで見せた解放は提示済みにする。
+             しないとホームに戻ったときに同じ演出が二重で出る。 */
+          try{
+            if(window.chaipoPlayer && typeof window.chaipoPlayer.pendingUnlocks === 'function'){
+              var _p = window.chaipoPlayer.pendingUnlocks();
+              window.chaipoPlayer.markUnlocksSeen(_p.map(function(u){ return u.key; }));
+            }
+          }catch(e){}
         }, 2700);
       }
     }, 1300);
@@ -20635,7 +20729,22 @@ function showScreen(id){
       if(typeof state !== 'undefined' && state){ state._handHiddenForOppAnim = false; }
     }catch(e){}
   }
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));var target=document.getElementById('screen-'+id);if(target)target.classList.add('active');var tabScreens=['home','town','battle','friend','more'];if(tabScreens.indexOf(id)>=0){window._lastNavTab=id;/* Session 35.7: 直前のタブ記憶 (履歴ベース戻る用) */document.body.classList.add('show-nav');document.querySelectorAll('#bottomNav .nav-tab').forEach(function(t){t.classList.toggle('nav-tab--active',t.getAttribute('data-tab')===id);});}else{document.body.classList.remove('show-nav');}}
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  /* Session 41: ホーム(モード選択)に戻ったとき、まだ演出を見ていない
+     解放があれば機能解放演出を出す。結果画面を飛ばしても
+     解放に気づけるようにするため。 */
+  if(id === 'home'){
+    setTimeout(function(){
+      try{
+        if(!window.chaipoPlayer || typeof window.chaipoPlayer.pendingUnlocks !== 'function') return;
+        var pend = window.chaipoPlayer.pendingUnlocks();
+        if(!pend || !pend.length) return;
+        if(typeof window.showUnlockEffect !== 'function') return;
+        window.showUnlockEffect(pend.map(function(u){ return u.name; }));
+        window.chaipoPlayer.markUnlocksSeen(pend.map(function(u){ return u.key; }));
+      }catch(e){ console.error('[unlock/home]', e); }
+    }, 520);
+  }var target=document.getElementById('screen-'+id);if(target)target.classList.add('active');var tabScreens=['home','town','battle','friend','more'];if(tabScreens.indexOf(id)>=0){window._lastNavTab=id;/* Session 35.7: 直前のタブ記憶 (履歴ベース戻る用) */document.body.classList.add('show-nav');document.querySelectorAll('#bottomNav .nav-tab').forEach(function(t){t.classList.toggle('nav-tab--active',t.getAttribute('data-tab')===id);});}else{document.body.classList.remove('show-nav');}}
 
 // === Phase A-2 UI Fix v2: ショップ画面から確実にモード選択画面へ戻る ===
 function closeShopAndReturn(ev){
@@ -30061,11 +30170,14 @@ body.bptune-enabled .bptune-active{
   line-height: 1;
 }
 #screen-home .hm4-item-badge {
-  font-size: 12px;
-  font-weight: 900;
+  /* Session 41: 「近日」は未実装 = 到達不能。期待させないようグレーで沈める。
+     レベル解放バッジ (.cp-lock-badge) はブランド色で目立たせ、役割を分ける。 */
+  font-size: 11px;
+  font-weight: 800;
   padding: 4px 9px;
-  background: #0A0A0A;
-  color: #FFFFFF;
+  background: #E3E5E8;
+  color: #6B7280;
+  border: 1.5px solid #C4C8CE;
   border-radius: 5px;
   letter-spacing: 0.06em;
 }
@@ -35994,7 +36106,10 @@ html.more-active body {
        (勝利=50 / 引分=25 / 敗北=15) */
     if(level <= 1) return 15;
     var n = level - 1;
-    return Math.round(40 + 33 * n + 0.5 * n * n);
+    /* Session 41: さらに緩和 (旧 40+33n+0.5n^2 の約半分)。
+       Lv2→3:38(1勝) / Lv5→6:98(2勝) / Lv10→11:214(5勝) / Lv15→16:350(7勝)
+       ※勝利=50XP 換算 */
+    return Math.round(20 + 18 * n + 0.4 * n * n);
   }
 
   var state = load();
@@ -36006,7 +36121,13 @@ html.more-active body {
      iconId (アイコン選択) はユーザーの設定なので維持する。
      ※再度リセットしたい場合は RESET_KEY のバージョンを上げる。
      ============================================================ */
-  var RESET_KEY = 'chaipo_player_reset_s41b';
+  /* Session 41: デプロイのたびにレベルを1へ戻す。
+     BUILD_ID はデプロイ前に bump_build_id.py が書き換える。
+     ビルドが変わった最初の起動でのみリセットされ、
+     同じビルド内での再起動では進捗が保持される
+     (毎起動リセットだとレベルアップの検証ができなくなるため)。 */
+  var BUILD_ID = '20260727_003054';
+  var RESET_KEY = 'chaipo_player_reset_' + BUILD_ID;
   try{
     if(!localStorage.getItem(RESET_KEY)){
       state.level = 1;
@@ -36078,6 +36199,38 @@ html.more-active body {
     }
     return out;
   }
+  /* Session 41: 解放演出の提示済み管理。
+     レベルアップ直後の演出だけだと、結果画面を飛ばした場合などに
+     解放に気づかないままになる。モード選択に戻ったときに
+     未提示の解放があれば演出を出すための台帳。 */
+  var SEEN_KEY = 'chaipo_unlock_seen_v1';
+  function _seenUnlocks(){
+    try{
+      var raw = localStorage.getItem(SEEN_KEY);
+      return raw ? (JSON.parse(raw) || []) : [];
+    }catch(e){ return []; }
+  }
+  function _markUnlockSeen(keys){
+    try{
+      var cur = _seenUnlocks();
+      keys.forEach(function(k){ if(cur.indexOf(k) < 0) cur.push(k); });
+      localStorage.setItem(SEEN_KEY, JSON.stringify(cur));
+    }catch(e){}
+  }
+  /* 現在のレベルで解放済みだが、まだ演出を見ていないもの */
+  function pendingUnlocks(){
+    var seen = _seenUnlocks();
+    var out = [];
+    for(var k in UNLOCKS){
+      if(!UNLOCKS.hasOwnProperty(k)) continue;
+      if(state.level >= UNLOCKS[k].lv && seen.indexOf(k) < 0){
+        out.push({ key: k, name: UNLOCKS[k].name });
+      }
+    }
+    return out;
+  }
+  function markUnlocksSeen(keys){ _markUnlockSeen(keys); }
+
   function applyUnlockUI(){
     try{
       var els = document.querySelectorAll('[data-cp-lock]');
@@ -36155,6 +36308,10 @@ html.more-active body {
     unlockLevel: unlockLevel,
     unlockName: unlockName,
     unlocksBetween: unlocksBetween,
+    /* Session 41: モード選択での未提示解放演出用 */
+    pendingUnlocks: pendingUnlocks,
+    markUnlocksSeen: markUnlocksSeen,
+    getLevel: function(){ return state.level; },
     applyUnlockUI: applyUnlockUI
   };
 
@@ -36267,6 +36424,36 @@ html.more-active body {
     }
   }, 500);
   setTimeout(function(){ clearInterval(_wrapTimer); }, 10000);
+})();
+</script>
+<script>
+/* ============================================================
+   Session 41: 背景画像のプリロード
+   FL突入時 (body.fl-mode) に #screen-game の背景が bg_fl_v3.png へ
+   切り替わるが、未読み込みだとデコード待ちのあいだ下地の色が露出し、
+   「通常→ファンタジーで一瞬暗くなる」現象になっていた。
+   起動後アイドル時に先読みしておけば、切替時には即座に描画される。
+   decode() まで待つことで「読み込み済みだがデコード未完了」も潰す。
+   ============================================================ */
+(function(){
+  var URLS = [
+    'assets/game/bg_fl_v3.png',
+    'assets/game/bg_v1.png'
+  ];
+  function preload(){
+    URLS.forEach(function(u){
+      try{
+        var img = new Image();
+        img.src = u;
+        if(img.decode){ img.decode().catch(function(){}); }
+      }catch(e){}
+    });
+  }
+  if('requestIdleCallback' in window){
+    requestIdleCallback(preload, { timeout: 3000 });
+  } else {
+    setTimeout(preload, 1200);
+  }
 })();
 </script>
 </body>
