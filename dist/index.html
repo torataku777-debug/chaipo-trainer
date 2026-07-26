@@ -14687,24 +14687,35 @@ const BB={straight:2,flush:4,fullhouse:6,quads:10,strflush:15,royalflush:25};
 function makeDeck(){const d=[];for(const s of SUITS)for(const r of RANKS)d.push({r,s,id:`${r}${s}`});d.push({r:'JK',s:'',id:'JK1',isJoker:true});d.push({r:'JK',s:'',id:'JK2',isJoker:true});return d;}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function rankVal(r){return RANK_VAL[r]||0;}
+/* Session 41: topRankScore の共通スケーラ。
+   旧実装は上位2枚のみ (rv[0]*100+rv[1]) で 3枚目を無視していたため、
+   AKQ と AK2 が同値(1413)になり、ジョーカーの化け先を選ぶ際に
+   候補列挙順(RANKS の先頭は '2')のまま 2 が選ばれていた。
+   getBestValidEvals のスコア式には上段のキッカー項(tTopKick)が無いため、
+   この値で 3枚目まで差を付ける。
+   係数 400/20/1 は辞書順を保ちつつ最大 5872 (<10000) に収まり、
+   topRankScore*1e10 が上位桁(rank*1e14)を侵食しない。
+   eval3 / eval3Plain の両方から使うためグローバルに置く
+   (片方だけ旧スケールのままだとファウル判定・表示が食い違う)。 */
+function _tS(a,b,c){ return (a||0)*400 + (b||0)*20 + (c||0); }
 function eval3(cards){
   const n=cards.filter(c=>!c.isJoker);const j=cards.filter(c=>c.isJoker).length;const rv=n.map(c=>rankVal(c.r)).sort((a,b)=>b-a);
-  if(j===2){const r=n.length>0?rv[0]:14;const k=RANKS[r-2]||'A';return{rank:2,desc:`${k}のトリップス`,royalty:tripRoy(r),flCards:17,topRankScore:r*100+r};}
+  if(j===2){const r=n.length>0?rv[0]:14;const k=RANKS[r-2]||'A';return{rank:2,desc:`${k}のトリップス`,royalty:tripRoy(r),flCards:17,topRankScore:_tS(r,r,r)};}
   if(j===1){
     if(n.length>=2){
       // JK + 既存ペア → トリップス
-      if(rv[0]===rv[1]){const b=rv[0];const k=RANKS[b-2]||'A';return{rank:2,desc:`${k}のトリップス`,royalty:tripRoy(b),flCards:17,topRankScore:b*100+b};}
+      if(rv[0]===rv[1]){const b=rv[0];const k=RANKS[b-2]||'A';return{rank:2,desc:`${k}のトリップス`,royalty:tripRoy(b),flCards:17,topRankScore:_tS(b,b,b)};}
       // JK + ハイカード2枚 → 最高ランクとペア
-      const b=rv[0];const k=RANKS[b-2]||'A';return{rank:1,desc:`${k}のペア`,royalty:pairRoy(b),flCards:b>=14?16:b>=13?15:b>=12?14:0,topRankScore:b*100+rv[1]};
+      const b=rv[0];const k=RANKS[b-2]||'A';return{rank:1,desc:`${k}のペア`,royalty:pairRoy(b),flCards:b>=14?16:b>=13?15:b>=12?14:0,topRankScore:_tS(b,rv[1],0)};
     }
-    if(n.length===1){const b=rv[0];const k=RANKS[b-2]||'A';return{rank:1,desc:`${k}のペア`,royalty:pairRoy(b),flCards:b>=14?16:b>=13?15:b>=12?14:0,topRankScore:b*100+b};}
-    return{rank:1,desc:'Aのペア',royalty:pairRoy(14),flCards:16,topRankScore:14*100+14};
+    if(n.length===1){const b=rv[0];const k=RANKS[b-2]||'A';return{rank:1,desc:`${k}のペア`,royalty:pairRoy(b),flCards:b>=14?16:b>=13?15:b>=12?14:0,topRankScore:_tS(b,b,b)};}
+    return{rank:1,desc:'Aのペア',royalty:pairRoy(14),flCards:16,topRankScore:_tS(14,14,0)};
   }
-  if(rv.length<2)return{rank:0,desc:rv.map(v=>RANKS[v-2]).join(''),royalty:0,flCards:0,topRankScore:rv[0]||0};
-  if(rv.length===2){if(rv[0]===rv[1])return{rank:1,desc:`${RANKS[rv[0]-2]}のペア`,royalty:pairRoy(rv[0]),flCards:rv[0]>=14?16:rv[0]>=13?15:rv[0]>=12?14:0,topRankScore:rv[0]*100+rv[1]};return{rank:0,desc:rv.map(v=>RANKS[v-2]).join(''),royalty:0,flCards:0,topRankScore:rv[0]*100+rv[1]};}
-  if(rv[0]===rv[1]&&rv[1]===rv[2])return{rank:2,desc:`${RANKS[rv[0]-2]}のトリップス`,royalty:tripRoy(rv[0]),flCards:17,topRankScore:rv[0]*100+rv[0]};
-  if(rv[0]===rv[1]||rv[1]===rv[2]){const p=rv[0]===rv[1]?rv[0]:rv[1];return{rank:1,desc:`${RANKS[p-2]}のペア`,royalty:pairRoy(p),flCards:p>=14?16:p>=13?15:p>=12?14:0,topRankScore:p*100+rv[rv.indexOf(p)===0?2:0]};}
-  return{rank:0,desc:rv.map(v=>RANKS[v-2]).join(''),royalty:0,flCards:0,topRankScore:rv[0]*100+rv[1]};
+  if(rv.length<2)return{rank:0,desc:rv.map(v=>RANKS[v-2]).join(''),royalty:0,flCards:0,topRankScore:_tS(rv[0],0,0)};
+  if(rv.length===2){if(rv[0]===rv[1])return{rank:1,desc:`${RANKS[rv[0]-2]}のペア`,royalty:pairRoy(rv[0]),flCards:rv[0]>=14?16:rv[0]>=13?15:rv[0]>=12?14:0,topRankScore:_tS(rv[0],rv[1],0)};return{rank:0,desc:rv.map(v=>RANKS[v-2]).join(''),royalty:0,flCards:0,topRankScore:_tS(rv[0],rv[1],rv[2])};}
+  if(rv[0]===rv[1]&&rv[1]===rv[2])return{rank:2,desc:`${RANKS[rv[0]-2]}のトリップス`,royalty:tripRoy(rv[0]),flCards:17,topRankScore:_tS(rv[0],rv[0],rv[0])};
+  if(rv[0]===rv[1]||rv[1]===rv[2]){const p=rv[0]===rv[1]?rv[0]:rv[1];return{rank:1,desc:`${RANKS[p-2]}のペア`,royalty:pairRoy(p),flCards:p>=14?16:p>=13?15:p>=12?14:0,topRankScore:_tS(p,p,rv[rv.indexOf(p)===0?2:0])};}
+  return{rank:0,desc:rv.map(v=>RANKS[v-2]).join(''),royalty:0,flCards:0,topRankScore:_tS(rv[0],rv[1],rv[2])};
 }
 function pairRoy(rv){if(rv<6)return 0;const r=RANKS[rv-2];return TPB[r+r]||0;}
 function tripRoy(rv){const r=RANKS[rv-2];return TPB[r+r+r]||0;}
@@ -14810,14 +14821,22 @@ function getBestValidEvals(board){
 }
 function eval3Plain(cards){
   var rv=cards.map(function(c){return rankVal(c.r);}).sort(function(a,b){return b-a;});
-  if(rv.length<2)return{rank:0,desc:rv.map(function(v){return RANKS[v-2]||'?';}).join(''),royalty:0,flCards:0,topRankScore:rv[0]||0};
+  /* Session 41: topRankScore が上位2枚しか見ておらず3枚目を無視していたため、
+     AKQ と AK2 が同値(1413)になり、ジョーカーの化け先を選ぶ際に
+     候補列挙順(RANKSの先頭は'2')のまま 2 が選ばれていた。
+     getBestValidEvals のスコア式には上段のキッカー項(tTopKick)が無いため、
+     ここで 3枚目まで見て差を付ける。
+     係数 400/20/1 は辞書順を保ちつつ最大 5872 (<10000) に収まり、
+     topRankScore*1e10 が上位桁(rank*1e14)を侵食しない。
+     全ケースを同一スケールに揃えることが必須 (相互に比較されるため)。 */
+  if(rv.length<2)return{rank:0,desc:rv.map(function(v){return RANKS[v-2]||'?';}).join(''),royalty:0,flCards:0,topRankScore:_tS(rv[0],0,0)};
   if(rv.length===2){
-    if(rv[0]===rv[1])return{rank:1,desc:RANKS[rv[0]-2]+'\u306e\u30da\u30a2',royalty:pairRoy(rv[0]),flCards:rv[0]>=14?16:rv[0]>=13?15:rv[0]>=12?14:0,topRankScore:rv[0]*100+rv[1]};
-    return{rank:0,desc:rv.map(function(v){return RANKS[v-2];}).join(''),royalty:0,flCards:0,topRankScore:rv[0]*100+rv[1]};
+    if(rv[0]===rv[1])return{rank:1,desc:RANKS[rv[0]-2]+'\u306e\u30da\u30a2',royalty:pairRoy(rv[0]),flCards:rv[0]>=14?16:rv[0]>=13?15:rv[0]>=12?14:0,topRankScore:_tS(rv[0],rv[1],0)};
+    return{rank:0,desc:rv.map(function(v){return RANKS[v-2];}).join(''),royalty:0,flCards:0,topRankScore:_tS(rv[0],rv[1],rv[2])};
   }
-  if(rv[0]===rv[1]&&rv[1]===rv[2])return{rank:2,desc:RANKS[rv[0]-2]+'\u306e\u30c8\u30ea\u30c3\u30d7\u30b9',royalty:tripRoy(rv[0]),flCards:17,topRankScore:rv[0]*100+rv[0]};
-  if(rv[0]===rv[1]||rv[1]===rv[2]){var p=rv[0]===rv[1]?rv[0]:rv[1];return{rank:1,desc:RANKS[p-2]+'\u306e\u30da\u30a2',royalty:pairRoy(p),flCards:p>=14?16:p>=13?15:p>=12?14:0,topRankScore:p*100+(rv[0]===p?rv[2]:rv[0])};}
-  return{rank:0,desc:rv.map(function(v){return RANKS[v-2];}).join(''),royalty:0,flCards:0,topRankScore:rv[0]*100+rv[1]};
+  if(rv[0]===rv[1]&&rv[1]===rv[2])return{rank:2,desc:RANKS[rv[0]-2]+'\u306e\u30c8\u30ea\u30c3\u30d7\u30b9',royalty:tripRoy(rv[0]),flCards:17,topRankScore:_tS(rv[0],rv[0],rv[0])};
+  if(rv[0]===rv[1]||rv[1]===rv[2]){var p=rv[0]===rv[1]?rv[0]:rv[1];return{rank:1,desc:RANKS[p-2]+'\u306e\u30da\u30a2',royalty:pairRoy(p),flCards:p>=14?16:p>=13?15:p>=12?14:0,topRankScore:_tS(p,p,(rv[0]===p?rv[2]:rv[0]))};}
+  return{rank:0,desc:rv.map(function(v){return RANKS[v-2];}).join(''),royalty:0,flCards:0,topRankScore:_tS(rv[0],rv[1],rv[2])};
 }
 function enumTop(cards){
   var n=cards.filter(function(c){return !c.isJoker;});
@@ -19261,6 +19280,23 @@ function endGameFL(){
 function _waitForOppAndContinue(){
   // 両方 false になるまでポーリング
   if(!state.oppFlPending && !state.oppPlayPending){
+    state._oppWaitStartedAt = 0;
+    _hideOppFlThinking();
+    _endGameFLAfterOpp();
+    return;
+  }
+  /* Session 41: ここに上限が無く、相手側の処理が失敗・欠落して
+     oppFlPending / oppPlayPending が false にならないと 80ms ごとに永久に
+     ポーリングし続け、「ファンタジー中に 5/5 を超えても終了しない」状態になっていた。
+     8秒で打ち切って終了処理へ進む。相手ボードが未確定でも
+     endGame 側の fix71 ガード (oppFlPendingBoard からの反映) が働くので破綻しない。 */
+  if(!state._oppWaitStartedAt){ state._oppWaitStartedAt = Date.now(); }
+  if(Date.now() - state._oppWaitStartedAt > 8000){
+    console.warn('[endGameFL] 相手処理の待機が8秒を超えたため打ち切り終了する。'
+      + ' oppFlPending=' + state.oppFlPending + ' oppPlayPending=' + state.oppPlayPending);
+    state.oppFlPending = false;
+    state.oppPlayPending = false;
+    state._oppWaitStartedAt = 0;
     _hideOppFlThinking();
     _endGameFLAfterOpp();
     return;
@@ -19285,6 +19321,8 @@ function _hideOppFlThinking(){
 }
 
 function _endGameFLAfterOpp(){
+  /* Session 41: タイムアウト経路と通常完了経路が競合して二重実行されないようガード */
+  if(state.gameOver && state.phase === 'ended') return;
   state.gameOver=true;
   state.phase='ended';
 
@@ -19532,13 +19570,13 @@ function showMatchEndBanner(playerWon, draw, xpResult){
   const _xpEndPct = xpResult ? Math.max(0, Math.min(100, Math.round(xpResult.afterXp / xpResult.afterNeed * 100))) : 0;
   const _xpDisplayLevel = xpResult ? (xpResult.leveled ? xpResult.level : xpResult.beforeLevel) : '';
   const xpHtml = xpGain !== null ?
-    '<div style="display:flex;flex-direction:column;gap:7px;align-items:center;background:#0A0A0A;border:2px solid #2BB8A3;border-radius:14px;padding:10px 16px;">' +
+    '<div style="display:flex;flex-direction:column;gap:7px;align-items:center;background:linear-gradient(135deg,#FFD94A 0%,#F5A522 55%,#E8651A 100%);border:2px solid #0A0A0A;box-shadow:3px 3px 0 rgba(10,10,10,0.28);border-radius:14px;padding:10px 16px;">' +
       '<div style="display:flex;align-items:center;gap:8px;">' +
-        '<span style="font-family:\'Anton\',\'Noto Sans JP\',sans-serif;font-size:13px;font-weight:900;color:#fff;">Lv.'+_xpDisplayLevel+'</span>' +
-        '<span style="font-family:\'Anton\',\'Noto Sans JP\',sans-serif;font-size:14px;font-weight:900;color:#2BB8A3;letter-spacing:0.04em;">+'+xpGain+' XP</span>' +
+        '<span style="font-family:\'Anton\',\'Noto Sans JP\',sans-serif;font-size:13px;font-weight:900;color:#0A0A0A;">Lv.'+_xpDisplayLevel+'</span>' +
+        '<span style="font-family:\'Anton\',\'Noto Sans JP\',sans-serif;font-size:14px;font-weight:900;color:#7A2E06;letter-spacing:0.04em;">+'+xpGain+' XP</span>' +
       '</div>' +
-      '<div style="width:180px;height:9px;background:rgba(255,255,255,0.15);border:1.5px solid rgba(43,184,163,0.6);border-radius:999px;overflow:hidden;">' +
-        '<div id="bannerXpFill" style="height:100%;width:'+_xpStartPct+'%;background:#2BB8A3;transition:width 0.9s cubic-bezier(0.22,1,0.36,1);"></div>' +
+      '<div style="width:180px;height:9px;background:rgba(255,255,255,0.55);border:1.5px solid rgba(10,10,10,0.55);border-radius:999px;overflow:hidden;">' +
+        '<div id="bannerXpFill" style="height:100%;width:'+_xpStartPct+'%;background:#B04A0C;transition:width 0.9s cubic-bezier(0.22,1,0.36,1);"></div>' +
       '</div>' +
     '</div>' : '';
 
@@ -19563,7 +19601,7 @@ function showMatchEndBanner(playerWon, draw, xpResult){
         '</div>' +
       '</div>' +
       xpHtml +
-      '<button id="btnNextMatch" style="padding:14px;background:#111;color:#fff;border:none;border-radius:10px;font-family:\'Space Grotesk\',sans-serif;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:0.05em;">もう1戦</button>' +
+      '<button id="btnNextMatch" style="padding:14px;background:linear-gradient(135deg,#FFC440 0%,#F08C1E 55%,#E8651A 100%);color:#0A0A0A;border:2px solid #0A0A0A;box-shadow:3px 3px 0 rgba(10,10,10,0.8);border-radius:10px;font-family:\'Space Grotesk\',sans-serif;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:0.05em;">もう1戦</button>' +
       '<button id="btnMatchToTitle" style="padding:10px;background:#fff;color:#666;border:1px solid #ddd;border-radius:10px;font-family:\'Space Grotesk\',sans-serif;font-size:12px;cursor:pointer;">モード選択に戻る</button>' +
     '</div>';
   document.body.appendChild(banner);
