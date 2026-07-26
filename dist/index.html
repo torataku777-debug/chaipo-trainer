@@ -4956,14 +4956,24 @@ body.tut-active.tut-interactive #screen-game .slot{
      opacity + transform のみならGPU合成で完結し負荷が桁で下がる。
      will-change の常時指定も廃止 (全画面分のレイヤーがGPUメモリに常駐し、
      メモリ圧迫でちらつきを起こしていた)。 */
+  /* Session 41: opacity のフェードを廃止し、transform の動きだけを残す。
+     opacity でフェードする限り、途中の半透明状態で必ず下の何かが透ける。
+     ・両画面が重なれば 2画面が混ざる (従来の症状)
+     ・重ならないようにしても、入場画面のフェード中に body の背景(黒)が透ける
+     opacity を瞬時切替にすれば、透ける瞬間そのものが構造的に消える。
+     遷移の手ごたえは transform (translateY + scale) で保つ。 */
   transition:
-    opacity 0.34s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    transform 0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transform 0.34s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 .screen:not(.active){
   opacity:0;
   transform:translateY(22px) scale(0.97);
   pointer-events:none;
+  /* Session 41: 退場する画面はフェードさせず即座に消す。
+     クロスフェードだと退場画面と入場画面が同時に半透明になり、
+     約280ms のあいだ2画面が混ざって「一瞬別の画面が映る」現象になっていた。
+     入場側 (.screen.active) だけがフェードインすれば重なりは起きない。 */
+  transition:none !important;
 }
 .screen.active{
   opacity:1;
@@ -7887,7 +7897,11 @@ body.tut-active.tut-interactive #screen-game .slot{
    ============================================================ */
 #screen-fl-select{
   /* 既存スタイルの上書き */
-  background:#000 !important;
+  /* Session 41: 下地を #000 にしていたため、画面遷移中の半透明状態で
+     この黒が透けて「平場→FL で一瞬黒くなる」原因になっていた。
+     全面は fl-bg-layer の画像が覆うので通常時の見た目は変わらない。
+     万一画像が間に合わなくても黒フラッシュにならないよう濃紺にする。 */
+  background:#0E1626 !important;
   padding:0 !important;
   overflow:hidden;
 }
