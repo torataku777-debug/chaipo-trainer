@@ -1307,7 +1307,12 @@ html body.ui-v2.fl-mode .opp-card{
 .level-up-overlay{
   position:fixed; inset:0; z-index:99990;
   display:flex; align-items:center; justify-content:center;
-  background:rgba(10,10,15,0.55);
+  /* Session 41: 黒一色をやめ、ブランド色(オレンジ〜黄)のグラデーションへ。
+     中央のカードを読ませるために周辺は少し深めの橙で落とす。 */
+  background:radial-gradient(ellipse at center,
+              rgba(255,196,64,0.94) 0%,
+              rgba(240,140,30,0.94) 45%,
+              rgba(176,74,12,0.95) 100%);
   opacity:0; pointer-events:none;
 }
 .level-up-overlay.show{
@@ -1438,27 +1443,30 @@ html body.ui-v2.fl-mode .opp-card{
 .onboard-btn:active{ transform:translate(3px,3px); box-shadow:none; }
 /* Session 39: ホームのチュートリアル誘導バナー */
 .hm4-tut-banner{
-  /* Session 40: 絶対配置で flex フローから外す (均等配置の高さを奪わない → セクション見切れ解消)。
-     薄型にして .hm4-stickers(top:175px) の上端より確実に上に収める (最初のセクションと重ならない)。 */
-  position:absolute; top:-54px; left:0; right:0; width:100%;
-  display:flex; align-items:center; gap:11px;
-  padding:6px 14px;
+  /* Session 41: 絶対配置(top:-54px)を廃止してフロー内の先頭要素へ。
+     - マジックナンバー消滅、XPゲージとの接触を構造的に防止
+     - display:none 時は隙間ゼロ、表示時のみ自然に押し下がる
+     - 薄型化 + 装飾を一段落とし、主役はモード選択カードという階層を作る */
+  position:relative; top:auto; left:auto; right:auto; width:100%;
+  flex:0 0 auto;
+  display:flex; align-items:center; gap:9px;
+  padding:7px 12px;
   background:linear-gradient(135deg,#FFD94A 0%,#F5A522 55%,#E8651A 100%);
-  border:2.5px solid #0A0A0A; border-radius:14px;
-  box-shadow:4px 4px 0 rgba(10,10,10,0.85);
+  border:2px solid #0A0A0A; border-radius:12px;
+  box-shadow:3px 3px 0 rgba(10,10,10,0.8);
   cursor:pointer; -webkit-tap-highlight-color:transparent; text-align:left;
   z-index:16;
 }
-.hm4-tut-banner:active{ transform:translate(2px,2px); box-shadow:2px 2px 0 rgba(10,10,10,0.85); }
+.hm4-tut-banner:active{ transform:translate(2px,2px); box-shadow:1px 1px 0 rgba(10,10,10,0.8); }
 .hm4-tut-banner-icon{
-  flex:0 0 auto; width:34px; height:34px; border-radius:9px;
+  flex:0 0 auto; width:28px; height:28px; border-radius:8px;
   display:flex; align-items:center; justify-content:center;
   background:#fff; border:2px solid #0A0A0A; color:#0A0A0A;
 }
-.hm4-tut-banner-icon svg{ width:20px; height:20px; }
-.hm4-tut-banner-text{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.hm4-tut-banner-icon svg{ width:16px; height:16px; }
+.hm4-tut-banner-text{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:1px; }
 .hm4-tut-banner-title{
-  font-family:'Noto Sans JP',sans-serif; font-size:15px; font-weight:900; color:#0A0A0A; line-height:1.2;
+  font-family:'Noto Sans JP',sans-serif; font-size:13.5px; font-weight:900; color:#0A0A0A; line-height:1.2;
 }
 .hm4-tut-banner-sub{
   font-family:'Noto Sans JP',sans-serif; font-size:11px; font-weight:700; color:#3A1200; opacity:0.85; line-height:1.2;
@@ -3774,7 +3782,7 @@ body.tut-active.tut-interactive #screen-game .slot{
 
 /* ===== FL突入演出 ===== */
 /* v1.3 fix120: FL突入演出を動画オーバーレイに置き換え (背景透過) */.fl-intro-overlay{position:fixed;inset:0;z-index:2000;background:transparent;display:block;opacity:0;pointer-events:none;transition:opacity 0.18s ease;}.fl-intro-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:transparent;}
-/* v1.3 fix121: チラ見え防止用の黒ローダー (canplayまで見せる) */.fl-intro-loader{position:absolute;inset:0;background:#000;opacity:1;transition:opacity 0.15s ease;z-index:2;}.fl-intro-loader.hidden{opacity:0;}.fl-intro-video{z-index:1;}
+/* v1.3 fix121: チラ見え防止用の黒ローダー (canplayまで見せる) */.fl-intro-loader{position:absolute;inset:0;background:#000;opacity:1;transition:opacity 0.15s ease;z-index:2;display:none !important;}.fl-intro-loader.hidden{opacity:0;}.fl-intro-video{z-index:1;}
 /* v1.3 fix122: ファンタジー確定演出 - 「ぱん」と現れるポップ型 (スライド無し、グリッチ控えめ) */.fl-confirm-overlay{position:fixed;inset:0;z-index:1900;pointer-events:none;opacity:0;background:transparent;}.fl-confirm-overlay.show{opacity:1;}.fl-confirm-img-wrap{position:absolute;inset:0;width:100%;height:100%;opacity:0;transform:scale(0.92);}.fl-confirm-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}.fl-confirm-img.fl-rgb-r{mix-blend-mode:screen;filter:hue-rotate(155deg) saturate(2.2);opacity:0;transform:translate(2px,-1px);}.fl-confirm-img.fl-rgb-b{mix-blend-mode:screen;filter:hue-rotate(45deg) saturate(2.2);opacity:0;transform:translate(-2px,1px);}.fl-confirm-noise{position:absolute;inset:0;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='3' seed='5'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.4 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");mix-blend-mode:overlay;opacity:0;pointer-events:none;}
 .fl-confirm-overlay.run .fl-confirm-img-wrap{animation:flConfPop 1.6s cubic-bezier(0.18,0.89,0.32,1.28) forwards;}
 .fl-confirm-overlay.run .fl-confirm-img.fl-rgb-r{animation:flConfRgbR 1.6s linear forwards;}
@@ -4908,27 +4916,27 @@ body.tut-active.tut-interactive #screen-game .slot{
 /* ---- 画面遷移 v28.85: D案 iOS スタック切替 (translate + scale + 軽ブラー) ---- */
 .screen{
   transform:translateY(0) scale(1);
-  filter:blur(0);
+  /* Session 41: filter:blur() のトランジションを廃止。
+     全画面(1290x2796相当)のぼかしを毎フレーム再計算するのは
+     モバイルGPUで極めて高コストで、モード切替時のカクつきの主因。
+     opacity + transform のみならGPU合成で完結し負荷が桁で下がる。
+     will-change の常時指定も廃止 (全画面分のレイヤーがGPUメモリに常駐し、
+     メモリ圧迫でちらつきを起こしていた)。 */
   transition:
-    opacity 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    transform 0.48s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    filter 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  will-change:opacity,transform,filter;
+    opacity 0.34s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 .screen:not(.active){
   opacity:0;
-  transform:translateY(28px) scale(0.96);
-  filter:blur(4px);
+  transform:translateY(22px) scale(0.97);
   pointer-events:none;
 }
 .screen.active{
   opacity:1;
   transform:translateY(0) scale(1);
-  filter:blur(0);
 }
 .screen.back-transition:not(.active){
-  transform:translateY(-18px) scale(0.94);
-  filter:blur(5px);
+  transform:translateY(-14px) scale(0.95);
 }
 
 /* ---- 背景ネオンは「静的」 ---- */
@@ -5754,13 +5762,30 @@ body.tut-active.tut-interactive #screen-game .slot{
 /* Session 39: FL(17枚)配布は移動量の大きい cardDealFromDeck だと WKWebView で重い。
    距離短縮・rotate なしの軽量アニメに差し替え、GPU 合成の変化量を抑える。 */
 @keyframes cardDealFL{
-  0%{ opacity:0; transform:translate3d(-46px,-14px,0) scale(0.86); }
+  0%{ opacity:0; transform:translate3d(-110px,-28px,0) scale(0.72); }
   35%{ opacity:1; }
   100%{ opacity:1; transform:translate3d(0,0,0) scale(1); }
 }
 .hand-cards.fl .card.in-hand.dealing,
 .hand-cards.fl-flat .card.in-hand.dealing{
-  animation:cardDealFL 0.28s cubic-bezier(0.25,1,0.4,1) both !important;
+  /* Session 41: 通常配布と見た目を完全に揃えるため cardDealFromDeck を共用する。
+     ショートハンドにしないのは animation-delay を 0s にリセットさせないため
+     (これが17枚同時発動の真因だった)。 */
+  animation-name:cardDealFromDeck !important;
+  animation-duration:0.32s !important;
+  animation-timing-function:cubic-bezier(0.25,1,0.4,1) !important;
+  animation-fill-mode:both !important;
+  /* FL手札の transition:transform 0.12s との競合を断つ */
+  transition:none !important;
+  /* 重さ対策: 全枚に同時に .dealing が付くため、will-change を残すと
+     17枚分の合成レイヤーが一斉に生成されてしまう。auto にして
+     実際にアニメ中の数枚だけが昇格するようにする。 */
+  will-change:auto !important;
+  /* Session 41: カードは二重の box-shadow (0 2px 8px / 0 4px 16px) を持つ。
+     stagger 38ms / duration 0.32s だと常時約8枚が同時にアニメしており、
+     ぼかし半径の大きい影の合成がカクつきの一因。配布中だけ単純化する
+     (着地して .dealing が外れた瞬間に本来の影へ戻る)。 */
+  box-shadow:0 2px 5px rgba(0,0,0,0.14) !important;
 }
 .card.in-hand.dealing{
   animation:cardDealFromDeck 0.32s cubic-bezier(0.25,1,0.4,1) both;
@@ -16096,7 +16121,10 @@ async function newGame(onlineConfig){
     /* 手札を一時非表示 (演出完了まで) */
     state._handHiddenForOppAnim = true;
     /* 200ms 後: 裏カードが描画されたタイミングで oppBoard 反映 → 差分検知で演出発火 */
-    setTimeout(function(){
+    /* Session 41: このタイマーを保持しておかないと、途中で画面を離れたときに
+       モード選択画面の上で相手の配布演出が発火してしまう。 */
+    window.__oppAnimTimers = window.__oppAnimTimers || [];
+    window.__oppAnimTimers.push(setTimeout(function(){
       /* Session 39: 遅延計算がまだなら ここで同期計算して従来と同じ演出を保証 */
       _ensureOppR1Board();
       if(!state.oppPendingBoard) return;
@@ -16105,12 +16133,12 @@ async function newGame(onlineConfig){
       state.oppPlayedThisRound = true;
       try{ renderOpp(); }catch(e){ console.error('[anim] renderOpp:', e); }
       /* 700ms 後: 演出 (0.4s + ずらし) 完了 → 手札表示 */
-      setTimeout(function(){
+      window.__oppAnimTimers.push(setTimeout(function(){
         state._handHiddenForOppAnim = false;
         try{ renderHand(); }catch(e){}
         try{ updateConfirm(); }catch(e){}
-      }, 700);
-    }, 200);
+      }, 700));
+    }, 200));
   }
   // 結果表示を全てクリア
   document.getElementById('resultBand').classList.remove('show');
@@ -16222,6 +16250,9 @@ async function dealNext(){
   try{ startRoundTimerIfEnabled(); }catch(e){}
 }
 function endGame(){
+  /* Session 41: 二重呼び出し防止 + 番人タイマーの解除 */
+  try{ if(window.__r5Watchdog){ clearTimeout(window.__r5Watchdog); window.__r5Watchdog = null; } }catch(e){}
+  if(state.gameOver && state.phase === 'ended') return;
   state.gameOver=true;
   state.phase='ended';
   // fix71: 点数計算前に oppBoard が 13枚揃っていない場合、 oppFlPendingBoard を反映
@@ -17310,7 +17341,7 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
             }
             try{logRoundOppDiff(state.round);}catch(e){console.error('[log] oppDiff2:',e);}
             state.oppPlayedThisRound = true;
-            renderGame();
+            try{ renderGame(); }catch(e){ console.error('[R5 guard/online-a] renderGame:', e); }
             if(state.round>=5){
               // fix87: R5完了時、 相手が FL 中なら fl_place 受信を待ってから endGame
               if(state.oppFlMode && state.oppFlPending){
@@ -17353,7 +17384,7 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
           }
           try{logRoundOppDiff(state.round);}catch(e){console.error('[log] oppDiff2:',e);}
           state.oppPlayedThisRound = true;
-          renderGame();
+          try{ renderGame(); }catch(e){ console.error('[R5 guard/online-b] renderGame:', e); }
           if(state.round>=5){
             // fix87: R5完了時、 相手が FL 中なら fl_place 受信を待ってから endGame
             if(state.oppFlMode && state.oppFlPending){
@@ -17394,7 +17425,25 @@ document.getElementById('btnConfirm').addEventListener('click',()=>{try{_stopCha
       state.oppPendingPlace=null;
       state.oppPlayedThisRound=true;
       state.phase='transitioning';
-      renderGame();
+      /* Session 41: renderGame() で例外が出ると次行に到達せず endGame() が永久に呼ばれず、
+         phase='transitioning' のまま固定されて「5回戦が終わってもゲームが終了しない」状態になっていた。
+         描画の失敗は進行を止めてはいけないので保護する。 */
+      try{ renderGame(); }catch(e){ console.error('[R5 guard] renderGame:', e); }
+      /* Session 41: 最終防衛線。R5完了後に何らかの理由で endGame に到達しなかった場合、
+         3秒後に強制的に終了させる (endGame 内で clearTimeout されるので正常時は発火しない)。 */
+      if(state.round>=5){
+        try{
+          if(window.__r5Watchdog) clearTimeout(window.__r5Watchdog);
+          window.__r5Watchdog = setTimeout(function(){
+            try{
+              if(!state.gameOver && state.round >= 5){
+                console.warn('[R5 watchdog] endGame に到達しなかったため強制終了');
+                endGame();
+              }
+            }catch(e){ console.error('[R5 watchdog]', e); }
+          }, 3000);
+        }catch(e){}
+      }
       if(state.round>=5){setTimeout(()=>endGame(),600);return;}
       setTimeout(()=>dealNext(),600);
     } else {
@@ -18387,10 +18436,12 @@ document.getElementById('drawerBackToTitle').addEventListener('click',()=>{
   // fix115: モードに応じて適切なサブメニューに戻る (タイトルではない)
   const isFl = !!(typeof flPracticeMode !== 'undefined' && flPracticeMode);
   if(isFl){
-    // FL練習サブメニューへ
+    // Session 41: 旧 fl-select (枚数選択画面) に戻していたため、
+    // ファンタジー終了時に「過去の枚数選択画面」が出ていた。
+    // 現在のホームには 14/15/16/17 タイルが直接あるので、通常モードと同じく home へ統一する。
     if(typeof state !== 'undefined' && state){ state.gameOver = true; }
     if(typeof flPracticeMode !== 'undefined'){ flPracticeMode = false; document.body.classList.remove('fl-practice-active'); }
-    showScreen('fl-select');
+    showScreen('home');
   } else {
     // Session 38 fix2: ホーム画面(home タブ = オンライン対戦/AI対戦/ファンタジー練習)へ戻す
     if(typeof state !== 'undefined' && state){ state.gameOver = true; }
@@ -20471,7 +20522,19 @@ function onSettingsClick(){
   console.warn('[NEIGHBORS] btnSettings 要素なし');
 }
 
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));var target=document.getElementById('screen-'+id);if(target)target.classList.add('active');var tabScreens=['home','town','battle','friend','more'];if(tabScreens.indexOf(id)>=0){window._lastNavTab=id;/* Session 35.7: 直前のタブ記憶 (履歴ベース戻る用) */document.body.classList.add('show-nav');document.querySelectorAll('#bottomNav .nav-tab').forEach(function(t){t.classList.toggle('nav-tab--active',t.getAttribute('data-tab')===id);});}else{document.body.classList.remove('show-nav');}}
+function showScreen(id){
+  /* Session 41: ゲーム画面を離れるときは、未発火の相手配布演出タイマーを必ず破棄する。
+     これをしないと、終了直後にモード選択画面の上で相手のハンドが配られる演出が走る。 */
+  if(id !== 'game'){
+    try{
+      if(window.__oppAnimTimers && window.__oppAnimTimers.length){
+        window.__oppAnimTimers.forEach(function(t){ clearTimeout(t); });
+        window.__oppAnimTimers.length = 0;
+      }
+      if(typeof state !== 'undefined' && state){ state._handHiddenForOppAnim = false; }
+    }catch(e){}
+  }
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));var target=document.getElementById('screen-'+id);if(target)target.classList.add('active');var tabScreens=['home','town','battle','friend','more'];if(tabScreens.indexOf(id)>=0){window._lastNavTab=id;/* Session 35.7: 直前のタブ記憶 (履歴ベース戻る用) */document.body.classList.add('show-nav');document.querySelectorAll('#bottomNav .nav-tab').forEach(function(t){t.classList.toggle('nav-tab--active',t.getAttribute('data-tab')===id);});}else{document.body.classList.remove('show-nav');}}
 
 // === Phase A-2 UI Fix v2: ショップ画面から確実にモード選択画面へ戻る ===
 function closeShopAndReturn(ev){
@@ -20723,7 +20786,10 @@ function initModeSelect(){
   });
   
   var flPrBtnMenu = document.getElementById('flPrBtnMenu');
-  if(flPrBtnMenu) flPrBtnMenu.onclick = function(e){ e.preventDefault(); document.getElementById('flPracticeResult').classList.remove('show'); showScreen('fl-select'); };
+  if(flPrBtnMenu) flPrBtnMenu.onclick = function(e){ e.preventDefault(); document.getElementById('flPracticeResult').classList.remove('show');
+    /* Session 41: 旧 fl-select ではなく home へ (ホームに枚数タイルがあるため) */
+    if(typeof flPracticeMode !== 'undefined'){ flPracticeMode = false; document.body.classList.remove('fl-practice-active'); }
+    showScreen('home'); };
   
   var flPrBtnAgain = document.getElementById('flPrBtnAgain');
   if(flPrBtnAgain) flPrBtnAgain.onclick = function(e){ e.preventDefault(); document.getElementById('flPracticeResult').classList.remove('show'); startFLPractice(); };
@@ -23008,6 +23074,7 @@ function updateModeBtnStats(){
         origRender.apply(this, arguments);
         return;
       }
+      var _dealFiredThisCall = false;
       const hand = (typeof state !== 'undefined' && state.hand) ? state.hand : [];
       
       // 新規カード検出: 今回の hand に、前回の全カード id セットに無かった id があるか
@@ -23023,7 +23090,23 @@ function updateModeBtnStats(){
       //   A. _isFirstDeal フラグ (newGame 初期化時)
       //   B. 新規カード (deck から) が手札に追加された時
       //   → ボード→手札戻しは「既存 id」なので発動しない
-      if((window._isFirstDeal || hasNewCard) && hand.length > 0){
+      /* Session 41 fix3: 配布セッション進行中の再発火を抑止。
+         実機計測で RH:3 / resume:0 = renderHand が3回呼ばれ、そのたびに
+         配布ブロックが再発火してアニメがリスタートしていた。
+         進行中なら再発火せず、後段のリジューム処理に任せて連続再生させる。 */
+      var _sessionActive = false;
+      try{
+        var _dmPrev = window.__dealMeta;
+        if(_dmPrev){
+          var _pe = performance.now() - _dmPrev.t0;
+          var _pt = _dmPrev.base + (_dmPrev.n - 1) * _dmPrev.stag + _dmPrev.cssDur;
+          _sessionActive = (_pe >= 0 && _pe < _pt);
+        }
+      }catch(e){}
+
+      if((window._isFirstDeal || hasNewCard) && hand.length > 0 && !_sessionActive){
+        _dealFiredThisCall = true;
+        var _wasFirstDeal = !!window._isFirstDeal;
         window._isFirstDeal = false;
         const hc = document.getElementById('handCards');
         if(hc){
@@ -23031,12 +23114,24 @@ function updateModeBtnStats(){
           // Session 38: 個別 reflow をやめ、一旦全カードの dealing を外して 1 回だけ reflow
           cards.forEach(function(el){ el.classList.remove('dealing'); el.style.animationDelay=''; });
           void hc.offsetWidth;  // reflow 強制 (ループ全体で 1 回のみ)
-          /* Session 39: FL(手札多数)は stagger を詰めてピーク時間を短縮 + will-change を早めに解放 */
-          var _isFlDeal = hc.classList.contains('fl') || hc.classList.contains('fl-flat');
-          var _stag = _isFlDeal ? 18 : 38;
-          var _dur = _isFlDeal ? 300 : 420;
+          /* Session 41: FL配布演出を復活。判定は描画順に依存しない state.flMode ベースに変更
+             (renderGame では fl-flat 付与が renderHand より後のため classList 判定だと取りこぼす)。
+             stagger 32ms (17枚で最後512ms), 距離/scale/durationは cardDealFL 側で通常寄りに復活。 */
+          var _isFlDeal = (typeof state !== 'undefined' && state.flMode) ||
+                          hc.classList.contains('fl') || hc.classList.contains('fl-flat');
+          var _stag = _isFlDeal ? 38 : 38;
+          var _dur = _isFlDeal ? 420 : 420;
+          /* Session 41 fix: 画面遷移(.screen opacity 0.42s / transform 0.48s / filter 0.35s)が
+             明ける前に配布が終わってしまい、演出がほぼ見えていなかった。
+             ゲーム開始時の初回配布(=画面遷移と同時)だけ、遷移明けまで開始を遅らせる。
+             cardDealFL は 0%{opacity:0} + fill-mode:both なので待機中カードは透明のまま。 */
+          var _base = (_wasFirstDeal || _isFlDeal) ? 480 : 0;
+          /* Session 41 fix2: 配布セッションを記録。再描画で .dealing が失われても
+             後段のリジューム処理が「途中から」復帰させられるようにする。 */
+          window.__dealMeta = { t0: performance.now(), base: _base, stag: _stag,
+                                n: cards.length, cssDur: 320, resumes: 0 };
           cards.forEach((el, i) => {
-            el.style.animationDelay = (i * _stag) + 'ms';
+            el.style.animationDelay = (_base + i * _stag) + 'ms';
             el.classList.add('dealing');
             setTimeout((function(elRef){
               return function(){
@@ -23044,11 +23139,38 @@ function updateModeBtnStats(){
                 elRef.style.animationDelay = '';
                 elRef.style.willChange = 'auto';  /* FL は枚数が多いので合成レイヤーを確実に解放 */
               };
-            })(el), _dur + i * _stag);
+            })(el), _base + _dur + i * _stag);
           });
         }
       }
       
+      /* Session 41 fix2: 再描画で配布アニメが消える問題への保険。
+         初手直後に renderHand が再度呼ばれるとカードが作り直され、
+         .dealing が失われて演出が中断/不発になる。配布セッション中の再描画では
+         負の animation-delay を与えて「途中から」再生させ、演出を継続させる。 */
+      try{
+        var _dm = window.__dealMeta;
+        if(_dm && !(_dealFiredThisCall)){
+          var _elapsed = performance.now() - _dm.t0;
+          var _totalMs = _dm.base + (_dm.n - 1) * _dm.stag + _dm.cssDur;
+          if(_elapsed >= 0 && _elapsed < _totalMs){
+            var _hc2 = document.getElementById('handCards');
+            if(_hc2){
+              var _cards2 = _hc2.querySelectorAll('.card.in-hand');
+              if(_cards2.length){
+                _dm.resumes++;
+                _cards2.forEach(function(el, i){
+                  el.style.animationDelay = (_dm.base + i * _dm.stag - _elapsed) + 'ms';
+                  el.classList.add('dealing');
+                });
+              }
+            }
+          } else if(_elapsed >= _totalMs){
+            window.__dealMeta = null;
+          }
+        }
+      }catch(e){ console.warn('[deal resume]', e); }
+
       // 次回比較用に更新
       _prevAllIds = _collectAllIds();
     };
@@ -29457,8 +29579,9 @@ body.bptune-enabled .bptune-active{
 #screen-home .hm4-layer-pomu { z-index: 25; }
 #screen-home .hm4-layer-pomu img {
   position: absolute;
-  right: 1%;
-  bottom: 1.5%;
+  /* Session 41 (re): 17ボタンと被らない範囲で控えめに右へ (顔出し演出を残す)。pointer-events:none 済み */
+  right: -3%;
+  bottom: 0.5%;
   width: 32%;
   max-width: 140px;
   height: auto;
@@ -29562,8 +29685,10 @@ body.bptune-enabled .bptune-active{
   padding: 0 5%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 14px;
+  /* Session 41 (re): space-between だと gap を増やしても余りが隙間に流れスカスカのまま。
+     flex-start に変えて上詰め + 固定gapで密度を締める */
+  justify-content: flex-start;
+  gap: 20px;
 }
 
 #screen-home .hm4-sticker {
@@ -35756,9 +35881,14 @@ html.more-active body {
      旧 100+(L-1)*50 は Lv1→2 でも 2勝必要で序盤が重かった。
      新 40+35n+3n^2 (n=L-1): Lv1→2:40(1勝) / Lv2→3:78(2勝) / Lv3→4:122(3勝)
         Lv5→6:290 / Lv10→11:598 / Lv20→21:1788 → 序盤サクサク・後半じっくり。 */
+  /* Session 41: 中盤以降が重すぎたため緩和。
+     旧 40+35n+3n^2 は Lv10→11 で 598XP(12勝)、Lv20→21 で 1788XP(36勝) と急峻だった。
+     新 40+33n+0.5n^2 (n=L-1) → 二次項を大幅に寝かせ、中盤をもっと伸びやすくする。
+     Lv1→2:40(1勝) / Lv5→6:180(4勝) / Lv10→11:378(7勝) / Lv20→21:848(17勝)
+     ※勝利=50XP 換算。旧値比で Lv10帯は約半分、Lv20帯は約半分以下の勝数で上がる。 */
   function needXp(level){
     var n = level - 1;
-    return 40 + 35 * n + 3 * n * n;
+    return Math.round(40 + 33 * n + 0.5 * n * n);
   }
 
   var state = load();
