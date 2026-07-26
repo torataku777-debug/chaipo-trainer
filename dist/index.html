@@ -1307,14 +1307,34 @@ html body.ui-v2.fl-mode .opp-card{
 .level-up-overlay{
   position:fixed; inset:0; z-index:99990;
   display:flex; align-items:center; justify-content:center;
-  /* Session 41: 黒一色をやめ、ブランド色(オレンジ〜黄)のグラデーションへ。
-     中央のカードを読ませるために周辺は少し深めの橙で落とす。 */
-  background:radial-gradient(ellipse at center,
-              rgba(255,196,64,0.94) 0%,
-              rgba(240,140,30,0.94) 45%,
-              rgba(176,74,12,0.95) 100%);
+  /* Session 41: レベルアップ専用背景。
+     (1) 中央からの光 (2) 放射状の集中線 (3) ブランド色のベース
+     の3層を複数背景で重ねる。画像は使わない。 */
+  background:
+    radial-gradient(circle at center,
+      rgba(255,255,255,0.55) 0%,
+      rgba(255,255,255,0.16) 22%,
+      rgba(255,255,255,0) 46%),
+    repeating-conic-gradient(from 0deg at 50% 50%,
+      rgba(255,255,255,0.20) 0deg 2.2deg,
+      rgba(255,255,255,0) 2.2deg 7deg),
+    radial-gradient(ellipse at center,
+      rgba(255,208,80,0.96) 0%,
+      rgba(240,140,30,0.96) 48%,
+      rgba(158,64,10,0.97) 100%);
   opacity:0; pointer-events:none;
 }
+/* 集中線をゆっくり回して「光が差す」印象にする (transform のみ = GPU合成) */
+.level-up-overlay.show::before,
+.unlock-overlay.show::before{
+  content:''; position:absolute; inset:-25%;
+  background:repeating-conic-gradient(from 0deg at 50% 50%,
+    rgba(255,255,255,0.13) 0deg 1.6deg,
+    rgba(255,255,255,0) 1.6deg 9deg);
+  animation:fxRaySpin 14s linear infinite;
+  pointer-events:none;
+}
+@keyframes fxRaySpin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
 .level-up-overlay.show{
   animation: levelUpBgIn 0.25s ease-out forwards;
   pointer-events:auto;
@@ -1357,7 +1377,20 @@ html body.ui-v2.fl-mode .opp-card{
 .unlock-overlay{
   position:fixed; inset:0; z-index:99991;
   display:flex; align-items:center; justify-content:center;
-  background:rgba(10,10,15,0.62);
+  /* Session 41: アンロック専用背景。レベルアップ直後に出るため
+     ティール〜金で色を変え、2連続でも単調にならないようにする。 */
+  background:
+    radial-gradient(circle at center,
+      rgba(255,255,255,0.50) 0%,
+      rgba(255,255,255,0.14) 24%,
+      rgba(255,255,255,0) 48%),
+    repeating-conic-gradient(from 0deg at 50% 50%,
+      rgba(255,255,255,0.16) 0deg 2deg,
+      rgba(255,255,255,0) 2deg 8deg),
+    radial-gradient(ellipse at center,
+      rgba(120,226,208,0.96) 0%,
+      rgba(43,184,163,0.96) 46%,
+      rgba(14,92,82,0.97) 100%);
   opacity:0; pointer-events:none;
 }
 .unlock-overlay.show{
@@ -1397,8 +1430,9 @@ html body.ui-v2.fl-mode .opp-card{
 }
 .unlock-sub{
   font-family:'Noto Sans JP',sans-serif;
-  font-size:12px; font-weight:700; color:#fff;
-  text-shadow:0 1px 4px rgba(0,0,0,0.6);
+  /* Session 41: 背景を明るいティールにしたため、白文字だと沈む。濃色へ。 */
+  font-size:12px; font-weight:800; color:#0B3B34;
+  text-shadow:0 1px 3px rgba(255,255,255,0.55);
 }
 /* Session 39: 初回オンボーディング確認モーダル */
 .onboard-overlay{
@@ -19485,7 +19519,14 @@ function applyScoreResult(net){
   const MATCH_GAMES_LIMIT = 5;
   const scoreDepleted = (sessionScore.you <= 0 || sessionScore.opp <= 0);
   const gamesLimitReached = (sessionScore.games >= MATCH_GAMES_LIMIT);
-  if(!isFlRelated && (scoreDepleted || gamesLimitReached)){
+  /* Session 41: 旧実装は !isFlRelated を全体に掛けていたため、
+     FL が絡むゲームではマッチ終了判定が丸ごとスキップされていた。
+     FL は頻繁に起きるので、5ゲーム目が FL 絡みだと上限が効かず
+     6ゲーム目・7ゲーム目と続き、表示は Math.min(...,5) で
+     「5/5 回戦」のまま頭打ちになる = 「5/5 を超えても続く」症状だった。
+     スコア枯渇による終了は FL 中の不整合を避けるため従来通りスキップし、
+     ゲーム数上限だけは FL でも必ず適用する。 */
+  if((!isFlRelated && scoreDepleted) || gamesLimitReached){
     try{ checkMatchEnd(); }catch(e){ console.error('[match] checkMatchEnd error:', e); }
   }
 }
@@ -19529,24 +19570,32 @@ function checkMatchEnd(){
     _xpResult = window.grantMatchXp(playerWon, draw);
   }
 
-  // バナー表示 (レベルアップ時は演出を先に見せてから)
-  // Session 39: レベルアップで機能が解放された場合は 解放演出 を挟んでからバナー
+  /* Session 41: 表示順を因果の順に修正。
+     旧: レベルアップ演出 → アンロック → 結果バナー(XPバーが伸びる)
+         「レベルが上がった」を見せた後に「XPが貯まる」演出が来て因果が逆転していた。
+     新: 結果バナー(勝敗) → XPバーが伸びる(0.9s) → レベルアップ → アンロック
+         「勝った/負けた」→「経験値を得た」→「レベルが上がった」→「解放された」
+     演出の z-index (99990) はバナー (3000) より上なので重ねて表示される。 */
+  showMatchEndBanner(playerWon, draw, _xpResult);
+
   if(_xpResult && _xpResult.leveled && typeof window.showLevelUpEffect === 'function'){
-    window.showLevelUpEffect(_xpResult.level);
     var _unlocked = [];
     try{
       if(window.chaipoPlayer && typeof window.chaipoPlayer.unlocksBetween === 'function'){
         _unlocked = window.chaipoPlayer.unlocksBetween(_xpResult.beforeLevel, _xpResult.level) || [];
       }
     }catch(e){ console.error('[unlock] unlocksBetween:', e); }
-    if(_unlocked.length && typeof window.showUnlockEffect === 'function'){
-      setTimeout(function(){ window.showUnlockEffect(_unlocked); }, 2400);
-      setTimeout(function(){ showMatchEndBanner(playerWon, draw, _xpResult); }, 4800);
-    } else {
-      setTimeout(function(){ showMatchEndBanner(playerWon, draw, _xpResult); }, 2400);
-    }
-  } else {
-    showMatchEndBanner(playerWon, draw, _xpResult);
+
+    /* XPバーの transition (0.9s) を見せ切ってからレベルアップへ */
+    setTimeout(function(){
+      try{ window.showLevelUpEffect(_xpResult.level); }catch(e){ console.error('[levelup]', e); }
+      /* レベルアップ演出 (表示2.2s + フェードアウト0.4s) の後にアンロック */
+      if(_unlocked.length && typeof window.showUnlockEffect === 'function'){
+        setTimeout(function(){
+          try{ window.showUnlockEffect(_unlocked); }catch(e){ console.error('[unlock]', e); }
+        }, 2700);
+      }
+    }, 1300);
   }
 }
 
@@ -19570,10 +19619,10 @@ function showMatchEndBanner(playerWon, draw, xpResult){
   const _xpEndPct = xpResult ? Math.max(0, Math.min(100, Math.round(xpResult.afterXp / xpResult.afterNeed * 100))) : 0;
   const _xpDisplayLevel = xpResult ? (xpResult.leveled ? xpResult.level : xpResult.beforeLevel) : '';
   const xpHtml = xpGain !== null ?
-    '<div style="display:flex;flex-direction:column;gap:7px;align-items:center;background:linear-gradient(135deg,#FFD94A 0%,#F5A522 55%,#E8651A 100%);border:2px solid #0A0A0A;box-shadow:3px 3px 0 rgba(10,10,10,0.28);border-radius:14px;padding:10px 16px;">' +
+    '<div style="display:flex;flex-direction:column;gap:7px;align-items:center;background:linear-gradient(135deg,#FFE07A 0%,#FDC93F 55%,#F7B733 100%);border:2px solid #0A0A0A;box-shadow:3px 3px 0 rgba(10,10,10,0.28);border-radius:14px;padding:10px 16px;">' +
       '<div style="display:flex;align-items:center;gap:8px;">' +
         '<span style="font-family:\'Anton\',\'Noto Sans JP\',sans-serif;font-size:13px;font-weight:900;color:#0A0A0A;">Lv.'+_xpDisplayLevel+'</span>' +
-        '<span style="font-family:\'Anton\',\'Noto Sans JP\',sans-serif;font-size:14px;font-weight:900;color:#7A2E06;letter-spacing:0.04em;">+'+xpGain+' XP</span>' +
+        '<span style="font-family:\'Anton\',\'Noto Sans JP\',sans-serif;font-size:14px;font-weight:900;color:#5C2104;letter-spacing:0.04em;">+'+xpGain+' XP</span>' +
       '</div>' +
       '<div style="width:180px;height:9px;background:rgba(255,255,255,0.55);border:1.5px solid rgba(10,10,10,0.55);border-radius:999px;overflow:hidden;">' +
         '<div id="bannerXpFill" style="height:100%;width:'+_xpStartPct+'%;background:#B04A0C;transition:width 0.9s cubic-bezier(0.22,1,0.36,1);"></div>' +
@@ -19591,12 +19640,12 @@ function showMatchEndBanner(playerWon, draw, xpResult){
       '</div>' +
       '<div style="display:flex;justify-content:space-around;padding:8px 0;">' +
         '<div style="text-align:center;">' +
-          '<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#888;letter-spacing:0.1em;">YOU</div>' +
+          '<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#5B616B;letter-spacing:0.1em;">YOU</div>' +
           '<div style="font-family:\'JetBrains Mono\',monospace;font-size:28px;font-weight:700;color:'+(sessionScore.you>0?'#111':'#ff3b5c')+';">'+sessionScore.you+'</div>' +
         '</div>' +
-        '<div style="font-family:\'JetBrains Mono\',monospace;font-size:14px;color:#ccc;align-self:center;">VS</div>' +
+        '<div style="font-family:\'JetBrains Mono\',monospace;font-size:14px;color:#6B7280;align-self:center;">VS</div>' +
         '<div style="text-align:center;">' +
-          '<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#888;letter-spacing:0.1em;">相手</div>' +
+          '<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#5B616B;letter-spacing:0.1em;">相手</div>' +
           '<div style="font-family:\'JetBrains Mono\',monospace;font-size:28px;font-weight:700;color:'+(sessionScore.opp>0?'#111':'#ff3b5c')+';">'+sessionScore.opp+'</div>' +
         '</div>' +
       '</div>' +
@@ -35925,11 +35974,35 @@ html.more-active body {
      Lv1→2:40(1勝) / Lv5→6:180(4勝) / Lv10→11:378(7勝) / Lv20→21:848(17勝)
      ※勝利=50XP 換算。旧値比で Lv10帯は約半分、Lv20帯は約半分以下の勝数で上がる。 */
   function needXp(level){
+    /* Session 41: 序盤は負けてもレベルアップするようにする。
+       敗北の付与は 15XP なので、Lv1→2 だけ 15 に下げると
+       「初プレイでいきなり負けても 1 回で上がる」体験になる。
+       (勝利=50 / 引分=25 / 敗北=15) */
+    if(level <= 1) return 15;
     var n = level - 1;
     return Math.round(40 + 33 * n + 0.5 * n * n);
   }
 
   var state = load();
+
+  /* ============================================================
+     Session 41: 次回デプロイ時にレベルを初期値へ戻す (一度きり)。
+     XP曲線を緩和したため、旧曲線で積み上げたレベルを一旦リセットする。
+     別キーで実行済みフラグを持ち、起動のたびに戻ることはない。
+     iconId (アイコン選択) はユーザーの設定なので維持する。
+     ※再度リセットしたい場合は RESET_KEY のバージョンを上げる。
+     ============================================================ */
+  var RESET_KEY = 'chaipo_player_reset_s41b';
+  try{
+    if(!localStorage.getItem(RESET_KEY)){
+      state.level = 1;
+      state.xp = 0;
+      state.totalXp = 0;
+      save(state);
+      localStorage.setItem(RESET_KEY, '1');
+      console.log('[chaipoPlayer] Session 41: レベルを初期値にリセットしました (一度きり)');
+    }
+  }catch(e){ console.warn('[chaipoPlayer] level reset skipped:', e); }
 
   function addXp(n){
     n = parseInt(n, 10) || 0;
@@ -36031,10 +36104,23 @@ html.more-active body {
   }, true);
 
   /* 機能解放演出 (レベルアップ演出の後に表示) */
+  /* Session 41: 演出オーバーレイを body 直下へ退避する。
+     #screen-game (.screen) は transform を持つためスタッキングコンテキストを作り、
+     内側に置かれた overlay は z-index をいくら上げても
+     body 直下の結果バナーより前に出られない。DOM 位置ごと移す。 */
+  function _liftOverlay(el){
+    try{
+      if(el && el.parentElement !== document.body){
+        document.body.appendChild(el);
+      }
+    }catch(e){ console.warn('[fx] lift overlay:', e); }
+  }
+
   window.showUnlockEffect = function(names){
     var overlay = document.getElementById('unlockOverlay');
     var nameEl = document.getElementById('unlockName');
     if(!overlay || !nameEl || !names || !names.length) return;
+    _liftOverlay(overlay);
     nameEl.textContent = names.join(' / ');
     overlay.classList.remove('hide');
     overlay.classList.add('show');
@@ -36076,6 +36162,7 @@ html.more-active body {
     var overlay = document.getElementById('levelUpOverlay');
     var lvText = document.getElementById('levelUpLvText');
     if(!overlay || !lvText) return;
+    _liftOverlay(overlay);
     lvText.textContent = 'Lv.' + level;
     overlay.classList.remove('hide');
     overlay.classList.add('show');
