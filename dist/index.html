@@ -1311,34 +1311,11 @@ html body.ui-v2.fl-mode .opp-card{
 .level-up-overlay{
   position:fixed; inset:0; z-index:99990;
   display:flex; align-items:center; justify-content:center;
-  /* Session 41: レベルアップ専用背景。
-     (1) 中央からの光 (2) 放射状の集中線 (3) ブランド色のベース
-     の3層を複数背景で重ねる。画像は使わない。 */
-  background:
-    radial-gradient(circle at center,
-      rgba(255,255,255,0.55) 0%,
-      rgba(255,255,255,0.16) 22%,
-      rgba(255,255,255,0) 46%),
-    repeating-conic-gradient(from 0deg at 50% 50%,
-      rgba(255,255,255,0.20) 0deg 2.2deg,
-      rgba(255,255,255,0) 2.2deg 7deg),
-    radial-gradient(ellipse at center,
-      rgba(255,208,80,0.96) 0%,
-      rgba(240,140,30,0.96) 48%,
-      rgba(158,64,10,0.97) 100%);
+  /* Session 41: 演出を簡素化。集中線の重ね掛けをやめ、
+     ブランド色のグラデーション1層だけにする。 */
+  background:linear-gradient(160deg,#FFE07A 0%,#F5A522 55%,#E8651A 100%);
   opacity:0; pointer-events:none;
 }
-/* 集中線をゆっくり回して「光が差す」印象にする (transform のみ = GPU合成) */
-.level-up-overlay.show::before,
-.unlock-overlay.show::before{
-  content:''; position:absolute; inset:-25%;
-  background:repeating-conic-gradient(from 0deg at 50% 50%,
-    rgba(255,255,255,0.13) 0deg 1.6deg,
-    rgba(255,255,255,0) 1.6deg 9deg);
-  animation:fxRaySpin 14s linear infinite;
-  pointer-events:none;
-}
-@keyframes fxRaySpin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
 .level-up-overlay.show{
   animation: levelUpBgIn 0.25s ease-out forwards;
   pointer-events:auto;
@@ -1384,20 +1361,9 @@ html body.ui-v2.fl-mode .opp-card{
 .unlock-overlay{
   position:fixed; inset:0; z-index:99991;
   display:flex; align-items:center; justify-content:center;
-  /* Session 41: アンロック専用背景。レベルアップ直後に出るため
-     ティール〜金で色を変え、2連続でも単調にならないようにする。 */
-  background:
-    radial-gradient(circle at center,
-      rgba(255,255,255,0.50) 0%,
-      rgba(255,255,255,0.14) 24%,
-      rgba(255,255,255,0) 48%),
-    repeating-conic-gradient(from 0deg at 50% 50%,
-      rgba(255,255,255,0.16) 0deg 2deg,
-      rgba(255,255,255,0) 2deg 8deg),
-    radial-gradient(ellipse at center,
-      rgba(120,226,208,0.96) 0%,
-      rgba(43,184,163,0.96) 46%,
-      rgba(14,92,82,0.97) 100%);
+  /* Session 41: レベルアップと揃えて簡素化。グラデーション1層。
+     連続で出るため色で差別化 (レベルアップ=橙 / アンロック=ティール)。 */
+  background:linear-gradient(160deg,#8FE8D8 0%,#2BB8A3 55%,#0E5C52 100%);
   opacity:0; pointer-events:none;
 }
 .unlock-overlay.show{
@@ -20734,6 +20700,14 @@ function showScreen(id){
      解放があれば機能解放演出を出す。結果画面を飛ばしても
      解放に気づけるようにするため。 */
   if(id === 'home'){
+    /* Session 41: ホーム表示時にロックUIを確実に更新する。
+       render() 経由だと XP 変化時しか走らないため、
+       遷移しただけのときにバッジやタップ可否が古いままになり得る。 */
+    try{
+      if(window.chaipoPlayer && typeof window.chaipoPlayer.applyUnlockUI === 'function'){
+        window.chaipoPlayer.applyUnlockUI();
+      }
+    }catch(e){ console.error('[unlock/applyUI]', e); }
     setTimeout(function(){
       try{
         if(!window.chaipoPlayer || typeof window.chaipoPlayer.pendingUnlocks !== 'function') return;
@@ -27314,7 +27288,7 @@ body.bptune-enabled .bptune-active{
             <span class="hm4-item-label">ランダムバトル</span>
             <span class="hm4-item-badge">近日</span>
           </button>
-          <button class="hm4-item" type="button" onclick="showScreen('friend-match');">
+          <button class="hm4-item" type="button" data-cp-lock="online" data-cp-go="friend-match">
             <span class="hm4-item-label">フレンドバトル</span>
             <span class="hm4-item-arrow" aria-hidden="true">▸</span>
           </button>
@@ -36126,7 +36100,7 @@ html.more-active body {
      ビルドが変わった最初の起動でのみリセットされ、
      同じビルド内での再起動では進捗が保持される
      (毎起動リセットだとレベルアップの検証ができなくなるため)。 */
-  var BUILD_ID = '20260727_003054';
+  var BUILD_ID = '20260728_131908';
   var RESET_KEY = 'chaipo_player_reset_' + BUILD_ID;
   try{
     if(!localStorage.getItem(RESET_KEY)){
@@ -36269,6 +36243,19 @@ html.more-active body {
     }
     if(typeof window.haptic === 'function'){ window.haptic(10); }
   }, true);
+
+  /* Session 41: data-cp-go = 解放済みのときだけ遷移するリンク。
+     インライン onclick だと上の capture ハンドラでは止められない
+     (preventDefault しても要素自身の onclick は実行されてしまう) ため、
+     遷移先を属性に退避してここで処理する。
+     ロック中は上の capture ハンドラが stopImmediatePropagation するので
+     ここには到達しない = 確実にタップを止められる。 */
+  document.addEventListener('click', function(e){
+    var goEl = (e.target && e.target.closest) ? e.target.closest('[data-cp-go]') : null;
+    if(!goEl) return;
+    var dest = goEl.getAttribute('data-cp-go');
+    if(dest && typeof showScreen === 'function'){ showScreen(dest); }
+  });
 
   /* 機能解放演出 (レベルアップ演出の後に表示) */
   /* Session 41: 演出オーバーレイを body 直下へ退避する。
