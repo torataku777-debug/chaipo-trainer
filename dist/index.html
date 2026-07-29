@@ -1348,26 +1348,44 @@ body.ui-v2 .opp-area-inner.fl-mode{
   100%{opacity:1;transform:translateY(0) scale(1);}
 }
 /* Session 38 P2 Phase 2: レベルアップ演出 */
+/* Session 41-16: 専用背景を完全に撤廃。画面を覆わない。
+   41-15 では動きと時間だけ削ったが、ブランド色で全画面を覆う構造自体が
+   残っていたため依然として過剰だった。
+   タップも塞がない (pointer-events:none) ので、次の操作を待たせない。 */
 .level-up-overlay{
   position:fixed; inset:0; z-index:99990;
   display:flex; align-items:center; justify-content:center;
-  /* Session 41: 演出を簡素化。集中線の重ね掛けをやめ、
-     ブランド色のグラデーション1層だけにする。 */
-  background:linear-gradient(160deg,#FFE07A 0%,#F5A522 55%,#E8651A 100%);
+  background:none;
   opacity:0; pointer-events:none;
 }
 .level-up-overlay.show{
-  animation: levelUpBgIn 0.25s ease-out forwards;
-  pointer-events:auto;
+  animation-name: levelUpBgIn;
+  animation-duration: 0.18s;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+  /* 背景が無いのでタップを受け取る理由がない */
+  pointer-events:none;
 }
 .level-up-overlay.hide{
-  animation: levelUpBgOut 0.35s ease-in forwards;
+  animation-name: levelUpBgOut;
+  animation-duration: 0.25s;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
 }
 @keyframes levelUpBgIn{ from{opacity:0;} to{opacity:1;} }
 @keyframes levelUpBgOut{ from{opacity:1;} to{opacity:0;} }
 .level-up-card{
-  display:flex; flex-direction:column; align-items:center; gap:6px;
-  transform:scale(0.7); opacity:0;
+  /* Session 41-16: 縦積みの大きな演出→横並びの小さなカードへ。 */
+  display:flex; flex-direction:row; align-items:center; gap:10px;
+  padding:9px 16px 9px 10px;
+  background:#FFFDF7;
+  border:2.5px solid #0A0A0A;
+  border-radius:12px;
+  box-shadow:4px 4px 0 #0A0A0A;
+  transform:scale(0.94); opacity:0;
+}
+.level-up-body{
+  display:flex; flex-direction:column; align-items:flex-start; gap:1px;
 }
 .level-up-overlay.show .level-up-card{
   /* Session 41-15: オーバーシュートを控えめにし、短くする。
@@ -1380,9 +1398,15 @@ body.ui-v2 .opp-area-inner.fl-mode{
   animation-fill-mode: forwards;
 }
 @keyframes levelUpCardInSoft{
-  0%{ transform:scale(0.86); opacity:0; }
-  70%{ transform:scale(1.03); opacity:1; }
-  100%{ transform:scale(1); opacity:1; }
+  0%{ transform:translateY(6px) scale(0.94); opacity:0; }
+  100%{ transform:translateY(0) scale(1); opacity:1; }
+}
+/* Session 41-16: 退出時。背景が無いのでカードが即 opacity:0 に戻ると
+   ハードカットに見える。オーバーレイ側のフェードに乗せる。 */
+.level-up-overlay.hide .level-up-card{
+  opacity:1;
+  transform:none;
+  animation:none;
 }
 @keyframes levelUpCardIn{
   0%{ transform:scale(0.5); opacity:0; }
@@ -1550,46 +1574,37 @@ body.ui-v2 .opp-area-inner.fl-mode{
 }
 .hm4-tut-banner-arrow{ flex:0 0 auto; font-size:18px; font-weight:900; color:#0A0A0A; }
 .level-up-icon{
-  width:96px; height:96px; border-radius:50%; object-fit:cover; object-position:50% 10%;
-  background:#fff; border:4px solid #0A0A0A;
-  /* Session 41-15: 二重のリングとハードシャドウを一重に */
-  box-shadow:0 0 0 4px #fff;
-  /* Session 41-15: 無限バウンスを廃止。登場時の一回だけにする。
-     毎回 2 秒間跳ね続けるのが一番うるさく見えていた。
-     ※ ショートハンドを使わない (Session 41 の教訓 1-1) */
-  animation-name:levelUpIconIn;
-  animation-duration:0.4s;
-  animation-timing-function:cubic-bezier(0.25,1,0.4,1);
-  animation-delay:0.12s;
-  animation-fill-mode:both;
-}
-@keyframes levelUpIconIn{
-  0%{ transform:translateY(6px) scale(0.94); }
-  65%{ transform:translateY(-3px) scale(1.02); }
-  100%{ transform:translateY(0) scale(1); }
+  /* Session 41-16: 96px → 42px。カード内の小さなアイコンに。
+     進化演出の際はこの画像を差し替える想定。 */
+  width:42px; height:42px; border-radius:50%; object-fit:cover; object-position:50% 10%;
+  background:#fff; border:2.5px solid #0A0A0A;
+  box-shadow:none;
+  flex-shrink:0;
+  /* アニメーションなし。カードごと出るだけで十分。 */
+  animation:none;
 }
 @keyframes levelUpBounce{
   0%,100%{ transform:translateY(0); }
   50%{ transform:translateY(-10px); }
 }
 .level-up-title{
-  margin-top:10px;
+  /* Session 41-16: グラデーションのチップを廃止し、小さなラベル文字へ。 */
+  margin-top:0;
   font-family:'Anton','Noto Sans JP',sans-serif;
-  /* Session 41-15: 30px → 26px、回転と 22px のグローを除去して落ち着かせる */
-  font-size:26px; font-weight:900; letter-spacing:0.05em;
-  color:#3A1200;
-  background:linear-gradient(135deg,#FFD94A 0%,#F5A522 45%,#E8651A 100%);
-  padding:7px 20px; border-radius:6px;
-  border-left:8px solid #B23A00;
-  box-shadow:3px 3px 0 rgba(178,58,0,0.5);
+  font-size:11px; font-weight:900; letter-spacing:0.14em;
+  color:#B23A00;
+  background:none;
+  padding:0; border:none; border-radius:0;
+  box-shadow:none;
   transform:none;
 }
 .level-up-lv{
   font-family:'Anton','Noto Sans JP',sans-serif;
-  font-size:22px; font-weight:900; color:#2BB8A3;
-  background:#fff; padding:4px 18px; border-radius:999px;
-  border:2.5px solid #0A0A0A;
-  box-shadow:3px 3px 0 #0A0A0A;
+  /* Session 41-16: 白ピル + 黒縁 + ハードシャドウをやめ、素の文字へ。 */
+  font-size:20px; font-weight:900; color:#0A0A0A;
+  background:none; padding:0; border:none; border-radius:0;
+  box-shadow:none;
+  line-height:1.05;
 }
 /* Session 38 P2: XP獲得バッジ */
 .result-band{ position:relative; }
@@ -13126,10 +13141,14 @@ body.tut-active.tut-interactive #screen-game .slot{
       </div>
     </div>
     <div class="level-up-overlay" id="levelUpOverlay" aria-hidden="true">
+  <!-- Session 41-16: 専用背景を撤廃し、小さなカードだけにする。
+       アイコンの枠は今後のキャラクター進化演出で使うので残している。 -->
   <div class="level-up-card">
     <img class="level-up-icon" src="assets/char_pomu.png" alt=""/>
-    <div class="level-up-title">LEVEL UP!</div>
-    <div class="level-up-lv" id="levelUpLvText">Lv.2</div>
+    <div class="level-up-body">
+      <div class="level-up-title">LEVEL UP</div>
+      <div class="level-up-lv" id="levelUpLvText">Lv.2</div>
+    </div>
   </div>
 </div>
 <!-- Session 39: 機能解放演出 -->
@@ -19800,8 +19819,8 @@ function checkMatchEnd(){
     /* XPバーの transition (0.9s) を見せ切ってからレベルアップへ */
     setTimeout(function(){
       try{ window.showLevelUpEffect(_xpResult.level); }catch(e){ console.error('[levelup]', e); }
-      /* Session 41-15: レベルアップ演出を 1.5s + フェード 0.4s に短縮したので、
-         ここの待ち時間も 2700 → 2000 へ。放置すると間に 800ms の空白が出る。 */
+      /* Session 41-16: レベルアップ演出は 1.2s + フェード 0.25s。
+         待ち時間も 2000 → 1500 へ。放置すると間に空白が出る。 */
       if(_unlocked.length && typeof window.showUnlockEffect === 'function'){
         setTimeout(function(){
           try{ window.showUnlockEffect(_unlocked); }catch(e){ console.error('[unlock]', e); }
@@ -19813,7 +19832,7 @@ function checkMatchEnd(){
               window.chaipoPlayer.markUnlocksSeen(_p.map(function(u){ return u.key; }));
             }
           }catch(e){}
-        }, 2000);
+        }, 1500);
       }
     }, 1300);
   }
@@ -36473,7 +36492,7 @@ html.more-active body {
      ビルドが変わった最初の起動でのみリセットされ、
      同じビルド内での再起動では進捗が保持される
      (毎起動リセットだとレベルアップの検証ができなくなるため)。 */
-  var BUILD_ID = '20260729_140145';
+  var BUILD_ID = '20260729_142417';
   /* Session 41: チュートリアル進捗のリセットからも参照するためグローバルへ */
   try{ window.__CHAIPO_BUILD_ID = BUILD_ID; }catch(e){}
   var RESET_KEY = 'chaipo_player_reset_' + BUILD_ID;
@@ -36943,12 +36962,12 @@ html.more-active body {
     overlay.classList.remove('hide');
     overlay.classList.add('show');
     if(typeof window.haptic === 'function'){ window.haptic(25); }
-    /* Session 41-15: 2200ms → 1500ms。低レベル帯では 1～2 勝ごとに出るので長い。 */
+    /* Session 41-16: 1500ms → 1200ms。画面を覆わない小さなカードなので短くてよい。 */
     setTimeout(function(){
       overlay.classList.remove('show');
       overlay.classList.add('hide');
       setTimeout(function(){ overlay.classList.remove('hide'); }, 400);
-    }, 1500);
+    }, 1200);
   };
 
   /* Session 39: 初回オンボーディング (チュートリアル未経験判定 + 確認モーダル) */
