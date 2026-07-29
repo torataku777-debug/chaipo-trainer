@@ -1254,9 +1254,49 @@ html body.ui-v2.fl-mode .opp-card{
   position:relative;
 }
 .opp-area-inner.fl-mode{
-  border-color:rgba(232,185,35,0.5);
-  background:linear-gradient(135deg,rgba(255,236,128,0.06) 0%,rgba(232,185,35,0.05) 100%);
-  box-shadow:0 0 16px rgba(232,185,35,0.15),inset 0 1px 3px rgba(0,0,0,0.03);
+  /* Session 41-14: 透明度 0.05～0.06 では実機で判別できなかったので強める */
+  border-color:rgba(232,185,35,0.9);
+  border-width:1.5px;
+  background:linear-gradient(135deg,rgba(255,224,122,0.32) 0%,rgba(245,165,34,0.18) 100%);
+  box-shadow:0 0 18px rgba(232,185,35,0.38),inset 0 1px 3px rgba(0,0,0,0.03);
+}
+/* Session 41-14: 相手 FL バッジ。fl-mode のときだけ出す。 */
+/* Session 41-14: 上の .opp-area-inner.fl-mode は UI v2 では一度も効いていなかった。
+   body.ui-v2 .opp-area-inner{ background:transparent !important; border:none !important;
+   box-shadow:none !important; } に全て打ち消されていたため。
+   「相手の FL が分かりづらい」の根本原因はこれ。FL のときだけ復活させる。 */
+body.ui-v2 .opp-area-inner.fl-mode{
+  background:linear-gradient(135deg,rgba(255,224,122,0.30) 0%,rgba(245,165,34,0.16) 100%) !important;
+  border:1.5px solid rgba(232,185,35,0.9) !important;
+  box-shadow:0 0 18px rgba(232,185,35,0.38) !important;
+}
+.opp-fl-badge{ display:none; }
+@keyframes oppFlBadgePulse{
+  0%,100%{ box-shadow:0 2px 6px rgba(184,137,15,0.45); }
+  50%    { box-shadow:0 2px 14px rgba(245,165,34,0.85); }
+}
+.opp-area-inner.fl-mode .opp-fl-badge{
+  display:block;
+  position:absolute;
+  top:-9px;
+  right:8px;
+  z-index:6;
+  padding:2px 9px;
+  font-family:var(--font-ui);
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:0.06em;
+  color:#3A2A02;
+  background:linear-gradient(135deg,#FFE07A 0%,#F5A522 100%);
+  border:1.5px solid #8A5E08;
+  border-radius:999px;
+  white-space:nowrap;
+  pointer-events:none;
+  /* ショートハンドを使わない (Session 41 の教訓 1-1) */
+  animation-name:oppFlBadgePulse;
+  animation-duration:1.6s;
+  animation-timing-function:ease-in-out;
+  animation-iteration-count:infinite;
 }
 .opp-label{
   font-family:var(--font-mono);
@@ -1330,7 +1370,19 @@ html body.ui-v2.fl-mode .opp-card{
   transform:scale(0.7); opacity:0;
 }
 .level-up-overlay.show .level-up-card{
-  animation: levelUpCardIn 0.55s cubic-bezier(0.34,1.56,0.64,1) 0.05s forwards;
+  /* Session 41-15: オーバーシュートを控えめにし、短くする。
+     共用の levelUpCardIn (0.55s / 1.12倍) は解放・オンボードでも使うので
+     ここだけ専用のキーフレームを使う。 */
+  animation-name: levelUpCardInSoft;
+  animation-duration: 0.34s;
+  animation-timing-function: cubic-bezier(0.25,1,0.4,1);
+  animation-delay: 0.04s;
+  animation-fill-mode: forwards;
+}
+@keyframes levelUpCardInSoft{
+  0%{ transform:scale(0.86); opacity:0; }
+  70%{ transform:scale(1.03); opacity:1; }
+  100%{ transform:scale(1); opacity:1; }
 }
 @keyframes levelUpCardIn{
   0%{ transform:scale(0.5); opacity:0; }
@@ -1407,6 +1459,24 @@ html body.ui-v2.fl-mode .opp-card{
   font-size:12px; font-weight:800; color:#0B3B34;
   text-shadow:0 1px 3px rgba(255,255,255,0.55);
 }
+/* Session 41-10: 解放されたモードの説明。
+   名前だけだと何ができるのか伝わらないため。
+   説明が無いキーのときは JS 側で display:none にする。 */
+.unlock-desc{
+  font-family:'Noto Sans JP',sans-serif;
+  max-width:300px;
+  margin-top:2px;
+  padding:8px 14px;
+  font-size:12px; font-weight:700; line-height:1.6;
+  color:#0A2E29;
+  text-align:center;
+  /* 複数同時解放のときに \n で区切るため */
+  white-space:pre-line;
+  background:rgba(255,255,255,0.88);
+  border:2px solid #0A0A0A;
+  border-radius:8px;
+  box-shadow:3px 3px 0 rgba(10,10,10,0.35);
+}
 /* Session 39: 初回オンボーディング確認モーダル */
 .onboard-overlay{
   position:fixed; inset:0; z-index:99992;
@@ -1482,8 +1552,21 @@ html body.ui-v2.fl-mode .opp-card{
 .level-up-icon{
   width:96px; height:96px; border-radius:50%; object-fit:cover; object-position:50% 10%;
   background:#fff; border:4px solid #0A0A0A;
-  box-shadow:0 0 0 4px #fff, 4px 5px 0 rgba(232,101,26,0.9);
-  animation: levelUpBounce 0.9s ease-in-out 0.5s infinite;
+  /* Session 41-15: 二重のリングとハードシャドウを一重に */
+  box-shadow:0 0 0 4px #fff;
+  /* Session 41-15: 無限バウンスを廃止。登場時の一回だけにする。
+     毎回 2 秒間跳ね続けるのが一番うるさく見えていた。
+     ※ ショートハンドを使わない (Session 41 の教訓 1-1) */
+  animation-name:levelUpIconIn;
+  animation-duration:0.4s;
+  animation-timing-function:cubic-bezier(0.25,1,0.4,1);
+  animation-delay:0.12s;
+  animation-fill-mode:both;
+}
+@keyframes levelUpIconIn{
+  0%{ transform:translateY(6px) scale(0.94); }
+  65%{ transform:translateY(-3px) scale(1.02); }
+  100%{ transform:translateY(0) scale(1); }
 }
 @keyframes levelUpBounce{
   0%,100%{ transform:translateY(0); }
@@ -1492,14 +1575,14 @@ html body.ui-v2.fl-mode .opp-card{
 .level-up-title{
   margin-top:10px;
   font-family:'Anton','Noto Sans JP',sans-serif;
-  font-size:30px; font-weight:900; letter-spacing:0.05em;
-  /* Session 39: 黒地をやめ、ブランドのオレンジ〜ゴールドの発光グラデに。文字は締まりのある濃茶。 */
+  /* Session 41-15: 30px → 26px、回転と 22px のグローを除去して落ち着かせる */
+  font-size:26px; font-weight:900; letter-spacing:0.05em;
   color:#3A1200;
   background:linear-gradient(135deg,#FFD94A 0%,#F5A522 45%,#E8651A 100%);
-  padding:8px 22px; border-radius:6px;
+  padding:7px 20px; border-radius:6px;
   border-left:8px solid #B23A00;
-  box-shadow:5px 5px 0 rgba(178,58,0,0.55), 0 0 22px rgba(245,165,34,0.55);
-  transform:rotate(-2deg);
+  box-shadow:3px 3px 0 rgba(178,58,0,0.5);
+  transform:none;
 }
 .level-up-lv{
   font-family:'Anton','Noto Sans JP',sans-serif;
@@ -2037,14 +2120,38 @@ html body.ui-v2.fl-mode .opp-card{
 }
 
 /* v28.56: JK化け先オーバーレイ (カード中央大表示) */
+/* Session 41-11: 化け先の位置を通常カードと厳密に合わせる。
+
+   ジョーカーは .card-joker-label (縦書きJOKER) が position:absolute で
+   flow から外れているため、.card-center がカード全高を占める。
+   一方通常カードは左上のランク/スートが flow 内にあるので
+   .card-center はその下だけ。
+   よって inset:0 の絶対配置で中央寄せすると、通常カードより上にズレる。
+
+   → 通常カードと同じ「上部インデックス + flex:1 の中央」構造を作り、
+     上部は visibility:hidden の実要素で高さだけ揃える。
+     数値の padding で合わせないのは、FL 時 (.hand-cards.fl-flat) に
+     上部インデックスのフォントサイズが変わるため、再びズレるから。 */
 .joker-as-overlay{
-  position:absolute;
-  inset:0;
+  position:static;
+  flex:1;
+  align-self:stretch;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  pointer-events:none;
+  gap:0;
+}
+.jao-top-spacer{
+  visibility:hidden;
+  flex-shrink:0;
+}
+.jao-center{
+  flex:1;
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  pointer-events:none;
   gap:0;
 }
 .jao-rank{
@@ -3225,11 +3332,13 @@ body.shop-screen-active .shop-back-fab{
 .shop-preview-tag.winter{ background: linear-gradient(135deg, #DCEEFF 0%, #A8C8E8 100%); border-color: #5A88B0; color: #2A4060; }
 /* === Session 25 Tutorial T-0: チュートリアルセクション === */
 .tutorial-overview{
-  background: linear-gradient(135deg, rgba(255,247,224,0.85) 0%, rgba(245,233,200,0.6) 100%);
-  border: 1px solid rgba(232,185,35,0.4);
+  /* Session 41-12: 下地を不透明化して写真の柄を拾わないようにする */
+  background: linear-gradient(135deg, #FFF7E0 0%, #F5E9C8 100%);
+  border: 1.5px solid rgba(232,185,35,0.55);
   border-radius: 12px;
   padding: 14px 16px;
   margin: 0 4px 14px;
+  box-shadow: 2px 2px 0 rgba(184,137,15,0.25);
 }
 .tutorial-overview-title{
   font-family: var(--font-ui);
@@ -3278,9 +3387,11 @@ body.shop-screen-active .shop-back-fab{
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  background: linear-gradient(135deg, rgba(255,247,224,0.6) 0%, rgba(245,233,200,0.4) 100%);
-  border: 1px solid rgba(232,185,35,0.3);
+  /* Session 41-12: 半透明 (0.6/0.4) だと背景写真の上に文字が乗る。不透明化。 */
+  background: linear-gradient(135deg, #FFF9E9 0%, #F7EDD4 100%);
+  border: 1.5px solid rgba(232,185,35,0.5);
   border-radius: 10px;
+  box-shadow: 2px 2px 0 rgba(184,137,15,0.22);
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
@@ -3288,12 +3399,13 @@ body.shop-screen-active .shop-back-fab{
   transform: scale(0.98);
 }
 .tutorial-lesson-item[data-state="done"]{
-  background: linear-gradient(135deg, rgba(220,235,210,0.7) 0%, rgba(200,225,190,0.5) 100%);
-  border-color: rgba(94,140,80,0.4);
+  background: linear-gradient(135deg, #DFEBD6 0%, #C9DFC0 100%);
+  border-color: rgba(94,140,80,0.55);
 }
 .tutorial-lesson-item[data-state="active"]{
   border-color: rgba(232,101,26,0.6);
-  box-shadow: 0 0 0 2px rgba(232,101,26,0.15);
+  /* Session 41-12: リングだけだと基本の影が消えて他の項目と揃わないので合成 */
+  box-shadow: 0 0 0 2px rgba(232,101,26,0.15), 2px 2px 0 rgba(184,137,15,0.22);
 }
 .tutorial-lesson-num{
   flex-shrink: 0;
@@ -3327,7 +3439,8 @@ body.shop-screen-active .shop-back-fab{
 .tutorial-lesson-desc{
   font-family: var(--font-ui);
   font-size: 11.5px;
-  color: #9c7c4a;
+  /* Session 41-12: #9c7c4a は下地に対してコントラストが足りない。濃色へ。 */
+  color: #7A5A28;
   line-height: 1.4;
 }
 .tutorial-lesson-status{
@@ -11210,8 +11323,11 @@ body.tut-active.tut-interactive #screen-game .slot{
     }
     /* Session 26 Patch33: ショップ起点で起動された場合のクラスを除去 */
     document.body.classList.remove('shop-screen-active');
-    /* タイトルへ戻す (ゲーム途中状態が残るとややこしいため) */
-    if(typeof showScreen === 'function') showScreen('title');
+    /* Session 41-13: レッスン一覧へ戻す。
+       旧: showScreen('title')。レッスンを 1 つ終えるたびにタイトル→ホームと
+       戻され、次のレッスンに進むのに毎回チュートリアルを探し直す必要があった。
+       ゲーム途中状態は次の newGame() で初期化されるので、タイトル経由は不要。 */
+    if(typeof showScreen === 'function') showScreen('tutorial-overview');
 
     if(saveProgress){
       var p = getTutorialProgress();
@@ -11501,7 +11617,8 @@ body.tut-active.tut-interactive #screen-game .slot{
     document.body.classList.remove('shop-screen-active');
     unbindTutorialL2Handlers();
     bindTutorialL1Handlers();
-    if(typeof showScreen === 'function') showScreen('title');
+    /* Session 41-13: レッスン一覧へ戻す (旧: title) */
+    if(typeof showScreen === 'function') showScreen('tutorial-overview');
 
     if(saveProgress){
       var p = getTutorialProgress();
@@ -11809,7 +11926,8 @@ body.tut-active.tut-interactive #screen-game .slot{
     document.body.classList.remove('shop-screen-active');
     unbindTutorialL3Handlers();
     bindTutorialL1Handlers();
-    if(typeof showScreen === 'function') showScreen('title');
+    /* Session 41-13: レッスン一覧へ戻す (旧: title) */
+    if(typeof showScreen === 'function') showScreen('tutorial-overview');
     if(saveProgress){
       var p = getTutorialProgress();
       if(p.completed.indexOf('l3') < 0){ p.completed.push('l3'); try{ if(window.chaipoPlayer) window.chaipoPlayer.addXp(20); }catch(e){} }
@@ -12988,6 +13106,11 @@ body.tut-active.tut-interactive #screen-game .slot{
     <div class="opp-area">
       <div class="board-dealer-mark" id="dealerMarkOpp">DLR</div>
       <div class="opp-area-inner" id="oppAreaInner">
+        <!-- Session 41-14: 相手が FL 中であることを明示するバッジ。
+             従来は枠色と背景の淡いゴールド (透明度 0.05～0.06) だけで
+             実機ではほぼ判別できなかった。
+             表示制御は .opp-area-inner.fl-mode の有無に乗せるので JS 変更不要。 -->
+        <div class="opp-fl-badge" id="oppFlBadge" aria-hidden="true">相手 ファンタジー中</div>
         <div class="opp-label">相手</div>
         <div class="opp-rows">
           <div class="opp-row-line"><span class="opp-row-tag">TOP</span><div class="opp-row-slots" id="oppTop"></div></div>
@@ -13016,6 +13139,7 @@ body.tut-active.tut-interactive #screen-game .slot{
     <div class="unlock-title">UNLOCKED</div>
     <div class="unlock-name" id="unlockName">オンライン対戦</div>
     <div class="unlock-sub">が解放されました</div>
+    <div class="unlock-desc" id="unlockDesc"></div>
   </div>
 </div>
 <!-- Session 39: 初回オンボーディング確認 -->
@@ -16637,8 +16761,13 @@ function addJokerAsOverlay(jokerEl, asCard){
   jokerEl.classList.add('has-jao');
   const ov=document.createElement('div');
   ov.className='joker-as-overlay';
-  ov.innerHTML=`<div class="jao-rank" style="color:${col}">${asCard.r}</div><div class="jao-suit" style="color:${col}">${sym}</div>`;
-  jokerEl.appendChild(ov);
+  /* Session 41-11: 通常カードと同じ構造 (上部インデックス + 中央) を作る。
+     上部は visibility:hidden で高さだけ揃えるので、位置合わせを数値に頼らない。
+     .card-center の下に入れるのは、.card 直下だと padding を跨いで
+     通常カードと基準がずれるため。 */
+  ov.innerHTML=`<div class="jao-top-spacer" aria-hidden="true"><div class="card-rank-top">${asCard.r}</div><div class="card-suit-top">${sym}</div></div><div class="jao-center"><div class="jao-rank" style="color:${col}">${asCard.r}</div><div class="jao-suit" style="color:${col}">${sym}</div></div>`;
+  const center=jokerEl.querySelector('.card-center');
+  (center||jokerEl).appendChild(ov);
 }
 function renderSlots(cId,cards,total,row,jkMap){
   const el=document.getElementById(cId);el.innerHTML='';
@@ -19671,7 +19800,8 @@ function checkMatchEnd(){
     /* XPバーの transition (0.9s) を見せ切ってからレベルアップへ */
     setTimeout(function(){
       try{ window.showLevelUpEffect(_xpResult.level); }catch(e){ console.error('[levelup]', e); }
-      /* レベルアップ演出 (表示2.2s + フェードアウト0.4s) の後にアンロック */
+      /* Session 41-15: レベルアップ演出を 1.5s + フェード 0.4s に短縮したので、
+         ここの待ち時間も 2700 → 2000 へ。放置すると間に 800ms の空白が出る。 */
       if(_unlocked.length && typeof window.showUnlockEffect === 'function'){
         setTimeout(function(){
           try{ window.showUnlockEffect(_unlocked); }catch(e){ console.error('[unlock]', e); }
@@ -19683,7 +19813,7 @@ function checkMatchEnd(){
               window.chaipoPlayer.markUnlocksSeen(_p.map(function(u){ return u.key; }));
             }
           }catch(e){}
-        }, 2700);
+        }, 2000);
       }
     }, 1300);
   }
@@ -20719,20 +20849,52 @@ function showScreen(id){
     /* Session 41: ホーム表示時にロックUIを確実に更新する。
        render() 経由だと XP 変化時しか走らないため、
        遷移しただけのときにバッジやタップ可否が古いままになり得る。 */
+    /* Session 41-10: 演出待ちの解放があれば、ロック表示のまま保持して入場する。
+       即座に applyUnlockUI すると「最初から開いていた」ようにしか見えない。 */
+    var _fxPend = [];
     try{
-      if(window.chaipoPlayer && typeof window.chaipoPlayer.applyUnlockUI === 'function'){
-        window.chaipoPlayer.applyUnlockUI();
+      if(window.chaipoPlayer){
+        if(typeof window.chaipoPlayer.pendingUnlockFx === 'function'){
+          _fxPend = window.chaipoPlayer.pendingUnlockFx() || [];
+        }
+        if(_fxPend.length && typeof window.chaipoPlayer.holdUnlock === 'function'){
+          window.chaipoPlayer.holdUnlock(_fxPend.map(function(u){ return u.key; }));
+        } else if(typeof window.chaipoPlayer.applyUnlockUI === 'function'){
+          window.chaipoPlayer.applyUnlockUI();
+        }
       }
     }catch(e){ console.error('[unlock/applyUI]', e); }
     setTimeout(function(){
       try{
-        if(!window.chaipoPlayer || typeof window.chaipoPlayer.pendingUnlocks !== 'function') return;
-        var pend = window.chaipoPlayer.pendingUnlocks();
-        if(!pend || !pend.length) return;
-        if(typeof window.showUnlockEffect !== 'function') return;
-        window.showUnlockEffect(pend.map(function(u){ return u.name; }));
-        window.chaipoPlayer.markUnlocksSeen(pend.map(function(u){ return u.key; }));
-      }catch(e){ console.error('[unlock/home]', e); }
+        if(!window.chaipoPlayer) return;
+        var pend = (typeof window.chaipoPlayer.pendingUnlocks === 'function')
+          ? (window.chaipoPlayer.pendingUnlocks() || []) : [];
+        if(pend.length && typeof window.showUnlockEffect === 'function'){
+          window.showUnlockEffect(pend.map(function(u){ return u.name; }));
+          window.chaipoPlayer.markUnlocksSeen(pend.map(function(u){ return u.key; }));
+        }
+        if(_fxPend.length){
+          /* オーバーレイを出した場合はその終了 (2.2s + 0.4s) を待ってから */
+          var wait = pend.length ? 2750 : 150;
+          setTimeout(function(){
+            try{
+              if(typeof window.playUnlockSectionFx === 'function'){
+                window.playUnlockSectionFx(_fxPend);
+              } else if(typeof window.chaipoPlayer.releaseUnlock === 'function'){
+                window.chaipoPlayer.releaseUnlock();
+              }
+              window.chaipoPlayer.markUnlockFxSeen(_fxPend.map(function(u){ return u.key; }));
+            }catch(e2){
+              console.error('[unlock/fx]', e2);
+              try{ window.chaipoPlayer.releaseUnlock(); }catch(e3){}
+            }
+          }, wait);
+        }
+      }catch(e){
+        console.error('[unlock/home]', e);
+        /* 何があっても灰色のまま固まらせない */
+        try{ window.chaipoPlayer.releaseUnlock(); }catch(e4){}
+      }
     }, 520);
   }var target=document.getElementById('screen-'+id);if(target)target.classList.add('active');var tabScreens=['home','town','battle','friend','more'];if(tabScreens.indexOf(id)>=0){window._lastNavTab=id;/* Session 35.7: 直前のタブ記憶 (履歴ベース戻る用) */document.body.classList.add('show-nav');document.querySelectorAll('#bottomNav .nav-tab').forEach(function(t){t.classList.toggle('nav-tab--active',t.getAttribute('data-tab')===id);});}else{document.body.classList.remove('show-nav');}}
 
@@ -29086,11 +29248,13 @@ body.bptune-enabled .bptune-active{
       <div class="tut-overlay"></div>
     </div>
 
-    <button class="hm5-back" type="button" onclick="showScreen('more');" aria-label="設定へ戻る" style="position: absolute; top: 60px; left: 5%; z-index: 35;">
+    <!-- Session 41-12: インラインの position 指定を除去し、設定画面と同じ左下配置に揃える。
+         戻り先も more → home (モード選択) へ変更。 -->
+    <button class="hm5-back" type="button" onclick="showScreen('home');" aria-label="ホームへ戻る">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <polyline points="15 6 9 12 15 18"/>
       </svg>
-      <span>設定へ</span>
+      <span>ホームへ</span>
     </button>
 
     <header class="hm5-header" style="position: absolute; top: 130px; left: 0; right: 0; padding: 0 5%; z-index: 20;">
@@ -29176,7 +29340,10 @@ body.bptune-enabled .bptune-active{
 #screen-tutorial-overview .tut-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(253,251,245,0.78) 0%, rgba(253,251,245,0.86) 100%);
+  /* Session 41-12: 0.78～0.86 だと背景写真が強く透け、
+     その上のカードも半透明だったため文字が読みづらかった。
+     雰囲気は残しつつ下地を引き上げる。 */
+  background: linear-gradient(180deg, rgba(253,251,245,0.92) 0%, rgba(253,251,245,0.96) 100%);
 }
 #screen-tutorial-overview .tutorial-main {
   position: absolute;
@@ -30216,6 +30383,190 @@ body.bptune-enabled .bptune-active{
 #screen-home .hm4-tile:nth-child(2) .hm4-tile-num { color: #1D4ED8; }
 #screen-home .hm4-tile:nth-child(3) .hm4-tile-num { color: #B91C1C; }
 #screen-home .hm4-tile:nth-child(4) .hm4-tile-num { color: #B45309; }
+
+/* ============================================================
+   Session 41-8: ホームのロック項目を明確にグレーアウトする。
+
+   .cp-locked は filter:grayscale(0.85) + opacity:0.72 だけだったが、
+   タイル/項目の下地が #FDFBF5 (ほぼ白) のため彩度を落としても
+   見た目がほとんど変わらず、黒枠 + 3px の影が残って
+   「押せる要素」に見えていた。
+
+   さらに filter は子要素にも及ぶため、ブランド色で目立たせる意図だった
+   .cp-lock-badge まで灰色になっていた。
+   ここでは filter を切り、背景・枠・文字色で直接沈める。
+   → バッジだけが色を保ち「上げれば届く」ことが伝わる。
+
+   nth-child による文字色指定 (1,4,0) の方が詳細度が高いため、
+   文字色のみ !important で上書きする。
+   (color は単独プロパティなのでショートハンドの副作用は無い)
+   ============================================================ */
+#screen-home .hm4-tile.cp-locked,
+#screen-home .hm4-item.cp-locked {
+  filter: none;
+  opacity: 1;
+  background: #DDDFE3;
+  border-color: #9CA3AF;
+  box-shadow: 2px 2px 0 #9CA3AF;
+  cursor: not-allowed;
+}
+#screen-home .hm4-tile.cp-locked .hm4-tile-num,
+#screen-home .hm4-tile.cp-locked .hm4-tile-sub,
+#screen-home .hm4-item.cp-locked .hm4-item-label,
+#screen-home .hm4-item.cp-locked .hm4-item-arrow {
+  /* #DDDFE3 の上で 4.68:1。「近日」(到達不能) と違いロック項目は
+     「上げれば届く」ものなので、何の項目かは読める必要がある。
+     活性項目との区別は背景・枠・影でつける。 */
+  color: #5B616B !important;
+}
+/* 押下フィードバックを殺す。沈めても沈み込むと押せると誤解する */
+#screen-home .hm4-tile.cp-locked:active,
+#screen-home .hm4-item.cp-locked:active,
+#screen-home .hm4-sticker--fl .hm4-tile.cp-locked:active,
+#screen-home .hm4-sticker--online .hm4-item.cp-locked:active,
+#screen-home .hm4-sticker--ai .hm4-item.cp-locked:active {
+  transform: none;
+  background: #DDDFE3;
+  box-shadow: 2px 2px 0 #9CA3AF;
+}
+
+/* ------------------------------------------------------------
+   Session 41-9: 中身が全てロック / 「近日」のセクションは
+   カードごとグレーアウトする。
+   項目だけ灰色にしても、カード自体が白地 + 黒縁 + ブランド色の
+   帯のままだと「開いている区画」に見えるため。
+
+   対象は applySectionLocks() が動的に判定するので、
+   解放されたセクションは自動で色が戻る。
+
+   詳細度は .hm4-sticker--online 等と同等 (1,2,0) なので、
+   このブロックがファイルの後方にあることで勝つ。位置を前に移すな。
+   ------------------------------------------------------------ */
+#screen-home .hm4-sticker.cp-section-locked {
+  background: linear-gradient(135deg, rgba(107,114,128,0.22) 0%, #F2F3F5 70%);
+  outline-color: #9CA3AF;
+  box-shadow: 5px 6px 0 #9CA3AF;
+}
+#screen-home .hm4-sticker.cp-section-locked::before {
+  background: #9CA3AF;
+}
+#screen-home .hm4-sticker.cp-section-locked .hm4-sticker-head {
+  border-bottom-color: #9CA3AF;
+}
+#screen-home .hm4-sticker.cp-section-locked .hm4-sticker-title {
+  color: #5B616B;
+}
+
+/* ------------------------------------------------------------
+   Session 41-10: 解放演出 (灰色 → 通常カラーへ戻る様子を見せる)
+
+   これまでは showScreen('home') の時点で即座にロックが外れていたので、
+   ユーザーは「最初から開いていた」としか見えなかった。
+   holdUnlock() で灰色を保持し、演出のタイミングで releaseUnlock() することで
+   この transition が実際に見えるようにする。
+
+   ※ animation はショートハンドを使わない (Session 41 の教訓 1-1)。
+   ------------------------------------------------------------ */
+#screen-home .hm4-sticker {
+  transition: background 0.55s ease, outline-color 0.55s ease, box-shadow 0.55s ease;
+}
+#screen-home .hm4-sticker::before {
+  transition: background 0.55s ease;
+}
+#screen-home .hm4-sticker-head {
+  transition: border-bottom-color 0.55s ease;
+}
+#screen-home .hm4-sticker-title {
+  transition: color 0.55s ease;
+}
+
+@keyframes hm4UnlockPop {
+  0%   { transform: scale(1); }
+  34%  { transform: scale(1.035); }
+  62%  { transform: scale(0.994); }
+  100% { transform: scale(1); }
+}
+@keyframes hm4UnlockRing {
+  0%   { opacity: 0.95; transform: scale(0.97); }
+  100% { opacity: 0;    transform: scale(1.07); }
+}
+#screen-home .hm4-sticker.cp-section-unlocking {
+  animation-name: hm4UnlockPop;
+  animation-duration: 0.7s;
+  animation-timing-function: cubic-bezier(0.25,1,0.4,1);
+  animation-fill-mode: both;
+  z-index: 30;
+}
+#screen-home .hm4-sticker.cp-section-unlocking::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 20px;
+  border: 3px solid rgba(245,165,34,0.95);
+  pointer-events: none;
+  z-index: 1;
+  animation-name: hm4UnlockRing;
+  animation-duration: 0.9s;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+}
+
+/* 解放カード。セクションに absolute で重ねるので
+   レイアウト (.hm4-stickers の固定高さ) を崩さない。 */
+@keyframes hm4CalloutIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes hm4CalloutOut {
+  from { opacity: 1; }
+  to   { opacity: 0; transform: translateY(-5px); }
+}
+#screen-home .hm4-unlock-callout {
+  position: absolute;
+  inset: 5px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 13px;
+  background: linear-gradient(135deg, #FFF3C9 0%, #FFC94A 100%);
+  border: 2.5px solid #0A0A0A;
+  border-radius: 10px;
+  box-shadow: 3px 3px 0 #0A0A0A;
+  text-align: left;
+  cursor: pointer;
+  animation-name: hm4CalloutIn;
+  animation-duration: 0.32s;
+  animation-timing-function: cubic-bezier(0.25,1,0.4,1);
+  animation-fill-mode: both;
+}
+#screen-home .hm4-unlock-callout.out {
+  animation-name: hm4CalloutOut;
+  animation-duration: 0.3s;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
+}
+#screen-home .hm4-unlock-callout-tag {
+  font-size: 10px; font-weight: 900; letter-spacing: 0.08em;
+  color: #0A0A0A; background: #FFFFFF;
+  border: 2px solid #0A0A0A; border-radius: 999px;
+  padding: 2px 9px;
+}
+#screen-home .hm4-unlock-callout-name {
+  font-family: 'Anton','Noto Sans JP',sans-serif;
+  font-size: 17px; font-weight: 900; color: #0A0A0A;
+  letter-spacing: -0.01em;
+}
+#screen-home .hm4-unlock-callout-desc {
+  font-size: 11.5px; font-weight: 700; line-height: 1.55;
+  color: #3A2A08;
+}
+#screen-home .hm4-unlock-callout-close {
+  position: absolute; right: 9px; bottom: 6px;
+  font-size: 9.5px; font-weight: 800; color: #7A5E1C;
+}
 
 
     
@@ -34069,7 +34420,11 @@ html.more-active body {
 }
 
 /* ← ホームへ ボタン (左上、ステッカー風) */
-#screen-more .hm5-back {
+/* Session 41-12: チュートリアル一覧にも同じ定義を適用する。
+   以前は #screen-tutorial-overview 側に .hm5-back の CSS が一切無く、
+   インラインの position 指定だけで素の button の見た目になっていた。 */
+#screen-more .hm5-back,
+#screen-tutorial-overview .hm5-back {
   position: fixed;
   left: 16px;
   bottom: calc(max(20px, env(safe-area-inset-bottom)) + 20px); /* 他画面の左下ボタンと同位置 (bottom-nav は HTML に存在しない) */
@@ -34091,12 +34446,14 @@ html.more-active body {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 12px rgba(232, 185, 35, 0.15);
   transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
-#screen-more .hm5-back:active {
+#screen-more .hm5-back:active,
+#screen-tutorial-overview .hm5-back:active {
   transform: translate(2px, 2px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   background: rgba(40, 40, 55, 0.9);
 }
-#screen-more .hm5-back svg {
+#screen-more .hm5-back svg,
+#screen-tutorial-overview .hm5-back svg {
   width: 18px; height: 18px;
   flex-shrink: 0;
 }
@@ -36116,7 +36473,7 @@ html.more-active body {
      ビルドが変わった最初の起動でのみリセットされ、
      同じビルド内での再起動では進捗が保持される
      (毎起動リセットだとレベルアップの検証ができなくなるため)。 */
-  var BUILD_ID = '20260728_143008';
+  var BUILD_ID = '20260729_140145';
   /* Session 41: チュートリアル進捗のリセットからも参照するためグローバルへ */
   try{ window.__CHAIPO_BUILD_ID = BUILD_ID; }catch(e){}
   var RESET_KEY = 'chaipo_player_reset_' + BUILD_ID;
@@ -36172,6 +36529,32 @@ html.more-active body {
     flpractice: { lv: 3, name: 'ファンタジー練習' },
     ranked: { lv: 5, name: 'ランクマッチ' }
   };
+
+  /* Session 41-10: 解放演出用のメタ情報。
+     sel  = ホーム上で強調するセクション (無いモードは null)。
+     desc = 何ができるモードなのかの説明。名前だけでは伝わらないため。
+     ※ casual / ranked はホームに区画が無く (screen-online-match 側) なので
+       セクション演出は出ず、オーバーレイの説明のみ。 */
+  var UNLOCK_META = {
+    online:     { sel: '.hm4-sticker--online', desc: '合言葉を交換して、フレンドと 1 対 1 で対戦できます。' },
+    casual:     { sel: null,                   desc: 'レート変動なしで、気軽に対戦できるモードです。' },
+    flpractice: { sel: '.hm4-sticker--fl',     desc: '14～17 枚のファンタジーランドだけを繰り返し練習できます。' },
+    ranked:     { sel: null,                   desc: 'レートを賭けた真剣勝負。勝つほど上を目指せます。' }
+  };
+
+  /* 演出のために「解放済みだがまだ灰色のままにしておく」キー。
+     これが無いと showScreen('home') の時点で即色が戻り、
+     「解放された瞬間」を見せられない。 */
+  var _fxHold = [];
+  function holdUnlock(keys){
+    _fxHold = (keys || []).slice();
+    applyUnlockUI();
+  }
+  function releaseUnlock(){
+    _fxHold = [];
+    applyUnlockUI();
+  }
+  function _isHeld(key){ return _fxHold.indexOf(key) >= 0; }
   function isUnlocked(key){
     var u = UNLOCKS[key];
     return !u || state.level >= u.lv;
@@ -36225,6 +36608,37 @@ html.more-active body {
     return out;
   }
   function markUnlocksSeen(keys){ _markUnlockSeen(keys); }
+
+  /* Session 41-10: セクション演出はオーバーレイとは別台帳で管理する。
+     オーバーレイ (SEEN_KEY) は結果画面で見せた時点で済みになるため、
+     同じ台帳を使うとホームに戻ってきたときに一度も演出が出ない。 */
+  var FX_KEY = 'chaipo_unlock_fx_v1';
+  function _fxSeen(){
+    try{
+      var raw = localStorage.getItem(FX_KEY);
+      return raw ? (JSON.parse(raw) || []) : [];
+    }catch(e){ return []; }
+  }
+  function markUnlockFxSeen(keys){
+    try{
+      var cur = _fxSeen();
+      (keys || []).forEach(function(k){ if(cur.indexOf(k) < 0) cur.push(k); });
+      localStorage.setItem(FX_KEY, JSON.stringify(cur));
+    }catch(e){}
+  }
+  /* 解放済みだが、まだホームでの演出を見せていないもの */
+  function pendingUnlockFx(){
+    var seen = _fxSeen();
+    var out = [];
+    for(var k in UNLOCKS){
+      if(!UNLOCKS.hasOwnProperty(k)) continue;
+      if(state.level >= UNLOCKS[k].lv && seen.indexOf(k) < 0){
+        var m = UNLOCK_META[k] || {};
+        out.push({ key: k, name: UNLOCKS[k].name, desc: m.desc || '', sel: m.sel || null });
+      }
+    }
+    return out;
+  }
 
   /* Session 41: ホーム(hm4)のモード項目に data-cp-lock を後付けする。
      実際に描画されているホームのボタンはインライン onclick で直接遷移しており、
@@ -36296,6 +36710,27 @@ html.more-active body {
     if(code){ try{ (new Function(code)).call(el); }catch(err){ console.error('[cp-onclick]', err); } }
   }, false);
 
+  /* Session 41-9: 中身が全てロック / 「近日」のセクションを
+     カードごとグレーアウトする。
+     セクション名ではなく中身で判定するので、
+     レベルが上がって 1 つでも遊べるようになれば自動で色が戻る。
+     (例: 02 AI対戦 は「2人対戦」が遊べるので対象外になる) */
+  function applySectionLocks(){
+    try{
+      var secs = document.querySelectorAll('#screen-home .hm4-sticker');
+      for(var i = 0; i < secs.length; i++){
+        var sec = secs[i];
+        var acts = sec.querySelectorAll('.hm4-item, .hm4-tile');
+        var allBlocked = acts.length > 0;
+        for(var j = 0; j < acts.length; j++){
+          var a = acts[j];
+          if(!a.classList.contains('cp-locked') && !a.disabled){ allBlocked = false; break; }
+        }
+        sec.classList.toggle('cp-section-locked', allBlocked);
+      }
+    }catch(e){ console.error('[applySectionLocks]', e); }
+  }
+
   function applyUnlockUI(){
     applyHomeLocks();
     try{
@@ -36303,7 +36738,8 @@ html.more-active body {
       for(var i = 0; i < els.length; i++){
         var el = els[i];
         var key = el.getAttribute('data-cp-lock');
-        var ok = isUnlocked(key);
+        /* Session 41-10: 演出待ちのキーは解放済みでもロック表示のまま保つ */
+        var ok = isUnlocked(key) && !_isHeld(key);
         el.classList.toggle('cp-locked', !ok);
         var badge = null;
         for(var j = 0; j < el.children.length; j++){
@@ -36321,13 +36757,20 @@ html.more-active body {
         }
       }
     }catch(e){ console.error('[applyUnlockUI]', e); }
+    /* 項目単位の cp-locked が確定した後でないとセクション判定ができないので最後に呼ぶ */
+    applySectionLocks();
   }
   /* ロック中のタップは capture で最優先に止める (既存の click ハンドラより先に走る) */
   document.addEventListener('click', function(e){
     var el = (e.target && e.target.closest) ? e.target.closest('[data-cp-lock]') : null;
     if(!el) return;
     var key = el.getAttribute('data-cp-lock');
-    if(isUnlocked(key)) return;
+    if(isUnlocked(key)){
+      /* Session 41-10: 演出待ちで灰色の間は、見た目どおりタップを止める。
+         ただし既に解放済みなので「Lv.○で解放」トーストは出さない。 */
+      if(_isHeld(key)){ e.preventDefault(); e.stopImmediatePropagation(); }
+      return;
+    }
     e.preventDefault();
     e.stopImmediatePropagation();
     if(typeof window.showToast === 'function'){
@@ -36368,6 +36811,21 @@ html.more-active body {
     if(!overlay || !nameEl || !names || !names.length) return;
     _liftOverlay(overlay);
     nameEl.textContent = names.join(' / ');
+    /* Session 41-10: 名前に対応する説明を出す。
+       呼び出し元 2 系統 (結果画面 / ホーム) がどちらも名前の配列を
+       渡してくるので、キーではなく名前から逆引きする。 */
+    var descEl = document.getElementById('unlockDesc');
+    if(descEl){
+      var ds = names.map(function(n){
+        for(var k in UNLOCKS){
+          if(!UNLOCKS.hasOwnProperty(k)) continue;
+          if(UNLOCKS[k].name === n && UNLOCK_META[k]) return UNLOCK_META[k].desc || '';
+        }
+        return '';
+      }).filter(function(d){ return !!d; });
+      descEl.textContent = ds.join('\n');
+      descEl.style.display = ds.length ? '' : 'none';
+    }
     overlay.classList.remove('hide');
     overlay.classList.add('show');
     if(typeof window.haptic === 'function'){ window.haptic(30); }
@@ -36376,6 +36834,69 @@ html.more-active body {
       overlay.classList.add('hide');
       setTimeout(function(){ overlay.classList.remove('hide'); }, 400);
     }, 2200);
+  };
+
+  /* Session 41-10: ホームの対象セクションに「ここが解放された」カードを出す。
+     absolute でセクションに重ねるのでレイアウトは崩れない。
+     項目を覆い隠すので、タップ or 5 秒で閉じる。 */
+  function _showUnlockCallout(sec, item){
+    try{
+      var old = sec.querySelector('.hm4-unlock-callout');
+      if(old && old.parentNode){ old.parentNode.removeChild(old); }
+      var el = document.createElement('div');
+      el.className = 'hm4-unlock-callout';
+      var tag = document.createElement('span');
+      tag.className = 'hm4-unlock-callout-tag';
+      tag.textContent = '🔓 解放';
+      var nm = document.createElement('span');
+      nm.className = 'hm4-unlock-callout-name';
+      nm.textContent = item.name;
+      var ds = document.createElement('span');
+      ds.className = 'hm4-unlock-callout-desc';
+      ds.textContent = item.desc || '';
+      var cl = document.createElement('span');
+      cl.className = 'hm4-unlock-callout-close';
+      cl.textContent = 'タップで閉じる';
+      el.appendChild(tag); el.appendChild(nm); el.appendChild(ds); el.appendChild(cl);
+
+      var closed = false;
+      function close(){
+        if(closed) return;
+        closed = true;
+        el.classList.add('out');
+        setTimeout(function(){ if(el.parentNode){ el.parentNode.removeChild(el); } }, 320);
+      }
+      el.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); close(); });
+      sec.appendChild(el);
+      setTimeout(close, 5000);
+    }catch(e){ console.error('[unlockFx/callout]', e); }
+  }
+
+  /* 保持を解除して色を戻し、対象セクションを強調する */
+  window.playUnlockSectionFx = function(items){
+    try{
+      if(!items || !items.length){ releaseUnlock(); return; }
+      releaseUnlock();   /* ← ここで transition (0.55s) が走る */
+      if(typeof window.haptic === 'function'){ window.haptic(20); }
+      var shown = 0;
+      items.forEach(function(it){
+        if(!it.sel) return;
+        var sec = document.querySelector('#screen-home ' + it.sel);
+        if(!sec) return;
+        var delay = shown * 900;
+        shown++;
+        setTimeout(function(){
+          sec.classList.remove('cp-section-unlocking');
+          void sec.offsetWidth;            /* 再生を確実にするためのリフロー強制 */
+          sec.classList.add('cp-section-unlocking');
+          setTimeout(function(){ sec.classList.remove('cp-section-unlocking'); }, 1000);
+          setTimeout(function(){ _showUnlockCallout(sec, it); }, 620);
+        }, delay);
+      });
+    }catch(e){
+      console.error('[unlockFx]', e);
+      try{ releaseUnlock(); }catch(e2){}
+    }
   };
 
   window.chaipoPlayer = {
@@ -36390,6 +36911,11 @@ html.more-active body {
     /* Session 41: モード選択での未提示解放演出用 */
     pendingUnlocks: pendingUnlocks,
     markUnlocksSeen: markUnlocksSeen,
+    /* Session 41-10: セクション解放演出用 */
+    pendingUnlockFx: pendingUnlockFx,
+    markUnlockFxSeen: markUnlockFxSeen,
+    holdUnlock: holdUnlock,
+    releaseUnlock: releaseUnlock,
     getLevel: function(){ return state.level; },
     applyUnlockUI: applyUnlockUI
   };
@@ -36417,11 +36943,12 @@ html.more-active body {
     overlay.classList.remove('hide');
     overlay.classList.add('show');
     if(typeof window.haptic === 'function'){ window.haptic(25); }
+    /* Session 41-15: 2200ms → 1500ms。低レベル帯では 1～2 勝ごとに出るので長い。 */
     setTimeout(function(){
       overlay.classList.remove('show');
       overlay.classList.add('hide');
       setTimeout(function(){ overlay.classList.remove('hide'); }, 400);
-    }, 2200);
+    }, 1500);
   };
 
   /* Session 39: 初回オンボーディング (チュートリアル未経験判定 + 確認モーダル) */
