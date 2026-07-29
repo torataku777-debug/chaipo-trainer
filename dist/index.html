@@ -14878,6 +14878,16 @@ function rankVal(r){return RANK_VAL[r]||0;}
    eval3 / eval3Plain の両方から使うためグローバルに置く
    (片方だけ旧スケールのままだとファウル判定・表示が食い違う)。 */
 function _tS(a,b,c){ return (a||0)*400 + (b||0)*20 + (c||0); }
+/* Session 41-17: topRankScore から「上段の代表ランク(a)」を取り出す。
+
+   _tS の係数を 100 → 400 に変えた際、値を読む側の
+   Math.floor(topRankScore/100) が 2 箇所 (midGeTop / isFoulSimple) 残っており、
+   上段 KKK なら 5473/100 = 54 となって中段の A(14) と比べられ、
+   上段と中段が同じ役種になるたびに常にファウルと判定されていた。
+
+   b*20+c の最大は 14*20+14 = 294 < 400 なので、floor(score/400) は常に a に一致する。
+   今後係数を変えるときは _tS とこの関数を必ずセットで見ること。 */
+function _tSTopRank(score){ return Math.floor((score||0)/400); }
 function eval3(cards){
   const n=cards.filter(c=>!c.isJoker);const j=cards.filter(c=>c.isJoker).length;const rv=n.map(c=>rankVal(c.r)).sort((a,b)=>b-a);
   if(j===2){const r=n.length>0?rv[0]:14;const k=RANKS[r-2]||'A';return{rank:2,desc:`${k}のトリップス`,royalty:tripRoy(r),flCards:17,topRankScore:_tS(r,r,r)};}
@@ -15069,7 +15079,7 @@ function midGeTop(mc,tc){
   var minMid=[0,1,3][tc.eval.rank]||0;
   if(mc.eval.rank>minMid)return true;
   if(mc.eval.rank<minMid)return false;
-  var topPairRank=Math.floor((tc.eval.topRankScore||0)/100);
+  var topPairRank=_tSTopRank(tc.eval.topRankScore);
   var midHv=hvFull(mc.resolvedCards,mc.eval.rank);
   return (midHv[0]||0)>=topPairRank;
 }
@@ -15111,7 +15121,7 @@ function isFoulSimple(board){
   if(mR<tR)return true;
   if(mR===tR){
     // TOPのハイカード（ペアのランク）
-    var topPairRank=Math.floor((topE.topRankScore||0)/100);
+    var topPairRank=_tSTopRank(topE.topRankScore);
     // MIDのハイカード
     var mHv=hvFull(mid,mR);
     if(mHv[0]<topPairRank)return true;
@@ -36492,7 +36502,7 @@ html.more-active body {
      ビルドが変わった最初の起動でのみリセットされ、
      同じビルド内での再起動では進捗が保持される
      (毎起動リセットだとレベルアップの検証ができなくなるため)。 */
-  var BUILD_ID = '20260729_142417';
+  var BUILD_ID = '20260729_144055';
   /* Session 41: チュートリアル進捗のリセットからも参照するためグローバルへ */
   try{ window.__CHAIPO_BUILD_ID = BUILD_ID; }catch(e){}
   var RESET_KEY = 'chaipo_player_reset_' + BUILD_ID;
