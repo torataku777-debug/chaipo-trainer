@@ -10756,6 +10756,22 @@ body.tut-active.tut-interactive #screen-game .slot{
   /* === Session 25 Tutorial T-0: チュートリアル進捗管理 === */
   var TUTORIAL_LESSONS = ['l1', 'l2', 'l3', 'l4', 'l5'];
   var TUTORIAL_LS_KEY = 'chaipo_tutorial_progress';
+  /* Session 41: デプロイのたびにチュートリアル進捗もリセットする (検証用)。
+     ホームのチュートリアル誘導バナーは「未経験のときだけ表示」なので、
+     一度触ると消えてしまい、デプロイ後の確認ができなくなるため。
+     BUILD_ID は後方で定義されるため、ここでは遅延実行する。 */
+  setTimeout(function(){
+    try{
+      var bid = window.__CHAIPO_BUILD_ID || 'dev';
+      var k = 'chaipo_tutorial_reset_' + bid;
+      if(!localStorage.getItem(k)){
+        localStorage.removeItem(TUTORIAL_LS_KEY);
+        localStorage.setItem(k, '1');
+        if(typeof window._updateTutBanner === 'function'){ window._updateTutBanner(); }
+        console.log('[tutorial] Session 41: 進捗をリセットしました (デプロイ毎/一度きり)');
+      }
+    }catch(e){ console.warn('[tutorial] reset skipped:', e); }
+  }, 0);
 
   function getTutorialProgress(){
     try{
@@ -36100,7 +36116,9 @@ html.more-active body {
      ビルドが変わった最初の起動でのみリセットされ、
      同じビルド内での再起動では進捗が保持される
      (毎起動リセットだとレベルアップの検証ができなくなるため)。 */
-  var BUILD_ID = '20260728_131908';
+  var BUILD_ID = '20260728_143008';
+  /* Session 41: チュートリアル進捗のリセットからも参照するためグローバルへ */
+  try{ window.__CHAIPO_BUILD_ID = BUILD_ID; }catch(e){}
   var RESET_KEY = 'chaipo_player_reset_' + BUILD_ID;
   try{
     if(!localStorage.getItem(RESET_KEY)){
@@ -36149,6 +36167,9 @@ html.more-active body {
   var UNLOCKS = {
     online: { lv: 2, name: 'オンライン対戦' },
     casual: { lv: 3, name: 'カジュアル対戦' },
+    /* Session 41: ファンタジー練習を Lv3 で解放。
+       初日から全部開いていると目標がなくなるため。 */
+    flpractice: { lv: 3, name: 'ファンタジー練習' },
     ranked: { lv: 5, name: 'ランクマッチ' }
   };
   function isUnlocked(key){
@@ -36205,7 +36226,78 @@ html.more-active body {
   }
   function markUnlocksSeen(keys){ _markUnlockSeen(keys); }
 
+  /* Session 41: ホーム(hm4)のモード項目に data-cp-lock を後付けする。
+     実際に描画されているホームのボタンはインライン onclick で直接遷移しており、
+     data-cp-lock が付いていないためロックが一切効いていなかった
+     (HTML ソース上には lock 付きの記述もあるが、使われているのは別バージョン)。
+     ラベルで対象を判定し、描画後に属性を付ければ既存のロック機構がそのまま働く。
+     インライン onclick は capture ハンドラの preventDefault では止まらないので、
+     onclick を data-cp-onclick へ退避し、解放済みのときだけ実行する。 */
+  var HOME_LOCK_MAP = [
+    { match: /フレンドバトル/, key: 'online' },
+    { match: /ランダムバトル/, key: null, soon: true },
+    { match: /3\s*人対戦/,     key: null, soon: true }
+  ];
+  function applyHomeLocks(){
+    try{
+      var items = document.querySelectorAll('#screen-home .hm4-item');
+      for(var i = 0; i < items.length; i++){
+        var el = items[i];
+        var label = (el.textContent || '').replace(/\s+/g, '');
+        for(var j = 0; j < HOME_LOCK_MAP.length; j++){
+          var rule = HOME_LOCK_MAP[j];
+          if(!rule.match.test(label)) continue;
+          if(rule.soon){
+            /* 「近日」= 未実装。確実にタップさせない */
+            if(!el.disabled){
+              el.disabled = true;
+              el.setAttribute('aria-disabled', 'true');
+              el.classList.add('hm4-item--disabled');
+              if(el.getAttribute('onclick')){ el.removeAttribute('onclick'); }
+            }
+            break;
+          }
+          if(rule.key && !el.getAttribute('data-cp-lock')){
+            el.setAttribute('data-cp-lock', rule.key);
+            var oc = el.getAttribute('onclick');
+            if(oc){
+              el.setAttribute('data-cp-onclick', oc);
+              el.removeAttribute('onclick');
+            }
+          }
+          break;
+        }
+      }
+      /* Session 41: ファンタジー練習の 14/15/16/17 タイル (.hm4-tile) を Lv3 でロック。
+         タイルはラベルが数字なので個別判定せず、まとめて属性を付ける。
+         バッジが4つ出ると煩いので先頭の1つにだけ出し、
+         残りは data-cp-lock-nobadge で抑制する。 */
+      var tiles = document.querySelectorAll('#screen-home .hm4-tile');
+      for(var t = 0; t < tiles.length; t++){
+        var tile = tiles[t];
+        if(tile.getAttribute('data-cp-lock')) continue;
+        tile.setAttribute('data-cp-lock', 'flpractice');
+        if(t > 0){ tile.setAttribute('data-cp-lock-nobadge', ''); }
+        var toc = tile.getAttribute('onclick');
+        if(toc){
+          tile.setAttribute('data-cp-onclick', toc);
+          tile.removeAttribute('onclick');
+        }
+      }
+    }catch(e){ console.error('[applyHomeLocks]', e); }
+  }
+  /* 退避した onclick は、解放済みのときだけ実行する */
+  document.addEventListener('click', function(e){
+    var el = (e.target && e.target.closest) ? e.target.closest('[data-cp-onclick]') : null;
+    if(!el) return;
+    var key = el.getAttribute('data-cp-lock');
+    if(key && !isUnlocked(key)) return;   /* ロック中は capture 側で止まる */
+    var code = el.getAttribute('data-cp-onclick');
+    if(code){ try{ (new Function(code)).call(el); }catch(err){ console.error('[cp-onclick]', err); } }
+  }, false);
+
   function applyUnlockUI(){
+    applyHomeLocks();
     try{
       var els = document.querySelectorAll('[data-cp-lock]');
       for(var i = 0; i < els.length; i++){
