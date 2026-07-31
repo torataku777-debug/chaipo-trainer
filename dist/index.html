@@ -1576,7 +1576,12 @@ body.ui-v2 .opp-area-inner.fl-mode{
 .level-up-icon{
   /* Session 41-16: 96px → 42px。カード内の小さなアイコンに。
      進化演出の際はこの画像を差し替える想定。 */
-  width:42px; height:42px; border-radius:50%; object-fit:cover; object-position:50% 10%;
+  /* Session 41-18: 画像を char_pomu.png (853x1844 の全身絵) から
+     char_pomu_face.png (512x512) へ変更。
+     全身絵を object-position:50% 10% で正方形に切り抜くと
+     上部の余白帯だけが見え、アイコンの中身が空になっていた。
+     切り抜き位置もホームの .hm4-player-icon と同じ 50% 50% に揃える。 */
+  width:42px; height:42px; border-radius:50%; object-fit:cover; object-position:50% 50%;
   background:#fff; border:2.5px solid #0A0A0A;
   box-shadow:none;
   flex-shrink:0;
@@ -13144,7 +13149,7 @@ body.tut-active.tut-interactive #screen-game .slot{
   <!-- Session 41-16: 専用背景を撤廃し、小さなカードだけにする。
        アイコンの枠は今後のキャラクター進化演出で使うので残している。 -->
   <div class="level-up-card">
-    <img class="level-up-icon" src="assets/char_pomu.png" alt=""/>
+    <img class="level-up-icon" src="assets/char_pomu_face.png" alt=""/>
     <div class="level-up-body">
       <div class="level-up-title">LEVEL UP</div>
       <div class="level-up-lv" id="levelUpLvText">Lv.2</div>
@@ -19826,7 +19831,8 @@ function checkMatchEnd(){
       }
     }catch(e){ console.error('[unlock] unlocksBetween:', e); }
 
-    /* XPバーの transition (0.9s) を見せ切ってからレベルアップへ */
+    /* Session 41-19: バーが 100% に達する瞬間 (450ms 開始 + 0.55s) に合わせて発火する。
+       旧: 1300ms。バーの transition を 0.9s としていた頃の値。 */
     setTimeout(function(){
       try{ window.showLevelUpEffect(_xpResult.level); }catch(e){ console.error('[levelup]', e); }
       /* Session 41-16: レベルアップ演出は 1.2s + フェード 0.25s。
@@ -19844,7 +19850,7 @@ function checkMatchEnd(){
           }catch(e){}
         }, 1500);
       }
-    }, 1300);
+    }, 1050);
   }
 }
 
@@ -19862,15 +19868,22 @@ function showMatchEndBanner(playerWon, draw, xpResult){
 
   // Session 38 P2: マッチ終了時の XP 獲得表示
   const xpGain = (xpResult && typeof xpResult.gain === 'number') ? xpResult.gain : null;
-  // Session 38 P3: 経験値が貯まる演出 — レベルアップ時は新レベルの繰り越し分を0%から、
-  // 通常時は加算前の%から加算後の%までバーが伸びる (アニメーション本体は appendChild 直後で起動)
-  const _xpStartPct = xpResult ? (xpResult.leveled ? 0 : Math.max(0, Math.min(100, Math.round(xpResult.beforeXp / xpResult.beforeNeed * 100)))) : 0;
+  // Session 38 P3: 経験値が貯まる演出
+  // Session 41-19: レベルアップ時は「旧レベルの現在値 → 100%」を見せてから
+  //   レベルアップ演出、その後「新レベルの 0% → 現在値」を見せる。
+  //   旧実装はいきなり新レベルの 0% から始まっており、
+  //   ゲージが満タンになる瞬間 (= レベルアップの理由) が見えなかった。
+  const _xpBeforePct = xpResult ? Math.max(0, Math.min(100, Math.round(xpResult.beforeXp / xpResult.beforeNeed * 100))) : 0;
+  const _xpStartPct = _xpBeforePct;
   const _xpEndPct = xpResult ? Math.max(0, Math.min(100, Math.round(xpResult.afterXp / xpResult.afterNeed * 100))) : 0;
-  const _xpDisplayLevel = xpResult ? (xpResult.leveled ? xpResult.level : xpResult.beforeLevel) : '';
+  /* レベル表記は演出の途中で切り替えるので、開始時は必ず旧レベル */
+  const _xpDisplayLevel = xpResult ? xpResult.beforeLevel : '';
+  const _xpLeveled = !!(xpResult && xpResult.leveled);
+  const _xpNewLevel = xpResult ? xpResult.level : '';
   const xpHtml = xpGain !== null ?
     '<div style="display:flex;flex-direction:column;gap:7px;align-items:center;background:linear-gradient(135deg,#FFE07A 0%,#FDC93F 55%,#F7B733 100%);border:2px solid #0A0A0A;box-shadow:3px 3px 0 rgba(10,10,10,0.28);border-radius:14px;padding:10px 16px;">' +
       '<div style="display:flex;align-items:center;gap:8px;">' +
-        '<span style="font-family:\'Anton\',\'Noto Sans JP\',sans-serif;font-size:13px;font-weight:900;color:#0A0A0A;">Lv.'+_xpDisplayLevel+'</span>' +
+        '<span id="bannerXpLv" style="font-family:\'Anton\',\'Noto Sans JP\',sans-serif;font-size:13px;font-weight:900;color:#0A0A0A;">Lv.'+_xpDisplayLevel+'</span>' +
         '<span style="font-family:\'Anton\',\'Noto Sans JP\',sans-serif;font-size:14px;font-weight:900;color:#5C2104;letter-spacing:0.04em;">+'+xpGain+' XP</span>' +
       '</div>' +
       '<div style="width:180px;height:9px;background:rgba(255,255,255,0.55);border:1.5px solid rgba(10,10,10,0.55);border-radius:999px;overflow:hidden;">' +
@@ -19907,10 +19920,35 @@ function showMatchEndBanner(playerWon, draw, xpResult){
   // Session 38 P3: 経験値ゲージが伸びる演出を起動 (reflow 後に幅を変えて transition を効かせる)
   if(xpResult){
     var _bannerFill = document.getElementById('bannerXpFill');
+    var _bannerLv = document.getElementById('bannerXpLv');
     if(_bannerFill){
-      setTimeout(function(){
-        _bannerFill.style.width = _xpEndPct + '%';
-      }, 500);
+      if(!_xpLeveled){
+        /* レベルアップなし: 従来どおり 1 回だけ伸ばす */
+        setTimeout(function(){
+          _bannerFill.style.width = _xpEndPct + '%';
+        }, 500);
+      } else {
+        /* Session 41-19: 段階演出。
+            450ms  旧レベルの現在値 → 100% (0.55s)
+           1050ms レベルアップ演出 (呼び出し元で発火)
+           1100ms バーを 0% に戻し、レベル表記を新レベルへ
+           1180ms 新レベルの 0% → 現在値 (0.7s) */
+        setTimeout(function(){
+          _bannerFill.style.transition = 'width 0.55s cubic-bezier(0.22,1,0.36,1)';
+          _bannerFill.style.width = '100%';
+        }, 450);
+        setTimeout(function(){
+          /* transition を切って瞬間的に 0% へ戻す (戻る過程は見せない) */
+          _bannerFill.style.transition = 'none';
+          _bannerFill.style.width = '0%';
+          if(_bannerLv) _bannerLv.textContent = 'Lv.' + _xpNewLevel;
+          void _bannerFill.offsetWidth;   /* リフロー強制。無いと次の幅変更がアニメしない */
+          _bannerFill.style.transition = 'width 0.7s cubic-bezier(0.22,1,0.36,1)';
+        }, 1100);
+        setTimeout(function(){
+          _bannerFill.style.width = _xpEndPct + '%';
+        }, 1180);
+      }
     }
   }
 
@@ -27456,6 +27494,11 @@ body.bptune-enabled .bptune-active{
         <div class="hm4-player-meta">
           <div class="hm4-player-lv" id="hm4PlayerLv">Lv.1</div>
           <div class="hm4-player-xpbar"><div class="hm4-player-xpfill" id="hm4PlayerXp"></div></div>
+          <!-- Session 41-20: 次のレベルで何が手に入るのかを常時表示する。
+               レベルを上げる動機は「プレイ前に目標が見えていること」で効くので、
+               レベルアップカード側ではなくホームに置く。
+               内容は chaipoPlayer.render() から書き換える。 -->
+          <div class="hm4-next-reward" id="hm4NextReward" style="display:none;"></div>
         </div>
       </div>
     </header>
@@ -30042,6 +30085,25 @@ body.bptune-enabled .bptune-active{
   height: 100%;
   width: 0%;
   background: #2BB8A3;
+}
+/* Session 41-20: 次のレベルで解放されるものの表示。
+   ヘッダ内なので横幅が限られる。折り返さず、長ければ省略記号で切る。 */
+#screen-home .hm4-next-reward {
+  max-width: 190px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: #0A0A0A;
+  background: rgba(255,255,255,0.92);
+  border: 1.5px solid #0A0A0A;
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 1.5px 1.5px 0 rgba(10,10,10,0.55);
 }
 
 /* P4: 設定ボタンは ← title の真下に配置 (重複回避) */
@@ -36502,7 +36564,7 @@ html.more-active body {
      ビルドが変わった最初の起動でのみリセットされ、
      同じビルド内での再起動では進捗が保持される
      (毎起動リセットだとレベルアップの検証ができなくなるため)。 */
-  var BUILD_ID = '20260729_144055';
+  var BUILD_ID = '20260729_224251';
   /* Session 41: チュートリアル進捗のリセットからも参照するためグローバルへ */
   try{ window.__CHAIPO_BUILD_ID = BUILD_ID; }catch(e){}
   var RESET_KEY = 'chaipo_player_reset_' + BUILD_ID;
@@ -36533,6 +36595,38 @@ html.more-active body {
     return { leveled: leveled, level: state.level };
   }
 
+  /* Session 41-20: 次に解放されるものを返す。
+     定義は UNLOCKS から自動で拾うので、解放を追加してもここは触らなくてよい。
+     ガチャチケット等の「機能解放以外の報酬」を入れるときは
+     LEVEL_REWARDS に lv ごとの配列で追加する。
+     ※ 未実装のものを先に載せると受け取れない報酬を約束することになるので、
+       実装されてから追加すること。 */
+  var LEVEL_REWARDS = {
+    /* 例: 4: ['ガチャチケット x1'] */
+  };
+  function nextRewardInfo(){
+    var lv = state.level;
+    var target = null;
+    for(var k in UNLOCKS){
+      if(!UNLOCKS.hasOwnProperty(k)) continue;
+      var l = UNLOCKS[k].lv;
+      if(l > lv && (target === null || l < target)) target = l;
+    }
+    for(var rk in LEVEL_REWARDS){
+      if(!LEVEL_REWARDS.hasOwnProperty(rk)) continue;
+      var rl = parseInt(rk, 10);
+      if(rl > lv && (target === null || rl < target)) target = rl;
+    }
+    if(target === null) return null;
+    var items = [];
+    for(var k2 in UNLOCKS){
+      if(!UNLOCKS.hasOwnProperty(k2)) continue;
+      if(UNLOCKS[k2].lv === target) items.push(UNLOCKS[k2].name);
+    }
+    if(LEVEL_REWARDS[target]) items = items.concat(LEVEL_REWARDS[target]);
+    return { lv: target, items: items };
+  }
+
   function render(){
     var lvEl = document.getElementById('hm4PlayerLv');
     var xpEl = document.getElementById('hm4PlayerXp');
@@ -36543,6 +36637,30 @@ html.more-active body {
     }
     /* Session 39: レベル変化に追従して機能解放UIも更新 */
     if (typeof applyUnlockUI === 'function') applyUnlockUI();
+    /* Session 41-20: 次の報酬表示 */
+    try{
+      var nrEl = document.getElementById('hm4NextReward');
+      if(nrEl){
+        var nr = nextRewardInfo();
+        if(nr && nr.items.length){
+          /* Session 41-20: 同じレベルに複数あるとヘッダ幅を超えるので件数表記にする */
+          var label = nr.items.length > 1
+            ? (nr.items[0] + ' 他' + (nr.items.length - 1) + '件')
+            : nr.items[0];
+          var txt = 'Lv.' + nr.lv + ' ' + label;
+          /* 次のレベルが報酬なら、あと何 XP かまで出す。
+             ヘッダ幅 (実測 187px) に収める必要があるので語句は最小限にする。 */
+          if(nr.lv === state.level + 1){
+            var remain = Math.max(0, needXp(state.level) - state.xp);
+            txt += ' あと' + remain + 'XP';
+          }
+          nrEl.textContent = '🎁 ' + txt;
+          nrEl.style.display = '';
+        } else {
+          nrEl.style.display = 'none';
+        }
+      }
+    }catch(e){ console.error('[nextReward]', e); }
   }
 
   /* ============================================================
