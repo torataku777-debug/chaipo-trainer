@@ -36564,7 +36564,7 @@ html.more-active body {
      ビルドが変わった最初の起動でのみリセットされ、
      同じビルド内での再起動では進捗が保持される
      (毎起動リセットだとレベルアップの検証ができなくなるため)。 */
-  var BUILD_ID = '20260729_224251';
+  var BUILD_ID = '20260731_115958';
   /* Session 41: チュートリアル進捗のリセットからも参照するためグローバルへ */
   try{ window.__CHAIPO_BUILD_ID = BUILD_ID; }catch(e){}
   var RESET_KEY = 'chaipo_player_reset_' + BUILD_ID;
@@ -36729,10 +36729,37 @@ html.more-active body {
      解放に気づかないままになる。モード選択に戻ったときに
      未提示の解放があれば演出を出すための台帳。 */
   var SEEN_KEY = 'chaipo_unlock_seen_v1';
+
+  /* Session 41-21: 現在のレベルでは未解放に戻っているキーを台帳から取り除く。
+
+     デプロイのたびにレベルを 1 へ戻す仕組み (RESET_KEY) があるが、
+     そこでは level/xp しか戻しておらず台帳は残っていた。
+     そのため一度解放演出を見ると、再び Lv2 に上がっても
+     「提示済み」と判定され、解放演出が二度と出なくなっていた。
+
+     レベルが下がった以上その解放は未取得なので、台帳から外すのが正しい。
+     リセット側でキー名を直接消すと台帳を増やしたときに取り残すので、
+     読み出し側で自己修復させる。 */
+  function _pruneSeen(list, key){
+    try{
+      var out = [];
+      for(var i = 0; i < list.length; i++){
+        var k = list[i];
+        if(UNLOCKS[k] && state.level < UNLOCKS[k].lv) continue;   /* 未解放に戻った */
+        out.push(k);
+      }
+      if(out.length !== list.length){
+        localStorage.setItem(key, JSON.stringify(out));
+        console.log('[chaipoPlayer] Session 41-21: 台帳をレベルに合わせて整理しました', key, list, '->', out);
+      }
+      return out;
+    }catch(e){ return list; }
+  }
+
   function _seenUnlocks(){
     try{
       var raw = localStorage.getItem(SEEN_KEY);
-      return raw ? (JSON.parse(raw) || []) : [];
+      return _pruneSeen(raw ? (JSON.parse(raw) || []) : [], SEEN_KEY);
     }catch(e){ return []; }
   }
   function _markUnlockSeen(keys){
@@ -36763,7 +36790,8 @@ html.more-active body {
   function _fxSeen(){
     try{
       var raw = localStorage.getItem(FX_KEY);
-      return raw ? (JSON.parse(raw) || []) : [];
+      /* Session 41-21: こちらもレベルに合わせて整理する */
+      return _pruneSeen(raw ? (JSON.parse(raw) || []) : [], FX_KEY);
     }catch(e){ return []; }
   }
   function markUnlockFxSeen(keys){
@@ -37153,6 +37181,12 @@ html.more-active body {
       afterNeed: needXp(state.level)
     };
   };
+
+  /* Session 41-21: 起動時に必ず 1 度台帳を整理しておく。
+     読み出し時の自己修復だけだと、低レベルのうちに一度も読まれなかった場合に
+     古い台帳が残り、解放演出が出ないままになる。
+     ここは RESET_KEY によるレベルリセットの後なので、必ず新しいレベルで判定される。 */
+  try{ _seenUnlocks(); _fxSeen(); }catch(e){}
 
   // 初期表示
   if (document.readyState === 'loading') {
