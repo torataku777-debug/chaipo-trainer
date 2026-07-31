@@ -30602,62 +30602,122 @@ body.bptune-enabled .bptune-active{
   animation-fill-mode: forwards;
 }
 
-/* 解放カード。セクションに absolute で重ねるので
-   レイアウト (.hm4-stickers の固定高さ) を崩さない。 */
-@keyframes hm4CalloutIn {
-  from { opacity: 0; transform: translateY(8px) scale(0.97); }
-  to   { opacity: 1; transform: none; }
+/* Session 41-22: 解放の説明表示をチュートリアルの吹き出し (.tut-bubble) と
+   同じ見た目に揃える。
+   旧実装は黄色地 + 黒縁 + ハードシャドウのカードをセクションに重ねていたが、
+   アプリ内の他の「説明する UI」と見た目が揃っていなかった。
+   値は .tut-bubble-card / .tut-bubble-pom から揃えている。
+   (チュートリアル側のクラスを直接使い回さないのは、
+    .tut-overlay:not(.open) などの制御ルールを巻き込むため) */
+@keyframes unlockGuideIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
-@keyframes hm4CalloutOut {
+@keyframes unlockGuideOut {
   from { opacity: 1; }
-  to   { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 0; transform: translateX(-50%) translateY(-6px); }
 }
-#screen-home .hm4-unlock-callout {
+@keyframes unlockGuidePomHop {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-6px); }
+}
+#screen-home .unlock-guide {
   position: absolute;
-  inset: 5px;
-  z-index: 40;
+  left: 50%;
+  width: calc(100% - 48px);
+  max-width: 300px;
+  z-index: 60;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 5px;
-  padding: 10px 13px;
-  background: linear-gradient(135deg, #FFF3C9 0%, #FFC94A 100%);
-  border: 2.5px solid #0A0A0A;
-  border-radius: 10px;
-  box-shadow: 3px 3px 0 #0A0A0A;
-  text-align: left;
-  cursor: pointer;
-  animation-name: hm4CalloutIn;
-  animation-duration: 0.32s;
+  align-items: center;
+  pointer-events: auto;
+  animation-name: unlockGuideIn;
+  animation-duration: 0.3s;
   animation-timing-function: cubic-bezier(0.25,1,0.4,1);
   animation-fill-mode: both;
 }
-#screen-home .hm4-unlock-callout.out {
-  animation-name: hm4CalloutOut;
-  animation-duration: 0.3s;
+#screen-home .unlock-guide.out {
+  animation-name: unlockGuideOut;
+  animation-duration: 0.26s;
   animation-timing-function: ease-in;
   animation-fill-mode: forwards;
 }
-#screen-home .hm4-unlock-callout-tag {
-  font-size: 10px; font-weight: 900; letter-spacing: 0.08em;
-  color: #0A0A0A; background: #FFFFFF;
-  border: 2px solid #0A0A0A; border-radius: 999px;
-  padding: 2px 9px;
+#screen-home .unlock-guide-pom {
+  width: 72px; height: 72px;
+  object-fit: contain;
+  margin-bottom: -11px;
+  z-index: 2;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+  animation-name: unlockGuidePomHop;
+  animation-duration: 2.2s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
 }
-#screen-home .hm4-unlock-callout-name {
-  font-family: 'Anton','Noto Sans JP',sans-serif;
-  font-size: 17px; font-weight: 900; color: #0A0A0A;
-  letter-spacing: -0.01em;
+#screen-home .unlock-guide-card {
+  position: relative;
+  width: 100%;
+  padding: 16px 16px 12px;
+  background: rgba(20,22,32,0.92);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid rgba(255,181,97,0.25);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.12);
 }
-#screen-home .hm4-unlock-callout-desc {
-  font-size: 11.5px; font-weight: 700; line-height: 1.55;
-  color: #3A2A08;
+#screen-home .unlock-guide-card::before {
+  /* 上向き三角 (ポムの足元から吹き出す形) */
+  content: "";
+  position: absolute;
+  top: -8px; left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 14px; height: 14px;
+  background: rgba(20,22,32,0.92);
+  border-left: 1px solid rgba(255,181,97,0.25);
+  border-top: 1px solid rgba(255,181,97,0.25);
 }
-#screen-home .hm4-unlock-callout-close {
-  position: absolute; right: 9px; bottom: 6px;
-  font-size: 9.5px; font-weight: 800; color: #7A5E1C;
+#screen-home .unlock-guide-tag {
+  display: block;
+  width: fit-content;
+  margin: 0 auto 8px;
+  padding: 2px 10px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.1em;
+  color: #1a1a1a;
+  background: linear-gradient(135deg, #FFB561 0%, #FF8E3C 100%);
+  border-radius: 999px;
 }
+#screen-home .unlock-guide-title {
+  margin: 0 0 8px;
+  text-align: center;
+  color: #FFB561;
+  font-size: 15px; font-weight: 700;
+  letter-spacing: 0.04em;
+}
+#screen-home .unlock-guide-text {
+  margin: 0 0 12px;
+  text-align: center;
+  color: rgba(255,255,255,0.92);
+  font-size: 13px; line-height: 1.65;
+}
+#screen-home .unlock-guide-nav {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+#screen-home .unlock-guide-btn {
+  min-width: 140px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  font-size: 12px; font-weight: 600;
+  color: #1a1a1a;
+  background: linear-gradient(135deg, #FFB561 0%, #FF8E3C 100%);
+  box-shadow: 0 4px 12px rgba(255,142,60,0.35);
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+#screen-home .unlock-guide-btn:active { transform: scale(0.95); }
 
 
     
@@ -36564,7 +36624,7 @@ html.more-active body {
      ビルドが変わった最初の起動でのみリセットされ、
      同じビルド内での再起動では進捗が保持される
      (毎起動リセットだとレベルアップの検証ができなくなるため)。 */
-  var BUILD_ID = '20260731_115958';
+  var BUILD_ID = '20260731_123017';
   /* Session 41: チュートリアル進捗のリセットからも参照するためグローバルへ */
   try{ window.__CHAIPO_BUILD_ID = BUILD_ID; }catch(e){}
   var RESET_KEY = 'chaipo_player_reset_' + BUILD_ID;
@@ -37011,40 +37071,104 @@ html.more-active body {
     }, 2200);
   };
 
-  /* Session 41-10: ホームの対象セクションに「ここが解放された」カードを出す。
-     absolute でセクションに重ねるのでレイアウトは崩れない。
-     項目を覆い隠すので、タップ or 5 秒で閉じる。 */
-  function _showUnlockCallout(sec, item){
+  /* Session 41-10: ホームの対象セクションに「ここが解放された」説明を出す。
+     Session 41-22: チュートリアルの吹き出しと同じ形式 (ポム + ダークカード) に変更。
+     セクションの真下に出し、どの区画の話なのかを保ったまま読ませる。
+     閉じるのはボタン or 8 秒。 */
+  var _guideQueue = [];
+  var _guideBusy = false;
+  function _queueUnlockGuide(sec, item){
+    _guideQueue.push({ sec: sec, item: item });
+    _drainGuideQueue();
+  }
+  function _drainGuideQueue(){
+    if(_guideBusy) return;
+    var next = _guideQueue.shift();
+    if(!next) return;
+    _guideBusy = true;
+    _showUnlockGuide(next.sec, next.item, function(){
+      _guideBusy = false;
+      /* 連続で出すと読む間もなく入れ替わるので少し間を置く */
+      setTimeout(_drainGuideQueue, 260);
+    });
+  }
+  function _showUnlockGuide(sec, item, onClose){
     try{
-      var old = sec.querySelector('.hm4-unlock-callout');
+      var home = document.getElementById('screen-home');
+      if(!home){ if(onClose) onClose(); return; }
+      var old = home.querySelector('.unlock-guide');
       if(old && old.parentNode){ old.parentNode.removeChild(old); }
-      var el = document.createElement('div');
-      el.className = 'hm4-unlock-callout';
-      var tag = document.createElement('span');
-      tag.className = 'hm4-unlock-callout-tag';
-      tag.textContent = '🔓 解放';
-      var nm = document.createElement('span');
-      nm.className = 'hm4-unlock-callout-name';
-      nm.textContent = item.name;
-      var ds = document.createElement('span');
-      ds.className = 'hm4-unlock-callout-desc';
-      ds.textContent = item.desc || '';
-      var cl = document.createElement('span');
-      cl.className = 'hm4-unlock-callout-close';
-      cl.textContent = 'タップで閉じる';
-      el.appendChild(tag); el.appendChild(nm); el.appendChild(ds); el.appendChild(cl);
+
+      var wrap = document.createElement('div');
+      wrap.className = 'unlock-guide';
+
+      var pom = document.createElement('img');
+      pom.className = 'unlock-guide-pom';
+      pom.src = 'assets/game/ready_pom.png';
+      pom.alt = '';
+      pom.draggable = false;
+
+      var card = document.createElement('div');
+      card.className = 'unlock-guide-card';
+
+      var tag = document.createElement('div');
+      tag.className = 'unlock-guide-tag';
+      tag.textContent = '🔓 新しく解放されました';
+
+      var title = document.createElement('div');
+      title.className = 'unlock-guide-title';
+      title.textContent = item.name;
+
+      var text = document.createElement('div');
+      text.className = 'unlock-guide-text';
+      text.textContent = item.desc || '';
+
+      var nav = document.createElement('div');
+      nav.className = 'unlock-guide-nav';
+      var btn = document.createElement('button');
+      btn.className = 'unlock-guide-btn';
+      btn.type = 'button';
+      btn.textContent = 'わかった';
+      nav.appendChild(btn);
+
+      card.appendChild(tag);
+      card.appendChild(title);
+      card.appendChild(text);
+      card.appendChild(nav);
+      wrap.appendChild(pom);
+      wrap.appendChild(card);
+      home.appendChild(wrap);
+
+      /* セクションの真下に置く。
+         offsetTop だと .hm4-stickers (absolute) が基準になってずれるので
+         getBoundingClientRect で #screen-home からの相対位置を出す。
+         下にはみ出す場合は画面内に寄せる。 */
+      try{
+        var hr = home.getBoundingClientRect();
+        var sr = sec.getBoundingClientRect();
+        var top = (sr.bottom - hr.top) + 14;
+        var maxTop = home.clientHeight - wrap.offsetHeight - 12;
+        if(top > maxTop) top = Math.max(12, maxTop);
+        wrap.style.top = top + 'px';
+      }catch(e){ wrap.style.top = '40%'; }
 
       var closed = false;
       function close(){
         if(closed) return;
         closed = true;
-        el.classList.add('out');
-        setTimeout(function(){ if(el.parentNode){ el.parentNode.removeChild(el); } }, 320);
+        wrap.classList.add('out');
+        setTimeout(function(){
+          if(wrap.parentNode){ wrap.parentNode.removeChild(wrap); }
+          if(onClose) onClose();
+        }, 280);
       }
-      el.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); close(); });
-      sec.appendChild(el);
-      setTimeout(close, 5000);
-    }catch(e){ console.error('[unlockFx/callout]', e); }
+      btn.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); close(); });
+      wrap.addEventListener('click', function(ev){ ev.stopPropagation(); });
+      setTimeout(close, 8000);
+    }catch(e){
+      console.error('[unlockFx/guide]', e);
+      if(onClose) onClose();
+    }
   }
 
   /* 保持を解除して色を戻し、対象セクションを強調する */
@@ -37065,7 +37189,7 @@ html.more-active body {
           void sec.offsetWidth;            /* 再生を確実にするためのリフロー強制 */
           sec.classList.add('cp-section-unlocking');
           setTimeout(function(){ sec.classList.remove('cp-section-unlocking'); }, 1000);
-          setTimeout(function(){ _showUnlockCallout(sec, it); }, 620);
+          setTimeout(function(){ _queueUnlockGuide(sec, it); }, 620);
         }, delay);
       });
     }catch(e){
