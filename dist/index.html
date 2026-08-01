@@ -19824,32 +19824,15 @@ function checkMatchEnd(){
   showMatchEndBanner(playerWon, draw, _xpResult);
 
   if(_xpResult && _xpResult.leveled && typeof window.showLevelUpEffect === 'function'){
-    var _unlocked = [];
-    try{
-      if(window.chaipoPlayer && typeof window.chaipoPlayer.unlocksBetween === 'function'){
-        _unlocked = window.chaipoPlayer.unlocksBetween(_xpResult.beforeLevel, _xpResult.level) || [];
-      }
-    }catch(e){ console.error('[unlock] unlocksBetween:', e); }
 
     /* Session 41-19: バーが 100% に達する瞬間 (450ms 開始 + 0.55s) に合わせて発火する。
        旧: 1300ms。バーの transition を 0.9s としていた頃の値。 */
     setTimeout(function(){
       try{ window.showLevelUpEffect(_xpResult.level); }catch(e){ console.error('[levelup]', e); }
-      /* Session 41-16: レベルアップ演出は 1.2s + フェード 0.25s。
-         待ち時間も 2000 → 1500 へ。放置すると間に空白が出る。 */
-      if(_unlocked.length && typeof window.showUnlockEffect === 'function'){
-        setTimeout(function(){
-          try{ window.showUnlockEffect(_unlocked); }catch(e){ console.error('[unlock]', e); }
-          /* Session 41: ここで見せた解放は提示済みにする。
-             しないとホームに戻ったときに同じ演出が二重で出る。 */
-          try{
-            if(window.chaipoPlayer && typeof window.chaipoPlayer.pendingUnlocks === 'function'){
-              var _p = window.chaipoPlayer.pendingUnlocks();
-              window.chaipoPlayer.markUnlocksSeen(_p.map(function(u){ return u.key; }));
-            }
-          }catch(e){}
-        }, 1500);
-      }
+      /* Session 41-23: 結果画面での全画面解放オーバーレイを廃止した。
+         ホームの吹き出しと同じ説明を 2 回見せていて冗長だったため。
+         解放の提示はモード選択へ戻ったときの 1 回に一本化する。
+         ※ ここで markUnlocksSeen を呼ばないこと。呼ぶとホームで出なくなる。 */
     }, 1050);
   }
 }
@@ -20934,35 +20917,36 @@ function showScreen(id){
     setTimeout(function(){
       try{
         if(!window.chaipoPlayer) return;
-        var pend = (typeof window.chaipoPlayer.pendingUnlocks === 'function')
-          ? (window.chaipoPlayer.pendingUnlocks() || []) : [];
-        if(pend.length && typeof window.showUnlockEffect === 'function'){
-          window.showUnlockEffect(pend.map(function(u){ return u.name; }));
-          window.chaipoPlayer.markUnlocksSeen(pend.map(function(u){ return u.key; }));
+        /* Session 41-23: 全画面の解放オーバーレイを廃止した。
+           同じ説明を「オーバーレイ」と「吹き出し」で 2 回見せていて冗長だったため。
+           オーバーレイ用の台帳もここで済みにしておく。
+           残さないと、将来オーバーレイを復活させたときに古い解放が一斉に出る。 */
+        if(typeof window.chaipoPlayer.pendingUnlocks === 'function'){
+          var pend = window.chaipoPlayer.pendingUnlocks() || [];
+          if(pend.length){
+            window.chaipoPlayer.markUnlocksSeen(pend.map(function(u){ return u.key; }));
+          }
         }
         if(_fxPend.length){
-          /* オーバーレイを出した場合はその終了 (2.2s + 0.4s) を待ってから */
-          var wait = pend.length ? 2750 : 150;
-          setTimeout(function(){
-            try{
-              if(typeof window.playUnlockSectionFx === 'function'){
-                window.playUnlockSectionFx(_fxPend);
-              } else if(typeof window.chaipoPlayer.releaseUnlock === 'function'){
-                window.chaipoPlayer.releaseUnlock();
-              }
-              window.chaipoPlayer.markUnlockFxSeen(_fxPend.map(function(u){ return u.key; }));
-            }catch(e2){
-              console.error('[unlock/fx]', e2);
-              try{ window.chaipoPlayer.releaseUnlock(); }catch(e3){}
+          /* オーバーレイが無くなったので待つ理由がない。すぐ色を戻す。 */
+          try{
+            if(typeof window.playUnlockSectionFx === 'function'){
+              window.playUnlockSectionFx(_fxPend);
+            } else if(typeof window.chaipoPlayer.releaseUnlock === 'function'){
+              window.chaipoPlayer.releaseUnlock();
             }
-          }, wait);
+            window.chaipoPlayer.markUnlockFxSeen(_fxPend.map(function(u){ return u.key; }));
+          }catch(e2){
+            console.error('[unlock/fx]', e2);
+            try{ window.chaipoPlayer.releaseUnlock(); }catch(e3){}
+          }
         }
       }catch(e){
         console.error('[unlock/home]', e);
         /* 何があっても灰色のまま固まらせない */
         try{ window.chaipoPlayer.releaseUnlock(); }catch(e4){}
       }
-    }, 520);
+    }, 420);
   }var target=document.getElementById('screen-'+id);if(target)target.classList.add('active');var tabScreens=['home','town','battle','friend','more'];if(tabScreens.indexOf(id)>=0){window._lastNavTab=id;/* Session 35.7: 直前のタブ記憶 (履歴ベース戻る用) */document.body.classList.add('show-nav');document.querySelectorAll('#bottomNav .nav-tab').forEach(function(t){t.classList.toggle('nav-tab--active',t.getAttribute('data-tab')===id);});}else{document.body.classList.remove('show-nav');}}
 
 // === Phase A-2 UI Fix v2: ショップ画面から確実にモード選択画面へ戻る ===
@@ -30699,6 +30683,19 @@ body.bptune-enabled .bptune-active{
   color: rgba(255,255,255,0.92);
   font-size: 13px; line-height: 1.65;
 }
+/* Session 41-23: 複数解放を 1 枚にまとめたときの各行 */
+#screen-home .unlock-guide-row {
+  text-align: left;
+  margin-bottom: 7px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+#screen-home .unlock-guide-row:last-child { margin-bottom: 0; }
+#screen-home .unlock-guide-row-name {
+  display: block;
+  color: #FFB561;
+  font-weight: 700;
+}
 #screen-home .unlock-guide-nav {
   display: flex;
   justify-content: flex-end;
@@ -36624,7 +36621,7 @@ html.more-active body {
      ビルドが変わった最初の起動でのみリセットされ、
      同じビルド内での再起動では進捗が保持される
      (毎起動リセットだとレベルアップの検証ができなくなるため)。 */
-  var BUILD_ID = '20260731_123017';
+  var BUILD_ID = '20260801_172200';
   /* Session 41: チュートリアル進捗のリセットからも参照するためグローバルへ */
   try{ window.__CHAIPO_BUILD_ID = BUILD_ID; }catch(e){}
   var RESET_KEY = 'chaipo_player_reset_' + BUILD_ID;
@@ -37075,23 +37072,7 @@ html.more-active body {
      Session 41-22: チュートリアルの吹き出しと同じ形式 (ポム + ダークカード) に変更。
      セクションの真下に出し、どの区画の話なのかを保ったまま読ませる。
      閉じるのはボタン or 8 秒。 */
-  var _guideQueue = [];
-  var _guideBusy = false;
-  function _queueUnlockGuide(sec, item){
-    _guideQueue.push({ sec: sec, item: item });
-    _drainGuideQueue();
-  }
-  function _drainGuideQueue(){
-    if(_guideBusy) return;
-    var next = _guideQueue.shift();
-    if(!next) return;
-    _guideBusy = true;
-    _showUnlockGuide(next.sec, next.item, function(){
-      _guideBusy = false;
-      /* 連続で出すと読む間もなく入れ替わるので少し間を置く */
-      setTimeout(_drainGuideQueue, 260);
-    });
-  }
+  /* Session 41-23: 複数解放は 1 枚にまとめるようにしたのでキューは廃止 */
   function _showUnlockGuide(sec, item, onClose){
     try{
       var home = document.getElementById('screen-home');
@@ -37115,13 +37096,31 @@ html.more-active body {
       tag.className = 'unlock-guide-tag';
       tag.textContent = '🔓 新しく解放されました';
 
+      /* Session 41-23: 複数解放は 1 枚にまとめる。
+         3 件同時 (Lv3) で 3 回「わかった」を押させるのは煩わしい。 */
+      var list = item.list || [item];
+
       var title = document.createElement('div');
       title.className = 'unlock-guide-title';
-      title.textContent = item.name;
+      title.textContent = list.map(function(x){ return x.name; }).join(' / ');
 
       var text = document.createElement('div');
       text.className = 'unlock-guide-text';
-      text.textContent = item.desc || '';
+      if(list.length === 1){
+        text.textContent = list[0].desc || '';
+      }else{
+        list.forEach(function(x){
+          var row = document.createElement('div');
+          row.className = 'unlock-guide-row';
+          var nm = document.createElement('span');
+          nm.className = 'unlock-guide-row-name';
+          nm.textContent = x.name;
+          var ds = document.createElement('span');
+          ds.textContent = x.desc || '';
+          row.appendChild(nm); row.appendChild(ds);
+          text.appendChild(row);
+        });
+      }
 
       var nav = document.createElement('div');
       nav.className = 'unlock-guide-nav';
@@ -37182,16 +37181,29 @@ html.more-active body {
         if(!it.sel) return;
         var sec = document.querySelector('#screen-home ' + it.sel);
         if(!sec) return;
-        var delay = shown * 900;
+        /* Session 41-23: 演出を詰める。
+           複数解放は 900ms 間隔で色を戻していたが、吹き出しがキューで
+           1 つずつ出る以上、色は全部まとめて戻してよい。
+           吹き出しまでの待ちも 620 → 380ms。 */
+        var delay = shown * 160;
         shown++;
         setTimeout(function(){
           sec.classList.remove('cp-section-unlocking');
           void sec.offsetWidth;            /* 再生を確実にするためのリフロー強制 */
           sec.classList.add('cp-section-unlocking');
-          setTimeout(function(){ sec.classList.remove('cp-section-unlocking'); }, 1000);
-          setTimeout(function(){ _queueUnlockGuide(sec, it); }, 620);
+          setTimeout(function(){ sec.classList.remove('cp-section-unlocking'); }, 800);
         }, delay);
       });
+      /* 吹き出しは 1 枚にまとめ、最後のセクションの下に出す */
+      var withSec = items.filter(function(x){ return !!x.sel; });
+      if(withSec.length){
+        var lastSec = document.querySelector('#screen-home ' + withSec[withSec.length-1].sel);
+        if(lastSec){
+          setTimeout(function(){
+            _showUnlockGuide(lastSec, { list: withSec }, null);
+          }, (shown - 1) * 160 + 380);
+        }
+      }
     }catch(e){
       console.error('[unlockFx]', e);
       try{ releaseUnlock(); }catch(e2){}
