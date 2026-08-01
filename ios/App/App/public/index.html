@@ -1516,6 +1516,108 @@ body.ui-v2 .opp-area-inner.fl-mode{
   box-shadow:3px 3px 0 rgba(10,10,10,0.35);
 }
 /* Session 39: 初回オンボーディング確認モーダル */
+/* Session 41-25: 初回起動時のイントロ。
+   見た目はチュートリアルの吹き出し (.tut-bubble) と解放の吹き出しに揃える。
+   こちらは初回の全画面なので、背景に暗幕を敷いて集中させる。 */
+@keyframes introIn{
+  from{ opacity:0; transform:translateY(12px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+@keyframes introPomHop{
+  0%,100%{ transform:translateY(0); }
+  50%{ transform:translateY(-6px); }
+}
+.intro-overlay{
+  position:fixed; inset:0; z-index:99995;
+  display:none; align-items:center; justify-content:center;
+  padding:24px;
+  background:rgba(6,7,12,0.82);
+  -webkit-backdrop-filter:blur(6px);
+  backdrop-filter:blur(6px);
+}
+.intro-overlay.show{ display:flex; }
+.intro-bubble{
+  display:flex; flex-direction:column; align-items:center;
+  width:100%; max-width:320px;
+  animation-name:introIn;
+  animation-duration:0.34s;
+  animation-timing-function:cubic-bezier(0.25,1,0.4,1);
+  animation-fill-mode:both;
+}
+.intro-pom{
+  width:88px; height:88px; object-fit:contain;
+  margin-bottom:-13px; z-index:2;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+  animation-name:introPomHop;
+  animation-duration:2.2s;
+  animation-timing-function:ease-in-out;
+  animation-iteration-count:infinite;
+}
+.intro-card{
+  position:relative; width:100%;
+  padding:18px 18px 12px;
+  background:rgba(20,22,32,0.94);
+  border:1px solid rgba(255,181,97,0.25);
+  border-radius:16px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.intro-card::before{
+  content:"";
+  position:absolute;
+  top:-8px; left:50%;
+  transform:translateX(-50%) rotate(45deg);
+  width:14px; height:14px;
+  background:rgba(20,22,32,0.94);
+  border-left:1px solid rgba(255,181,97,0.25);
+  border-top:1px solid rgba(255,181,97,0.25);
+}
+.intro-step{
+  text-align:center;
+  font-family:'Noto Sans JP',sans-serif;
+  font-size:10px; font-weight:800; letter-spacing:0.12em;
+  color:rgba(255,255,255,0.45);
+  margin-bottom:6px;
+}
+.intro-title{
+  text-align:center;
+  color:#FFB561;
+  font-size:16px; font-weight:700; letter-spacing:0.03em;
+  margin-bottom:9px;
+}
+.intro-text{
+  text-align:center;
+  color:rgba(255,255,255,0.92);
+  font-size:13px; line-height:1.7;
+  margin-bottom:14px;
+  white-space:pre-line;
+}
+.intro-nav{
+  display:flex; align-items:center; gap:8px;
+  padding-top:9px;
+  border-top:1px solid rgba(255,255,255,0.08);
+}
+.intro-skip{
+  flex:0 0 auto;
+  height:36px; padding:0 12px;
+  border:none; border-radius:10px;
+  background:transparent;
+  color:rgba(255,255,255,0.45);
+  font-size:11px; font-weight:600;
+  cursor:pointer;
+}
+.intro-next{
+  flex:1; height:36px;
+  min-width:140px; margin-left:auto;
+  border:none; border-radius:10px;
+  background:linear-gradient(135deg,#FFB561 0%,#FF8E3C 100%);
+  color:#1a1a1a;
+  font-size:12px; font-weight:600;
+  box-shadow:0 4px 12px rgba(255,142,60,0.35);
+  cursor:pointer;
+  transition:transform 0.12s;
+}
+.intro-next:active{ transform:scale(0.95); }
+
 .onboard-overlay{
   position:fixed; inset:0; z-index:99992;
   display:none; align-items:center; justify-content:center;
@@ -13184,6 +13286,23 @@ body.tut-active.tut-interactive #screen-game .slot{
   </div>
 </div>
 <!-- Session 39: 初回オンボーディング確認 -->
+<!-- Session 41-25: 初回起動時のイントロ。ポムの吹き出しで 4 ページ。
+     世界観 → ルールの核 → ファンタジーランド → チュートリアル誘導。
+     読み終えたらホームに戻し、誘導バナーから自分で選ばせる。 -->
+<div class="intro-overlay" id="introOverlay" aria-hidden="true">
+  <div class="intro-bubble">
+    <img class="intro-pom" src="assets/game/ready_pom.png" alt="" draggable="false"/>
+    <div class="intro-card">
+      <div class="intro-step" id="introStep">1 / 4</div>
+      <div class="intro-title" id="introTitle"></div>
+      <div class="intro-text" id="introText"></div>
+      <div class="intro-nav">
+        <button class="intro-skip" type="button" id="introSkip">スキップ</button>
+        <button class="intro-next" type="button" id="introNext">次へ</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="onboard-overlay" id="onboardOverlay" aria-hidden="true">
   <div class="onboard-card">
     <img class="onboard-icon" src="assets/char_pomu_face.png" alt=""/>
@@ -36644,7 +36763,7 @@ html.more-active body {
      ビルドが変わった最初の起動でのみリセットされ、
      同じビルド内での再起動では進捗が保持される
      (毎起動リセットだとレベルアップの検証ができなくなるため)。 */
-  var BUILD_ID = '20260801_173134';
+  var BUILD_ID = '20260801_174339';
   /* Session 41: チュートリアル進捗のリセットからも参照するためグローバルへ */
   try{ window.__CHAIPO_BUILD_ID = BUILD_ID; }catch(e){}
   var RESET_KEY = 'chaipo_player_reset_' + BUILD_ID;
@@ -37319,13 +37438,131 @@ html.more-active body {
   };
   /* Session 39: ホームのチュートリアル誘導バナーの表示制御。
      未経験 (tutorial progress の completed が空) のときだけ表示。 */
+  /* Session 41-25: 「未経験のときだけ表示」だと、レッスンを 1 つ触った時点で
+     バナーが消え、途中まで進めた人が続きに戻れなくなっていた。
+     全 5 レッスンを終えるまでは出し続ける。
+     完了数に応じて文言も変える (未着手 / 途中)。 */
+  var TUTORIAL_TOTAL = 5;
+  function _tutDoneCount(){
+    try{
+      var raw = localStorage.getItem('chaipo_tutorial_progress');
+      if(!raw) return 0;
+      var d = JSON.parse(raw);
+      return (d && Array.isArray(d.completed)) ? d.completed.length : 0;
+    }catch(e){ return 0; }
+  }
   window._updateTutBanner = function(){
     try{
       var b = document.getElementById('hm4TutBanner');
       if(!b) return;
-      b.style.display = _isTutorialUntouched() ? 'flex' : 'none';
+      var done = _tutDoneCount();
+      if(done >= TUTORIAL_TOTAL){
+        b.style.display = 'none';
+        return;
+      }
+      b.style.display = 'flex';
+      var t = b.querySelector('.hm4-tut-banner-title');
+      var sub = b.querySelector('.hm4-tut-banner-sub');
+      if(done === 0){
+        if(t) t.textContent = '遊び方を覚えよう';
+        if(sub) sub.textContent = '5 レッスンで一通り遊べるように';
+      } else {
+        if(t) t.textContent = 'チュートリアルの続き';
+        if(sub) sub.textContent = done + ' / ' + TUTORIAL_TOTAL + ' 完了';
+      }
     }catch(e){}
   };
+  /* ============================================================
+     Session 41-25: 初回起動時のイントロ (世界観 + チュートリアル誘導)
+
+     Session 39 でモーダル方式のオンボーディングは撤去され、
+     _maybeShowOnboarding() は常に何もしない状態になっていた。
+     結果、初めて起動した人は何のゲームか分からないまま
+     モード選択に放り出されていた。
+
+     ポムの吹き出しで 4 ページ。読み終えたらホームへ戻し、
+     誘導バナーから自分でチュートリアルを選ばせる
+     (いきなりレッスンへ飛ばすと、遊びたい人の導線を塞ぐため)。
+     ============================================================ */
+  var INTRO_KEY = 'chaipo_intro_seen_v1';
+  var INTRO_PAGES = [
+    {
+      title: 'ようこそ、チャイポへ',
+      text: 'ここはポーカーの一種「オープンフェイス・チャイニーズポーカー」で遊ぶ町。\nくばられたカードを置いていくだけの、シンプルな対戦ゲームです。'
+    },
+    {
+      title: 'カードを 3 段に並べる',
+      text: '手札を上段 3 枚・中段 5 枚・下段 5 枚に置いていきます。\n置いたカードはもう動かせません。どこに置くかが勝負どころです。'
+    },
+    {
+      title: '順番を守るのが鉄則',
+      text: '下段がいちばん強く、上段がいちばん弱くなるように組むのがルール。\nこの順番が崩れると「ファウル」になり、点がまるごと失われます。'
+    },
+    {
+      title: 'まずは遊び方を覚えよう',
+      text: '全 5 レッスンのチュートリアルを用意しています。\n5 分ほどで一通り遊べるようになります。\nホーム画面の案内からいつでも始められます。'
+    }
+  ];
+  var _introIdx = 0;
+
+  function _introRender(){
+    var pg = INTRO_PAGES[_introIdx];
+    if(!pg) return;
+    var st = document.getElementById('introStep');
+    var ti = document.getElementById('introTitle');
+    var tx = document.getElementById('introText');
+    var nx = document.getElementById('introNext');
+    if(st) st.textContent = (_introIdx + 1) + ' / ' + INTRO_PAGES.length;
+    if(ti) ti.textContent = pg.title;
+    if(tx) tx.textContent = pg.text;
+    if(nx) nx.textContent = (_introIdx === INTRO_PAGES.length - 1) ? 'はじめる' : '次へ';
+  }
+  function _introClose(){
+    try{ localStorage.setItem(INTRO_KEY, '1'); }catch(e){}
+    var ov = document.getElementById('introOverlay');
+    if(ov){ ov.classList.remove('show'); ov.setAttribute('aria-hidden', 'true'); }
+    /* 読み終えたらホームへ。バナーから自分で選ばせる。 */
+    try{
+      if(typeof window.showScreen === 'function') window.showScreen('home');
+      if(typeof window._updateTutBanner === 'function') window._updateTutBanner();
+    }catch(e){}
+  }
+  window._introNext = function(){
+    if(_introIdx < INTRO_PAGES.length - 1){
+      _introIdx++;
+      _introRender();
+    } else {
+      _introClose();
+    }
+  };
+  window._introSkip = function(){ _introClose(); };
+
+  /* 初回だけ出す。既にチュートリアルを触っている人には出さない
+     (機種変更や再インストールで進捗だけ残っている場合を想定)。 */
+  window._maybeShowIntro = function(){
+    try{
+      if(localStorage.getItem(INTRO_KEY)) return false;
+      if(!_isTutorialUntouched()){
+        localStorage.setItem(INTRO_KEY, '1');
+        return false;
+      }
+      var ov = document.getElementById('introOverlay');
+      if(!ov) return false;
+      _introIdx = 0;
+      _introRender();
+      ov.classList.add('show');
+      ov.setAttribute('aria-hidden', 'false');
+      return true;
+    }catch(e){ return false; }
+  };
+
+  try{
+    var _nx = document.getElementById('introNext');
+    var _sk = document.getElementById('introSkip');
+    if(_nx) _nx.addEventListener('click', function(e){ e.preventDefault(); window._introNext(); });
+    if(_sk) _sk.addEventListener('click', function(e){ e.preventDefault(); window._introSkip(); });
+  }catch(e){}
+
   window._onboardAnswer = function(isFirst){
     try{ localStorage.setItem(ONBOARD_KEY, '1'); }catch(e){}
     var ov = document.getElementById('onboardOverlay');
@@ -37364,11 +37601,23 @@ html.more-active body {
      ここは RESET_KEY によるレベルリセットの後なので、必ず新しいレベルで判定される。 */
   try{ _seenUnlocks(); _fxSeen(); }catch(e){}
 
+  /* Session 41-25: 初回起動時のイントロを出す。
+     描画が終わってから出さないと、背後のホームが組み上がる前に
+     暗幕だけが見える状態になるので render の後に回す。 */
+  function _bootIntro(){
+    render();
+    try{
+      setTimeout(function(){
+        if(typeof window._maybeShowIntro === 'function') window._maybeShowIntro();
+      }, 350);
+    }catch(e){}
+  }
+
   // 初期表示
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', render);
+    document.addEventListener('DOMContentLoaded', _bootIntro);
   } else {
-    render();
+    _bootIntro();
   }
 
   // home に切り替わるたびに再描画 (showScreen 本体には触らないラップ方式)
