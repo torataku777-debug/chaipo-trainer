@@ -1387,6 +1387,20 @@ body.ui-v2 .opp-area-inner.fl-mode{
 .level-up-body{
   display:flex; flex-direction:column; align-items:flex-start; gap:1px;
 }
+/* Session 41-24: レベルアップ時の軽い解放通知。
+   41-23 で全画面オーバーレイを廃止したが、結果画面で解放に一切触れないと
+   「レベルが上がった」だけで終わり、何かが開いたことに気づけない。
+   ここは事実だけを 1 行で伝え、説明はホームの吹き出しに任せる。
+   カードが縦に伸びるのを避けるため 10px の小さな行にしている。 */
+.level-up-unlock{
+  margin-top:3px;
+  max-width:190px;
+  font-family:'Noto Sans JP',sans-serif;
+  font-size:10px; font-weight:800; line-height:1.25;
+  letter-spacing:-0.01em;
+  color:#B23A00;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
 .level-up-overlay.show .level-up-card{
   /* Session 41-15: オーバーシュートを控えめにし、短くする。
      共用の levelUpCardIn (0.55s / 1.12倍) は解放・オンボードでも使うので
@@ -13153,6 +13167,9 @@ body.tut-active.tut-interactive #screen-game .slot{
     <div class="level-up-body">
       <div class="level-up-title">LEVEL UP</div>
       <div class="level-up-lv" id="levelUpLvText">Lv.2</div>
+      <!-- Session 41-24: 解放があったときだけ 1 行だけ出す。
+           説明はホームの吹き出しに任せ、ここは「開いた」ことだけ伝える。 -->
+      <div class="level-up-unlock" id="levelUpUnlock" style="display:none;"></div>
     </div>
   </div>
 </div>
@@ -19827,12 +19844,18 @@ function checkMatchEnd(){
 
     /* Session 41-19: バーが 100% に達する瞬間 (450ms 開始 + 0.55s) に合わせて発火する。
        旧: 1300ms。バーの transition を 0.9s としていた頃の値。 */
+    /* Session 41-24: レベルアップカードに解放を 1 行だけ添える。
+       41-23 で全画面オーバーレイを廃した結果、結果画面で解放に一切触れなくなり
+       「何かが開いた」ことに気づけなかったため。説明はホームの吹き出しに任せる。
+       ※ ここで markUnlocksSeen を呼ばないこと。呼ぶとホームで出なくなる。 */
+    var _unlocked = [];
+    try{
+      if(window.chaipoPlayer && typeof window.chaipoPlayer.unlocksBetween === 'function'){
+        _unlocked = window.chaipoPlayer.unlocksBetween(_xpResult.beforeLevel, _xpResult.level) || [];
+      }
+    }catch(e){ console.error('[unlock] unlocksBetween:', e); }
     setTimeout(function(){
-      try{ window.showLevelUpEffect(_xpResult.level); }catch(e){ console.error('[levelup]', e); }
-      /* Session 41-23: 結果画面での全画面解放オーバーレイを廃止した。
-         ホームの吹き出しと同じ説明を 2 回見せていて冗長だったため。
-         解放の提示はモード選択へ戻ったときの 1 回に一本化する。
-         ※ ここで markUnlocksSeen を呼ばないこと。呼ぶとホームで出なくなる。 */
+      try{ window.showLevelUpEffect(_xpResult.level, _unlocked); }catch(e){ console.error('[levelup]', e); }
     }, 1050);
   }
 }
@@ -36621,7 +36644,7 @@ html.more-active body {
      ビルドが変わった最初の起動でのみリセットされ、
      同じビルド内での再起動では進捗が保持される
      (毎起動リセットだとレベルアップの検証ができなくなるため)。 */
-  var BUILD_ID = '20260801_172200';
+  var BUILD_ID = '20260801_173134';
   /* Session 41: チュートリアル進捗のリセットからも参照するためグローバルへ */
   try{ window.__CHAIPO_BUILD_ID = BUILD_ID; }catch(e){}
   var RESET_KEY = 'chaipo_player_reset_' + BUILD_ID;
@@ -37245,21 +37268,38 @@ html.more-active body {
     badge.classList.add('show');
   }
 
-  window.showLevelUpEffect = function(level){
+  window.showLevelUpEffect = function(level, unlockedNames){
     var overlay = document.getElementById('levelUpOverlay');
     var lvText = document.getElementById('levelUpLvText');
     if(!overlay || !lvText) return;
     _liftOverlay(overlay);
     lvText.textContent = 'Lv.' + level;
+    /* Session 41-24: 解放があったときだけ 1 行足す。
+       説明は書かない (ホームの吹き出しと重複するため)。
+       複数のときは件数にまとめてカードの横幅を保つ。 */
+    var unEl = document.getElementById('levelUpUnlock');
+    if(unEl){
+      var names = unlockedNames || [];
+      if(names.length){
+        unEl.textContent = '🔓 ' + (names.length > 1
+          ? (names[0] + ' 他' + (names.length - 1) + '件')
+          : names[0]) + ' 解放';
+        unEl.style.display = '';
+      } else {
+        unEl.style.display = 'none';
+      }
+    }
     overlay.classList.remove('hide');
     overlay.classList.add('show');
     if(typeof window.haptic === 'function'){ window.haptic(25); }
-    /* Session 41-16: 1500ms → 1200ms。画面を覆わない小さなカードなので短くてよい。 */
+    /* Session 41-16: 1500ms → 1200ms。画面を覆わない小さなカードなので短くてよい。
+       Session 41-24: 解放行があるときは読む時間が要るので少し延ばす。 */
+    var hold = (unlockedNames && unlockedNames.length) ? 1700 : 1200;
     setTimeout(function(){
       overlay.classList.remove('show');
       overlay.classList.add('hide');
       setTimeout(function(){ overlay.classList.remove('hide'); }, 400);
-    }, 1200);
+    }, hold);
   };
 
   /* Session 39: 初回オンボーディング (チュートリアル未経験判定 + 確認モーダル) */
