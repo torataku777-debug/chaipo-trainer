@@ -12391,7 +12391,7 @@ body.tut-active.tut-interactive #screen-game .slot{
 
   <!-- 透明クリック領域(JS互換: id="btnAI2P" / id="btnAI3P" を維持)-->
   <button class="ai-img-tap" id="btnAI2P" type="button" aria-label="2人対戦"></button>
-  <button class="ai-img-tap" id="btnAI3P" disabled aria-disabled="true" type="button" aria-label="3人対戦(実装予定)"></button>
+  <button class="ai-img-tap" id="btnAI3P" type="button" aria-label="3人対戦"></button>
   <button class="ai-tap-back-btn" type="button" onclick="backToModeSelect()" aria-label="モード選択に戻る"></button>
 </div>
 <div class="screen" id="screen-fl-select">
@@ -16271,6 +16271,372 @@ function aiPineapple(cards,board){
 function genPl(cards,board){const sl=['top','mid','bot'];const res=[];for(const r1 of sl)for(const r2 of sl){const p={top:[],mid:[],bot:[]};p[r1].push(cards[0]);p[r2].push(cards[1]);if(board.top.length+p.top.length<=3&&board.mid.length+p.mid.length<=5&&board.bot.length+p.bot.length<=5)res.push(p);}return res;}
 function bScore(board){let sc=0;const fe=flReach(board);const te=eval3(board.top);if(te.flCards>0)sc+=FL_AI_EV[te.flCards]||0;sc+=fe*30;sc+=te.royalty;if(board.mid.length>=3)sc+=eval5(board.mid,false).royalty*1.5;if(board.bot.length>=3)sc+=eval5(board.bot,true).royalty;if(board.top.length===3&&board.mid.length===5&&board.bot.length===5&&isFoul(board))sc-=50;return sc;}
 function calcScore(pB,oB){return calcScoreWithJokers(pB,oB);}
+
+// ===== Phase 7: 1v1v1 AI engine (isolated from stable 1v1) =====
+window.state3 = null;
+window.sessionScore3 = null;
+
+function _cloneBoard3(b){
+  return { top:(b.top||[]).slice(), mid:(b.mid||[]).slice(), bot:(b.bot||[]).slice() };
+}
+function _emptyBoard3(){ return {top:[],mid:[],bot:[]}; }
+function _makePlayer3(id,type,seat){
+  return {
+    id:id,type:type,seat:seat,
+    board:_emptyBoard3(),
+    hand:[],discard:[],handDiscarded:[],
+    placedThisRound:[],discardedThisRound:false,
+    flMode:false,wasFL:false,flCards:0,flDiscard:[],
+    nextFlCards:0
+  };
+}
+function _turnOrder3(dealerSeat){
+  return [ (dealerSeat+1)%3, (dealerSeat+2)%3, dealerSeat ];
+}
+function _pairNet3(aBoard,bBoard){
+  var s=calcScoreWithJokers(aBoard,bBoard);
+  return {
+    net:(s.pTotal+s.pRoy)-(s.oTotal+s.oRoy),
+    score:s
+  };
+}
+function _scoreDeltas3(players){
+  var y1=_pairNet3(players[0].board,players[1].board);
+  var y2=_pairNet3(players[0].board,players[2].board);
+  var c12=_pairNet3(players[1].board,players[2].board);
+  var d={
+    you:y1.net+y2.net,
+    cpu1:-y1.net+c12.net,
+    cpu2:-y2.net-c12.net
+  };
+  return {deltas:d,pairs:{you_cpu1:y1,you_cpu2:y2,cpu1_cpu2:c12}};
+}
+function _makeDealPlan3(deck,dealerSeat,players){
+  var idx=0;
+  var plan={0:{},1:{},2:{}};
+  var order=_turnOrder3(dealerSeat);
+  var allFL=players.every(function(p){ return p.nextFlCards>=14; });
+  if(allFL){
+    for(var oi=0;oi<order.length;oi++){
+      var s=order[oi], n=players[s].nextFlCards;
+      plan[s].fl=deck.slice(idx,idx+n); idx+=n;
+    }
+    return {plan:plan,used:idx};
+  }
+  // FL / flat mixed: reserve each player's required game cards in turn order.
+  for(var oi2=0;oi2<order.length;oi2++){
+    var seat=order[oi2], p=players[seat];
+    if(p.nextFlCards>=14){
+      plan[seat].fl=deck.slice(idx,idx+p.nextFlCards); idx+=p.nextFlCards;
+    }else{
+      plan[seat].r1=deck.slice(idx,idx+5); idx+=5;
+      for(var r=2;r<=5;r++){ plan[seat]['r'+r]=deck.slice(idx,idx+3); idx+=3; }
+    }
+  }
+  return {plan:plan,used:idx};
+}
+function _knownCards3(state3,seat,currentHand){
+  var ids=new Set();
+  state3.players.forEach(function(p){
+    ['top','mid','bot'].forEach(function(r){ (p.board[r]||[]).forEach(function(c){ ids.add(c.id); }); });
+    (p.discard||[]).forEach(function(c){ ids.add(c.id); });
+    (p.flDiscard||[]).forEach(function(c){ ids.add(c.id); });
+  });
+  (currentHand||[]).forEach(function(c){ ids.add(c.id); });
+  return state3.deck.filter(function(c){ return !ids.has(c.id); });
+}
+function _applyBoard3(player,board){
+  player.board={top:(board.top||[]).slice(),mid:(board.mid||[]).slice(),bot:(board.bot||[]).slice()};
+}
+function _placeR1Cpu3(state3,seat,fast){
+  var p=state3.players[seat], hand=(state3.dealPlan[seat].r1||[]).slice();
+  p.hand=hand.slice();
+  var rem=_knownCards3(state3,seat,hand);
+  var board;
+  try{ board=fast?aiPlace5(hand):aiPlace5Rollout(hand,rem); }
+  catch(e){ board=aiPlace5(hand); }
+  _applyBoard3(p,board);
+  p.hand=[];
+}
+function _placePineCpu3(state3,seat,round,fast){
+  var p=state3.players[seat], hand=(state3.dealPlan[seat]['r'+round]||[]).slice();
+  p.hand=hand.slice();
+  var rem=_knownCards3(state3,seat,hand);
+  var decision;
+  try{ decision=fast?aiPineapple(hand,p.board):aiPineappleRollout(hand,p.board,round,rem); }
+  catch(e){ decision=aiPineapple(hand,p.board); }
+  if(!decision || !decision.place) throw new Error('3p AI placement failed seat='+seat+' round='+round);
+  ['top','mid','bot'].forEach(function(r){ p.board[r].push.apply(p.board[r],decision.place[r]||[]); });
+  if(decision.discard) p.discard.push(decision.discard);
+  p.hand=[];
+}
+function _placeFlCpu3(state3,seat){
+  var p=state3.players[seat], hand=(state3.dealPlan[seat].fl||[]).slice();
+  p.hand=hand.slice();
+  var sol=aiFLPlaceFast(hand);
+  if(!sol) throw new Error('3p FL placement failed seat='+seat);
+  _applyBoard3(p,sol);
+  var used=new Set([].concat(sol.top||[],sol.mid||[],sol.bot||[]).map(function(c){return c.id;}));
+  p.flDiscard=hand.filter(function(c){return !used.has(c.id);});
+  p.hand=[];
+}
+function _nextFlForPlayer3(p){
+  var was=!!p.flMode;
+  var enter=was?checkFLContinue(p.board):checkFLEntry(p.board);
+  if(!enter) return 0;
+  if(was) return p.flCards||getFLC(p.board)||14;
+  return getFLC(p.board)||14;
+}
+function _startGame3(match,opts){
+  opts=opts||{};
+  var players=match.players;
+  players.forEach(function(p){
+    p.wasFL=!!p.flMode;
+    p.nextFlCards=_nextFlForPlayer3(p);
+    p.board=_emptyBoard3(); p.hand=[]; p.discard=[]; p.handDiscarded=[];
+    p.placedThisRound=[];p.discardedThisRound=false;p.flDiscard=[];
+    p.flMode=p.nextFlCards>=14;p.flCards=p.nextFlCards||0;
+  });
+  var deck=shuffle(makeDeck());
+  var dp=_makeDealPlan3(deck,match.dealerSeat,players);
+  if(dp.used>54) throw new Error('3p deck overflow: '+dp.used);
+  match.deck=deck; match.dealPlan=dp.plan; match.deckUsed=dp.used; match.round=1; match.phase='place5'; match.gameOver=false;
+  // Phase 7 logic test: all three seats can be auto-played. UI later keeps seat0 human.
+  players.forEach(function(p){
+    if(p.flMode) _placeFlCpu3(match,p.seat);
+    else _placeR1Cpu3(match,p.seat,!!opts.fast);
+  });
+  for(var r=2;r<=5;r++){
+    match.round=r; match.phase='pineapple';
+    players.forEach(function(p){ if(!p.flMode) _placePineCpu3(match,p.seat,r,!!opts.fast); });
+  }
+  match.phase='ended'; match.gameOver=true;
+  return _finishGame3(match);
+}
+function _finishGame3(match){
+  match.players.forEach(function(p){
+    var n=p.board.top.length+p.board.mid.length+p.board.bot.length;
+    if(n!==13) throw new Error('3p incomplete board '+p.id+': '+n);
+  });
+  var scored=_scoreDeltas3(match.players);
+  var sum=scored.deltas.you+scored.deltas.cpu1+scored.deltas.cpu2;
+  if(sum!==0) throw new Error('3p non-zero-sum delta: '+sum);
+  match.session.scores.you+=scored.deltas.you;
+  match.session.scores.cpu1+=scored.deltas.cpu1;
+  match.session.scores.cpu2+=scored.deltas.cpu2;
+  match.session.games++;
+  var nextFl=match.players.map(_nextFlForPlayer3);
+  match.lastResult={deltas:scored.deltas,pairs:scored.pairs,nextFlCards:nextFl.slice(),dealerSeat:match.dealerSeat};
+  match.players.forEach(function(p,i){ p.nextFlCards=nextFl[i]; });
+  match.matchOver=match.session.games>=5 || Object.values(match.session.scores).some(function(v){return v<=0;});
+  if(!match.matchOver) match.dealerSeat=(match.dealerSeat+1)%3;
+  return match.lastResult;
+}
+function createMatch3(opts){
+  opts=opts||{};
+  var initial=opts.startScore||100;
+  var m={
+    mode:'3p-ai',phase:'idle',round:0,dealerSeat:(opts.dealerSeat||0)%3,gameOver:false,matchOver:false,
+    deck:[],dealPlan:null,deckUsed:0,
+    players:[_makePlayer3('you','human',0),_makePlayer3('cpu1','cpu',1),_makePlayer3('cpu2','cpu',2)],
+    session:{scores:{you:initial,cpu1:initial,cpu2:initial},games:0},
+    history:[]
+  };
+  window.state3=m; window.sessionScore3=m.session;
+  return m;
+}
+function simulateMatch3(opts){
+  opts=opts||{};
+  var m=createMatch3(opts);
+  while(!m.matchOver && m.session.games<5){
+    var r=_startGame3(m,{fast:opts.fast!==false});
+    m.history.push({
+      game:m.session.games,
+      dealerSeat:r.dealerSeat,
+      deltas:Object.assign({},r.deltas),
+      scores:Object.assign({},m.session.scores),
+      nextFlCards:r.nextFlCards.slice(),
+      deckUsed:m.deckUsed,
+      boards:m.players.map(function(p){return _cloneBoard3(p.board);})
+    });
+  }
+  return m;
+}
+window.chaipo3pEngine={
+  createMatch:createMatch3,
+  playGame:function(match,opts){ return _startGame3(match||window.state3,opts||{}); },
+  simulateMatch:simulateMatch3,
+  pairNet:_pairNet3,
+  scoreDeltas:_scoreDeltas3,
+  turnOrder:_turnOrder3
+};
+
+function _ensureGame3UI(){
+  if(document.getElementById('screen-game3')) return;
+  var style=document.createElement('style');
+  style.id='game3-style';
+  style.textContent=
+    '#screen-game3{position:fixed;inset:0;z-index:1200;background:linear-gradient(180deg,#f6f1e7 0%,#e8eef1 100%);display:none;flex-direction:column;padding:env(safe-area-inset-top,12px) 12px env(safe-area-inset-bottom,12px);overflow:hidden;font-family:var(--font-ui,Arial,sans-serif);color:#111}'+
+    '#screen-game3.active{display:flex}'+
+    '.g3-topbar{display:flex;align-items:center;justify-content:space-between;height:48px;flex:0 0 auto}.g3-back{width:44px;height:44px;border:2px solid #111;border-radius:12px;background:#fff;font-weight:900}.g3-round{font-weight:900;font-size:15px}.g3-score{font-family:var(--font-mono,monospace);font-size:12px;font-weight:800}'+
+    '.g3-opps{display:flex;flex-direction:column;gap:7px;flex:0 0 auto}.g3-opp{background:rgba(255,255,255,.84);border:2px solid #111;border-radius:14px;padding:7px 9px}.g3-opp-head{display:flex;justify-content:space-between;font-size:12px;font-weight:900;margin-bottom:4px}.g3-opp-rows{display:flex;flex-direction:column;gap:2px}.g3-mini-row{display:flex;gap:3px;min-height:22px}.g3-mini-card{min-width:27px;height:22px;padding:0 3px;background:#fff;border:1px solid #bbb;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900}.g3-hidden{letter-spacing:2px;color:#777;font-size:11px}'+
+    '.g3-you{margin-top:8px;background:rgba(255,255,255,.9);border:2px solid #111;border-radius:16px;padding:9px;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:6px}.g3-you-title{font-size:12px;font-weight:900;display:flex;justify-content:space-between}.g3-row{display:flex;gap:5px;align-items:center}.g3-row-label{width:32px;font-size:10px;font-weight:900;color:#666}.g3-slots{display:flex;gap:4px;flex:1}.g3-slot{height:48px;flex:1;max-width:54px;border:1.5px dashed #aaa;border-radius:7px;background:rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center}.g3-card{width:100%;height:100%;border:1.5px solid #222;border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900}.g3-red{color:#d92525}'+
+    '.g3-handwrap{flex:0 0 auto;padding:7px 0 5px}.g3-handtitle{font-size:10px;font-weight:900;color:#555;margin-bottom:4px}.g3-hand{display:flex;gap:5px;min-height:56px;overflow-x:auto}.g3-hand .g3-card{width:48px;height:56px;flex:0 0 48px}.g3-hand .g3-card.sel{outline:3px solid #E8651A;transform:translateY(-3px)}'+
+    '.g3-actions{display:flex;gap:8px;flex:0 0 auto}.g3-confirm{height:50px;flex:1;border:2px solid #111;border-radius:12px;background:#F5B82E;font-weight:900;font-size:15px}.g3-confirm:disabled{background:#ddd;color:#777}.g3-status{font-size:11px;font-weight:800;min-height:16px;text-align:center;color:#555}'+
+    '.g3-result{position:absolute;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:22px;z-index:5}.g3-result.show{display:flex}.g3-result-card{width:100%;max-width:360px;background:#fff;border:3px solid #111;border-radius:18px;padding:18px}.g3-result-title{font-size:22px;font-weight:1000;text-align:center;margin-bottom:12px}.g3-result-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #ddd;font-weight:800}.g3-result-actions{display:flex;gap:8px;margin-top:14px}.g3-result-actions button{height:46px;flex:1;border:2px solid #111;border-radius:10px;font-weight:900;background:#fff}.g3-result-actions .primary{background:#F5B82E}';
+  document.head.appendChild(style);
+  var s=document.createElement('div');
+  s.id='screen-game3';
+  s.innerHTML=
+    '<div class="g3-topbar"><button class="g3-back" id="g3Back">‹</button><div class="g3-round" id="g3Round">1/5 回戦</div><div class="g3-score" id="g3Score">100 / 100 / 100</div></div>'+
+    '<div class="g3-opps"><div class="g3-opp" id="g3Opp1"></div><div class="g3-opp" id="g3Opp2"></div></div>'+
+    '<div class="g3-you"><div class="g3-you-title"><span>YOU</span><span id="g3DealerYou"></span></div><div id="g3PlayerRows"></div></div>'+
+    '<div class="g3-handwrap"><div class="g3-handtitle">HAND</div><div class="g3-hand" id="g3Hand"></div></div>'+
+    '<div class="g3-status" id="g3Status"></div><div class="g3-actions"><button class="g3-confirm" id="g3Confirm" disabled>配置中</button></div>'+
+    '<div class="g3-result" id="g3Result"><div class="g3-result-card"><div class="g3-result-title" id="g3ResultTitle">RESULT</div><div id="g3ResultBody"></div><div class="g3-result-actions"><button id="g3Home">ホーム</button><button class="primary" id="g3Next">次のゲーム</button></div></div></div>';
+  document.body.appendChild(s);
+  document.getElementById('g3Back').onclick=function(){ _exitGame3(); };
+  document.getElementById('g3Home').onclick=function(){ _exitGame3(); };
+  document.getElementById('g3Next').onclick=function(){
+    document.getElementById('g3Result').classList.remove('show');
+    if(window.state3 && !window.state3.matchOver) _prepareInteractiveGame3(window.state3);
+  };
+  document.getElementById('g3Confirm').onclick=function(){ _confirmInteractive3(); };
+}
+function _cardLabel3(c){ return c?(c.isJoker?'JK':c.r+SUIT_SYMS[c.s]):''; }
+function _cardClass3(c){ return c && (c.s==='h'||c.s==='d')?'g3-card g3-red':'g3-card'; }
+function _renderRows3(board,interactive){
+  var html='';
+  [['top','TOP',3],['mid','MID',5],['bot','BOT',5]].forEach(function(x){
+    var row=x[0],lab=x[1],lim=x[2];
+    html+='<div class="g3-row"><div class="g3-row-label">'+lab+'</div><div class="g3-slots">';
+    for(var i=0;i<lim;i++){
+      var c=board[row][i];
+      html+='<button class="g3-slot" type="button" '+(interactive?'data-g3-row="'+row+'"':'')+'>'+(c?'<span class="'+_cardClass3(c)+'">'+_cardLabel3(c)+'</span>':'')+'</button>';
+    }
+    html+='</div></div>';
+  });
+  return html;
+}
+function _renderOpp3(seat){
+  var m=window.state3,p=m.players[seat],hidden=(m.hiddenCpuSeats||[]).indexOf(seat)>=0 && !m.gameOver;
+  var name=seat===1?'CPU A':'CPU B';
+  var dealer=m.dealerSeat===seat?' · DLR':'';
+  var sc=m.session.scores[p.id];
+  var html='<div class="g3-opp-head"><span>'+name+dealer+'</span><span>'+sc+'</span></div><div class="g3-opp-rows">';
+  ['top','mid','bot'].forEach(function(r){
+    html+='<div class="g3-mini-row">';
+    if(hidden){ html+='<span class="g3-hidden">••••••</span>'; }
+    else (p.board[r]||[]).forEach(function(c){ html+='<span class="g3-mini-card '+((c.s==='h'||c.s==='d')?'g3-red':'')+'">'+_cardLabel3(c)+'</span>'; });
+    html+='</div>';
+  });
+  return html+'</div>';
+}
+function _renderGame3(){
+  var m=window.state3;if(!m)return;
+  document.getElementById('g3Round').textContent=Math.min(m.session.games+1,5)+'/5 回戦';
+  document.getElementById('g3Score').textContent=m.session.scores.you+' / '+m.session.scores.cpu1+' / '+m.session.scores.cpu2;
+  document.getElementById('g3Opp1').innerHTML=_renderOpp3(1);
+  document.getElementById('g3Opp2').innerHTML=_renderOpp3(2);
+  document.getElementById('g3DealerYou').textContent=m.dealerSeat===0?'DLR':'';
+  document.getElementById('g3PlayerRows').innerHTML=_renderRows3(m.players[0].board,true);
+  document.querySelectorAll('#g3PlayerRows [data-g3-row]').forEach(function(el){ el.onclick=function(){ _placeSelected3(el.getAttribute('data-g3-row')); }; });
+  var handEl=document.getElementById('g3Hand');handEl.innerHTML='';
+  m.players[0].hand.forEach(function(c){
+    var b=document.createElement('button');b.type='button';b.className=_cardClass3(c)+(m.selectedCard3&&m.selectedCard3.id===c.id?' sel':'');b.textContent=_cardLabel3(c);
+    b.onclick=function(){m.selectedCard3=(m.selectedCard3&&m.selectedCard3.id===c.id)?null:c;_renderGame3();};handEl.appendChild(b);
+  });
+  var btn=document.getElementById('g3Confirm'),you=m.players[0],tot=you.board.top.length+you.board.mid.length+you.board.bot.length;
+  var ready=false,txt='';
+  if(you.flMode){ ready=tot===13; txt=ready?'CONFIRM →':'配置中 '+tot+'/13'; }
+  else if(m.round===1){ ready=tot===5;txt=ready?'CONFIRM →':'配置中 '+tot+'/5'; }
+  else{ ready=(you.placedThisRound||[]).length>=2 && you.discardedThisRound;txt=ready?'CONFIRM →':'配置 '+((you.placedThisRound||[]).length)+'/2'; }
+  btn.disabled=!ready;btn.textContent=txt;
+  document.getElementById('g3Status').textContent=you.flMode?'FANTASY LAND '+you.flCards+'枚':('R'+m.round+' · '+(_turnOrder3(m.dealerSeat).indexOf(0)===2?'後置き':'配置中'));
+}
+function _placeSelected3(row){
+  var m=window.state3,p=m.players[0],c=m.selectedCard3;if(!c)return;
+  var lim={top:3,mid:5,bot:5};if(p.board[row].length>=lim[row])return;
+  p.hand=p.hand.filter(function(x){return x.id!==c.id;});p.board[row].push(c);p.placedThisRound.push(c);m.selectedCard3=null;
+  if(p.flMode){
+    var total=p.board.top.length+p.board.mid.length+p.board.bot.length;
+    if(total===13){ while(p.hand.length){p.flDiscard.push(p.hand.shift());} }
+  }else if(m.round>1 && p.placedThisRound.length>=2 && !p.discardedThisRound && p.hand.length){
+    p.discard.push(p.hand.shift());p.discardedThisRound=true;
+  }
+  _renderGame3();
+}
+function _prepareInteractiveGame3(m){
+  m.players.forEach(function(p){
+    p.wasFL=!!p.flMode;
+    p.nextFlCards=_nextFlForPlayer3(p);
+    p.board=_emptyBoard3();p.hand=[];p.discard=[];p.handDiscarded=[];p.placedThisRound=[];p.discardedThisRound=false;p.flDiscard=[];
+    p.flMode=p.nextFlCards>=14;p.flCards=p.nextFlCards||0;
+  });
+  m.deck=shuffle(makeDeck());var dp=_makeDealPlan3(m.deck,m.dealerSeat,m.players);m.dealPlan=dp.plan;m.deckUsed=dp.used;m.round=1;m.phase='place5';m.gameOver=false;m.selectedCard3=null;
+  m.hiddenCpuSeats=[];
+  var order=_turnOrder3(m.dealerSeat),humanPos=order.indexOf(0);
+  [1,2].forEach(function(seat){
+    var p=m.players[seat];
+    if(p.flMode)_placeFlCpu3(m,seat);else _placeR1Cpu3(m,seat,false);
+    if(order.indexOf(seat)>humanPos)m.hiddenCpuSeats.push(seat);
+  });
+  var you=m.players[0];
+  if(you.flMode){
+    you.hand=(m.dealPlan[0].fl||[]).slice();
+    // Other flat CPUs must finish all streets while YOU is in FL.
+    [1,2].forEach(function(seat){if(!m.players[seat].flMode)for(var r=2;r<=5;r++)_placePineCpu3(m,seat,r,false);});
+  }else you.hand=(m.dealPlan[0].r1||[]).slice();
+  _renderGame3();
+}
+function _advanceRoundInteractive3(){
+  var m=window.state3,you=m.players[0];
+  if(you.flMode){ _finishInteractive3();return; }
+  if(m.round>=5){_finishInteractive3();return;}
+  m.round++;m.phase='pineapple';you.placedThisRound=[];you.discardedThisRound=false;m.selectedCard3=null;
+  var order=_turnOrder3(m.dealerSeat),humanPos=order.indexOf(0);m.hiddenCpuSeats=[];
+  [1,2].forEach(function(seat){
+    if(!m.players[seat].flMode)_placePineCpu3(m,seat,m.round,false);
+    if(order.indexOf(seat)>humanPos)m.hiddenCpuSeats.push(seat);
+  });
+  you.hand=(m.dealPlan[0]['r'+m.round]||[]).slice();
+  _renderGame3();
+}
+function _confirmInteractive3(){
+  var m=window.state3;if(!m)return;
+  m.hiddenCpuSeats=[];
+  _renderGame3();
+  setTimeout(function(){_advanceRoundInteractive3();},180);
+}
+function _finishInteractive3(){
+  var m=window.state3;m.hiddenCpuSeats=[];m.phase='ended';m.gameOver=true;
+  var res=_finishGame3(m);m.history.push({game:m.session.games,dealerSeat:res.dealerSeat,deltas:Object.assign({},res.deltas),scores:Object.assign({},m.session.scores),nextFlCards:res.nextFlCards.slice()});
+  _renderGame3();
+  var scores=m.session.scores;var arr=[['YOU',scores.you],['CPU A',scores.cpu1],['CPU B',scores.cpu2]].sort(function(a,b){return b[1]-a[1];});
+  document.getElementById('g3ResultTitle').textContent=m.matchOver?'MATCH RESULT':'GAME RESULT';
+  document.getElementById('g3ResultBody').innerHTML=
+    '<div class="g3-result-row"><span>YOU</span><span>'+(res.deltas.you>=0?'+':'')+res.deltas.you+' → '+scores.you+'</span></div>'+
+    '<div class="g3-result-row"><span>CPU A</span><span>'+(res.deltas.cpu1>=0?'+':'')+res.deltas.cpu1+' → '+scores.cpu1+'</span></div>'+
+    '<div class="g3-result-row"><span>CPU B</span><span>'+(res.deltas.cpu2>=0?'+':'')+res.deltas.cpu2+' → '+scores.cpu2+'</span></div>'+
+    (m.matchOver?'<div class="g3-result-row"><span>順位</span><span>'+arr.map(function(x,i){return (i+1)+'. '+x[0];}).join(' / ')+'</span></div>':'');
+  document.getElementById('g3Next').style.display=m.matchOver?'none':'';
+  document.getElementById('g3Result').classList.add('show');
+}
+function _exitGame3(){
+  var s=document.getElementById('screen-game3');if(s)s.classList.remove('active');
+  document.body.classList.remove('game3-active');
+  try{showScreen('home');}catch(e){}
+}
+window.startAi3Match=function(){
+  _ensureGame3UI();
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('screen-game3').classList.add('active');document.body.classList.add('game3-active');
+  var m=createMatch3({startScore:100,dealerSeat:Math.floor(Math.random()*3)});
+  _prepareInteractiveGame3(m);
+};
+
+// ===== END Phase 7: 1v1v1 AI engine =====
+
 let state={};
 async function newGame(onlineConfig){
   // v29.0: onlineConfig={match, asHost} なら online 対戦
@@ -21318,6 +21684,8 @@ function initModeSelect(){
   
   var btnAI2P = document.getElementById('btnAI2P');
   if(btnAI2P) btnAI2P.onclick = function(e){ e.preventDefault(); flPracticeMode = false; document.body.classList.remove('fl-practice-active'); if(typeof window.startAiMatchWithCoinToss === 'function'){ window.startAiMatchWithCoinToss(); } else if(typeof newGame === 'function'){ newGame(); } };
+  var btnAI3P = document.getElementById('btnAI3P');
+  if(btnAI3P) btnAI3P.onclick = function(e){ e.preventDefault(); if(typeof window.startAi3Match === 'function') window.startAi3Match(); };
   
   var btnModeFlPractice = document.getElementById('btnModeFlPractice');
   if(btnModeFlPractice) btnModeFlPractice.onclick = function(e){ e.preventDefault(); showScreen('fl-select'); };
@@ -27674,9 +28042,9 @@ body.bptune-enabled .bptune-active{
             <span class="hm4-item-label">2 人対戦</span>
             <span class="hm4-item-arrow" aria-hidden="true">▸</span>
           </button>
-          <button class="hm4-item hm4-item--disabled" type="button" disabled aria-disabled="true">
+          <button class="hm4-item" type="button" onclick="if(typeof window.startAi3Match==='function')window.startAi3Match();">
             <span class="hm4-item-label">3 人対戦</span>
-            <span class="hm4-item-badge">近日</span>
+            <span class="hm4-item-arrow" aria-hidden="true">▸</span>
           </button>
         </div>
       </section>
@@ -36756,7 +37124,7 @@ html.more-active body {
      ビルドが変わった最初の起動でのみリセットされ、
      同じビルド内での再起動では進捗が保持される
      (毎起動リセットだとレベルアップの検証ができなくなるため)。 */
-  var BUILD_ID = '20261030_160519';
+  var BUILD_ID = '20261030_164812';
   /* Session 41: チュートリアル進捗のリセットからも参照するためグローバルへ */
   try{ window.__CHAIPO_BUILD_ID = BUILD_ID; }catch(e){}
   var RESET_KEY = 'chaipo_player_reset_' + BUILD_ID;
@@ -37031,8 +37399,7 @@ html.more-active body {
      onclick を data-cp-onclick へ退避し、解放済みのときだけ実行する。 */
   var HOME_LOCK_MAP = [
     { match: /フレンドバトル/, key: 'online' },
-    { match: /ランダムバトル/, key: null, soon: true },
-    { match: /3\s*人対戦/,     key: null, soon: true }
+    { match: /ランダムバトル/, key: null, soon: true }
   ];
   function applyHomeLocks(){
     try{
