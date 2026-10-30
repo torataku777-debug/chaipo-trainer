@@ -27035,14 +27035,10 @@ body.bptune-enabled .bptune-active{
   }
 
   function init(){
-    // iOSアプリ or 認証済み → 招待コード画面をスキップ
-    if(isCapacitor() || isAlreadyAuthorized()){
-      hideInviteScreen();
-      return;
-    }
-    // ブラウザ初回 → 招待コード画面を表示
-    showInviteScreen();
-    setupListeners();
+    // 2026-10-30: 開発再開中は招待コードゲートを一時停止。
+    // 機能本体は残し、再開時はこの early return を外す。
+    hideInviteScreen();
+    return;
   }
 
   // DOMContentLoaded まで待つ(その前に screen-title が chrayed されていても問題ないよう、初期状態を active なしにしてある)
@@ -37124,7 +37120,7 @@ html.more-active body {
      ビルドが変わった最初の起動でのみリセットされ、
      同じビルド内での再起動では進捗が保持される
      (毎起動リセットだとレベルアップの検証ができなくなるため)。 */
-  var BUILD_ID = '20261030_164812';
+  var BUILD_ID = '20261030_170102';
   /* Session 41: チュートリアル進捗のリセットからも参照するためグローバルへ */
   try{ window.__CHAIPO_BUILD_ID = BUILD_ID; }catch(e){}
   var RESET_KEY = 'chaipo_player_reset_' + BUILD_ID;
