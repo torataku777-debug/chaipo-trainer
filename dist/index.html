@@ -16471,7 +16471,55 @@ window.chaipo3pEngine={
   turnOrder:_turnOrder3
 };
 
+
+function _ensureGame3Polish(){
+  var existing=document.getElementById('game3-polish-style');
+  if(existing){ document.head.appendChild(existing); return; }
+  var st=document.createElement('style');
+  st.id='game3-polish-style';
+  st.textContent=
+    '#screen-game3{background:'+
+      'radial-gradient(circle at 12% 18%,rgba(232,101,26,.18),transparent 16%),'+
+      'radial-gradient(circle at 88% 20%,rgba(43,184,163,.16),transparent 16%),'+
+      'radial-gradient(circle at 82% 82%,rgba(245,184,46,.17),transparent 18%),'+
+      'linear-gradient(180deg,#f4f0e4 0%,#eef2ec 50%,#f3eadc 100%);'+
+      'padding:calc(env(safe-area-inset-top,0px) + 8px) 10px calc(env(safe-area-inset-bottom,0px) + 8px);gap:6px}'+
+    '#screen-game3:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.23;background-image:radial-gradient(#7b776e 1px,transparent 1px);background-size:16px 16px}'+
+    '#screen-game3>*{position:relative;z-index:1}'+
+    '.g3-topbar{height:44px;display:grid;grid-template-columns:46px 1fr auto;gap:8px;align-items:center}'+
+    '.g3-back{width:42px;height:42px;border:2.5px solid #0a0a0a;border-radius:12px;background:#fff;box-shadow:3px 3px 0 #2bb8a3;font-size:24px;line-height:1}'+
+    '.g3-round{justify-self:center;background:#0a0a0a;color:#fff;border-radius:9px;padding:7px 16px;font-size:14px;letter-spacing:.08em;box-shadow:4px 4px 0 #f5852a;white-space:nowrap}'+
+    '.g3-score{background:#fff;border:2px solid #0a0a0a;border-radius:10px;padding:7px 9px;font-size:11px;box-shadow:3px 3px 0 rgba(10,10,10,.18);white-space:nowrap}'+
+    '.g3-opps{display:grid;grid-template-columns:1fr 1fr;gap:7px;flex:0 0 auto}'+
+    '.g3-opp{min-width:0;background:rgba(255,255,255,.94);border:2.5px solid #0a0a0a;border-radius:13px;padding:6px 7px 7px;box-shadow:4px 4px 0 rgba(10,10,10,.16)}'+
+    '.g3-opp:nth-child(1){box-shadow:4px 4px 0 #2bb8a3}.g3-opp:nth-child(2){box-shadow:4px 4px 0 #f5852a}'+
+    '.g3-opp-head{margin-bottom:5px;font-size:10px;letter-spacing:.05em;border-bottom:1.5px solid #0a0a0a;padding-bottom:4px}'+
+    '.g3-opp-rows{gap:2px}.g3-mini-row{gap:2px;min-height:20px;align-items:center;justify-content:flex-start}'+
+    '.g3-mini-card{min-width:22px;height:27px;padding:0 2px;border:1.4px solid #0a0a0a;border-radius:4px;font-size:10px;box-shadow:1px 1px 0 rgba(0,0,0,.12)}'+
+    '.g3-hidden{display:block;width:100%;height:17px;border-radius:4px;background:repeating-linear-gradient(135deg,#202020 0 5px,#333 5px 10px);font-size:0;opacity:.9}'+
+    '.g3-you{margin-top:1px;flex:0 0 318px;min-height:318px;background:rgba(255,255,255,.92);border:2.5px solid #0a0a0a;border-radius:16px;padding:7px 8px 8px;box-shadow:5px 5px 0 #f5b82e;justify-content:flex-start;gap:4px}'+
+    '.g3-you-title{align-items:center;background:#0a0a0a;color:#fff;border-radius:8px;padding:6px 10px;font-size:11px;letter-spacing:.08em;margin-bottom:2px}'+
+    '.g3-row{gap:5px}.g3-row-label{width:28px;font-size:9px;font-weight:1000;color:#555;letter-spacing:.04em}'+
+    '.g3-slots{gap:4px;justify-content:flex-start}'+
+    '.g3-slot{flex:0 0 48px;max-width:48px;height:62px;border:1.6px dashed #aaa;border-radius:7px;background:rgba(248,248,246,.78)}'+
+    '.g3-card{border:1.8px solid #0a0a0a;border-radius:7px;background:#fff;font-size:15px;font-weight:1000;box-shadow:2px 2px 0 rgba(10,10,10,.16)}'+
+    '.g3-handwrap{padding:4px 0 2px}.g3-handtitle{display:inline-block;background:#0a0a0a;color:#fff;border-radius:6px;padding:3px 8px;font-size:9px;letter-spacing:.08em;margin-bottom:5px}'+
+    '.g3-hand{gap:6px;min-height:62px;justify-content:center;overflow:visible}'+
+    '.g3-hand .g3-card{width:52px;height:64px;flex:0 0 52px;font-size:16px;transition:transform .12s ease,box-shadow .12s ease}'+
+    '.g3-hand .g3-card.sel{outline:none;transform:translateY(-7px);box-shadow:0 0 0 3px #f5852a,4px 5px 0 #0a0a0a}'+
+    '.g3-status{font-size:10px;min-height:14px;color:#5b616b;font-weight:900;letter-spacing:.04em}'+
+    '.g3-actions{padding-top:1px}.g3-confirm{height:48px;border:2.5px solid #0a0a0a;border-radius:11px;background:linear-gradient(180deg,#f8c84c,#f19a25);color:#0a0a0a;box-shadow:4px 4px 0 #0a0a0a;font-size:14px;letter-spacing:.06em}'+
+    '.g3-confirm:disabled{background:#d9d9d5;color:#777;box-shadow:3px 3px 0 #9e9e99}'+
+    '.g3-result{background:rgba(8,8,8,.72);backdrop-filter:blur(5px)}'+
+    '.g3-result-card{border:3px solid #0a0a0a;border-radius:18px;background:#fff9ef;box-shadow:7px 7px 0 #f5852a;padding:16px}'+
+    '.g3-result-title{display:inline-block;background:#0a0a0a;color:#fff;border-radius:9px;padding:7px 14px;box-shadow:4px 4px 0 #2bb8a3;font-size:18px;letter-spacing:.08em;margin-left:50%;transform:translateX(-50%);white-space:nowrap}'+
+    '.g3-result-row{font-size:12px;border-bottom:1.5px solid #d7d1c6}.g3-result-actions button{border:2px solid #0a0a0a;box-shadow:3px 3px 0 #0a0a0a}.g3-result-actions .primary{background:#f5b82e}'+
+    '@media(max-width:380px){.g3-slot{flex-basis:43px;max-width:43px;height:57px}.g3-hand .g3-card{width:48px;height:59px;flex-basis:48px}.g3-mini-card{min-width:20px;font-size:9px}}';
+  document.head.appendChild(st);
+}
+
 function _ensureGame3UI(){
+  _ensureGame3Polish();
   if(document.getElementById('screen-game3')) return;
   var style=document.createElement('style');
   style.id='game3-style';
@@ -16485,6 +16533,7 @@ function _ensureGame3UI(){
     '.g3-actions{display:flex;gap:8px;flex:0 0 auto}.g3-confirm{height:50px;flex:1;border:2px solid #111;border-radius:12px;background:#F5B82E;font-weight:900;font-size:15px}.g3-confirm:disabled{background:#ddd;color:#777}.g3-status{font-size:11px;font-weight:800;min-height:16px;text-align:center;color:#555}'+
     '.g3-result{position:absolute;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:22px;z-index:5}.g3-result.show{display:flex}.g3-result-card{width:100%;max-width:360px;background:#fff;border:3px solid #111;border-radius:18px;padding:18px}.g3-result-title{font-size:22px;font-weight:1000;text-align:center;margin-bottom:12px}.g3-result-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #ddd;font-weight:800}.g3-result-actions{display:flex;gap:8px;margin-top:14px}.g3-result-actions button{height:46px;flex:1;border:2px solid #111;border-radius:10px;font-weight:900;background:#fff}.g3-result-actions .primary{background:#F5B82E}';
   document.head.appendChild(style);
+  _ensureGame3Polish();
   var s=document.createElement('div');
   s.id='screen-game3';
   s.innerHTML=
@@ -16525,8 +16574,9 @@ function _renderOpp3(seat){
   var sc=m.session.scores[p.id];
   var html='<div class="g3-opp-head"><span>'+name+dealer+'</span><span>'+sc+'</span></div><div class="g3-opp-rows">';
   ['top','mid','bot'].forEach(function(r){
-    html+='<div class="g3-mini-row">';
-    if(hidden){ html+='<span class="g3-hidden">••••••</span>'; }
+    var rl=r==='top'?'T':r==='mid'?'M':'B';
+    html+='<div class="g3-mini-row"><span class="g3-mini-label">'+rl+'</span>';
+    if(hidden){ html+='<span class="g3-hidden"></span>'; }
     else (p.board[r]||[]).forEach(function(c){ html+='<span class="g3-mini-card '+((c.s==='h'||c.s==='d')?'g3-red':'')+'">'+_cardLabel3(c)+'</span>'; });
     html+='</div>';
   });
@@ -16535,7 +16585,7 @@ function _renderOpp3(seat){
 function _renderGame3(){
   var m=window.state3;if(!m)return;
   document.getElementById('g3Round').textContent=Math.min(m.session.games+1,5)+'/5 回戦';
-  document.getElementById('g3Score').textContent=m.session.scores.you+' / '+m.session.scores.cpu1+' / '+m.session.scores.cpu2;
+  document.getElementById('g3Score').textContent='YOU '+m.session.scores.you+' · A '+m.session.scores.cpu1+' · B '+m.session.scores.cpu2;
   document.getElementById('g3Opp1').innerHTML=_renderOpp3(1);
   document.getElementById('g3Opp2').innerHTML=_renderOpp3(2);
   document.getElementById('g3DealerYou').textContent=m.dealerSeat===0?'DLR':'';
@@ -37120,7 +37170,7 @@ html.more-active body {
      ビルドが変わった最初の起動でのみリセットされ、
      同じビルド内での再起動では進捗が保持される
      (毎起動リセットだとレベルアップの検証ができなくなるため)。 */
-  var BUILD_ID = '20261030_170102';
+  var BUILD_ID = '20261030_175501';
   /* Session 41: チュートリアル進捗のリセットからも参照するためグローバルへ */
   try{ window.__CHAIPO_BUILD_ID = BUILD_ID; }catch(e){}
   var RESET_KEY = 'chaipo_player_reset_' + BUILD_ID;
