@@ -26366,13 +26366,19 @@ body.is-web-browser #screen-game.active{
 /* 2026-10-30: Browser should mirror the native iPhone app shell exactly. */
 body.is-web-browser{
   background:#111 !important;
-  overflow:hidden !important;
+  overflow-x:hidden !important;
+  overflow-y:auto !important;
+  min-height:932px;
+}
+body.is-web-browser:not(.dev-mode) .bptune-toggle,
+body.is-web-browser:not(.dev-mode) .bptune-panel{
+  display:none !important;
 }
 body.is-web-browser .screen{
   width:430px !important;
   height:932px !important;
   max-width:none !important;
-  position:fixed !important;
+  position:absolute !important;
   top:0 !important;
   right:auto !important;
   bottom:auto !important;
@@ -26403,7 +26409,9 @@ body.is-web-browser .drawer-backdrop{
   height:932px !important;
   left:calc(50vw - 215px) !important;
   right:auto !important;
+  top:0 !important;
   bottom:auto !important;
+  position:absolute !important;
   transform-origin:top center !important;
   transform:scale(var(--game-scale,1)) !important;
 }
@@ -26437,10 +26445,12 @@ body.is-web-browser .drawer-sheet.open{
      基準サイズ 430x932 (iPhone 15 Pro Max) を超えない範囲で min(sw, sh, 1) */
   function updateGameScale(){
     if(isCapacitor() || !document.body || !document.body.classList.contains('is-web-browser')) return;
+    // Desktop browser preview: keep the app at true 430px width.
+    // Only shrink when the browser itself is narrower than the iPhone canvas.
     var sw = window.innerWidth / 430;
-    var sh = window.innerHeight / 932;
-    var scale = Math.min(sw, sh, 1);
+    var scale = Math.min(sw, 1);
     document.documentElement.style.setProperty('--game-scale', scale.toFixed(4));
+    document.body.style.minHeight = Math.ceil(932 * scale) + 'px';
   }
   function applyWebBrowserClass(){
     if(!isCapacitor() && document.body){
@@ -37247,7 +37257,7 @@ html.more-active body {
      ビルドが変わった最初の起動でのみリセットされ、
      同じビルド内での再起動では進捗が保持される
      (毎起動リセットだとレベルアップの検証ができなくなるため)。 */
-  var BUILD_ID = '20261030_180859';
+  var BUILD_ID = '20261030_181331';
   /* Session 41: チュートリアル進捗のリセットからも参照するためグローバルへ */
   try{ window.__CHAIPO_BUILD_ID = BUILD_ID; }catch(e){}
   var RESET_KEY = 'chaipo_player_reset_' + BUILD_ID;
